@@ -172,6 +172,8 @@ class AppSettingsViewController: OWSTableViewController2 {
                 },
             ))
         }
+        // Tellomi：阶段一不做捐赠，隐藏这一行。见 TSConstants.donationsEnabled。
+        if TSConstants.donationsEnabled {
         section1.add(.init(customCellBlock: { [weak self] in
             guard let self else { return UITableViewCell() }
             let accessoryContentView: UIView?
@@ -193,6 +195,7 @@ class AppSettingsViewController: OWSTableViewController2 {
         }, actionBlock: { [weak self] in
             self?.didTapDonate()
         }))
+        }
         contents.add(section1)
 
         let section2 = OWSTableSection()

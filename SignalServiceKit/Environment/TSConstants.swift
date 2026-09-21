@@ -79,6 +79,19 @@ public class TSConstants {
     public static var svrEnclaveAvailable: Bool { shared.svrEnclaveAvailable }
     public static var cdsiAvailable: Bool { shared.cdsiAvailable }
 
+    /// Tellomi：阶段一**不做捐赠**（owner 2026-09-22 定）。
+    ///
+    /// 为 false 时隐藏所有用户能点到的捐赠入口。这不是「部署差异」而是产品阶段决定，
+    /// 所以放在这里而不是 prod / staging 两个档里——要做的时候翻成 true 即可，
+    /// 上游的捐赠代码原样留着，没有删。
+    ///
+    /// 背景：我们既没有支付通道（Apple Pay 商户号、支付处理方都没有），服务端下发的
+    /// 也还是上游的测试配置（`/v1/subscription/configuration` 里 `xts` 测试币、
+    /// `example.svg` 徽章，客户端解析不了）。而且这些页面上还写着「Proudly Nonprofit」
+    /// 「Signal is a 501c3 nonprofit」这类**对 Tellomi 不成立**的资质说法。
+    public static let donationsEnabled = false
+
+
     public static var serverPublicParams: Data { shared.serverPublicParams }
     public static var callLinkPublicParams: Data { shared.callLinkPublicParams }
     public static var backupServerPublicParams: Data { shared.backupServerPublicParams }

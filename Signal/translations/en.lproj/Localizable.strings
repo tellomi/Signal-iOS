@@ -3,6 +3,8 @@
 
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
 "ABOUT_SECTION_FOOTER" = "Copyright Signal Messenger\nLicensed under the AGPLv3\nSignal is a 501c3 nonprofit";
+/* Tellomi: copyright + license only; upstream also claimed 501c3 nonprofit status, which is not true of Tellomi. */
+"ABOUT_SECTION_FOOTER_TELLOMI" = "Copyright Tellomi\nLicensed under the AGPLv3";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "About Tellomi";

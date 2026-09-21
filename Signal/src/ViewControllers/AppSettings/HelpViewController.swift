@@ -78,9 +78,12 @@ final class HelpViewController: OWSTableViewController2 {
 
         let aboutSection = OWSTableSection()
         aboutSection.headerTitle = OWSLocalizedString("ABOUT_SECTION_TITLE", comment: "Title for the 'about' help section")
+        // Tellomi：上游这里是「Copyright Signal Messenger / Licensed under the AGPLv3 /
+        // Signal is a 501c3 nonprofit」。版权与许可证要保留（AGPLv3 要求），
+        // 但**非营利资质那一句去掉**——Tellomi 不是非营利组织，换个名字就是假陈述。
         aboutSection.footerTitle = OWSLocalizedString(
-            "ABOUT_SECTION_FOOTER",
-            comment: "Footer for the 'about' help section. For non-English languages, exclude the word '501c3'.",
+            "ABOUT_SECTION_FOOTER_TELLOMI",
+            comment: "Footer for the 'about' help section: copyright and license only.",
         )
         aboutSection.add(.copyableItem(
             label: OWSLocalizedString("SETTINGS_VERSION", comment: ""),

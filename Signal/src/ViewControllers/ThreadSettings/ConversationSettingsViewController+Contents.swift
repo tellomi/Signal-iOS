@@ -98,8 +98,11 @@ extension ConversationSettingsViewController {
             let helpSection = buildHelpSettingsSection()
             contents.add(helpSection)
 
-            let donateSection = buildDonateSettingsSection()
-            contents.add(donateSection)
+            // Tellomi：阶段一不做捐赠。见 TSConstants.donationsEnabled。
+            if TSConstants.donationsEnabled {
+                let donateSection = buildDonateSettingsSection()
+                contents.add(donateSection)
+            }
 
             contents.add(buildBlockAndLeaveSection())
         }
