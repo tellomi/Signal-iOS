@@ -249,7 +249,13 @@ public class NewGroupConfirmViewController: OWSTableViewController2 {
                         modalActivityIndicator: modal,
                     )
                 } catch {
-                    owsFailDebug("Could not create group: \(error)")
+                    // Tellomi：建群失败时上游直接 owsFailDebug，而 Debug 构建上那是致命断言——
+                    // owner 2026-09-22 在真机上填完群名点「新建」就闪退回桌面，日志是
+                    // `Could not create group: verificationFailed("Verification failure in zkgroup")`。
+                    // 下面 dismiss + 换种子 + showCreateErrorUI 的处理本来就是对的（给用户报错并允许重试），
+                    // 少的只是「别把服务端/凭证问题当客户端 bug 断言掉」。
+                    // 这里只记日志——建群失败的原因绝大多数在服务端或网络，不在本地代码。
+                    Logger.error("Could not create group: \(error)")
 
                     modal.dismiss {
                         // Partial success could create the group on the service. This would cause
