@@ -1444,7 +1444,18 @@ class StorageServiceOperation {
             )
             /// We created a new manifest, so let's tell our other devices to go
             /// fetch it.
-            await SSKEnvironment.shared.syncManagerRef.sendFetchLatestStorageManifestSyncMessage()
+            ///
+            /// Tellomi：注册过程中会走到这里，而那时本地还没写完注册状态，
+            /// `OWSSyncManager._sendFetchLatestSyncMessage` 里的
+            /// `owsFailDebug("Tried to send sync message before registration.")`
+            /// 在 Debug 构建上是**致命断言**，真机注册填完验证码后就崩在这一行。
+            /// 语义上也不该发：还没注册完的时候根本没有「其它设备」要通知，
+            /// 下次正常同步会再推一次。所以没注册就跳过，而不是把那条断言改软。
+            if DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered {
+                await SSKEnvironment.shared.syncManagerRef.sendFetchLatestStorageManifestSyncMessage()
+            } else {
+                Logger.info("Skipping fetch-latest sync message: not registered yet (still in registration).")
+            }
 
             /// Store our changes.
             await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { transaction in

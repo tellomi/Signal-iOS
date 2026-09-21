@@ -87,13 +87,10 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         }()
         let titleLabel = UILabel.titleLabelForRegistration(text: titleText)
 
-        // Nonprofit label
-        let nonprofitAwarenessLabel = UILabel.explanationLabelForRegistration(
-            text: OWSLocalizedString(
-                "ONBOARDING_SPLASH_NONPROFIT",
-                comment: "Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'.",
-            ),
-        )
+        // Tellomi：上游这里是「Signal 是一个非营利组织」。整行去掉，不做替换——
+        // Tellomi 不是非营利组织，换成「Tellomi 是一个非营利组织」是假陈述；
+        // 留着原文又是在我们自己的登录页上写别人的名字。捐赠 / 非营利那一整类文案同理，
+        // 都在 build/brand-strings-todo.txt 里等 owner 定，不由脚本自动替换。
 
         // Terms of service and privacy policy.
         let tosPPButton = UIButton(
@@ -134,13 +131,11 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         let stackView = addStaticContentStackView(arrangedSubviews: [
             heroImageContainer,
             titleLabel,
-            nonprofitAwarenessLabel,
             tosPPButton,
             largeButtonsContainer,
         ])
         stackView.setCustomSpacing(44, after: imageView)
         stackView.setCustomSpacing(24, after: titleLabel)
-        stackView.setCustomSpacing(0, after: nonprofitAwarenessLabel)
         stackView.setCustomSpacing(80, after: tosPPButton)
 
         view.sendSubviewToBack(stackView)
