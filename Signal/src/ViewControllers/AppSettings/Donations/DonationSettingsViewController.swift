@@ -216,7 +216,16 @@ class DonationSettingsViewController: OWSTableViewController2 {
             return result
         } catch {
             Logger.warn("[Donations] \(error)")
-            owsFailDebugUnlessNetworkFailure(error)
+            // Tellomi：这套部署没有真正的捐赠通道（没有 Apple Pay 商户号、没有支付处理方，
+            // 服务端下发的还是上游的测试配置，徽章图在我们的 cdn0 上也不存在）。于是这里
+            // 必然拿到一个**非网络类**的错误，而 owsFailDebugUnlessNetworkFailure 在 Debug 构建上
+            // 是致命断言——owner 2026-09-22 在 iPhone 上点「捐款」直接闪退回桌面。
+            //
+            // 这条断言对上游是有用的（他们的服务端就该返回得了），对我们只是「功能没接」，
+            // 不是 bug。降级成日志，让页面照它自己的 .loadFailed 状态显示错误。
+            // Release 构建本来就是这个行为，这里只是让 Debug 与之一致。
+            // 真正要做的决定是：这个入口在阶段一要不要直接隐藏——留给 owner。
+            Logger.warn("[Donations] Donations are not configured for this deployment; showing load-failed state.")
             let result: State = .loadFinished(
                 subscriptionStatus: .loadFailed,
                 oneTimeBoostReceiptCredentialRequestError: oneTimeBoostReceiptCredentialRequestError,

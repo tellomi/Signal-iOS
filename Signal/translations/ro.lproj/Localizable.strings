@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "LL/AA";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi nu colectează sau stochează informațiile personale când faci o donație.\n\nFolosim Stripe ca procesator de plăți ca să primim donațiile tale. Nu accesăm, stocăm sau salvăm niciuna dintre informațiile pe care le oferi către ei.\n\nSignal nu conectează donația ta cu contul Tellomi și nici nu poate să o facă.\n\nÎți mulțumim pentru sprijinul tău!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi nu colectează sau stochează informațiile personale când faci o donație.\n\nFolosim Stripe ca procesator de plăți ca să primim donațiile tale. Nu accesăm, stocăm sau salvăm niciuna dintre informațiile pe care le oferi către ei.\n\nTellomi nu conectează donația ta cu contul Tellomi și nici nu poate să o facă.\n\nÎți mulțumim pentru sprijinul tău!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Informațiile sunt private";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Salut,\n\nRecent am început să folosesc Tellomi pentru a-mi păstra conversațiile private pe iPhone. Aș vrea să-ți instalezi și tu aplicația, ca să fim siguri că numai noi doi ne putem citi mesajele sau asculta apelurile.\n\nSignal este disponibil pentru iPhone, Android și desktop. Obține-l de aici: %1$@\n\nSignal funcționează ca și aplicația ta curentă de mesagerie. Putem trimite poze și video-uri, putem suna, și putem începe conversații de grup. Cea mai bună parte este că nimeni altcineva nu poate vedea toate acestea, nici măcar oamenii care dezvoltă Tellomi!\n\nPoți afla mai multe despre Tellomi, aici: %2$@";
+"EMAIL_INVITE_BODY" = "Salut,\n\nRecent am început să folosesc Tellomi pentru a-mi păstra conversațiile private pe iPhone. Aș vrea să-ți instalezi și tu aplicația, ca să fim siguri că numai noi doi ne putem citi mesajele sau asculta apelurile.\n\nTellomi este disponibil pentru iPhone, Android și desktop. Obține-l de aici: %1$@\n\nTellomi funcționează ca și aplicația ta curentă de mesagerie. Putem trimite poze și video-uri, putem suna, și putem începe conversații de grup. Cea mai bună parte este că nimeni altcineva nu poate vedea toate acestea, nici măcar oamenii care dezvoltă Tellomi!\n\nPoți afla mai multe despre Tellomi, aici: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Hai să folosim Tellomi";

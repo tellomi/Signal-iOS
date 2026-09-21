@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/AA";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi non archivia né salva le tue informazioni personali quando fai una donazione.\n\nUsiamo Stripe per elaborare i pagamenti e ricevere le tue donazioni. Non abbiamo accesso, né archiviamo o salviamo le informazioni che fornisci a Stripe per le transazioni.\n\nSignal non assocerà mai (né è in grado di farlo) le informazioni legate alla donazione al tuo account.\n\nGrazie per il tuo supporto!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi non archivia né salva le tue informazioni personali quando fai una donazione.\n\nUsiamo Stripe per elaborare i pagamenti e ricevere le tue donazioni. Non abbiamo accesso, né archiviamo o salviamo le informazioni che fornisci a Stripe per le transazioni.\n\nTellomi non assocerà mai (né è in grado di farlo) le informazioni legate alla donazione al tuo account.\n\nGrazie per il tuo supporto!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Le tue informazioni rimangono sempre private";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Ciao,\n\nultimamente sto usando Tellomi per mantenere private le chat sul mio iPhone. Perché non lo installi anche tu? Così abbiamo la certezza che i nostri messaggi e le nostre chiamate rimangono sempre tra di noi!\n\nSignal è disponibile per iPhone, Android e Desktop. Scaricalo qui: %1$@\n\nSignal funziona come una classica app di messaggistica istantanea. Possiamo mandarci foto, video, fare chiamate e creare chat di gruppo. Ma la ciliegina sulla torta è che nessuno potrà vedere né sentire nulla di tutto ciò, nemmeno chi lavora per Tellomi!\n\nPuoi saperne di più qui: %2$@";
+"EMAIL_INVITE_BODY" = "Ciao,\n\nultimamente sto usando Tellomi per mantenere private le chat sul mio iPhone. Perché non lo installi anche tu? Così abbiamo la certezza che i nostri messaggi e le nostre chiamate rimangono sempre tra di noi!\n\nTellomi è disponibile per iPhone, Android e Desktop. Scaricalo qui: %1$@\n\nTellomi funziona come una classica app di messaggistica istantanea. Possiamo mandarci foto, video, fare chiamate e creare chat di gruppo. Ma la ciliegina sulla torta è che nessuno potrà vedere né sentire nulla di tutto ciò, nemmeno chi lavora per Tellomi!\n\nPuoi saperne di più qui: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Passiamo a Tellomi";

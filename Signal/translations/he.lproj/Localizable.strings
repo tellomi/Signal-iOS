@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "חודש/שנה";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi לא אוספת או מאחסנת את המידע האישי שלך בעת ביצוע תרומה.\n\nאנחנו משתמשים ב–Stripe בתור מעבד התשלומים שלנו כדי לקבל את התרומות שלך. אנחנו לא ניגשים לשום מידע שהם מקבלים ממך ולא מאחסנים או שומרים אותו.\n\nSignal אינה מקשרת את התרומה שלך לחשבון Tellomi שלך ואין לה אפשרות לעשות זאת.\n\nתודה על התמיכה שלך!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi לא אוספת או מאחסנת את המידע האישי שלך בעת ביצוע תרומה.\n\nאנחנו משתמשים ב–Stripe בתור מעבד התשלומים שלנו כדי לקבל את התרומות שלך. אנחנו לא ניגשים לשום מידע שהם מקבלים ממך ולא מאחסנים או שומרים אותו.\n\nTellomi אינה מקשרת את התרומה שלך לחשבון Tellomi שלך ואין לה אפשרות לעשות זאת.\n\nתודה על התמיכה שלך!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "המידע שלך פרטי";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "היי,\n\nלאחרונה עברתי להשתמש ב–Tellomi כדי לשמור על הצ׳אטים ב–iPhone שלי פרטיים. זה יהיה מעולה אם גם לך תהיה את האפליקציה, כדי שנוכל לדעת בוודאות שרק לנו יש גישה להודעות ולשיחות הקוליות שלנו.\n\nSignal זמינה עבור iPhone, Android, ושולחן העבודה. אפשר להוריד אותה כאן: %1$@\n\nSignal עובדת כמו אפליקציית ההודעות הקיימת שלך. אפשר לשלוח תמונות וסרטונים, לבצע שיחות ולהתחיל צ׳אטים קבוצתיים. החלק הכי טוב הוא שאף אחד לא יכול לראות שום דבר מזה, אפילו לא האנשים שיוצרים את Tellomi!\n\nאפשר לקרוא עוד על Tellomi כאן: %2$@";
+"EMAIL_INVITE_BODY" = "היי,\n\nלאחרונה עברתי להשתמש ב–Tellomi כדי לשמור על הצ׳אטים ב–iPhone שלי פרטיים. זה יהיה מעולה אם גם לך תהיה את האפליקציה, כדי שנוכל לדעת בוודאות שרק לנו יש גישה להודעות ולשיחות הקוליות שלנו.\n\nTellomi זמינה עבור iPhone, Android, ושולחן העבודה. אפשר להוריד אותה כאן: %1$@\n\nTellomi עובדת כמו אפליקציית ההודעות הקיימת שלך. אפשר לשלוח תמונות וסרטונים, לבצע שיחות ולהתחיל צ׳אטים קבוצתיים. החלק הכי טוב הוא שאף אחד לא יכול לראות שום דבר מזה, אפילו לא האנשים שיוצרים את Tellomi!\n\nאפשר לקרוא עוד על Tellomi כאן: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "בוא נחליף אל Tellomi";

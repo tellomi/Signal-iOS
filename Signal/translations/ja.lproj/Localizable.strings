@@ -1175,7 +1175,7 @@
 "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_NOTICE_TITLE" = "バックアップのサブスクリプションを有効化することができませんでした";
 
 /* Body for a sheet explaining that the user's Backups subscription was already redeemed. */
-"BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_BODY" = "今月内で、サブスクリプションを有効化しようとした端末が多すぎます。\n\nSignalアカウントを何度も再登録したか、同じサブスクリプションを使用している端末が多すぎる可能性があります。";
+"BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_BODY" = "今月内で、サブスクリプションを有効化しようとした端末が多すぎます。\n\nTellomiアカウントを何度も再登録したか、同じサブスクリプションを使用している端末が多すぎる可能性があります。";
 
 /* Button for a sheet explaining that the user's Backups subscription was already redeemed. */
 "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_GOT_IT_BUTTON" = "わかりました";
@@ -1319,7 +1319,7 @@
 "BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ さんはTellomiをサポートしています";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "ブーストバッジの有効期限が切れたため、プロフィールには表示されません。\n\nSignalは今後もご利用いただけますが、あなたのために作られた技術をサポートするため、毎月の寄付をご検討ください。";
+"BADGE_EXPIRED_BOOST_BODY" = "ブーストバッジの有効期限が切れたため、プロフィールには表示されません。\n\nTellomiは今後もご利用いただけますが、あなたのために作られた技術をサポートするため、毎月の寄付をご検討ください。";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "ブーストバッジの有効期限が切れたため、プロフィールには表示されません。\n\n1回の寄付で、ブーストバッジをさらに30日間有効にすることができます。";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "月／年";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomiは、寄付を受ける際に、お客様のいかなる個人情報も収集したり保存したりすることはありません。\n\nSignalでは寄付を受け取る決済処理にStripeを使用しています。Tellomiは、お客様から提供されたいかなる情報にもアクセスすることはありません。また保管・保存したりすることもありません。\n\nSignalは、寄付からお客様のTellomiアカウントを特定することはありません。特定はできない仕組みになっています。ご支援ありがとうございます！";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomiは、寄付を受ける際に、お客様のいかなる個人情報も収集したり保存したりすることはありません。\n\nTellomiでは寄付を受け取る決済処理にStripeを使用しています。Tellomiは、お客様から提供されたいかなる情報にもアクセスすることはありません。また保管・保存したりすることもありません。\n\nTellomiは、寄付からお客様のTellomiアカウントを特定することはありません。特定はできない仕組みになっています。ご支援ありがとうございます！";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "お客様の個人情報は保護されています";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "こんにちは\n\n最近、私はiPhoneでのチャットのプライベートを保つためにTellomiを使っています。よかったら、あなたにもインストールしませんか？そうすれば、他の人が私たちのメッセージを読んだり聞いたりできないので安心です。\n\nSignalは、iPhone、Android、Desktopのどれでも使えます。ここからインストールできます： %1$@\n\nSignalの使い方は、今使っているメッセージアプリと同じです。写真や動画も送れるし、通話やグループチャットもできます。一番すごいところは、Tellomiの開発者であってもユーザーのやりとりを見られないところです！\n\nSignalの詳細についてはこちらをご覧ください：%2$@";
+"EMAIL_INVITE_BODY" = "こんにちは\n\n最近、私はiPhoneでのチャットのプライベートを保つためにTellomiを使っています。よかったら、あなたにもインストールしませんか？そうすれば、他の人が私たちのメッセージを読んだり聞いたりできないので安心です。\n\nTellomiは、iPhone、Android、Desktopのどれでも使えます。ここからインストールできます： %1$@\n\nTellomiの使い方は、今使っているメッセージアプリと同じです。写真や動画も送れるし、通話やグループチャットもできます。一番すごいところは、Tellomiの開発者であってもユーザーのやりとりを見られないところです！\n\nTellomiの詳細についてはこちらをご覧ください：%2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "メッセージアプリをTellomiにしましょう";
@@ -7934,7 +7934,7 @@
 "REGISTER_RATE_LIMITING_ERROR" = "急ぎすぎです。少し待ってから再試行してください。";
 
 /* Short description for a sheet warning users about an incorrect recovery key used for registration. */
-"REGISTRATION_BACKUP_REGISTRATION_ERROR_INCORRECT_KEY_BODY" = "入力した回復キーが正確でない可能性があります。\n\nSignalセキュアバックアップを有効にした際に保存したのと同じ電話番号と回復キーで登録していることを確認してください。";
+"REGISTRATION_BACKUP_REGISTRATION_ERROR_INCORRECT_KEY_BODY" = "入力した回復キーが正確でない可能性があります。\n\nTellomiセキュアバックアップを有効にした際に保存したのと同じ電話番号と回復キーで登録していることを確認してください。";
 
 /* Title for a sheet warning users about an incorrect recovery key used for registration. */
 "REGISTRATION_BACKUP_REGISTRATION_ERROR_INCORRECT_KEY_TITLE" = "回復キーが正しくありません";
@@ -7973,7 +7973,7 @@
 "REGISTRATION_BACKUP_RESTORE_ERROR_GENERIC_TITLE" = "移行を完了できませんでした";
 
 /* Body for a sheet warning users about an incorrect recovery key. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_BODY" = "回復キーを間違って入力したか、古い端末で少なくとも1つのバックアップを完了していない可能性があります。 \n\nSignalセキュアバックアップを有効にしたときに保存したのと同じ電話番号と回復キーで登録していること、および以前の端末でバックアップが完了していることを確認してください。";
+"REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_BODY" = "回復キーを間違って入力したか、古い端末で少なくとも1つのバックアップを完了していない可能性があります。 \n\nTellomiセキュアバックアップを有効にしたときに保存したのと同じ電話番号と回復キーで登録していること、および以前の端末でバックアップが完了していることを確認してください。";
 
 /* Body for a sheet warning users about an incorrect recovery key and having hit a rate limit on retries. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_RATE_LIMIT_BODY" = "回復キーの試行回数が上限に達しました。セキュリティ対策として、試行回数には上限が設定されています。一時間待ってから再度お試しください。";

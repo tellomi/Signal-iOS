@@ -1319,7 +1319,7 @@
 "BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ 支持 Tellomi";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "你的捐款徽章已過期，且不會再顯示在你的個人檔案中。\n\n你可如常使用 Signal，但也可以考慮透過每月捐款定期贊助，支持這項為你打造的技術。";
+"BADGE_EXPIRED_BOOST_BODY" = "你的捐款徽章已過期，且不會再顯示在你的個人檔案中。\n\n你可如常使用 Tellomi，但也可以考慮透過每月捐款定期贊助，支持這項為你打造的技術。";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "你的捐款徽章已過期，且不會再顯示在你的個人檔案中。\n\n你可憑單次捐款重新啟動你的捐款徽章，並延期 30 天。";
@@ -1373,7 +1373,7 @@
 "BANK_MANDATE_READ_MORE" = "了解更多";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is a subtitle about the payment processor Stripe above that mandate. */
-"BANK_MANDATE_SUBTITLE" = "Stripe 會處理給 Signal 的捐款。Signal 不會收集或保存你的個人資料。";
+"BANK_MANDATE_SUBTITLE" = "Stripe 會處理給 Tellomi 的捐款。Tellomi 不會收集或保存你的個人資料。";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is the title above that mandate. */
 "BANK_MANDATE_TITLE" = "銀行轉帳";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/YY";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "當您捐款時，Signal 不會收集或儲存任何個人資料。\n\n我們使用 Stripe 作為接收捐款的付款處理商。我們不會存取、保存或儲存您向他們提供的任何資料。\n\nSignal 不會也無法將您的捐款連結到您的 Signal 帳戶。\n\n感謝您的支持！";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "當您捐款時，Tellomi 不會收集或儲存任何個人資料。\n\n我們使用 Stripe 作為接收捐款的付款處理商。我們不會存取、保存或儲存您向他們提供的任何資料。\n\nTellomi 不會也無法將您的捐款連結到您的 Tellomi 帳戶。\n\n感謝您的支持！";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "你的資料已保密";
@@ -3338,13 +3338,13 @@
 "DONATE_CHOOSE_PAYMENT_METHOD_SHEET_SUBTITLE_FOR_ONE_TIME_DONATION" = "獲取為期 30 天的 %1$@ 徽章";
 
 /* When users make donations on a friend's behalf, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ 捐款給 Signal";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ 捐款給 Tellomi";
 
 /* When users make monthly donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money per month}}, such as \"$5/month\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "捐款 %1$@ 給 Signal";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "捐款 %1$@ 給 Tellomi";
 
 /* When users make one-time donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_ONE_TIME_DONATION" = "捐款 %1$@ 給 Signal";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_ONE_TIME_DONATION" = "捐款 %1$@ 給 Tellomi";
 
 /* Users can donate on a friend's behalf and can optionally add a message. This is tells users about that optional message. */
 "DONATE_ON_BEHALF_OF_A_FRIEND_ADDITIONAL_MESSAGE_INFO" = "接收者將收到有關捐款的一對一訊息通知。在下方加入你的訊息。";
@@ -3458,7 +3458,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_BADGE_REDEEMED" = "已兌換";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is a short paragraph on the screen where users choose the badge their friend will receive. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "透過為使用 Signal 的朋友或家人捐款來支持 Signal。他們可以選擇在個人檔案上展現支持。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "透過為使用 Tellomi 的朋友或家人捐款來支持 Tellomi。他們可以選擇在個人檔案上展現支持。";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is the title on the screen where users choose the badge their friend will receive. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_TITLE" = "為朋友捐款";
@@ -3482,7 +3482,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_FAILED_ERROR_TITLE" = "付款失敗";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, this error message will be shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "系統已經處理你的付款，但 Signal 無法傳送你的捐款訊息。請聯絡支援團隊。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "系統已經處理你的付款，但 Tellomi 無法傳送你的捐款訊息。請聯絡支援團隊。";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, an error dialog will be shown. This is the title of that dialog. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_TITLE" = "捐款失敗";
@@ -3494,7 +3494,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PREVIEW_OUTGOING" = "✨ 你已為 %1$@ 捐款";
 
 /* You received a donation from a friend. This is the title of that message in the chat. Embeds {{short contact name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@ 已代表你向 Signal 捐款";
+"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@ 已代表你向 Tellomi 捐款";
 
 /* Users can donate on a friend's behalf. This is the error message that appears if the try to do this, but the recipient is blocked. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_RECIPIENT_IS_BLOCKED_ERROR_BODY" = "由於你封鎖了此用戶，因此無法為其作出捐款。";
@@ -3518,7 +3518,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_SENT_TITLE_FORMAT" = "代表 %1$@ 捐款";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the text on that sheet. Embeds {{recipient name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "你已代表 %1$@ 向 Signal 捐款。他們可以選擇在個人檔案上展現支持。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "你已代表 %1$@ 向 Tellomi 捐款。他們可以選擇在個人檔案上展現支持。";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the title on that sheet. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_TITLE" = "感謝你的支持！";
@@ -3527,10 +3527,10 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_VIEW" = "檢視";
 
 /* A friend has donated on your behalf and you received a badge. This text says that you received a badge, and from whom. Embeds {{contact's short name, such as a first name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ 已代表你向 Signal 捐款！在你的個人檔案上展現你對 Signal 的支持。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ 已代表你向 Tellomi 捐款！在你的個人檔案上展現你對 Tellomi 的支持。";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "作為一個獨立的非營利組織， Signal 致力於提供私密訊息和通話。無廣告、無追蹤、無監控。請立即捐款支持 Signal。";
+"DONATION_READ_MORE_SHEET_BODY" = "作為一個獨立的非營利組織， Tellomi 致力於提供私密訊息和通話。無廣告、無追蹤、無監控。請立即捐款支持 Tellomi。";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "當你捐款後，你可獲得一個自選徽章並顯示在個人資料上";
@@ -3575,7 +3575,7 @@
 "DONATION_RECEIPTS" = "捐款收據";
 
 /* Text at the bottom of the donation receipts list, telling users that receipts might not be available */
-"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "若您已重新安裝 Signal，先前捐款的收據恕未能提供。";
+"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "若您已重新安裝 Tellomi，先前捐款的收據恕未能提供。";
 
 /* Error message displayed if something goes wrong with 3DSecure/iDEAL payment authorization.  This will be encountered if the user cancels the webview before authrizing the payment. */
 "DONATION_REDIRECT_ERROR_CANCELLED_MESSAGE" = "已取消付款。請重試。";
@@ -3590,7 +3590,7 @@
 "DONATION_SCREEN_DONATE_BUTTON" = "捐款";
 
 /* On donation screens, a small amount of information text is shown. This is the subtitle for that text. */
-"DONATION_SCREENS_HEADER_DESCRIPTION" = "捐款以支持私密訊息功能。讓 Signal 保持獨立且無廣告。";
+"DONATION_SCREENS_HEADER_DESCRIPTION" = "捐款以支持私密訊息功能。讓 Tellomi 保持獨立且無廣告。";
 
 /* On donation screens, a small amount of information text is shown. Users can click this link to learn more information. */
 "DONATION_SCREENS_HEADER_READ_MORE" = "閱讀全文";
@@ -3665,7 +3665,7 @@
 "DONATION_VIEW_DONATE_ON_BEHALF_OF_A_FRIEND" = "為朋友捐款";
 
 /* Text describing to the user that they're going to pay a donation to Signal */
-"DONATION_VIEW_DONATION_TO_SIGNAL" = "捐款給 Signal";
+"DONATION_VIEW_DONATION_TO_SIGNAL" = "捐款給 Tellomi";
 
 /* Title for the 'Donor FAQ' button on the donation screen */
 "DONATION_VIEW_DONOR_FAQ" = "捐款者常見問題";
@@ -3677,13 +3677,13 @@
 "DONATION_VIEW_MANAGE_BADGES" = "徽章";
 
 /* Text describing to the user that they're going to pay a monthly donation to Signal */
-"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "每月向 Signal 捐款";
+"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "每月向 Tellomi 捐款";
 
 /* Title for the 'my support' section in the donation view */
 "DONATION_VIEW_MY_SUPPORT_TITLE" = "我的支持";
 
 /* Title on the 'Donate to Signal' screen */
-"DONATION_VIEW_TITLE" = "捐款給 Signal";
+"DONATION_VIEW_TITLE" = "捐款給 Tellomi";
 
 /* Label for the currency picker button in donation views */
 "DONATIONS_CURRENCY_PICKER_LABEL" = "貨幣";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "嘿，\n\n我最近一直在用 Tellomi 來確保在 iPhone 上聊天的私密性。我希望你也能下載 Tellomi，我們就可以確保只有你我二人才能看到彼此的訊息，或聽到我們的電話内容。\n\nSignal 可以在 iPhone、Android 和桌面電腦上使用。在此下載：%1$@\n\nSignal 和你現有的通訊應用程式類似。我們可以傳送圖片和影片、撥打電話，以及群組聊天。最棒的是，所有人都看不到我們的內容，連 Tellomi 的創辦人都看不到！\n\n你可以在此了解更多有關 Tellomi 的詳情：%2$@";
+"EMAIL_INVITE_BODY" = "嘿，\n\n我最近一直在用 Tellomi 來確保在 iPhone 上聊天的私密性。我希望你也能下載 Tellomi，我們就可以確保只有你我二人才能看到彼此的訊息，或聽到我們的電話内容。\n\nTellomi 可以在 iPhone、Android 和桌面電腦上使用。在此下載：%1$@\n\nTellomi 和你現有的通訊應用程式類似。我們可以傳送圖片和影片、撥打電話，以及群組聊天。最棒的是，所有人都看不到我們的內容，連 Tellomi 的創辦人都看不到！\n\n你可以在此了解更多有關 Tellomi 的詳情：%2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "我們不如改用 Tellomi 吧";
@@ -8957,7 +8957,7 @@
 "SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為你開啟的所有新聊天預設一個自動銷毀訊息計時器。";
 
 /* Title for the 'donate to signal' link in settings. */
-"SETTINGS_DONATE" = "捐款給 Signal";
+"SETTINGS_DONATE" = "捐款給 Tellomi";
 
 /* Title for help button and help pages in app settings. */
 "SETTINGS_HELP" = "請求";

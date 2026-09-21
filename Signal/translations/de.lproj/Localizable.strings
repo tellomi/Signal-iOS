@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/JJ";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Deine persönlichen Daten werden von Tellomi nicht erfasst oder gespeichert, wenn du einen Betrag spendest.\n\nWir nutzen den Zahlungsdienstleister Stripe, um deine Spenden zu erhalten. Wir haben keinen Zugriff auf die Informationen, die du ihm zur Verfügung stellst, und speichern diese auch nicht.\n\nSignal kann und wird deine Spende nicht mit deinem Tellomi-Konto in Verbindung bringen.\n\nDanke für deine Unterstützung!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Deine persönlichen Daten werden von Tellomi nicht erfasst oder gespeichert, wenn du einen Betrag spendest.\n\nWir nutzen den Zahlungsdienstleister Stripe, um deine Spenden zu erhalten. Wir haben keinen Zugriff auf die Informationen, die du ihm zur Verfügung stellst, und speichern diese auch nicht.\n\nTellomi kann und wird deine Spende nicht mit deinem Tellomi-Konto in Verbindung bringen.\n\nDanke für deine Unterstützung!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Deine Daten sind vertraulich";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Hi,\n\nseit einiger Zeit verwende ich Tellomi, um Chats auf meinem iPhone vertraulich zu halten. Es wäre schön, wenn du es auch installierst. So könnten wir darauf vertrauen, dass nur du und ich unsere Nachrichten lesen oder unsere Telefonate hören können.\n\nSignal ist für iPhone, Android und Desktop verfügbar. Du bekommst es hier: %1$@\n\nSignal funktioniert wie deine bereits vorhandene Messenger-Apps. Wir können Bilder und Videos versenden, Anrufe tätigen und Gruppen-Chats beginnen. Das Beste daran ist, dass niemand anderes irgendetwas davon sehen kann – selbst die Leute nicht, die Tellomi entwickeln!\n\nMehr über Tellomi erfährst du hier: %2$@";
+"EMAIL_INVITE_BODY" = "Hi,\n\nseit einiger Zeit verwende ich Tellomi, um Chats auf meinem iPhone vertraulich zu halten. Es wäre schön, wenn du es auch installierst. So könnten wir darauf vertrauen, dass nur du und ich unsere Nachrichten lesen oder unsere Telefonate hören können.\n\nTellomi ist für iPhone, Android und Desktop verfügbar. Du bekommst es hier: %1$@\n\nTellomi funktioniert wie deine bereits vorhandene Messenger-Apps. Wir können Bilder und Videos versenden, Anrufe tätigen und Gruppen-Chats beginnen. Das Beste daran ist, dass niemand anderes irgendetwas davon sehen kann – selbst die Leute nicht, die Tellomi entwickeln!\n\nMehr über Tellomi erfährst du hier: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Lass uns zu Tellomi wechseln";

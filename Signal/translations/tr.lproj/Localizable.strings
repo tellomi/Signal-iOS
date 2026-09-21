@@ -1175,7 +1175,7 @@
 "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_NOTICE_TITLE" = "Yedekleme aboneliğini kullanamadın";
 
 /* Body for a sheet explaining that the user's Backups subscription was already redeemed. */
-"BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_BODY" = "Bu ay çok fazla cihaz aboneliğini kullanmaya çalıştı.\n\nSignal hesabını çok fazla kez yeniden kaydetmiş olabilirsin ya da çok aynı aboneliği kullanan çok fazla cihaz olabilir.";
+"BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_BODY" = "Bu ay çok fazla cihaz aboneliğini kullanmaya çalıştı.\n\nTellomi hesabını çok fazla kez yeniden kaydetmiş olabilirsin ya da çok aynı aboneliği kullanan çok fazla cihaz olabilir.";
 
 /* Button for a sheet explaining that the user's Backups subscription was already redeemed. */
 "BACKUP_SETTINGS_SUBSCRIPTION_ALREADY_REDEEMED_SHEET_GOT_IT_BUTTON" = "Anladım";
@@ -1319,7 +1319,7 @@
 "BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ Tellomi'i destekliyor";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "Boost rozetinin süresi doldu ve artık profilinde görünmüyor.\n\nSignal'i kullanmaya devam edebilirsin ancak senin için geliştirilen teknolojiyi desteklemek için lütfen aylık bağışçı olmayı düşün.";
+"BADGE_EXPIRED_BOOST_BODY" = "Boost rozetinin süresi doldu ve artık profilinde görünmüyor.\n\nTellomi'i kullanmaya devam edebilirsin ancak senin için geliştirilen teknolojiyi desteklemek için lütfen aylık bağışçı olmayı düşün.";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "Boost rozetinin süresi doldu ve artık profilinde görünmüyor.\n\nTek seferlik bağışla Boost rozetini 30 gün için daha yeniden etkinleştirebilirsin.";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "AA/YY";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Bağış yaptığında Tellomi kişisel bilgilerini toplamaz veya saklamaz.\n\nBağışlarını almak için ödeme işlemcimiz olarak Stripe'ı kullanıyoruz. Onlara sağladığın bilgilerin hiçbirine erişmiyoruz. Bilgilerini saklamıyor veya kaydetmiyoruz.\n\nSignal, yaptığın bağışı ve buna dair bilgileri Tellomi hesabın ile bağlamaz, bağlayamaz.\n\nDesteğin için teşekkürler!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Bağış yaptığında Tellomi kişisel bilgilerini toplamaz veya saklamaz.\n\nBağışlarını almak için ödeme işlemcimiz olarak Stripe'ı kullanıyoruz. Onlara sağladığın bilgilerin hiçbirine erişmiyoruz. Bilgilerini saklamıyor veya kaydetmiyoruz.\n\nTellomi, yaptığın bağışı ve buna dair bilgileri Tellomi hesabın ile bağlamaz, bağlayamaz.\n\nDesteğin için teşekkürler!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Bilgilerin gizlidir";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Merhaba,\n\nSon zamanlarda iPhone'umdaki sohbetlerimi gizli tutmak için Tellomi kullanıyorum. Senin de Tellomi kullanmanı isterim böylece mesajlarımızın ve aramalarımızın sadece aramızda kaldığından emin olabiliriz.\n\nSignal iPhone, Android ve Desktop için kullanılabilir. Uygulamayı bu adresten indirebilirsin: %1$@\n\nSignal mevcut mesajlaşma uygulaman gibi çalışır. Görüntü ve video gönderebilir, arama yapabilir ve grup sohbetlerine başlayabiliriz. En iyi yanı ise Tellomi'i yaratanlar dahil hiç kimsenin ne yazdığımızı göremeyecek olması!\n\nSignal hakkında daha fazla bilgi için burayı ziyaret edebilirsin: %2$@";
+"EMAIL_INVITE_BODY" = "Merhaba,\n\nSon zamanlarda iPhone'umdaki sohbetlerimi gizli tutmak için Tellomi kullanıyorum. Senin de Tellomi kullanmanı isterim böylece mesajlarımızın ve aramalarımızın sadece aramızda kaldığından emin olabiliriz.\n\nTellomi iPhone, Android ve Desktop için kullanılabilir. Uygulamayı bu adresten indirebilirsin: %1$@\n\nTellomi mevcut mesajlaşma uygulaman gibi çalışır. Görüntü ve video gönderebilir, arama yapabilir ve grup sohbetlerine başlayabiliriz. En iyi yanı ise Tellomi'i yaratanlar dahil hiç kimsenin ne yazdığımızı göremeyecek olması!\n\nTellomi hakkında daha fazla bilgi için burayı ziyaret edebilirsin: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Haydi Tellomi'e geçelim";
@@ -7934,7 +7934,7 @@
 "REGISTER_RATE_LIMITING_ERROR" = "Çok sık denediniz. Lütfen tekrar denemeden önce biraz bekleyin.";
 
 /* Short description for a sheet warning users about an incorrect recovery key used for registration. */
-"REGISTRATION_BACKUP_REGISTRATION_ERROR_INCORRECT_KEY_BODY" = "Kurtarma anahtarını hatalı girmiş olabilirsin.\n\nSignal Güvenli Yedeklemeler’i etkinleştirirken kaydettiğin telefon numarası ve kurtarma anahtarıyla kayıt olduğundan emin ol.";
+"REGISTRATION_BACKUP_REGISTRATION_ERROR_INCORRECT_KEY_BODY" = "Kurtarma anahtarını hatalı girmiş olabilirsin.\n\nTellomi Güvenli Yedeklemeler’i etkinleştirirken kaydettiğin telefon numarası ve kurtarma anahtarıyla kayıt olduğundan emin ol.";
 
 /* Title for a sheet warning users about an incorrect recovery key used for registration. */
 "REGISTRATION_BACKUP_REGISTRATION_ERROR_INCORRECT_KEY_TITLE" = "Hatalı Kurtarma Anahtarı";
@@ -7973,7 +7973,7 @@
 "REGISTRATION_BACKUP_RESTORE_ERROR_GENERIC_TITLE" = "Aktarımı tamamlanamadı";
 
 /* Body for a sheet warning users about an incorrect recovery key. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_BODY" = "Kurtarma anahtarını yanlış girmiş veya eski cihazında en az bir yedeklemeyi tamamlamamış olabilirsin. \n\nSignal Güvenli Yedeklemeleri etkinleştirirken kaydettiğin aynı telefon numarası ve kurtarma anahtarıyla kaydolduğundan emin ol ve eski cihazının bir yedeklemeyi tamamladığını onayla.";
+"REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_BODY" = "Kurtarma anahtarını yanlış girmiş veya eski cihazında en az bir yedeklemeyi tamamlamamış olabilirsin. \n\nTellomi Güvenli Yedeklemeleri etkinleştirirken kaydettiğin aynı telefon numarası ve kurtarma anahtarıyla kaydolduğundan emin ol ve eski cihazının bir yedeklemeyi tamamladığını onayla.";
 
 /* Body for a sheet warning users about an incorrect recovery key and having hit a rate limit on retries. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_RATE_LIMIT_BODY" = "Kurtarma anahtarı denemelerin tükendi. Güvenliğin için yapabileceğin deneme sayısı sınırlıdır. 1 saat bekle ve tekrar dene.";

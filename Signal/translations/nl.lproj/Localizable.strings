@@ -1319,7 +1319,7 @@
 "BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ steunt Tellomi";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "Je ‘Boost’-badge is verlopen en is daarom niet langer zichtbaar op je profiel.\n\nJe kunt Signal gewoon blijven gebruiken, maar als je technologie die écht voor jou is gemaakt wilt blijven ondersteunen, overweeg dan om een maandelijkse donateur te worden.";
+"BADGE_EXPIRED_BOOST_BODY" = "Je ‘Boost’-badge is verlopen en is daarom niet langer zichtbaar op je profiel.\n\nJe kunt Tellomi gewoon blijven gebruiken, maar als je technologie die écht voor jou is gemaakt wilt blijven ondersteunen, overweeg dan om een maandelijkse donateur te worden.";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "Je ‘Boost’-badge is verlopen en is daarom niet langer zichtbaar op je profiel.\n\nJe kunt je ‘Boost’-badge opnieuw voor 30 dagen activeren met een eenmalige donatie.";
@@ -1373,7 +1373,7 @@
 "BANK_MANDATE_READ_MORE" = "Meer lezen";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is a subtitle about the payment processor Stripe above that mandate. */
-"BANK_MANDATE_SUBTITLE" = "Stripe verwerkt alle donaties aan Signal. Signal verzamelt of bewaart geen persoonlijke gegevens.";
+"BANK_MANDATE_SUBTITLE" = "Stripe verwerkt alle donaties aan Tellomi. Tellomi verzamelt of bewaart geen persoonlijke gegevens.";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is the title above that mandate. */
 "BANK_MANDATE_TITLE" = "Bankoverschrijving";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/JJ";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Signal verzamelt of bewaart geen persoonlijke gegevens wanneer je een donatie doet.\n\nWij gebruiken Stripe als onze betalingsverwerker om je donaties te ontvangen. Wij hebben geen toegang tot de informatie die je aan hen verstrekt en slaan die ook niet op.\n\nSignal koppelt je donatie niet aan je Signal-account en kan dat ook niet.\n\nBedankt voor je steun!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi verzamelt of bewaart geen persoonlijke gegevens wanneer je een donatie doet.\n\nWij gebruiken Stripe als onze betalingsverwerker om je donaties te ontvangen. Wij hebben geen toegang tot de informatie die je aan hen verstrekt en slaan die ook niet op.\n\nTellomi koppelt je donatie niet aan je Tellomi-account en kan dat ook niet.\n\nBedankt voor je steun!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Jouw informatie is privé";
@@ -3338,7 +3338,7 @@
 "DONATE_CHOOSE_PAYMENT_METHOD_SHEET_SUBTITLE_FOR_ONE_TIME_DONATION" = "Krijg een ‘%1$@’-badge voor 30 dagen";
 
 /* When users make donations on a friend's behalf, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ Donatie aan Signal";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ Donatie aan Tellomi";
 
 /* When users make monthly donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money per month}}, such as \"$5/month\". */
 "DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "Doneer %1$@ aan Tellomi";
@@ -3458,7 +3458,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_BADGE_REDEEMED" = "In ontvangst genomen";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is a short paragraph on the screen where users choose the badge their friend will receive. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Steun Signal door een donatie te doen voor een vriend(in) of familielid die Signal gebruikt. Ze ontvangen een badge die ze op hun profiel kunnen weergeven.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Steun Tellomi door een donatie te doen voor een vriend(in) of familielid die Tellomi gebruikt. Ze ontvangen een badge die ze op hun profiel kunnen weergeven.";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is the title on the screen where users choose the badge their friend will receive. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_TITLE" = "Doneer voor een vriend(in)";
@@ -3482,7 +3482,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_FAILED_ERROR_TITLE" = "Betaling is mislukt";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, this error message will be shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "Je betaling is verwerkt, maar Signal kan je donatiebericht niet versturen. Neem contact op met ondersteuning.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "Je betaling is verwerkt, maar Tellomi kan je donatiebericht niet versturen. Neem contact op met ondersteuning.";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, an error dialog will be shown. This is the title of that dialog. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_TITLE" = "Doneren is mislukt";
@@ -3518,7 +3518,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_SENT_TITLE_FORMAT" = "Donatie namens %1$@";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the text on that sheet. Embeds {{recipient name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "Je hebt namens %1$@ een donatie gedaan aan Signal. Ze krijgen de mogelijkheid om hun steun op hun profiel te tonen.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "Je hebt namens %1$@ een donatie gedaan aan Tellomi. Ze krijgen de mogelijkheid om hun steun op hun profiel te tonen.";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the title on that sheet. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_TITLE" = "Bedankt voor je steun!";
@@ -3527,7 +3527,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_VIEW" = "Weergeven";
 
 /* A friend has donated on your behalf and you received a badge. This text says that you received a badge, and from whom. Embeds {{contact's short name, such as a first name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ heeft namens jou een donatie gedaan aan Signal! Toon je steun voor Signal op je profiel.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ heeft namens jou een donatie gedaan aan Tellomi! Toon je steun voor Tellomi op je profiel.";
 
 /* Body text for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BODY" = "Als onafhankelijke non-profitorganisatie richt Signal zich volledig op veilige privéberichten en -oproepen. Geen advertenties, geen trackers, geen toezicht. Doneer vandaag nog om Signal te steunen.";
@@ -3575,7 +3575,7 @@
 "DONATION_RECEIPTS" = "Donatiebewijzen";
 
 /* Text at the bottom of the donation receipts list, telling users that receipts might not be available */
-"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Als je de Signal-app opnieuw hebt geïnstalleerd, zijn donatiebewijzen van eerdere donaties niet beschikbaar.";
+"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Als je de Tellomi-app opnieuw hebt geïnstalleerd, zijn donatiebewijzen van eerdere donaties niet beschikbaar.";
 
 /* Error message displayed if something goes wrong with 3DSecure/iDEAL payment authorization.  This will be encountered if the user cancels the webview before authrizing the payment. */
 "DONATION_REDIRECT_ERROR_CANCELLED_MESSAGE" = "Betaling geannuleerd. Probeer het opnieuw.";
@@ -3665,7 +3665,7 @@
 "DONATION_VIEW_DONATE_ON_BEHALF_OF_A_FRIEND" = "Doneer voor een vriend(in)";
 
 /* Text describing to the user that they're going to pay a donation to Signal */
-"DONATION_VIEW_DONATION_TO_SIGNAL" = "Donatie aan Signal";
+"DONATION_VIEW_DONATION_TO_SIGNAL" = "Donatie aan Tellomi";
 
 /* Title for the 'Donor FAQ' button on the donation screen */
 "DONATION_VIEW_DONOR_FAQ" = "Veelgestelde vragen over doneren";
@@ -3677,7 +3677,7 @@
 "DONATION_VIEW_MANAGE_BADGES" = "Badges";
 
 /* Text describing to the user that they're going to pay a monthly donation to Signal */
-"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "Maandelijkse donatie aan Signal";
+"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "Maandelijkse donatie aan Tellomi";
 
 /* Title for the 'my support' section in the donation view */
 "DONATION_VIEW_MY_SUPPORT_TITLE" = "Mijn bijdrage";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Hoi,\n\ntegenwoordig gebruik ik Tellomi om de chats op mijn iPhone privé te houden. Ik zou het fijn vinden als jij de app ook installeert, zodat we erop kunnen vertrouwen dat alleen jij en ik onze berichten kunnen lezen of onze oproepen kunnen horen. \n\nSignal is beschikbaar voor iPhone, Android en desktop. Download de app hier: %1$@\n\nSignal werkt net als je gebruikelijke berichtenapp. We kunnen foto's en video's versturen, bellen en groepschats starten. Niemand anders kan er iets van zien, zelfs niet de mensen die Tellomi ontwikkelen!\n\nJe kunt hier meer informatie vinden over Tellomi: %2$@";
+"EMAIL_INVITE_BODY" = "Hoi,\n\ntegenwoordig gebruik ik Tellomi om de chats op mijn iPhone privé te houden. Ik zou het fijn vinden als jij de app ook installeert, zodat we erop kunnen vertrouwen dat alleen jij en ik onze berichten kunnen lezen of onze oproepen kunnen horen. \n\nTellomi is beschikbaar voor iPhone, Android en desktop. Download de app hier: %1$@\n\nTellomi werkt net als je gebruikelijke berichtenapp. We kunnen foto's en video's versturen, bellen en groepschats starten. Niemand anders kan er iets van zien, zelfs niet de mensen die Tellomi ontwikkelen!\n\nJe kunt hier meer informatie vinden over Tellomi: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Laten we overstappen naar Tellomi";

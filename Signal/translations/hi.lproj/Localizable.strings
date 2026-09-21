@@ -2,7 +2,7 @@
 "AB_PERMISSION_MISSING_ACTION_NOT_NOW" = "अभी नहीं";
 
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
-"ABOUT_SECTION_FOOTER" = "कॉपीराइट Tellomi मैसेंजर\nAGPLv3 के तहत लाइसेंस प्राप्त\nSignal एक गैर-लाभकारी संस्था है";
+"ABOUT_SECTION_FOOTER" = "कॉपीराइट Tellomi मैसेंजर\nAGPLv3 के तहत लाइसेंस प्राप्त\nTellomi एक गैर-लाभकारी संस्था है";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "Tellomi के बारे मे";
@@ -1319,7 +1319,7 @@
 "BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ ने Tellomi को सहयोग दिया है";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "आपका बूस्ट बैज एक्सपायर हो गया है। अब यह आपकी प्रोफ़ाइल पर नहीं दिख रहा।\n\nSignal का इस्तेमाल जारी रखें। अगर आप चाहें, तो इस टेक्नोलॉजी को सहयोग देने के लिए हमारा मासिक डोनर बनें।";
+"BADGE_EXPIRED_BOOST_BODY" = "आपका बूस्ट बैज एक्सपायर हो गया है। अब यह आपकी प्रोफ़ाइल पर नहीं दिख रहा।\n\nTellomi का इस्तेमाल जारी रखें। अगर आप चाहें, तो इस टेक्नोलॉजी को सहयोग देने के लिए हमारा मासिक डोनर बनें।";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "आपका बूस्ट बैज एक्सपायर हो गया है। अब यह आपकी प्रोफ़ाइल पर नहीं दिख रहा।\n\nएकमुश्त डोनेट करके अगले 30 दिनों के लिए फिर से बूस्ट बैज ऐक्टिवेट किया जा सकता है।";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "माह/वर्ष";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "डोनेट करने पर, Tellomi आपकी कोई भी निजी जानकारी न तो इकट्ठा करता है और न ही उसे स्टोर करता है।\n\nहम आपसे डोनेशन पाने के लिए Stripe को अपने पेमेंट प्रोसेसर के रूप में इस्तेमाल करते हैं। आपकी ओर से उसे दी गई किसी भी जानकारी को न तो ऐक्सेस करते हैं, न स्टोर और न ही उसे सेव करते हैं।\n\nSignal आपके डोनेशन को आपके Tellomi अकाउंट से न तो कनेक्ट करता है, न ही वह ऐसा कर सकता है।\n\nआपके सहयोग के लिए धन्यवाद!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "डोनेट करने पर, Tellomi आपकी कोई भी निजी जानकारी न तो इकट्ठा करता है और न ही उसे स्टोर करता है।\n\nहम आपसे डोनेशन पाने के लिए Stripe को अपने पेमेंट प्रोसेसर के रूप में इस्तेमाल करते हैं। आपकी ओर से उसे दी गई किसी भी जानकारी को न तो ऐक्सेस करते हैं, न स्टोर और न ही उसे सेव करते हैं।\n\nTellomi आपके डोनेशन को आपके Tellomi अकाउंट से न तो कनेक्ट करता है, न ही वह ऐसा कर सकता है।\n\nआपके सहयोग के लिए धन्यवाद!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "आपकी जानकारी गोपनीय रहती है";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "नमस्ते,\n\nआजकल मैं अपने iPhone की चैट को सुरक्षित और गोपनीय रखने के लिए Tellomi इस्तेमाल कर रहा/रही हूं। मेरे खयाल से आपको भी इसे इंस्टॉल करना चाहिए, ताकि हम खुलकर चैट कर सकें और हमें यह भरोसा रहे कि हमारे मैसेज और कॉल सिर्फ़ हम दोनों के बीच सीमित हैं।\n\nSignal फ़िलहाल iPhone, Android और डेस्कटॉप पर उपलब्ध है। यहां से इसे डाउनलोड करें: %1$@\n\nSignal आपके मौजूदा मैसेजिंग ऐप की तरह ही काम करता है। इसमें आपके पास फ़ोटो और वीडियो भेजने, कॉल करने, और ग्रुप चैट करने की सुविधा होती है। सबसे अच्छी बात यह है कि इसमें आपकी बातचीत को कोई तीसरा व्यक्ति नहीं देख या सुन सकता है, यहां तक कि Tellomi बनाने वाले लोग भी नहीं!\n\nSignal के बारे में ज़्यादा जानकारी यहां पढ़ें: %2$@";
+"EMAIL_INVITE_BODY" = "नमस्ते,\n\nआजकल मैं अपने iPhone की चैट को सुरक्षित और गोपनीय रखने के लिए Tellomi इस्तेमाल कर रहा/रही हूं। मेरे खयाल से आपको भी इसे इंस्टॉल करना चाहिए, ताकि हम खुलकर चैट कर सकें और हमें यह भरोसा रहे कि हमारे मैसेज और कॉल सिर्फ़ हम दोनों के बीच सीमित हैं।\n\nTellomi फ़िलहाल iPhone, Android और डेस्कटॉप पर उपलब्ध है। यहां से इसे डाउनलोड करें: %1$@\n\nTellomi आपके मौजूदा मैसेजिंग ऐप की तरह ही काम करता है। इसमें आपके पास फ़ोटो और वीडियो भेजने, कॉल करने, और ग्रुप चैट करने की सुविधा होती है। सबसे अच्छी बात यह है कि इसमें आपकी बातचीत को कोई तीसरा व्यक्ति नहीं देख या सुन सकता है, यहां तक कि Tellomi बनाने वाले लोग भी नहीं!\n\nTellomi के बारे में ज़्यादा जानकारी यहां पढ़ें: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "आइए Tellomi पर स्विच करें";

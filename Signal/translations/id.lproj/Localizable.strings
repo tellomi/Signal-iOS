@@ -1319,7 +1319,7 @@
 "BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ mendukung Tellomi";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "Lencana Boost Anda telah kedaluwarsa dan tidak terlihat lagi di profil Anda.\n\nAnda dapat terus menggunakan Signal, tetapi untuk mendukung teknologi yang dikembangkan untuk Anda, mohon pertimbangkan untuk menjadi donatur bulanan.";
+"BADGE_EXPIRED_BOOST_BODY" = "Lencana Boost Anda telah kedaluwarsa dan tidak terlihat lagi di profil Anda.\n\nAnda dapat terus menggunakan Tellomi, tetapi untuk mendukung teknologi yang dikembangkan untuk Anda, mohon pertimbangkan untuk menjadi donatur bulanan.";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "Lencana Boost Anda telah kedaluwarsa dan tidak terlihat lagi di profil Anda.\n\nAnda dapat mengaktifkan kembali lencana Boost untuk 30 hari lagi dengan donasi satu-kali.";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/YY";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi tidak mengumpulkan atau menyimpan informasi pribadi saat Anda memberikan donasi.\n\nKami menggunakan Stripe sebagai pemroses pembayaran donasi Anda. Kami tidak mengakses, menahan, atau menyimpan informasi apa pun yang Anda berikan kepada mereka.\n\nSignal tidak dan tidak dapat menghubungkan donasi Anda ke akun Tellomi Anda.\n\nTerima kasih atas dukungan Anda!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi tidak mengumpulkan atau menyimpan informasi pribadi saat Anda memberikan donasi.\n\nKami menggunakan Stripe sebagai pemroses pembayaran donasi Anda. Kami tidak mengakses, menahan, atau menyimpan informasi apa pun yang Anda berikan kepada mereka.\n\nTellomi tidak dan tidak dapat menghubungkan donasi Anda ke akun Tellomi Anda.\n\nTerima kasih atas dukungan Anda!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Informasi Anda bersifat pribadi";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Hai,\n\nBelakangan ini saya menggunakan Tellomi untuk memastikan chat di iPhone saya tetap privat. Saya ingin Anda menginstalnya juga agar tidak ada orang lain yang bisa melihat pesan atau mendengarkan panggilan kita.\n\nSignal bisa dipakai di iPhone, Android, dan Desktop. Unduh di sini: %1$@\n\nSignal berfungsi seperti aplikasi perpesanan yang saat ini Anda gunakan. Kita bisa mengirim gambar dan video, melakukan panggilan, dan membuat grup chat. Yang terpenting, orang lain tidak akan bisa melihatnya, termasuk developer Tellomi sekalipun!\n\nBaca selengkapnya tentang Tellomi di sini: %2$@";
+"EMAIL_INVITE_BODY" = "Hai,\n\nBelakangan ini saya menggunakan Tellomi untuk memastikan chat di iPhone saya tetap privat. Saya ingin Anda menginstalnya juga agar tidak ada orang lain yang bisa melihat pesan atau mendengarkan panggilan kita.\n\nTellomi bisa dipakai di iPhone, Android, dan Desktop. Unduh di sini: %1$@\n\nTellomi berfungsi seperti aplikasi perpesanan yang saat ini Anda gunakan. Kita bisa mengirim gambar dan video, melakukan panggilan, dan membuat grup chat. Yang terpenting, orang lain tidak akan bisa melihatnya, termasuk developer Tellomi sekalipun!\n\nBaca selengkapnya tentang Tellomi di sini: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Pindah ke Tellomi";

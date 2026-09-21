@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/YY";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "আপনি যখন ডোনেট করেন তখন Tellomi আপনার কোনো ব্যক্তিগত তথ্য সংগ্রহ বা সংরক্ষণ করে না।\n\nআমরা আপনার পাঠানো ডোনেশন গ্রহণ করার জন্য পেমেন্ট প্রক্রিয়াকারী মাধ্যম হিসাবে Stripe ব্যবহার করি। আপনি তাদেরকে যেসব তথ্য প্রদান করেন তা আমরা অ্যাক্সেস, সংরক্ষণ বা সেভ করি না।\n\nSignal আপনার Tellomi অ্যাকাউন্টে আপনার ডোনেশনকে সংযুক্ত করে না এবং করতে পারে না।\n\nআপনার সহায়তার জন্য ধন্যবাদ!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "আপনি যখন ডোনেট করেন তখন Tellomi আপনার কোনো ব্যক্তিগত তথ্য সংগ্রহ বা সংরক্ষণ করে না।\n\nআমরা আপনার পাঠানো ডোনেশন গ্রহণ করার জন্য পেমেন্ট প্রক্রিয়াকারী মাধ্যম হিসাবে Stripe ব্যবহার করি। আপনি তাদেরকে যেসব তথ্য প্রদান করেন তা আমরা অ্যাক্সেস, সংরক্ষণ বা সেভ করি না।\n\nTellomi আপনার Tellomi অ্যাকাউন্টে আপনার ডোনেশনকে সংযুক্ত করে না এবং করতে পারে না।\n\nআপনার সহায়তার জন্য ধন্যবাদ!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "আপনার তথ্য গোপনীয়";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "হাই,\n\nআমার iPhone-এর চ্যাট গোপন রাখতে সম্প্রতি আমি Tellomi ব্যবহার করছি। আমি চাই আপনিও এটি ইনস্টল করুন, যাতে আমরা সুনিশ্চিত হতে পারি যে কেবলমাত্র আপনি ও আমি আমাদের মেসেজগুলো পড়তে পারি এবং আমাদের কথা শুনতে পারি।\n\niPhone, Android এবং Desktop-এর জন্য Tellomi পাওয়া যাচ্ছে। এটি এখান থেকে নিন: %1$@\n\nSignal আপনার বিদ্যমান মেসেজিং অ্যাপের মতোই কাজ করে। আমরা ছবি ও ভিডিও পাঠাতে পারি, কল করতে পারি এবং গ্রুপ চ্যাট শুরু করতে পারি। এর সেরা দিকটি হচ্ছে অন্য কেউ এসবের কিছুই দেখতে পারবেন না, এমনকি Tellomi যারা তৈরি করেছেন তারাও না!\n\nআপনি Tellomi সম্পর্কে আরো জানতে পারবেন, এখানে: %2$@";
+"EMAIL_INVITE_BODY" = "হাই,\n\nআমার iPhone-এর চ্যাট গোপন রাখতে সম্প্রতি আমি Tellomi ব্যবহার করছি। আমি চাই আপনিও এটি ইনস্টল করুন, যাতে আমরা সুনিশ্চিত হতে পারি যে কেবলমাত্র আপনি ও আমি আমাদের মেসেজগুলো পড়তে পারি এবং আমাদের কথা শুনতে পারি।\n\niPhone, Android এবং Desktop-এর জন্য Tellomi পাওয়া যাচ্ছে। এটি এখান থেকে নিন: %1$@\n\nTellomi আপনার বিদ্যমান মেসেজিং অ্যাপের মতোই কাজ করে। আমরা ছবি ও ভিডিও পাঠাতে পারি, কল করতে পারি এবং গ্রুপ চ্যাট শুরু করতে পারি। এর সেরা দিকটি হচ্ছে অন্য কেউ এসবের কিছুই দেখতে পারবেন না, এমনকি Tellomi যারা তৈরি করেছেন তারাও না!\n\nআপনি Tellomi সম্পর্কে আরো জানতে পারবেন, এখানে: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Tellomi এ স্যুইচ করা যাক";
@@ -7973,7 +7973,7 @@
 "REGISTRATION_BACKUP_RESTORE_ERROR_GENERIC_TITLE" = "ট্রান্সফার সম্পন্ন করা যায়নি";
 
 /* Body for a sheet warning users about an incorrect recovery key. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_BODY" = "আপনি হয়তো আপনার পুনরুদ্ধার 'কি' ভুল লিখেছেন, অথবা আপনার পুরনো ডিভাইসে অন্তত একটি ব্যাকআপ সম্পন্ন করেননি। \n\nSignal নিরাপদ ব্যাকআপ সচল করার সময় আপনি যে ফোন নম্বর ও পুনরুদ্ধার 'কি'-টি সেভ করেছিলেন, নিশ্চিত করুন যে আপনি সেগুলো দিয়েই রেজিস্ট্রেশন করছেন এবং এটিও নিশ্চিত করুন যে আপনার পুরানো ডিভাইসটি একটি ব্যাকআপ সম্পন্ন করেছে।";
+"REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_BODY" = "আপনি হয়তো আপনার পুনরুদ্ধার 'কি' ভুল লিখেছেন, অথবা আপনার পুরনো ডিভাইসে অন্তত একটি ব্যাকআপ সম্পন্ন করেননি। \n\nTellomi নিরাপদ ব্যাকআপ সচল করার সময় আপনি যে ফোন নম্বর ও পুনরুদ্ধার 'কি'-টি সেভ করেছিলেন, নিশ্চিত করুন যে আপনি সেগুলো দিয়েই রেজিস্ট্রেশন করছেন এবং এটিও নিশ্চিত করুন যে আপনার পুরানো ডিভাইসটি একটি ব্যাকআপ সম্পন্ন করেছে।";
 
 /* Body for a sheet warning users about an incorrect recovery key and having hit a rate limit on retries. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_INCORRECT_KEY_RATE_LIMIT_BODY" = "আপনার পুনরুদ্ধার 'কি' দিয়ে ঢোকার প্রচেষ্টার সর্বোচ্চ সংখ্যা ফুরিয়ে গেছে। আপনার নিরাপত্তার জন্য, আপনি যতবার ঢোকার চেষ্টা করতে পারবেন তার সংখ্যা সীমিত। 1 ঘন্টা অপেক্ষা করুন এবং আবার চেষ্টা করুন।";

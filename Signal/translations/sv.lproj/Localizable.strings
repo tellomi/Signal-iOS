@@ -1373,7 +1373,7 @@
 "BANK_MANDATE_READ_MORE" = "Läs mer";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is a subtitle about the payment processor Stripe above that mandate. */
-"BANK_MANDATE_SUBTITLE" = "Stripe behandlar donationer till Signal. Signal samlar inte in eller lagrar dina personuppgifter.";
+"BANK_MANDATE_SUBTITLE" = "Stripe behandlar donationer till Tellomi. Tellomi samlar inte in eller lagrar dina personuppgifter.";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is the title above that mandate. */
 "BANK_MANDATE_TITLE" = "Banköverföring";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/YY";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Signal samlar inte in eller lagrar någon av dina personuppgifter när du gör en donation.\n\nVi använder Stripe som vår betalningstjänst för att ta emot dina donationer. Vi kommer inte åt, lagrar eller sparar inte någon av de uppgifter du lämnar till dem.\n\nSignal kopplar inte och kan inte koppla din donation till ditt Signal-konto.\n\nTack för ditt stöd!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi samlar inte in eller lagrar någon av dina personuppgifter när du gör en donation.\n\nVi använder Stripe som vår betalningstjänst för att ta emot dina donationer. Vi kommer inte åt, lagrar eller sparar inte någon av de uppgifter du lämnar till dem.\n\nTellomi kopplar inte och kan inte koppla din donation till ditt Tellomi-konto.\n\nTack för ditt stöd!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Dina uppgifter är privata";
@@ -3338,7 +3338,7 @@
 "DONATE_CHOOSE_PAYMENT_METHOD_SHEET_SUBTITLE_FOR_ONE_TIME_DONATION" = "Få %1$@-märket i 30 dagar";
 
 /* When users make donations on a friend's behalf, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ donation till Signal";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ donation till Tellomi";
 
 /* When users make monthly donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money per month}}, such as \"$5/month\". */
 "DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "Donera %1$@ till Tellomi";
@@ -3458,7 +3458,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_BADGE_REDEEMED" = "Inlöst";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is a short paragraph on the screen where users choose the badge their friend will receive. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Stöd Signal genom att göra en donation åt en vän eller familjemedlem som använder Signal. De får möjlighet att visa sitt stöd på sin profil.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Stöd Tellomi genom att göra en donation åt en vän eller familjemedlem som använder Tellomi. De får möjlighet att visa sitt stöd på sin profil.";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is the title on the screen where users choose the badge their friend will receive. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_TITLE" = "Donera åt en vän";
@@ -3482,7 +3482,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_FAILED_ERROR_TITLE" = "Betalning misslyckades";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, this error message will be shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "Din betalning behandlades men Signal kunde inte skicka ditt donationsmeddelande. Kontakta supporten.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "Din betalning behandlades men Tellomi kunde inte skicka ditt donationsmeddelande. Kontakta supporten.";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, an error dialog will be shown. This is the title of that dialog. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_TITLE" = "Donation misslyckades";
@@ -3518,7 +3518,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_SENT_TITLE_FORMAT" = "Donation på uppdrag av %1$@";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the text on that sheet. Embeds {{recipient name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "%1$@ har gjort en donation till Signal för din räkning. De får möjlighet att visa sitt stöd på sin profil.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "%1$@ har gjort en donation till Tellomi för din räkning. De får möjlighet att visa sitt stöd på sin profil.";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the title on that sheet. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_TITLE" = "Tack för ditt stöd!";
@@ -3575,7 +3575,7 @@
 "DONATION_RECEIPTS" = "Donationskvitton";
 
 /* Text at the bottom of the donation receipts list, telling users that receipts might not be available */
-"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Om du har installerat om Signal kommer kvitton från tidigare donationer inte vara tillgängliga.";
+"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Om du har installerat om Tellomi kommer kvitton från tidigare donationer inte vara tillgängliga.";
 
 /* Error message displayed if something goes wrong with 3DSecure/iDEAL payment authorization.  This will be encountered if the user cancels the webview before authrizing the payment. */
 "DONATION_REDIRECT_ERROR_CANCELLED_MESSAGE" = "Betalning annullerad. Försök igen.";
@@ -3665,7 +3665,7 @@
 "DONATION_VIEW_DONATE_ON_BEHALF_OF_A_FRIEND" = "Donera åt en vän";
 
 /* Text describing to the user that they're going to pay a donation to Signal */
-"DONATION_VIEW_DONATION_TO_SIGNAL" = "Donation till Signal";
+"DONATION_VIEW_DONATION_TO_SIGNAL" = "Donation till Tellomi";
 
 /* Title for the 'Donor FAQ' button on the donation screen */
 "DONATION_VIEW_DONOR_FAQ" = "Vanliga frågor för donatorer";
@@ -3677,7 +3677,7 @@
 "DONATION_VIEW_MANAGE_BADGES" = "Märken";
 
 /* Text describing to the user that they're going to pay a monthly donation to Signal */
-"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "Månatlig donation till Signal";
+"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "Månatlig donation till Tellomi";
 
 /* Title for the 'my support' section in the donation view */
 "DONATION_VIEW_MY_SUPPORT_TITLE" = "Mitt stöd";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Hej,\n\nDen senaste tiden har jag använt Tellomi för att hålla chattarna på min iPhone privata. Jag vill att du också installerar Tellomi, så att vi kan vara säkra på att endast du och jag kan läsa våra meddelanden eller höra våra samtal.\n\nSignal finns för iPhone, Android och som skrivbordsversion. Hämta den här: %1$@\n\nSignal fungerar som din befintliga meddelandeapp. Vi kan skicka bilder och video, ringa samtal och starta gruppchattar. Det bästa är att ingen annan kan se något av det, inte ens människorna som gör Tellomi!\n\nDu kan läsa mer om Tellomi här: %2$@";
+"EMAIL_INVITE_BODY" = "Hej,\n\nDen senaste tiden har jag använt Tellomi för att hålla chattarna på min iPhone privata. Jag vill att du också installerar Tellomi, så att vi kan vara säkra på att endast du och jag kan läsa våra meddelanden eller höra våra samtal.\n\nTellomi finns för iPhone, Android och som skrivbordsversion. Hämta den här: %1$@\n\nTellomi fungerar som din befintliga meddelandeapp. Vi kan skicka bilder och video, ringa samtal och starta gruppchattar. Det bästa är att ingen annan kan se något av det, inte ens människorna som gör Tellomi!\n\nDu kan läsa mer om Tellomi här: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Låt oss använda Tellomi";

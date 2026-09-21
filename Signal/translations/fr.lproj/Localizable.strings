@@ -1319,7 +1319,7 @@
 "BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ soutient Tellomi";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "Votre macaron Coup de pouce est arrivé à expiration et n'est plus visible sur votre profil.\n\nVous pouvez bien sûr continuer d'utiliser Signal, mais n'hésitez pas à devenir donateur mensuel : vous soutiendrez ainsi une technologie conçue pour vous protéger.";
+"BADGE_EXPIRED_BOOST_BODY" = "Votre macaron Coup de pouce est arrivé à expiration et n'est plus visible sur votre profil.\n\nVous pouvez bien sûr continuer d'utiliser Tellomi, mais n'hésitez pas à devenir donateur mensuel : vous soutiendrez ainsi une technologie conçue pour vous protéger.";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "Votre macaron Coup de pouce est arrivé à expiration et n'est plus visible sur votre profil.\n\nVous pouvez le réactiver pour 30 jours de plus grâce à un don ponctuel.";
@@ -10472,7 +10472,7 @@
 "THREAD_DETAILS_ZERO_MUTUAL_GROUPS" = "Aucun groupe en commun";
 
 /* Shown after tapping a 'Learn More' button when multiple conversations for the same person have been merged into one. The first parameter is a phone number (eg +1 650-555-0100) and the second parameter is a name (eg John). */
-"THREAD_MERGE_LEARN_MORE" = "Après avoir envoyé un message au %1$@, vous avez découvert que ce numéro est en fait celui de %2$@. Son numéro est privé.\n\nSignal a fusionné ici les messages contenus dans les deux conversations.";
+"THREAD_MERGE_LEARN_MORE" = "Après avoir envoyé un message au %1$@, vous avez découvert que ce numéro est en fait celui de %2$@. Son numéro est privé.\n\nTellomi a fusionné ici les messages contenus dans les deux conversations.";
 
 /* A system event shown in a conversation when multiple conversations for the same person have been merged into one. The parameter is replaced with the contact's name (eg John Doe). */
 "THREAD_MERGE_NO_PHONE_NUMBER" = "Tellomi a fusionné les messages échangés avec %1$@ et ceux d'une autre conversation associée au même contact.";

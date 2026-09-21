@@ -2,7 +2,7 @@
 "AB_PERMISSION_MISSING_ACTION_NOT_NOW" = "ابھی نہیں";
 
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
-"ABOUT_SECTION_FOOTER" = "کاپی رائٹ Tellomi میسنجر\nAGPLv3 کے تحت لائسنس شدہ\nSignal ایک غیر منافع بخش ایپ ہے";
+"ABOUT_SECTION_FOOTER" = "کاپی رائٹ Tellomi میسنجر\nAGPLv3 کے تحت لائسنس شدہ\nTellomi ایک غیر منافع بخش ایپ ہے";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "Tellomi کے بارے میں";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/YY";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi آپ کی جانب سے عطیہ کرنے پر آپ کی کوئی ذاتی معلومات جمع یا سٹور نہیں کرتا۔\n\nہم آپ کے عطیات وصول کرنے کے لیے Stripe کو اپنے ادائیگی کے پروسیسر کے طور پر استعمال کرتے ہیں۔ آپ انہیں جو معلومات فراہم کرتے ہیں ہم اس تک رسائی، اسے سٹور، یا محفوظ نہیں کرتے۔\n\nSignal آپ کے عطیے کو آپ کے Tellomi اکاؤنٹ کے ساتھ مربوط نہیں کرتا اور نہ کر سکتا ہے۔\n\nآپ کی سپورٹ کا شکریہ!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi آپ کی جانب سے عطیہ کرنے پر آپ کی کوئی ذاتی معلومات جمع یا سٹور نہیں کرتا۔\n\nہم آپ کے عطیات وصول کرنے کے لیے Stripe کو اپنے ادائیگی کے پروسیسر کے طور پر استعمال کرتے ہیں۔ آپ انہیں جو معلومات فراہم کرتے ہیں ہم اس تک رسائی، اسے سٹور، یا محفوظ نہیں کرتے۔\n\nTellomi آپ کے عطیے کو آپ کے Tellomi اکاؤنٹ کے ساتھ مربوط نہیں کرتا اور نہ کر سکتا ہے۔\n\nآپ کی سپورٹ کا شکریہ!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "آپ کی معلومات پرائیویٹ ہے";

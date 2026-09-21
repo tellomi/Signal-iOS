@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "ดด/ปป";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "เมื่อคุณบริจาคเงิน Tellomi ไม่ได้รวบรวมหรือจัดเก็บข้อมูลส่วนบุคคลใดๆ ของคุณ\n\nเราใช้ Stripe เป็นผู้ให้บริการการชำระเงินในการรับเงินบริจาคของคุณ โดยเราจะไม่เข้าถึง จัดเก็บ หรือบันทึกข้อมูลใดๆ ที่คุณกรอกระหว่างทำธุรกรรม\n\nSignal จะไม่เชื่อมโยงการบริจาคของคุณเข้ากับบัญชี Tellomi ของคุณ (และนี่เป็นสิ่งที่เราไม่สามารถทำได้อีกด้วย)\n\nขอบคุณสำหรับการสนับสนุนของคุณ!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "เมื่อคุณบริจาคเงิน Tellomi ไม่ได้รวบรวมหรือจัดเก็บข้อมูลส่วนบุคคลใดๆ ของคุณ\n\nเราใช้ Stripe เป็นผู้ให้บริการการชำระเงินในการรับเงินบริจาคของคุณ โดยเราจะไม่เข้าถึง จัดเก็บ หรือบันทึกข้อมูลใดๆ ที่คุณกรอกระหว่างทำธุรกรรม\n\nTellomi จะไม่เชื่อมโยงการบริจาคของคุณเข้ากับบัญชี Tellomi ของคุณ (และนี่เป็นสิ่งที่เราไม่สามารถทำได้อีกด้วย)\n\nขอบคุณสำหรับการสนับสนุนของคุณ!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "ข้อมูลของคุณเป็นส่วนตัว";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "สวัสดี!\n\nหลังจากที่ฉันได้เริ่มใช้ Tellomi เพื่อรักษาความเป็นส่วนตัวของแชทบน iPhone ฉันอยากแนะนำให้คุณติดตั้งแอปนี้เช่นกัน เพื่อให้มั่นใจได้ว่ามีแค่เราสองคนเท่านั้นที่สามารถอ่านข้อความหรือได้ยินเสียงพูดคุยของเรา\n\nSignal ใช้งานได้ทั้งบน iPhone, Android และเดสก์ท็อป ดาวน์โหลดเลยที่นี่: %1$@\n\nSignal ทำงานเหมือนแอปส่งข้อความที่คุณใช้อยู่ เราสามารถส่งรูปและวิดีโอ โทรออก และเริ่มแชทกลุ่ม แต่ที่มากไปกว่านั้นก็คือจะไม่มีใครเห็นข้อมูลเหล่านี้ แม้แต่ทีมงานที่สร้าง Tellomi ก็ตาม!\n\nอ่านเพิ่มเติมเกี่ยวกับ Tellomi ได้ที่นี่: %2$@";
+"EMAIL_INVITE_BODY" = "สวัสดี!\n\nหลังจากที่ฉันได้เริ่มใช้ Tellomi เพื่อรักษาความเป็นส่วนตัวของแชทบน iPhone ฉันอยากแนะนำให้คุณติดตั้งแอปนี้เช่นกัน เพื่อให้มั่นใจได้ว่ามีแค่เราสองคนเท่านั้นที่สามารถอ่านข้อความหรือได้ยินเสียงพูดคุยของเรา\n\nTellomi ใช้งานได้ทั้งบน iPhone, Android และเดสก์ท็อป ดาวน์โหลดเลยที่นี่: %1$@\n\nTellomi ทำงานเหมือนแอปส่งข้อความที่คุณใช้อยู่ เราสามารถส่งรูปและวิดีโอ โทรออก และเริ่มแชทกลุ่ม แต่ที่มากไปกว่านั้นก็คือจะไม่มีใครเห็นข้อมูลเหล่านี้ แม้แต่ทีมงานที่สร้าง Tellomi ก็ตาม!\n\nอ่านเพิ่มเติมเกี่ยวกับ Tellomi ได้ที่นี่: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "เปลี่ยนมาใช้ Tellomi กันเถอะ";

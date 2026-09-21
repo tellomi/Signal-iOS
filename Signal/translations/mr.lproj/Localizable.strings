@@ -2,7 +2,7 @@
 "AB_PERMISSION_MISSING_ACTION_NOT_NOW" = "आता नाही";
 
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
-"ABOUT_SECTION_FOOTER" = "कॉपीराईट Tellomi मेसेंजर\nAGPLv3 अंतर्गत अनुज्ञप्तीप्राप्त\nSignal एक ना-नफा संस्था आहे";
+"ABOUT_SECTION_FOOTER" = "कॉपीराईट Tellomi मेसेंजर\nAGPLv3 अंतर्गत अनुज्ञप्तीप्राप्त\nTellomi एक ना-नफा संस्था आहे";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "Tellomi बद्दल";
@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "मम/वव";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "आपण जेव्हा देणगी देता तेव्हा Tellomi आपली कोणतीही वैयक्तिक माहिती संग्रहित किंवा संकलित करत नाही.\n\nआपल्या देणग्या प्राप्त करण्यासाठी आम्ही आमचा पेमेंट्स प्रोसेसर म्हणून स्ट्राईपचा वापर करतो. आपण त्यांना प्रदान करत असलेल्या कोणत्याही माहितीमध्ये आम्ही प्रवेश करत नाही, ती संग्रहित, किंवा जतन करत नाही.\n\nSignal आपल्या देणग्या आपल्या Tellomi अकाऊंटशी कनेक्ट करत नाही आणि करु शकत नाही.\n\nआपल्या सपोर्टसाठी धन्यवाद!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "आपण जेव्हा देणगी देता तेव्हा Tellomi आपली कोणतीही वैयक्तिक माहिती संग्रहित किंवा संकलित करत नाही.\n\nआपल्या देणग्या प्राप्त करण्यासाठी आम्ही आमचा पेमेंट्स प्रोसेसर म्हणून स्ट्राईपचा वापर करतो. आपण त्यांना प्रदान करत असलेल्या कोणत्याही माहितीमध्ये आम्ही प्रवेश करत नाही, ती संग्रहित, किंवा जतन करत नाही.\n\nTellomi आपल्या देणग्या आपल्या Tellomi अकाऊंटशी कनेक्ट करत नाही आणि करु शकत नाही.\n\nआपल्या सपोर्टसाठी धन्यवाद!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "आपली माहिती गोपनीय आहे";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "नमस्कार,\n\nमाझ्या iPhone वरचे चॅट्स गुप्त ठेवण्यासाठी मी अलीकडे Tellomi वापरत आहे. मला वाटते तुम्हीसुद्धा ते इन्स्टॉल करून घ्यावे, ज्यामुळे आपल्यातले संदेश फक्त तुम्ही-आम्हीच वाचू शकाल आणि आपले कॉल्स फक्त आपल्यालाच ऐकू येतील.\n\nSignal iPhone, अँड्रॉइड आणि डेस्कटॉपवर उपलब्ध आहे. हे इथून मिळवू शकता : %1$@\n\nSignal हे तुमच्या सध्याच्या संदेश ॲप सारखेच काम करते. आपण चित्रे आणि व्हिडिओ पाठवू शकतो, कॉल करू शकतो आणि समूह चॅट्स सुरू करू शकतो. सगळ्यांत भारी गोष्ट ही की दुसऱ्या कोणालाच यातले काहीही पाहता येत नाही, अगदी Tellomi ज्यांनी घडवला आहे त्या लोकांनाही!\n\nतुम्ही Tellomi बद्दल येथे अधिक वाचू शकता : %2$@";
+"EMAIL_INVITE_BODY" = "नमस्कार,\n\nमाझ्या iPhone वरचे चॅट्स गुप्त ठेवण्यासाठी मी अलीकडे Tellomi वापरत आहे. मला वाटते तुम्हीसुद्धा ते इन्स्टॉल करून घ्यावे, ज्यामुळे आपल्यातले संदेश फक्त तुम्ही-आम्हीच वाचू शकाल आणि आपले कॉल्स फक्त आपल्यालाच ऐकू येतील.\n\nTellomi iPhone, अँड्रॉइड आणि डेस्कटॉपवर उपलब्ध आहे. हे इथून मिळवू शकता : %1$@\n\nTellomi हे तुमच्या सध्याच्या संदेश ॲप सारखेच काम करते. आपण चित्रे आणि व्हिडिओ पाठवू शकतो, कॉल करू शकतो आणि समूह चॅट्स सुरू करू शकतो. सगळ्यांत भारी गोष्ट ही की दुसऱ्या कोणालाच यातले काहीही पाहता येत नाही, अगदी Tellomi ज्यांनी घडवला आहे त्या लोकांनाही!\n\nतुम्ही Tellomi बद्दल येथे अधिक वाचू शकता : %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Tellomi वर स्विच करूया";

@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "ММ/ГГ";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi не збірае і не захоўвае вашу асабістую інфармацыю, калі вы робіце ахвяраванне.\n\nДля атрымання вашых ахвяраванняў мы выкарыстоўваем кампанію Stripe у якасці аператара плацяжоў. Мы не маем доступу ні да якой інфармацыі, што вы перадаеце іншым карыстальнікам, не захоўваем і не трымаем яе.\n\nSignal не звязвае і не можа звязаць ваша ахвяраванне з вашым уліковым запісам Tellomi.\n\nДзякуй за вашу падтрымку!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi не збірае і не захоўвае вашу асабістую інфармацыю, калі вы робіце ахвяраванне.\n\nДля атрымання вашых ахвяраванняў мы выкарыстоўваем кампанію Stripe у якасці аператара плацяжоў. Мы не маем доступу ні да якой інфармацыі, што вы перадаеце іншым карыстальнікам, не захоўваем і не трымаем яе.\n\nTellomi не звязвае і не можа звязаць ваша ахвяраванне з вашым уліковым запісам Tellomi.\n\nДзякуй за вашу падтрымку!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Ваша інфармацыя застаецца канфідэнцыйнай";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Прывітанне!\n\nАпошнім часам я выкарыстоўваю Tellomi, каб быць упэўненым у канфідэнцыйнасці чатаў на сваім iPhone. Прапаную ўсталяваць гэту праграму і табе, каб мы маглі дакладна ведаць, што ніхто, акрамя нас з табой, не чытае нашы паведамленні і не чуе нашы размовы.\n\nSignal даступны для iPhone, Android і ПК. Запампуй яго тут: %1$@\n\nSignal працуе так, як і мэсанджар, што ты ўжо выкарыстоўваеш. Мы зможам адпраўляць фота і відэа, рабіць званкі і ствараць групавыя чаты. І самае галоўнае – ніхто, акрамя нас, не можа бачыць нічога з гэтага, нават распрацоўнікі Tellomi!\n\nБольш падрабязна аб Tellomi можна даведацца тут: %2$@";
+"EMAIL_INVITE_BODY" = "Прывітанне!\n\nАпошнім часам я выкарыстоўваю Tellomi, каб быць упэўненым у канфідэнцыйнасці чатаў на сваім iPhone. Прапаную ўсталяваць гэту праграму і табе, каб мы маглі дакладна ведаць, што ніхто, акрамя нас з табой, не чытае нашы паведамленні і не чуе нашы размовы.\n\nTellomi даступны для iPhone, Android і ПК. Запампуй яго тут: %1$@\n\nTellomi працуе так, як і мэсанджар, што ты ўжо выкарыстоўваеш. Мы зможам адпраўляць фота і відэа, рабіць званкі і ствараць групавыя чаты. І самае галоўнае – ніхто, акрамя нас, не можа бачыць нічога з гэтага, нават распрацоўнікі Tellomi!\n\nБольш падрабязна аб Tellomi можна даведацца тут: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Давайце пяройдзем на Tellomi";

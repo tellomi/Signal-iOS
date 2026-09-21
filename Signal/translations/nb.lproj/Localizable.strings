@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/ÅÅ";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi lagrer ikke personopplysningene dine når du gir et pengebeløp.\n\nBetalingstjenesten Stripe behandler pengebeløpet du gir oss. Vi får ikke tilgang til og lagrer eller oppbevarer ikke noen av opplysningene du gir til Stripe.\n\nSignal vil ikke, og kan ikke, knytte pengebeløpet til Tellomi-kontoen din.\n\nTakk for støtten!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi lagrer ikke personopplysningene dine når du gir et pengebeløp.\n\nBetalingstjenesten Stripe behandler pengebeløpet du gir oss. Vi får ikke tilgang til og lagrer eller oppbevarer ikke noen av opplysningene du gir til Stripe.\n\nTellomi vil ikke, og kan ikke, knytte pengebeløpet til Tellomi-kontoen din.\n\nTakk for støtten!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "Informasjonen din holdes privat";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Hei!\n\nI det siste har jeg brukt Tellomi til å holde iPhone-samtalene mine private. Det hadde vært fint om du også installerte Tellomi, slik at vi kan være sikre på at meldingene og telefonsamtalene våre blir mellom oss.\n\nSignal kan lastes ned på iPhone, Android og skrivebordet. Last den ned her: %1$@\n\nSignal fungerer akkurat som en vanlig meldingsapp. Vi kan sende bilder og videoer, ringe hverandre og starte gruppesamtaler. Det beste av alt er at ingen kan se det vi sender – selv ikke de som har laget Tellomi!\n\nDu kan lese mer om Tellomi her: %2$@";
+"EMAIL_INVITE_BODY" = "Hei!\n\nI det siste har jeg brukt Tellomi til å holde iPhone-samtalene mine private. Det hadde vært fint om du også installerte Tellomi, slik at vi kan være sikre på at meldingene og telefonsamtalene våre blir mellom oss.\n\nTellomi kan lastes ned på iPhone, Android og skrivebordet. Last den ned her: %1$@\n\nTellomi fungerer akkurat som en vanlig meldingsapp. Vi kan sende bilder og videoer, ringe hverandre og starte gruppesamtaler. Det beste av alt er at ingen kan se det vi sender – selv ikke de som har laget Tellomi!\n\nDu kan lese mer om Tellomi her: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "La oss bytte til Tellomi";

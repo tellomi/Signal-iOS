@@ -1373,7 +1373,7 @@
 "BANK_MANDATE_READ_MORE" = "Ler mais";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is a subtitle about the payment processor Stripe above that mandate. */
-"BANK_MANDATE_SUBTITLE" = "O Stripe processa donativos feitos ao Signal. O Signal não recolhe nem armazena as suas informações pessoais.";
+"BANK_MANDATE_SUBTITLE" = "O Stripe processa donativos feitos ao Tellomi. O Tellomi não recolhe nem armazena as suas informações pessoais.";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is the title above that mandate. */
 "BANK_MANDATE_TITLE" = "Transferência bancária";
@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ fez uma doação ao Tellomi em seu nome! Mostre o seu apoio ao Tellomi no perfil.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Como uma organização sem fins lucrativos independente, o Signal compromete-se a defender a privacidade de mensagens e chamadas. Sem anúncios, sem rastreadores, sem vigilância. Faça um donativo hoje para apoiar o Signal.";
+"DONATION_READ_MORE_SHEET_BODY" = "Como uma organização sem fins lucrativos independente, o Tellomi compromete-se a defender a privacidade de mensagens e chamadas. Sem anúncios, sem rastreadores, sem vigilância. Faça um donativo hoje para apoiar o Tellomi.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "Receba um crachá opcional no seu perfil ao fazer um donativo";
@@ -3590,7 +3590,7 @@
 "DONATION_SCREEN_DONATE_BUTTON" = "Doar";
 
 /* On donation screens, a small amount of information text is shown. This is the subtitle for that text. */
-"DONATION_SCREENS_HEADER_DESCRIPTION" = "Faça um donativo para apoiar as mensagens com privacidade. Mantenha o Signal independente e sem anúncios.";
+"DONATION_SCREENS_HEADER_DESCRIPTION" = "Faça um donativo para apoiar as mensagens com privacidade. Mantenha o Tellomi independente e sem anúncios.";
 
 /* On donation screens, a small amount of information text is shown. Users can click this link to learn more information. */
 "DONATION_SCREENS_HEADER_READ_MORE" = "Ler mais";

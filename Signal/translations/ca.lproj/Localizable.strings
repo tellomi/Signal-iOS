@@ -1994,7 +1994,7 @@
 "CARD_DONATION_EXPIRATION_DATE_PLACEHOLDER" = "MM/AA";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the body text of that sheet. */
-"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi no recopila ni emmagatzema la teva informació personal quan fas una donació.\n\nUtilitzem Stripe com a processador de pagaments per rebre les teves donacions. No accedim, emmagatzemem ni desem cap de la informació que els proporciones.\n\nSignal no connecta i no pot connectar la teva donació al teu compte de Tellomi.\n\nGràcies per comptar amb nosaltres!";
+"CARD_DONATION_READ_MORE_SHEET_BODY" = "Tellomi no recopila ni emmagatzema la teva informació personal quan fas una donació.\n\nUtilitzem Stripe com a processador de pagaments per rebre les teves donacions. No accedim, emmagatzemem ni desem cap de la informació que els proporciones.\n\nTellomi no connecta i no pot connectar la teva donació al teu compte de Tellomi.\n\nGràcies per comptar amb nosaltres!";
 
 /* Users can choose to learn more about their credit/debit card donations, which will open a sheet with additional information. This is the title of that sheet. */
 "CARD_DONATION_READ_MORE_SHEET_TITLE" = "La teva informació és privada";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Ep,\n\nÚltimament, he estat utilitzant Tellomi per mantenir les meves converses d'iPhone privades. M'agradaria que també l'instal·lessis, per poder estar segurs que som els únics que llegim els missatges que ens enviem.\n\nSignal està disponible per a Android, iPhone i ordinador. El pots baixar aquí: %1$@\n\nSignal funciona com la resta d'aplicacions de missatgeria instantània. Podem enviar-nos fotografies i vídeos, fer trucades i crear grups. El millor és que ningú més pot veure res d'això, ni tan sols la gent que ha creat Tellomi!\n\nPots obtenir més informació sobre Tellomi aquí: %2$@";
+"EMAIL_INVITE_BODY" = "Ep,\n\nÚltimament, he estat utilitzant Tellomi per mantenir les meves converses d'iPhone privades. M'agradaria que també l'instal·lessis, per poder estar segurs que som els únics que llegim els missatges que ens enviem.\n\nTellomi està disponible per a Android, iPhone i ordinador. El pots baixar aquí: %1$@\n\nTellomi funciona com la resta d'aplicacions de missatgeria instantània. Podem enviar-nos fotografies i vídeos, fer trucades i crear grups. El millor és que ningú més pot veure res d'això, ni tan sols la gent que ha creat Tellomi!\n\nPots obtenir més informació sobre Tellomi aquí: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "Canviem-nos al Tellomi";
