@@ -215,7 +215,7 @@
 "APN_Message" = "તમારી માટે કદાચ નવા મેસેજ હોઈ શકે છે";
 
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. The embedded value is 'Update now' (translated via APP_EXPIRED_BOTTOM_UPDATE), and it will be formatted as a tappable link. */
-"APP_EXPIRED_BOTTOM" = "Signalનું આ વર્ઝન સમાપ્ત થઈ ગયું છે. મેસેજ મોકલવા અને પ્રાપ્ત કરવા માટે %1$@.";
+"APP_EXPIRED_BOTTOM" = "Tellomiનું આ વર્ઝન સમાપ્ત થઈ ગયું છે. મેસેજ મોકલવા અને પ્રાપ્ત કરવા માટે %1$@.";
 
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. This value is a tappable link embedded in a larger sentence. */
 "APP_EXPIRED_BOTTOM_UPDATE" = "અત્યારે અપડેટ કરો";
@@ -245,10 +245,10 @@
 "APP_LAUNCH_FAILURE_DATABASE_RECOVERY_ACTION_TITLE" = "ઠીક કરો";
 
 /* Action in an action sheet offering to exit the app. */
-"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Signalમાંથી બહાર નીકળો";
+"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Tellomiમાંથી બહાર નીકળો";
 
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
-"APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "કૃપા કરીને Signalના લેટેસ્ટ વર્ઝન પર અપગ્રેડ કરો.";
+"APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "કૃપા કરીને Tellomiના લેટેસ્ટ વર્ઝન પર અપગ્રેડ કરો.";
 
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_TITLE" = "અજાણ ડેટાબેઝ વર્ઝન.";
@@ -377,7 +377,7 @@
 "ATTACHMENT_APPROVAL_MEDIA_QUALITY_TITLE" = "મીડિયા ગુણવત્તા";
 
 /* Notification body shown when media sync to a linked device is complete. */
-"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "તમારા લિંક કરેલા ડિવાઇસ પર Signalને સિંક કરવાનું પૂર્ણ થયું.";
+"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "તમારા લિંક કરેલા ડિવાઇસ પર Tellomiને સિંક કરવાનું પૂર્ણ થયું.";
 
 /* Notification body shown when media sync to a linked device was interrupted. */
 "ATTACHMENT_BACKFILL_INTERRUPTED_NOTIFICATION" = "તમારા લિંક કરેલા ડિવાઇસ સાથે સિંક કરવાનું ચાલુ રાખવા Tellomi ખોલો";
@@ -599,7 +599,7 @@
 "BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_ACTION" = "ચાલુ કરો";
 
 /* Body for Backup enablement reminder megaphone */
-"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_BODY" = "જ્યારે તમે નવો ફોન મેળવો અથવા Signalને ફરીથી ઇન્સ્ટોલ કરો ત્યારે ક્યારેય કોઈ મેસેજ ગુમાવશો નહીં.";
+"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_BODY" = "જ્યારે તમે નવો ફોન મેળવો અથવા Tellomiને ફરીથી ઇન્સ્ટોલ કરો ત્યારે ક્યારેય કોઈ મેસેજ ગુમાવશો નહીં.";
 
 /* Title for Backup enablement reminder megaphone */
 "BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_TITLE" = "એન્ક્રિપ્ટેડ બેકઅપ ચાલુ કરો";
@@ -674,7 +674,7 @@
 "BACKUP_ONBOARDING_INTRO_NOT_NOW_TOAST" = "તમે સેટિંગ્સમાં બેકઅપ સક્ષમ કરી શકો છો.";
 
 /* Subtitle for a view introducing Backups during an onboarding flow. */
-"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "તમારા મેસેજ અને મીડિયાનો Signalની સુરક્ષિત, એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવા વડે બેકઅપ લો. જ્યારે તમે નવો ફોન મેળવો અથવા Signalને ફરીથી ઇન્સ્ટોલ કરો ત્યારે ક્યારેય કોઈ મેસેજ ગુમાવશો નહીં.";
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "તમારા મેસેજ અને મીડિયાનો Tellomiની સુરક્ષિત, એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવા વડે બેકઅપ લો. જ્યારે તમે નવો ફોન મેળવો અથવા Tellomiને ફરીથી ઇન્સ્ટોલ કરો ત્યારે ક્યારેય કોઈ મેસેજ ગુમાવશો નહીં.";
 
 /* Title for a view introducing Backups during an onboarding flow. */
 "BACKUP_ONBOARDING_INTRO_TITLE" = "Tellomi સુરક્ષિત બેકઅપ";
@@ -770,7 +770,7 @@
 "BACKUP_SAVE_KEY_SAVE_TO_PW_MGR_BUTTON_TITLE" = "પાસવર્ડ મેનેજરમાં સેવ કરો";
 
 /* Message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "ઓટોમેટિક બેકઅપ અક્ષમ છે. Signalની પરવાનગીઓ અપડેટ કરીને ઓટોમેટિક બેકઅપ સક્ષમ કરો.";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "ઓટોમેટિક બેકઅપ અક્ષમ છે. Tellomiની પરવાનગીઓ અપડેટ કરીને ઓટોમેટિક બેકઅપ સક્ષમ કરો.";
 
 /* Add-on to a message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE_UPDATE_NOW" = "અત્યારે અપડેટ કરો";
@@ -779,7 +779,7 @@
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_GO_TO_SETTINGS_BUTTON" = "સેટિંગ્સ પર જાઓ";
 
 /* Message for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Signalને તમારા મેસેજનું આપમેળે બેકઅપ લેવાની મંજૂરી આપવા માટે, નીચે \"સેટિંગ્સ પર જાઓ\" પર ટેપ કરો અને \"બેકગ્રાઉન્ડ ઍપ રિફ્રેશ\" ચાલુ કરો";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Tellomiને તમારા મેસેજનું આપમેળે બેકઅપ લેવાની મંજૂરી આપવા માટે, નીચે \"સેટિંગ્સ પર જાઓ\" પર ટેપ કરો અને \"બેકગ્રાઉન્ડ ઍપ રિફ્રેશ\" ચાલુ કરો";
 
 /* Title for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_TITLE" = "ઓટોમેટિક બેકઅપ અક્ષમ કરેલ છે";
@@ -896,16 +896,16 @@
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT" = "%1$@ના રોજ રિન્યૂ થશે";
 
 /* Footer for a menu section related to settings for when Backups are disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને તમારો ડેટા Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવ્યો છે.";
+"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને તમારો ડેટા Tellomiની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવ્યો છે.";
 
 /* Description for a progress view tracking media being downloaded in service of disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને આ ડિવાઇસ પર ન હોય તેવા કોઈ પણ મીડિયા હવે ડાઉનલોડ થઈ રહ્યાં છે. ડાઉનલોડ થઈ ગયા પછી તમારા ડેટા Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવશે.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને આ ડિવાઇસ પર ન હોય તેવા કોઈ પણ મીડિયા હવે ડાઉનલોડ થઈ રહ્યાં છે. ડાઉનલોડ થઈ ગયા પછી તમારા ડેટા Tellomiની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવશે.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "એક ભૂલ આવી. કૃપા કરીને સપોર્ટનો સંપર્ક કરો.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી તમારો ડેટા ડિલીટ કરતી વખતે એક ભૂલ આવી.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Tellomiની સુરક્ષિત સ્ટોરેજ સેવામાંથી તમારો ડેટા ડિલીટ કરતી વખતે એક ભૂલ આવી.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "બેકઅપ ડિલીટ કરવાનું નિષ્ફળ થયું";
@@ -914,7 +914,7 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "બેકઅપ ડિલીટ કરી રહ્યા છીએ...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને તમારો ડેટા Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવશે.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "બેકઅપ બંધ કરવામાં આવ્યા છે અને તમારો ડેટા Tellomiની સુરક્ષિત સ્ટોરેજ સેવામાંથી ડિલીટ કરવામાં આવશે.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "બેકઅપની વિગતો";
@@ -968,7 +968,7 @@
 "BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_TITLE" = "તમારું બેકઅપ ડાઉનલોડ કરી રહ્યા છીએ";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Signalની સુરક્ષિત સ્ટોરેજ સેવામાંથી તમારો ડેટા ડિલીટ કરતી વખતે એક ભૂલ આવી.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Tellomiની સુરક્ષિત સ્ટોરેજ સેવામાંથી તમારો ડેટા ડિલીટ કરતી વખતે એક ભૂલ આવી.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "બેકઅપ ડિલીટ કરવાનું નિષ્ફળ થયું";
@@ -1061,13 +1061,13 @@
 "BACKUP_SETTINGS_LANDING_OTHER_WAYS_HEADER" = "બેકઅપ લેવાની અન્ય રીતો";
 
 /* Subtitle on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_PAGE_SUBTITLE" = "તમારી મેસેજ હિસ્ટ્રીનું બેકઅપ લો જેથી જ્યારે તમે નવો ફોન લો અથવા Signalને ફરીથી ઇન્સ્ટોલ કરો ત્યારે તમે ક્યારેય ડેટા ગુમાવશો નહીં.";
+"BACKUP_SETTINGS_LANDING_PAGE_SUBTITLE" = "તમારી મેસેજ હિસ્ટ્રીનું બેકઅપ લો જેથી જ્યારે તમે નવો ફોન લો અથવા Tellomiને ફરીથી ઇન્સ્ટોલ કરો ત્યારે તમે ક્યારેય ડેટા ગુમાવશો નહીં.";
 
 /* Button to begin setting up Signal Secure Backups on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SET_UP_BUTTON" = "સેટ કરો";
 
 /* Description of Signal Secure Backups on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Signalની સુરક્ષિત, એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવા સાથે ઓટોમેટિક બેકઅપ.";
+"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Tellomiની સુરક્ષિત, એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવા સાથે ઓટોમેટિક બેકઅપ.";
 
 /* Title for the Signal Secure Backups cell on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE" = "Tellomi સુરક્ષિત બેકઅપ";
@@ -1082,7 +1082,7 @@
 "BACKUP_SETTINGS_LINKED_DEVICE_MANAGE_ON_PRIMARY_FOOTER_PAID" = "તમે તમારા પ્રાથમિક ડિવાઇસ પર તમારા Tellomi બેકઅપ સબ્સ્ક્રિપ્શનને મેનેજ કે રદ કરી શકો છો.";
 
 /* Body text on the linked-device Backups screen, shown when Backups aren't set up, explaining the feature and that it can be enabled on the user's primary device. */
-"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Signalની સુરક્ષિત, એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવા સાથે ઓટોમેટિક બેકઅપ. તમારા પ્રાથમિક ડિવાઇસ પર શરૂ કરો.";
+"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Tellomiની સુરક્ષિત, એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવા સાથે ઓટોમેટિક બેકઅપ. તમારા પ્રાથમિક ડિવાઇસ પર શરૂ કરો.";
 
 /* Message on the linked-device Backups screen, shown when the user's paid subscription can't be found, prompting them to renew. */
 "BACKUP_SETTINGS_LINKED_DEVICE_SUBSCRIPTION_NOT_FOUND" = "તમારું સબ્સ્ક્રિપ્શન મળ્યું ન હતું. Tellomi સુરક્ષિત બેકઅપનો ઉપયોગ ચાલુ રાખવા રિન્યૂ કરો.";
@@ -1136,7 +1136,7 @@
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_UPSELL_TITLE" = "સ્ટોરેજ ઑપ્ટિમાઇઝેશન ચાલુ કરવા માટે અપગ્રેડ કરો";
 
 /* Subtitle for a notification telling the user they are out of remote storage space. */
-"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "તમે તમારી બેકઅપ સ્ટોરેજ મર્યાદા સુધી પહોંચી ગયા છો. ચેટ અને મીડિયાનો બેકઅપ લેવાનું ચાલુ રાખવા માટે Signalમાં જગ્યા ખાલી કરો.";
+"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "તમે તમારી બેકઅપ સ્ટોરેજ મર્યાદા સુધી પહોંચી ગયા છો. ચેટ અને મીડિયાનો બેકઅપ લેવાનું ચાલુ રાખવા માટે Tellomiમાં જગ્યા ખાલી કરો.";
 
 /* Title for a notification telling the user they are out of remote storage space. */
 "BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_TITLE" = "બેકઅપ સ્ટોરેજ ભરાઈ ગયું છે";
@@ -1196,7 +1196,7 @@
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "મીડિયા અપલોડ થોભાવ્યું: વાઇ-ફાઇની રાહ જોઈ રહ્યાં છીએ";
 
 /* Subtitle for a progress bar tracking uploads that are paused because the user is out of remote storage space. Embeds 1:{{ total storage space provided, e.g. 100 GB }}; 2:{{ space the user needs to free up by deleting media, e.g. 1 GB }}. */
-"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "તમે તમારા બેકઅપ પ્લાનમાં શામેલ %1$@ સ્ટોરેજ મર્યાદા સુધી પહોંચી ગયા છો. નવી ચેટ અને મીડિયાનો બેકઅપ લેવા માટે, Signalમાં %2$@ ખાલી કરો અને પછી \"હમણાં બેક અપ લો\" પર ટેપ કરો.";
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "તમે તમારા બેકઅપ પ્લાનમાં શામેલ %1$@ સ્ટોરેજ મર્યાદા સુધી પહોંચી ગયા છો. નવી ચેટ અને મીડિયાનો બેકઅપ લેવા માટે, Tellomiમાં %2$@ ખાલી કરો અને પછી \"હમણાં બેક અપ લો\" પર ટેપ કરો.";
 
 /* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the percentage uploaded as a percent, e.g. 40% }}. */
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "અપલોડ થાય છે %2$@માંથી %1$@ (%3$@) ";
@@ -1208,7 +1208,7 @@
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_BUTTON_TITLE" = "હમણાં બેકઅપ લો";
 
 /* Message for a sheet shown after the user enables backups. */
-"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "આમાં થોડો સમય લાગી શકે છે. બેકઅપ લેતી વખતે તમે Signalનો સામાન્યની જેમ જ ઉપયોગ કરી શકો છો.";
+"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "આમાં થોડો સમય લાગી શકે છે. બેકઅપ લેતી વખતે તમે Tellomiનો સામાન્યની જેમ જ ઉપયોગ કરી શકો છો.";
 
 /* Footer for a toggle shown after the user enables backups, letting them enable the Optimize Storage feature. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_FOOTER" = "તમે તમારું આગામી બેકઅપ બનાવશો ત્યારે જૂના મીડિયાને ઓફલોડ કરવામાં આવશે, પરંતુ તમારા બેકઅપમાંથી ગમે ત્યારે ડાઉનલોડ કરી શકાય છે.";
@@ -1316,10 +1316,10 @@
 "BADGE_DETAILS_DONATE_TO_SIGNAL" = "હમણાં દાન કરો";
 
 /* When viewing someone else's donor badge, you'll see a sheet. This is the title on that sheet. Embeds {badge owner's short name} */
-"BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ Signalને સપોર્ટ કરે છે";
+"BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ Tellomiને સપોર્ટ કરે છે";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "તમારા બૂસ્ટ બૅજની સમય અવધિ સમાપ્ત થઈ ગઈ છે અને હવે તે તમારી પ્રોફાઇલ પર પ્રદર્શિત થવા માટે ઉપલબ્ધ નથી.\n\nતમે Signalનો ઉપયોગ કરવાનું ચાલુ રાખી શકો છો પરંતુ તમારા માટે નિર્મિત ટેકનૉલોજીને સમર્થન આપવા માટે, એક માસિક દાનવીર બનવા પર વિચાર કરો.";
+"BADGE_EXPIRED_BOOST_BODY" = "તમારા બૂસ્ટ બૅજની સમય અવધિ સમાપ્ત થઈ ગઈ છે અને હવે તે તમારી પ્રોફાઇલ પર પ્રદર્શિત થવા માટે ઉપલબ્ધ નથી.\n\nતમે Tellomiનો ઉપયોગ કરવાનું ચાલુ રાખી શકો છો પરંતુ તમારા માટે નિર્મિત ટેકનૉલોજીને સમર્થન આપવા માટે, એક માસિક દાનવીર બનવા પર વિચાર કરો.";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "તમારા બૂસ્ટ બૅજની સમય અવધિ સમાપ્ત થઈ ગઈ છે અને હવે તે તમારી પ્રોફાઇલ પર પ્રદર્શિત થવા માટે ઉપલબ્ધ નથી.\n\nતમે એક-વખતના અનુદાન દ્વારા અન્ય 30 દિવસ માટે તમારા બૂસ્ટ બૅજને ફરીથી સક્રિય કરી શકો છો.";
@@ -1373,7 +1373,7 @@
 "BANK_MANDATE_READ_MORE" = "વધુ વાંચો";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is a subtitle about the payment processor Stripe above that mandate. */
-"BANK_MANDATE_SUBTITLE" = "Signalને આપવામાં આવેલા દાનની પ્રક્રિયા Stripe કરે છે. Tellomi તમારી અંગત માહિતી એકત્રિત અથવા સંગ્રહિત કરતું નથી.";
+"BANK_MANDATE_SUBTITLE" = "Tellomiને આપવામાં આવેલા દાનની પ્રક્રિયા Stripe કરે છે. Tellomi તમારી અંગત માહિતી એકત્રિત અથવા સંગ્રહિત કરતું નથી.";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is the title above that mandate. */
 "BANK_MANDATE_TITLE" = "બેંક ટ્રાન્સફર";
@@ -1394,7 +1394,7 @@
 "BLOCK_LIST_BLOCK_GROUP_TITLE_FORMAT" = "\"%1$@\" ગ્રૂપને બ્લૉક કરી અને છોડી દેવું છે?";
 
 /* Label for 'block release notes' action sheet title. */
-"BLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Signalને બ્લોક કરવું છે?";
+"BLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Tellomiને બ્લોક કરવું છે?";
 
 /* A format for the 'block user' action sheet title. Embeds {{the blocked user's name or phone number}}. */
 "BLOCK_LIST_BLOCK_USER_TITLE_FORMAT" = "%1$@ને બ્લૉક કરવા છે?";
@@ -1649,7 +1649,7 @@
 "CALL_QUALITY_SURVEY_COMPLETION_TOAST" = "તમારા પ્રતિભાવ બદલ આભાર!";
 
 /* Footer text explaining custom issue descriptions in the call quality survey */
-"CALL_QUALITY_SURVEY_CUSTOM_ISSUE_FOOTER" = "કૃપા કરીને સમસ્યાને લગતી કોઈ પણ વિગતો શામેલ કરો. તમે અહીં જે કંઈ પણ શેર કરશો તે ખાનગી રાખવામાં આવશે અને તેનો ઉપયોગ ફક્ત Signalમાં કૉલને બહેતર બનાવવામાં મદદ માટે કરવામાં આવશે.";
+"CALL_QUALITY_SURVEY_CUSTOM_ISSUE_FOOTER" = "કૃપા કરીને સમસ્યાને લગતી કોઈ પણ વિગતો શામેલ કરો. તમે અહીં જે કંઈ પણ શેર કરશો તે ખાનગી રાખવામાં આવશે અને તેનો ઉપયોગ ફક્ત Tellomiમાં કૉલને બહેતર બનાવવામાં મદદ માટે કરવામાં આવશે.";
 
 /* Placeholder text for the custom issue entry in the call quality survey */
 "CALL_QUALITY_SURVEY_CUSTOM_ISSUE_PLACEHOLDER" = "તમારી સમસ્યાનું વર્ણન કરો";
@@ -1718,7 +1718,7 @@
 "CALL_QUALITY_SURVEY_ISSUES_SHEET_TITLE" = "તમને કઈ સમસ્યાઓ હતી?";
 
 /* Header text explaining the purpose of the call quality survey */
-"CALL_QUALITY_SURVEY_RATING_HEADER" = "આ અમને Signalમાં કૉલને બહેતર બનાવવામાં મદદ કરે છે. કોઈ વ્યક્તિગત રીતે ઓળખી શકાય તેવી માહિતી સંગ્રહિત કરવામાં આવશે નહીં.";
+"CALL_QUALITY_SURVEY_RATING_HEADER" = "આ અમને Tellomiમાં કૉલને બહેતર બનાવવામાં મદદ કરે છે. કોઈ વ્યક્તિગત રીતે ઓળખી શકાય તેવી માહિતી સંગ્રહિત કરવામાં આવશે નહીં.";
 
 /* Title for the initial rating screen in the call quality survey */
 "CALL_QUALITY_SURVEY_RATING_TITLE" = "તમારો કૉલ કેવો રહ્યો?";
@@ -2183,7 +2183,7 @@
 "CHOOSE_BACKUP_PLAN_BULLET_STORAGE_AMOUNT" = "%1$@ સ્ટોરેજ";
 
 /* Text for a bullet point in a list of Backup features, thanking the user for supporting Signal by subscribing to the paid Backup plan. */
-"CHOOSE_BACKUP_PLAN_BULLET_THANKS_FOR_SUPPORTING_SIGNAL" = "Signalને સપોર્ટ કરવા બદલ આભાર!";
+"CHOOSE_BACKUP_PLAN_BULLET_THANKS_FOR_SUPPORTING_SIGNAL" = "Tellomiને સપોર્ટ કરવા બદલ આભાર!";
 
 /* Message shown in an action sheet when the user tries to confirm a plan selection, but is not registered. */
 "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_NOT_REGISTERED" = "બેકઅપને સક્ષમ કરવા માટે તમે રજીસ્ટર કરાવેલું હોવું આવશ્યક છે.";
@@ -2237,7 +2237,7 @@
 "CLOCK_SKEW_APP_BLOCKING_DEVICE_TIME_FORMAT" = "તમારા ડિવાઇસનો સમય છે %1$@ UTC.";
 
 /* Subtitle for a screen shown when the app can't be used until the user corrects their device's date and time. */
-"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "તમારા ડિવાઇસની તારીખ અને સમય ખોટો હોય ત્યારે Signalનો ઉપયોગ કરી શકાતો નથી. તેમને સુધારવા માટે સેટિંગ્સ ખોલો.";
+"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "તમારા ડિવાઇસની તારીખ અને સમય ખોટો હોય ત્યારે Tellomiનો ઉપયોગ કરી શકાતો નથી. તેમને સુધારવા માટે સેટિંગ્સ ખોલો.";
 
 /* Title for a screen shown when the app can't be used until the user corrects their device's date and time. */
 "CLOCK_SKEW_APP_BLOCKING_TITLE" = "તારીખ અચોક્કસ છે";
@@ -2258,7 +2258,7 @@
 "COMPARE_SAFETY_NUMBER_ACTION" = "ક્લિપબોર્ડ સાથે સરખામણી કરો";
 
 /* Accessibility hint describing what you can do with the compose button */
-"COMPOSE_BUTTON_HINT" = "Signalના વપરાશકર્તા સાથે ચેટ શરૂ કરવા માટે તેને પસંદ કરો અથવા શોધો.";
+"COMPOSE_BUTTON_HINT" = "Tellomiના વપરાશકર્તા સાથે ચેટ શરૂ કરવા માટે તેને પસંદ કરો અથવા શોધો.";
 
 /* Accessibility label from compose button. */
 "COMPOSE_BUTTON_LABEL" = "કંપોઝ";
@@ -2285,7 +2285,7 @@
 "COMPOSE_SCREEN_LIMITED_CONTACTS_CTA" = "મેનેજ કરો";
 
 /* Multi-line label explaining why compose-screen contact picker is empty. */
-"COMPOSE_SCREEN_LIMITED_CONTACTS_PERMISSION" = "Signalને તમારા સિસ્ટમ સંપર્કો પર મર્યાદિત ઍક્સેસ છે";
+"COMPOSE_SCREEN_LIMITED_CONTACTS_PERMISSION" = "Tellomiને તમારા સિસ્ટમ સંપર્કો પર મર્યાદિત ઍક્સેસ છે";
 
 /* Button to open settings from an empty compose-screen contact picker. */
 "COMPOSE_SCREEN_MISSING_CONTACTS_CTA" = "સેટિંગ્સ ખોલો";
@@ -2333,7 +2333,7 @@
 "CONTACT_ABOUT_SHEET_PROFILE_NAMES_EDUCATION" = "પ્રોફાઇલ નેમ ચકાસાયેલા નથી";
 
 /* Message for a tooltip that appears above a parenthesized name for another user, indicating that that name is the name the other user set for themself. Embeds {{name}} */
-"CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "“%1$@” એ આ વ્યક્તિએ Signalમાં પોતાના માટે સેટ કરેલું પ્રોફાઇલ નેમ છે.";
+"CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "“%1$@” એ આ વ્યક્તિએ Tellomiમાં પોતાના માટે સેટ કરેલું પ્રોફાઇલ નેમ છે.";
 
 /* A label indicating a user is a signal connection. */
 "CONTACT_ABOUT_SHEET_SIGNAL_CONNECTION_LABEL" = "Tellomi કનેક્શન";
@@ -2438,7 +2438,7 @@
 "CONTACT_SHARE_INVALID_CONTACT" = "અમાન્ય સંપર્ક.";
 
 /* Alert body when contacts disabled while trying to share a contact. */
-"CONTACT_SHARING_NO_ACCESS_BODY" = "Signalને તમારા સંપર્કો પરના ઍક્સેસની જરૂર છે. iOS સેટિંગ્સ પર જાઓ અને સંપર્કો ચાલુ કરો. તમારા સંપર્કો એન્ક્રિપ્ટેડ છે અને Tellomi સેવાને જોઈ શકતા નથી.";
+"CONTACT_SHARING_NO_ACCESS_BODY" = "Tellomiને તમારા સંપર્કો પરના ઍક્સેસની જરૂર છે. iOS સેટિંગ્સ પર જાઓ અને સંપર્કો ચાલુ કરો. તમારા સંપર્કો એન્ક્રિપ્ટેડ છે અને Tellomi સેવાને જોઈ શકતા નથી.";
 
 /* Alert title when contacts disabled while trying to share a contact. */
 "CONTACT_SHARING_NO_ACCESS_TITLE" = "સંપર્કનો ઍક્સેસ આપો";
@@ -2612,7 +2612,7 @@
 "CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "ગ્રૂપનું નામ, ફોટો, વર્ણન, ગાયબ થતાં મેસેજ ટાઇમર અને પિન કરેલા મેસેજમાં કોણ ફેરફાર કરી શકે તે પસંદ કરો.";
 
 /* Footer string for a contact's badges in conversation settings */
-"CONVERSATION_SETTINGS_BADGES_FOOTER" = "Signalને સમર્થન આપીને તમારી પ્રોફાઇલ માટે બૅજ મેળવો. વધુ જાણવા માટે બૅજ પર ટૅપ કરો.";
+"CONVERSATION_SETTINGS_BADGES_FOOTER" = "Tellomiને સમર્થન આપીને તમારી પ્રોફાઇલ માટે બૅજ મેળવો. વધુ જાણવા માટે બૅજ પર ટૅપ કરો.";
 
 /* Header title for a contact's badges in conversation settings */
 "CONVERSATION_SETTINGS_BADGES_HEADER" = "બૅજ";
@@ -2915,7 +2915,7 @@
 "DATABASE_RECOVERY_MORE_STORAGE_SPACE_NEEDED_TITLE" = "વધુ સ્ટોરેજ સ્પેસની જરૂર છે";
 
 /* The user has tried to recover their data after it was lost due to corruption. (They have not been hacked.) This is the description on the screen where we show an error message. */
-"DATABASE_RECOVERY_RECOVERY_FAILED_DESCRIPTION" = "તમારી મેસેજ હિસ્ટ્રી રિકવર થઈ શકી નહીં. તમે Signalને ફરીથી ઇન્સ્ટોલ કર્યા પછી તેનો ઉપયોગ ચાલુ રાખી શકો છો. ડીબગ લોગ સબમિટ કરો જેથી અમે વધુ સારી રીતે સમજી શકીએ કે શું ખોટું થયું છે.";
+"DATABASE_RECOVERY_RECOVERY_FAILED_DESCRIPTION" = "તમારી મેસેજ હિસ્ટ્રી રિકવર થઈ શકી નહીં. તમે Tellomiને ફરીથી ઇન્સ્ટોલ કર્યા પછી તેનો ઉપયોગ ચાલુ રાખી શકો છો. ડીબગ લોગ સબમિટ કરો જેથી અમે વધુ સારી રીતે સમજી શકીએ કે શું ખોટું થયું છે.";
 
 /* The user has tried to recover their data after it was lost due to corruption. (They have not been hacked.) This button lets them delete all of their data. */
 "DATABASE_RECOVERY_RECOVERY_FAILED_RESET_APP_BUTTON" = "Tellomi રીસેટ કરો";
@@ -3011,7 +3011,7 @@
 "DELETE_ACCOUNT_CONFIRMATION_ACTION_SHEEET_ACTION" = "એકાઉન્ટ ડિલીટ કરો";
 
 /* Title for the action sheet message of the 'delete account confirmation' view controller. */
-"DELETE_ACCOUNT_CONFIRMATION_ACTION_SHEEET_MESSAGE" = "આ તમારું Signalનું એકાઉન્ટ ડિલીટ કરી અને એપ્લિકેશનને રિસેટ કરશે. આ પ્રક્રિયા પૂર્ણ થયા બાદ ઍપ બંધ થઈ જશે.";
+"DELETE_ACCOUNT_CONFIRMATION_ACTION_SHEEET_MESSAGE" = "આ તમારું Tellomiનું એકાઉન્ટ ડિલીટ કરી અને એપ્લિકેશનને રિસેટ કરશે. આ પ્રક્રિયા પૂર્ણ થયા બાદ ઍપ બંધ થઈ જશે.";
 
 /* Title for the action sheet confirmation title of the 'delete account confirmation' view controller. */
 "DELETE_ACCOUNT_CONFIRMATION_ACTION_SHEEET_TITLE" = "શું તમે ખરેખર તમારું એકાઉન્ટ ડિલીટ કરવા માગો છો?";
@@ -3083,7 +3083,7 @@
 "DELETED_USER" = "ડિલીટ કરેલું એકાઉન્ટ";
 
 /* Notification warning the user that they have been de-registered. */
-"DEREGISTRATION_NOTIFICATION" = "તમે આ ડિવાઇસ પર Signalમાંથી લૉગ આઉટ થઈ ગયા છો.";
+"DEREGISTRATION_NOTIFICATION" = "તમે આ ડિવાઇસ પર Tellomiમાંથી લૉગ આઉટ થઈ ગયા છો.";
 
 /* Button that lets users re-register using the same phone number. */
 "DEREGISTRATION_REREGISTER_BUTTON" = "ફરીથી રજીસ્ટર";
@@ -3458,7 +3458,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_BADGE_REDEEMED" = "રિડિમ કર્યું";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is a short paragraph on the screen where users choose the badge their friend will receive. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Signalનો ઉપયોગ કરતા મિત્ર અથવા કુટુંબના સભ્ય માટે દાન કરીને Signalને સપોર્ટ કરો. તેમની પ્રોફાઇલ પર તેમનો સપોર્ટ બતાવવાનો વિકલ્પ તેઓ પાસે હશે.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Tellomiનો ઉપયોગ કરતા મિત્ર અથવા કુટુંબના સભ્ય માટે દાન કરીને Tellomiને સપોર્ટ કરો. તેમની પ્રોફાઇલ પર તેમનો સપોર્ટ બતાવવાનો વિકલ્પ તેઓ પાસે હશે.";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is the title on the screen where users choose the badge their friend will receive. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_TITLE" = "મિત્ર માટે દાન આપો";
@@ -3494,7 +3494,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PREVIEW_OUTGOING" = "✨ તમે %1$@ માટે દાન આપ્યું";
 
 /* You received a donation from a friend. This is the title of that message in the chat. Embeds {{short contact name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@એ તમારા વતી Signalને દાન આપ્યું";
+"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@એ તમારા વતી Tellomiને દાન આપ્યું";
 
 /* Users can donate on a friend's behalf. This is the error message that appears if the try to do this, but the recipient is blocked. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_RECIPIENT_IS_BLOCKED_ERROR_BODY" = "તમે આ ઉપયોગકર્તા માટે દાન આપી શકતા નથી કારણ કે તમે તેમને બ્લૉક કર્યા છે.";
@@ -3518,7 +3518,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_SENT_TITLE_FORMAT" = "%1$@ વતી દાન";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the text on that sheet. Embeds {{recipient name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "તમે %1$@ વતી Signalને દાન આપ્યું છે. તેમની પ્રોફાઇલ પર તેમનો સપોર્ટ બતાવવાનો વિકલ્પ તેઓને આપવામાં આવશે.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "તમે %1$@ વતી Tellomiને દાન આપ્યું છે. તેમની પ્રોફાઇલ પર તેમનો સપોર્ટ બતાવવાનો વિકલ્પ તેઓને આપવામાં આવશે.";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the title on that sheet. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_TITLE" = "આપના સહયોગ બદલ આભાર!";
@@ -3527,10 +3527,10 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_VIEW" = "જુઓ";
 
 /* A friend has donated on your behalf and you received a badge. This text says that you received a badge, and from whom. Embeds {{contact's short name, such as a first name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@એ તમારા વતી Signalને દાન આપ્યું! તમારી પ્રોફાઇલ પર Tellomi માટે તમારો સપોર્ટ બતાવો.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@એ તમારા વતી Tellomiને દાન આપ્યું! તમારી પ્રોફાઇલ પર Tellomi માટે તમારો સપોર્ટ બતાવો.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "એક સ્વતંત્ર બિનનફાકારક સંસ્થા તરીકે, Tellomi ખાનગી મેસેજિંગ અને કૉલ માટે પ્રતિબદ્ધ છે. કોઈ જાહેરાતો નહીં, કોઈ પગેરું નહીં, કોઈ દેખરેખ નહીં. Signalને સપોર્ટ આપવા માટે આજે જ દાન આપો.";
+"DONATION_READ_MORE_SHEET_BODY" = "એક સ્વતંત્ર બિનનફાકારક સંસ્થા તરીકે, Tellomi ખાનગી મેસેજિંગ અને કૉલ માટે પ્રતિબદ્ધ છે. કોઈ જાહેરાતો નહીં, કોઈ પગેરું નહીં, કોઈ દેખરેખ નહીં. Tellomiને સપોર્ટ આપવા માટે આજે જ દાન આપો.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "દાન કરતી વખતે તમારી પ્રોફાઇલ પર એક વૈકલ્પિક બૅજ મેળવો";
@@ -3575,7 +3575,7 @@
 "DONATION_RECEIPTS" = "દાનની રસીદો";
 
 /* Text at the bottom of the donation receipts list, telling users that receipts might not be available */
-"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "જો તમે Signalને ફરીથી ઇન્સ્ટોલ કર્યું હોય, તો અગાઉના દાનની રસીદો ઉપલબ્ધ નહીં રહે.";
+"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "જો તમે Tellomiને ફરીથી ઇન્સ્ટોલ કર્યું હોય, તો અગાઉના દાનની રસીદો ઉપલબ્ધ નહીં રહે.";
 
 /* Error message displayed if something goes wrong with 3DSecure/iDEAL payment authorization.  This will be encountered if the user cancels the webview before authrizing the payment. */
 "DONATION_REDIRECT_ERROR_CANCELLED_MESSAGE" = "ચુકવણી રદ કરી. કૃપા કરીને ફરીથી પ્રયાસ કરો.";
@@ -3734,7 +3734,7 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "અરે સાંભળો,\n\n તાજેતરમાં હું મારા iPhone પરની ચેટ ખાનગી રાખવા માટે Signalનો ઉપયોગ કરું છું. હું ઇચ્છું છું કે તમે પણ તેને ઇન્સ્ટોલ કરો, જેથી આપણે ખાતરી રાખી શકીએ કે માત્ર તમે અને હું જ આપણા મેસેજ વાંચી કે આપણા કૉલ સાંભળી શકીએ છીએ.\n\nSignal iPhone, Android અને ડેસ્કટોપ માટે ઉપલબ્ધ છે. તેને અહીંથી મેળવો: %1$@\n\nSignal તમારી હાલની મેસેજિંગ ઍપની જેમ જ કામ કરે છે. આપણે ફોટા અને વીડિયો મોકલી શકીએ છીએ, કૉલ કરી શકીએ છીએ અને ગ્રૂપ ચેટ શરૂ કરી શકીએ છીએ. સૌથી સારી વાત એ છે કે, તેમાનું કંઈ જ બીજું કોઈ જોઈ શકતું નથી, જેમણે Tellomi બનાવનારા લોકો પણ નહીં!\n\nતમે Tellomi વિશે અહીં વધુ વાંચી શકો છો: %2$@";
+"EMAIL_INVITE_BODY" = "અરે સાંભળો,\n\n તાજેતરમાં હું મારા iPhone પરની ચેટ ખાનગી રાખવા માટે Tellomiનો ઉપયોગ કરું છું. હું ઇચ્છું છું કે તમે પણ તેને ઇન્સ્ટોલ કરો, જેથી આપણે ખાતરી રાખી શકીએ કે માત્ર તમે અને હું જ આપણા મેસેજ વાંચી કે આપણા કૉલ સાંભળી શકીએ છીએ.\n\nSignal iPhone, Android અને ડેસ્કટોપ માટે ઉપલબ્ધ છે. તેને અહીંથી મેળવો: %1$@\n\nSignal તમારી હાલની મેસેજિંગ ઍપની જેમ જ કામ કરે છે. આપણે ફોટા અને વીડિયો મોકલી શકીએ છીએ, કૉલ કરી શકીએ છીએ અને ગ્રૂપ ચેટ શરૂ કરી શકીએ છીએ. સૌથી સારી વાત એ છે કે, તેમાનું કંઈ જ બીજું કોઈ જોઈ શકતું નથી, જેમણે Tellomi બનાવનારા લોકો પણ નહીં!\n\nતમે Tellomi વિશે અહીં વધુ વાંચી શકો છો: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
 "EMAIL_INVITE_SUBJECT" = "ચાલો Tellomi પર સ્વિચ કરીએ";
@@ -3875,7 +3875,7 @@
 "ERROR_DESCRIPTION_UNKNOWN_ERROR" = "એક અજાણ એરર આવી.";
 
 /* Error message when attempting to send message */
-"ERROR_DESCRIPTION_UNREGISTERED_RECIPIENT" = "આ વ્યક્તિ હવે Signalનો ઉપયોગ કરતી ન હોવાથી મેસેજ મોકલી શકાયો નથી.";
+"ERROR_DESCRIPTION_UNREGISTERED_RECIPIENT" = "આ વ્યક્તિ હવે Tellomiનો ઉપયોગ કરતી ન હોવાથી મેસેજ મોકલી શકાયો નથી.";
 
 /* Error message indicating that attachment upload(s) failed. */
 "ERROR_MESSAGE_ATTACHMENT_UPLOAD_FAILED" = "અટેચમેન્ટ અપલોડ કરવાનું નિષ્ફળ થયું.";
@@ -3944,19 +3944,19 @@
 "EXIT_REREGISTRATION" = "રજિસ્ટ્રેશનમાંથી બહાર નીકળો";
 
 /* Label notifying the user that the app has expired. */
-"EXPIRATION_ERROR" = "Signalનું આ વર્ઝન સમાપ્ત થઈ ગયું છે. મેસેજ મોકલવા અને પ્રાપ્ત કરવા માટે અપડેટ કરો.";
+"EXPIRATION_ERROR" = "Tellomiનું આ વર્ઝન સમાપ્ત થઈ ગયું છે. મેસેજ મોકલવા અને પ્રાપ્ત કરવા માટે અપડેટ કરો.";
 
 /* If the user's app is too old, they'll be shown a warning asking them to upgrade. This is the text on the warning, and tapping it will open the App Store page for Signal. */
 "EXPIRATION_WARNING_ACTION_TITLE" = "અત્યારે અપડેટ કરો";
 
 /* Label warning the user that the app will expire soon. Embeds {{date}}. */
-"EXPIRATION_WARNING_SOON" = "Signalનું આ વર્ઝન %1$@ના રોજ સમાપ્ત થશે. મેસેજ કરતાં રહેવા માટે અપડેટ કરો.";
+"EXPIRATION_WARNING_SOON" = "Tellomiનું આ વર્ઝન %1$@ના રોજ સમાપ્ત થશે. મેસેજ કરતાં રહેવા માટે અપડેટ કરો.";
 
 /* Label warning the user that the app will expire today. */
-"EXPIRATION_WARNING_TODAY" = "Signalનું આ વર્ઝન આજે સમાપ્ત થઈ જશે. મેસેજ કરતાં રહેવા માટે અપડેટ કરો.";
+"EXPIRATION_WARNING_TODAY" = "Tellomiનું આ વર્ઝન આજે સમાપ્ત થઈ જશે. મેસેજ કરતાં રહેવા માટે અપડેટ કરો.";
 
 /* action sheet header when re-sending message which failed because of an invalid key signature */
-"FAILED_SENDING_BECAUSE_INVALID_KEY_SIGNATURE" = "મેસેજ મોકલી શકાયો નથી કારણ કે %1$@એ Signalને અપડેટ કરીને પછી ખોલવાની જરૂર છે.";
+"FAILED_SENDING_BECAUSE_INVALID_KEY_SIGNATURE" = "મેસેજ મોકલી શકાયો નથી કારણ કે %1$@એ Tellomiને અપડેટ કરીને પછી ખોલવાની જરૂર છે.";
 
 /* action sheet header when re-sending message which failed because of untrusted identity keys */
 "FAILED_SENDING_BECAUSE_UNTRUSTED_IDENTITY_KEY" = "%1$@ સાથેનો તમારો સલામતી નંબર તાજેતરમાં બદલાઈ ગયો છે. તમે આ મેસેજ ફરીથી મોકલતા પહેલા ચકાસવાની ઇચ્છા કરી શકો છો.";
@@ -5150,7 +5150,7 @@
 "INFO_MESSAGE_REPORTED_SPAM" = "સ્પામ તરીકે જાણ કરી";
 
 /* Body message of the alert shown when a user taps on 'learn more' via the spam info message. */
-"INFO_MESSAGE_REPORTED_SPAM_LEARN_MORE_MESSAGE" = "Signalને જાણ કરવામાં આવી છે કે આ વ્યક્તિ સ્પામ મોકલતા હોઈ શકે છે. Tellomi કોઈ પણ ચેટની કન્ટેન્ટ જોઈ શકતું નથી.";
+"INFO_MESSAGE_REPORTED_SPAM_LEARN_MORE_MESSAGE" = "Tellomiને જાણ કરવામાં આવી છે કે આ વ્યક્તિ સ્પામ મોકલતા હોઈ શકે છે. Tellomi કોઈ પણ ચેટની કન્ટેન્ટ જોઈ શકતું નથી.";
 
 /* Title of the alert shown when a user taps on 'learn more' via the spam info message. */
 "INFO_MESSAGE_REPORTED_SPAM_LEARN_MORE_TITLE" = "સ્પામ તરીકે જાણ કરી";
@@ -5348,7 +5348,7 @@
 "LINK_NEW_DEVICE_AUTHENTICATION_REASON" = "ડિવાઇસને લિંક કરવા માટે પ્રમાણિત કરો";
 
 /* Body text for a sheet when a user has started linking a device informing them to finish the process on that other device */
-"LINK_NEW_DEVICE_FINISH_ON_OTHER_DEVICE_SHEET_BODY" = "તમારા અન્ય ડિવાઇસ પર Signalને લિંક કરવાનું પૂર્ણ કરો.";
+"LINK_NEW_DEVICE_FINISH_ON_OTHER_DEVICE_SHEET_BODY" = "તમારા અન્ય ડિવાઇસ પર Tellomiને લિંક કરવાનું પૂર્ણ કરો.";
 
 /* Title for a sheet when a user has started linking a device informing them to finish the process on that other device */
 "LINK_NEW_DEVICE_FINISH_ON_OTHER_DEVICE_SHEET_TITLE" = "તમારા અન્ય ડિવાઇસ પર લિંક કરવાનું પૂર્ણ કરો";
@@ -5405,7 +5405,7 @@
 "LINKED_DEVICE_INFO_SHEET_HEADER" = "<bold>લિંક કરેલા ડિવાઇસ</bold> તમને તમારા કોઈ પણ વધારાના ડિવાઇસ પર તમારા Tellomi એકાઉન્ટ અને મેસેજને સુરક્ષિત રીતે ઍક્સેસ કરવાની મંજૂરી આપે છે.";
 
 /* Shown in a banner when you tap the 'New Chat' icon at the top of the list of chats. */
-"LINKED_DEVICE_MANAGE_CONTACTS_BANNER" = "સિસ્ટમ સંપર્કો મેનેજ કરવાનું હવે લિંક કરેલા ડિવાઇસ પર સપોર્ટેડ નથી. આ ડિવાઇસ તમારા પ્રાથમિક ડિવાઇસ પર Signalથી તમારી સંપર્ક સૂચિમાં કોઈ પણ ફેરફારોને સિંક કરવાનું ચાલુ રાખશે.";
+"LINKED_DEVICE_MANAGE_CONTACTS_BANNER" = "સિસ્ટમ સંપર્કો મેનેજ કરવાનું હવે લિંક કરેલા ડિવાઇસ પર સપોર્ટેડ નથી. આ ડિવાઇસ તમારા પ્રાથમિક ડિવાઇસ પર Tellomiથી તમારી સંપર્ક સૂચિમાં કોઈ પણ ફેરફારોને સિંક કરવાનું ચાલુ રાખશે.";
 
 /* A button shown in a banner when you tap the 'New Chat' icon at the top of the list of chats. Tapping it opens a website with more details. */
 "LINKED_DEVICE_MANAGE_CONTACTS_LEARN_MORE" = "વધુ જાણો";
@@ -5420,7 +5420,7 @@
 "LINKED_DEVICE_NOTIFICATION_TITLE" = "તમે એક નવું ડિવાઇસ લિંક કર્યું છે";
 
 /* Message for an action sheet telling users how to link a device, when trying to open an external device-linking URL. */
-"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "આ Tellomi એકાઉન્ટ સાથે ડેસ્કટોપ કે iPadને લિંક કરવા માટે, લિંક કરેલા ડિવાઇસ પર જાઓ અને \"નવું ડિવાઇસ લિંક કરો\" પર ટેપ કરો અને QR કોડ ફરીથી સ્કેન કરો. ખાતરી કરો કે તમે ફક્ત એવા QR કોડ સ્કેન કરો છો જે સીધા Signalમાંથી જ આવતા હોય.";
+"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "આ Tellomi એકાઉન્ટ સાથે ડેસ્કટોપ કે iPadને લિંક કરવા માટે, લિંક કરેલા ડિવાઇસ પર જાઓ અને \"નવું ડિવાઇસ લિંક કરો\" પર ટેપ કરો અને QR કોડ ફરીથી સ્કેન કરો. ખાતરી કરો કે તમે ફક્ત એવા QR કોડ સ્કેન કરો છો જે સીધા Tellomiમાંથી જ આવતા હોય.";
 
 /* Message for an action sheet telling users how to link a device, when trying to open a device-linking URL from the in-app camera. */
 "LINKED_DEVICE_URL_OPENED_ACTION_SHEET_IN_APP_CAMERA_MESSAGE" = "એવું લાગે છે કે તમે કોઈ Tellomi ડિવાઇસને લિંક કરવાનો પ્રયાસ કરી રહ્યાં છો. ચાલુ રાખો પર ટેપ કરો અને પછી \"નવું ડિવાઇસ લિંક કરો\" પર ટેપ કરો અને ફરીથી QR કોડ સ્કેન કરો.";
@@ -5441,7 +5441,7 @@
 "LINKED_DEVICES_EMPTY_STATE" = "કોઈ લિંક કરેલા ડિવાઇસ નથી";
 
 /* Description for header of the linked devices list */
-"LINKED_DEVICES_HEADER_DESCRIPTION" = "ડેસ્કટોપ અથવા iPad પર Signalનો ઉપયોગ કરો.";
+"LINKED_DEVICES_HEADER_DESCRIPTION" = "ડેસ્કટોપ અથવા iPad પર Tellomiનો ઉપયોગ કરો.";
 
 /* Footer text below the list of currently-linked devices */
 "LINKED_DEVICES_LIST_FOOTER" = "મેસેજ અને ચેટ માહિતી બધા ડિવાઇસ પર એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્શન દ્વારા સુરક્ષિત છે";
@@ -5750,7 +5750,7 @@
 "MEMBER_LABEL_VIEW_TITLE" = "સભ્યનું લેબલ";
 
 /* A one-time confirmation that you, as an admin, want to delete for everyone */
-"MESSAGE_ACTION_ADMIN_DELETE_FOR_EVERYONE_CONFIRMATION" = "Signalના લેટેસ્ટ વર્ઝન પરના ગ્રૂપના સભ્યો જોશે કે તમે આ મેસેજ ડિલીટ કર્યા છે.";
+"MESSAGE_ACTION_ADMIN_DELETE_FOR_EVERYONE_CONFIRMATION" = "Tellomiના લેટેસ્ટ વર્ઝન પરના ગ્રૂપના સભ્યો જોશે કે તમે આ મેસેજ ડિલીટ કર્યા છે.";
 
 /* Action sheet button title */
 "MESSAGE_ACTION_COPY_TEXT" = "મેસેજ ટેક્સ્ટની નકલ કરો";
@@ -5759,7 +5759,7 @@
 "MESSAGE_ACTION_DELETE_FOR_EVERYONE" = "દરેક માટે ડિલીટ કરો";
 
 /* A one-time confirmation that you want to delete for everyone */
-"MESSAGE_ACTION_DELETE_FOR_EVERYONE_CONFIRMATION" = "જો તેઓ Signalના તાજેતરના વર્ઝન પર હશે તો આ મેસેજ ચેટમાં દરેક માટે ડિલીટ કરવામાં આવશે. તેઓ જોઈ શકશે કે તમે મેસેજ ડિલીટ કર્યો છે.";
+"MESSAGE_ACTION_DELETE_FOR_EVERYONE_CONFIRMATION" = "જો તેઓ Tellomiના તાજેતરના વર્ઝન પર હશે તો આ મેસેજ ચેટમાં દરેક માટે ડિલીટ કરવામાં આવશે. તેઓ જોઈ શકશે કે તમે મેસેજ ડિલીટ કર્યો છે.";
 
 /* The title for the action sheet asking who the user wants to delete the message for. */
 "MESSAGE_ACTION_DELETE_FOR_TITLE" = "તમે આ મેસેજ કોના માટે ડિલીટ કરવા માગો છો?";
@@ -5987,7 +5987,7 @@
 "MESSAGE_REQUEST_NAME_COLLISON_UPDATE_CONTACT_ACTION" = "સંપર્કને અપડેટ કરો";
 
 /* Action sheet message to confirm reporting a conversation as spam via a message request. */
-"MESSAGE_REQUEST_REPORT_CONVERSATION_MESSAGE" = "Signalને જાણ કરવામાં આવશે કે આ વ્યક્તિ સ્પામ મોકલતા હોઈ શકે છે. Tellomi કોઈ પણ ચેટની કન્ટેન્ટ જોઈ શકતું નથી.";
+"MESSAGE_REQUEST_REPORT_CONVERSATION_MESSAGE" = "Tellomiને જાણ કરવામાં આવશે કે આ વ્યક્તિ સ્પામ મોકલતા હોઈ શકે છે. Tellomi કોઈ પણ ચેટની કન્ટેન્ટ જોઈ શકતું નથી.";
 
 /* Action sheet title to confirm reporting a conversation as spam via a message request. */
 "MESSAGE_REQUEST_REPORT_CONVERSATION_TITLE" = "સ્પામ તરીકે જાણ કરવી છે?";
@@ -6116,7 +6116,7 @@
 "MISSED_CALL_BLOCKED_SYSTEM_CONTACT" = "ફોન સેટિંગ્સમાં બ્લૉક કરવામાં આવેલ સંપર્ક તરફથી મિસ્ડ કોલ";
 
 /* Action to block contact in Signal for sheet shown when the user taps a missed call from a contact blocked in iOS settings. */
-"MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_BLOCK_ACTION" = "Signalમાં પણ સંપર્કને બ્લૉક કરો";
+"MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_BLOCK_ACTION" = "Tellomiમાં પણ સંપર્કને બ્લૉક કરો";
 
 /* Message for sheet shown when the user taps a missed call from a contact blocked in iOS settings. */
 "MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_MESSAGE" = "તમે તેમનો કૉલ ચૂકી ગયા છો કારણ કે તેઓને તમારા ફોન સેટિંગ્સમાં બ્લૉક કરેલ છે. આને મેનેજ કરવા માટે સેટિંગ્સ > ફોન પર જાઓ અને બ્લૉક કરેલ સંપર્કો પર ટેપ કરો.";
@@ -6143,7 +6143,7 @@
 "MISSING_LOCATION_PERMISSION_MESSAGE" = "તમે iOS સેટિંગ્સ એપ્લિકેશનમાં આ પરવાનગીને સક્ષમ કરી શકો છો.";
 
 /* Alert title indicating the user has denied location permissions */
-"MISSING_LOCATION_PERMISSION_TITLE" = "આ સુવિધા માટે Signalને તમારા સ્થાનના ઍક્સેસની જરૂર છે.";
+"MISSING_LOCATION_PERMISSION_TITLE" = "આ સુવિધા માટે Tellomiને તમારા સ્થાનના ઍક્સેસની જરૂર છે.";
 
 /* Alert body when user has previously denied media library access */
 "MISSING_MEDIA_LIBRARY_PERMISSION_MESSAGE" = "તમે iOS સેટિંગ્સ એપ્લિકેશનમાં આ પરવાનગીને સક્ષમ કરી શકો છો.";
@@ -6341,7 +6341,7 @@
 "NICKNAME_EDITOR_DELETE_CONFIRMATION_TITLE" = "ઉપનામ ડિલીટ કરવું છે?";
 
 /* The description below the title on the profile nickname editor view. */
-"NICKNAME_EDITOR_DESCRIPTION" = "ઉપનામો અને નોંધને Signalની એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવાનો ઉપયોગ કરીને સ્ટોર કરવામાં આવે છે. તે ફક્ત તમને જ દેખાય છે.";
+"NICKNAME_EDITOR_DESCRIPTION" = "ઉપનામો અને નોંધને Tellomiની એન્ડ-ટૂ-એન્ડ એન્ક્રિપ્ટેડ સ્ટોરેજ સેવાનો ઉપયોગ કરીને સ્ટોર કરવામાં આવે છે. તે ફક્ત તમને જ દેખાય છે.";
 
 /* Placeholder text it the text field for the family name in the profile nickname editor. */
 "NICKNAME_EDITOR_FAMILY_NAME_PLACEHOLDER" = "અટક";
@@ -6368,13 +6368,13 @@
 "NO_OTHER_GROUPS_IN_COMMON" = "અન્ય કોઈ ગ્રુપ કોમનમાં નથી.";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. The embedded value is 'Re-link' (translated via NOT_LINKED_BOTTOM_RELINK), and it will be formatted as a tappable link. */
-"NOT_LINKED_BOTTOM" = "આ ડિવાઇસ હવે લિંક થયેલ નથી. આ ડિવાઇસ પર Signalનો ઉપયોગ ચાલુ રાખવા માટે %1$@.";
+"NOT_LINKED_BOTTOM" = "આ ડિવાઇસ હવે લિંક થયેલ નથી. આ ડિવાઇસ પર Tellomiનો ઉપયોગ ચાલુ રાખવા માટે %1$@.";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. This value is a tappable link embedded in a larger sentence. */
 "NOT_LINKED_BOTTOM_RELINK" = "ફરીથી લિંક કરો";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. The embedded value is 'Re-register' (translated via NOT_REGISTERED_BOTTOM_REREGISTER), and it will be formatted as a tappable link. */
-"NOT_REGISTERED_BOTTOM" = "આ ડિવાઇસ હવે રજીસ્ટર થયેલું નથી. Signalનો ઉપયોગ ચાલુ રાખવા માટે %1$@.";
+"NOT_REGISTERED_BOTTOM" = "આ ડિવાઇસ હવે રજીસ્ટર થયેલું નથી. Tellomiનો ઉપયોગ ચાલુ રાખવા માટે %1$@.";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. This value is a tappable link embedded in a larger sentence. */
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "ફરીથી રજીસ્ટર";
@@ -6692,19 +6692,19 @@
 "OPEN_SETTINGS_BUTTON" = "સેટિંગ્સ";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on unsupported version. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this text. */
-"OS_EXPIRED_AND_CAN_UPGRADE_OS" = "Tellomi હવે આ ડિવાઇસ પર કામ કરતું નથી. Signalનો ફરીથી ઉપયોગ કરવા માટે, તમારા ડિવાઇસને iOSના નવા વર્ઝન પર અપડેટ કરો.";
+"OS_EXPIRED_AND_CAN_UPGRADE_OS" = "Tellomi હવે આ ડિવાઇસ પર કામ કરતું નથી. Tellomiનો ફરીથી ઉપયોગ કરવા માટે, તમારા ડિવાઇસને iOSના નવા વર્ઝન પર અપડેટ કરો.";
 
 /* Signal doesn't support old devices. If that's the case, they'll be shown this action, and tapping it will open information about Signal's minimum supported operating systems. */
-"OS_EXPIRED_AND_DEVICE_IS_STUCK" = "Tellomi હવે આ ડિવાઇસ પર કામ કરતું નથી. Signalનો ફરીથી ઉપયોગ કરવા માટે, નવા ડિવાઇસ પર સ્વિચ કરો.";
+"OS_EXPIRED_AND_DEVICE_IS_STUCK" = "Tellomi હવે આ ડિવાઇસ પર કામ કરતું નથી. Tellomiનો ફરીથી ઉપયોગ કરવા માટે, નવા ડિવાઇસ પર સ્વિચ કરો.";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on an old version. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this action, and tapping it will open device update instructions. */
 "OS_SOON_TO_EXPIRE_ACTION_TITLE" = "અત્યારે અપડેટ કરો";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're an old version that will soon lose support. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this text. Embeds {{expiration date}}. */
-"OS_SOON_TO_EXPIRE_AND_CAN_UPGRADE_OS_FORMAT" = "Tellomi હવે ટૂંક સમયમાં તમારા ડિવાઇસના iOS વર્ઝનને સપોર્ટ કરશે નહીં. Signalનો ઉપયોગ ચાલુ રાખવા માટે, તમારા ડિવાઇસને %1$@ સુધીમાં iOSના નવીનતમ વર્ઝન પર અપડેટ કરો.";
+"OS_SOON_TO_EXPIRE_AND_CAN_UPGRADE_OS_FORMAT" = "Tellomi હવે ટૂંક સમયમાં તમારા ડિવાઇસના iOS વર્ઝનને સપોર્ટ કરશે નહીં. Tellomiનો ઉપયોગ ચાલુ રાખવા માટે, તમારા ડિવાઇસને %1$@ સુધીમાં iOSના નવીનતમ વર્ઝન પર અપડેટ કરો.";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on an old version that will soon lose support. This is the text on that warning when users can't upgrade iOS without getting a new device. Embeds {{expiration date}}. */
-"OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomi હવે ટૂંક સમયમાં તમારા ડિવાઇસના iOS વર્ઝનને સપોર્ટ કરશે નહીં. Signalનો ઉપયોગ ચાલુ રાખવા માટે, %1$@ સુધીમાં નવા ડિવાઇસ પર સ્વિચ કરો.";
+"OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomi હવે ટૂંક સમયમાં તમારા ડિવાઇસના iOS વર્ઝનને સપોર્ટ કરશે નહીં. Tellomiનો ઉપયોગ ચાલુ રાખવા માટે, %1$@ સુધીમાં નવા ડિવાઇસ પર સ્વિચ કરો.";
 
 /* Info Message when another user disabled disappearing messages. Embeds {{name of other user}}. */
 "OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ અદૃશ્ય થઈ રહેલા મેસેજને અક્ષમ કર્યા.";
@@ -6719,7 +6719,7 @@
 "OUTDATED_PAYMENT_CLIENT_ACTION_TITLE" = "અત્યારે અપડેટ કરો";
 
 /* Label warning the user that they should update Signal to continue using payments. */
-"OUTDATED_PAYMENT_CLIENT_REMINDER_TEXT" = "ચુકવણીઓનો ઉપયોગ કરતાં રહેવા માટે Signalને અપડેટ કરો. તમારું બેલેન્સ અપ-ટૂ-ડેટ ન પણ હોઈ શકે.";
+"OUTDATED_PAYMENT_CLIENT_REMINDER_TEXT" = "ચુકવણીઓનો ઉપયોગ કરતાં રહેવા માટે Tellomiને અપડેટ કરો. તમારું બેલેન્સ અપ-ટૂ-ડેટ ન પણ હોઈ શકે.";
 
 /* Body of prompt notifying restore was cancelled. */
 "OUTGOING_DEVICE_REGISTRATION_CANCELLED_RESTORE_BODY" = "રિસ્ટોર કરવાનું રદ કરવામાં આવ્યું હતું. કૃપા કરીને ફરીથી પ્રયાસ કરો.";
@@ -6806,7 +6806,7 @@
 "OUTGOING_MISSED_VOICE_CALL" = "ન ઉપાડેલો વૉઇસ કૉલ";
 
 /* Button for action sheet shown when device transfer completes; quits the Signal app immediately (does not automatically relaunch, but the user may choose to relaunch). */
-"OUTGOING_TRANSFER_COMPLETE_EXIT_ACTION" = "Signalમાંથી બહાર નીકળો";
+"OUTGOING_TRANSFER_COMPLETE_EXIT_ACTION" = "Tellomiમાંથી બહાર નીકળો";
 
 /* Message for action sheet shown when device transfer completes */
 "OUTGOING_TRANSFER_COMPLETE_MESSAGE" = "Tellomi હવે આ ડિવાઇસ પરથી બહાર નીકળી જશે";
@@ -7781,7 +7781,7 @@
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_TITLE" = "QR કોડ સ્કેન કરો";
 
 /* Message for an action sheet telling users how to use quick restore, when trying to open an external quick restore URL. */
-"QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "આ એકાઉન્ટને નવા ડિવાઇસમાં ટ્રાન્સફર કરવા માટે, \"ચાલુ રાખો\" પર ટેપ કરો અને Tellomi કેમેરાથી ફરીથી QR કોડ સ્કેન કરો. ખાતરી કરો કે તમે ફક્ત એવા QR કોડ સ્કેન કરો છો જે સીધા Signalમાંથી જ આવતા હોય.";
+"QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "આ એકાઉન્ટને નવા ડિવાઇસમાં ટ્રાન્સફર કરવા માટે, \"ચાલુ રાખો\" પર ટેપ કરો અને Tellomi કેમેરાથી ફરીથી QR કોડ સ્કેન કરો. ખાતરી કરો કે તમે ફક્ત એવા QR કોડ સ્કેન કરો છો જે સીધા Tellomiમાંથી જ આવતા હોય.";
 
 /* Accessibility label stating the author of the message to which you are replying. Embeds: {{ the author of the message to which you are replying }} {{ original message }}. */
 "QUOTED_REPLY_ACCESSIBILITY_LABEL_FORMAT" = "%1$@ને જવાબ આપી રહ્યા છો. %2$@";
@@ -8003,7 +8003,7 @@
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNRETRYABLE_SERVER_ERROR_TITLE" = "બેકઅપ રિસ્ટોર કરી શકતા નથી";
 
 /* Body for a sheet warning users about an incompatible backup version. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_BODY" = "તમારા બેકઅપને રિસ્ટોર કરવા માટે, ખાતરી કરો કે તમે Signalના લેટેસ્ટ વર્ઝન પર છો અને ફરી પ્રયાસ કરો. જો સમસ્યા ચાલુ રહે તો સપોર્ટનો સંપર્ક કરો.";
+"REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_BODY" = "તમારા બેકઅપને રિસ્ટોર કરવા માટે, ખાતરી કરો કે તમે Tellomiના લેટેસ્ટ વર્ઝન પર છો અને ફરી પ્રયાસ કરો. જો સમસ્યા ચાલુ રહે તો સપોર્ટનો સંપર્ક કરો.";
 
 /* Title for a sheet warning users about an incompatible backup version. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_TITLE" = "અપડેટ જરૂરી છે";
@@ -8015,7 +8015,7 @@
 "REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_ACTION" = "અપડેટ કરો";
 
 /* During (re)registration, users may need to update their app to continue. They'll be presented with an alert if this is the case, prompting them to update. This is the description text on that alert. */
-"REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_DESCRIPTION" = "રજીસ્ટ્રેશન ચાલુ રાખવા માટે, કૃપા કરીને Signalના નવીનતમ વર્ઝન પર અપડેટ કરો.";
+"REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_DESCRIPTION" = "રજીસ્ટ્રેશન ચાલુ રાખવા માટે, કૃપા કરીને Tellomiના નવીનતમ વર્ઝન પર અપડેટ કરો.";
 
 /* During (re)registration, users may need to update their app to continue. They'll be presented with an alert if this is the case, prompting them to update. This is the title on that alert. */
 "REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_TITLE" = "અપડેટ જરૂરી છે";
@@ -8201,7 +8201,7 @@
 "REGISTRATION_VOICE_CODE_FAILED_TRY_SMS_ERROR" = "અમે તમને વૉઇસ કૉલ દ્વારા ચકાસણી કોડ મોકલી શક્યાં નથી. તેના બદલે SMS દ્વારા તમારો કોડ મેળવવાનો પ્રયાસ કરો.";
 
 /* Bottom bar label for the release notes thread */
-"RELEASE_NOTES_BOTTOM_BAR_LABEL" = "Signalની એકમાત્ર સત્તાવાર ચેટ";
+"RELEASE_NOTES_BOTTOM_BAR_LABEL" = "Tellomiની એકમાત્ર સત્તાવાર ચેટ";
 
 /* Display name for the release notes channel */
 "RELEASE_NOTES_CHANNEL_NAME" = "Tellomi";
@@ -8213,10 +8213,10 @@
 "RELEASE_NOTES_DESCRIPTION_KEEP_UPDATED" = "સમાચાર અને રિલીઝ નોંધ સાથે અપ ટૂ ડેટ રહો";
 
 /* Details text for the thread details view of the release notes channel */
-"RELEASE_NOTES_DETAILS" = "Signalની એકમાત્ર સત્તાવાર ચેટ. સમાચાર અને રિલીઝ નોંધ સાથે અપ ટૂ ડેટ રહો";
+"RELEASE_NOTES_DETAILS" = "Tellomiની એકમાત્ર સત્તાવાર ચેટ. સમાચાર અને રિલીઝ નોંધ સાથે અપ ટૂ ડેટ રહો";
 
 /* Settings description label for the release notes thread telling a user this is the only official chat */
-"RELEASE_NOTES_SETTINGS_DESCRIPTION_ONLY_OFFICAL_CHAT" = "Signalની એકમાત્ર સત્તાવાર ચેટ";
+"RELEASE_NOTES_SETTINGS_DESCRIPTION_ONLY_OFFICAL_CHAT" = "Tellomiની એકમાત્ર સત્તાવાર ચેટ";
 
 /* Button below the warning to fix a corrupted username. */
 "REMINDER_VIEW_USERNAME_CORRUPTED_FIX_BUTTON" = "અત્યારે ઠીક કરો";
@@ -8465,10 +8465,10 @@
 "SAFETY_TIPS_MESSAGE_LINKS_TITLE" = "વેબ લિંક સાથેનો મેસેજ";
 
 /* Message body describing the review names safety tip. */
-"SAFETY_TIPS_REVIEW_NAMES_BODY" = "\"નામ વેરિફાય થયેલ નથી\" નોટિસ તપાસો. દરેકજણ Signalમાં તેમનું પોતાનું પ્રોફાઇલ નેમ સેટ કરે છે.";
+"SAFETY_TIPS_REVIEW_NAMES_BODY" = "\"નામ વેરિફાય થયેલ નથી\" નોટિસ તપાસો. દરેકજણ Tellomiમાં તેમનું પોતાનું પ્રોફાઇલ નેમ સેટ કરે છે.";
 
 /* Message body describing the review names safety tip in the 'view more' flow. */
-"SAFETY_TIPS_REVIEW_NAMES_BODY_VIEW_MORE" = "\"નામ વેરિફાય થયેલ નથી\" નોટિસ તપાસો. દરેકજણ Signalમાં તેમનું પોતાનું પ્રોફાઇલ નેમ અને ફોટો સેટ કરે છે. જો તમને ખાતરી ન હોય કે વિનંતી કોની છે, તો તેને અવગણવી જ સલામત છે.";
+"SAFETY_TIPS_REVIEW_NAMES_BODY_VIEW_MORE" = "\"નામ વેરિફાય થયેલ નથી\" નોટિસ તપાસો. દરેકજણ Tellomiમાં તેમનું પોતાનું પ્રોફાઇલ નેમ અને ફોટો સેટ કરે છે. જો તમને ખાતરી ન હોય કે વિનંતી કોની છે, તો તેને અવગણવી જ સલામત છે.";
 
 /* Message title describing the review names safety tip. */
 "SAFETY_TIPS_REVIEW_NAMES_TITLE" = "નામ અને ફોટાને રિવ્યૂ કરો";
@@ -8582,7 +8582,7 @@
 "SECONDARY_LINKING_SYNCING_UPDATE_REQUIRED_CHECK_FOR_UPDATE_BUTTON" = "અપડેટ માટે તપાસો";
 
 /* Message for action sheet when the secondary device fails to sync messages due to an app update being required. */
-"SECONDARY_LINKING_SYNCING_UPDATE_REQUIRED_ERROR_MESSAGE" = "તમારા મેસેજને સિંક થવાનું પૂર્ણ કરવા માટે, Signalને હમણાં જ અપડેટ કરો.";
+"SECONDARY_LINKING_SYNCING_UPDATE_REQUIRED_ERROR_MESSAGE" = "તમારા મેસેજને સિંક થવાનું પૂર્ણ કરવા માટે, Tellomiને હમણાં જ અપડેટ કરો.";
 
 /* Title for action sheet when the secondary device fails to sync messages due to an app update being required. */
 "SECONDARY_LINKING_SYNCING_UPDATE_REQUIRED_ERROR_TITLE" = "અપડેટ જરૂરી છે";
@@ -9044,7 +9044,7 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "Tellomi સુરક્ષિત બેકઅપની પ્રગતિ ચાલુ હોય ત્યારે ઓન-ડિવાઇસ બેકઅપ કરી શકતા નથી. પછી ફરી પ્રયાસ કરો.";
 
 /* Footer text on the on-device backups settings page explaining how to restore a backup. */
-"SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "બેકઅપ રિસ્ટોર કરવા માટે, Signalની નવી કૉપિ ઇન્સ્ટોલ કરો. ઍપ ખોલો, “રિસ્ટોર કરો કે ટ્રાન્સફર કરો” પર ટેપ કરો અને “ઓન-ડિવાઇસ બેકઅપ” પસંદ કરો.";
+"SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "બેકઅપ રિસ્ટોર કરવા માટે, Tellomiની નવી કૉપિ ઇન્સ્ટોલ કરો. ઍપ ખોલો, “રિસ્ટોર કરો કે ટ્રાન્સફર કરો” પર ટેપ કરો અને “ઓન-ડિવાઇસ બેકઅપ” પસંદ કરો.";
 
 /* Label for the button that turns off on-device backups. */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "બંધ કરો અને બેકઅપ ડિલીટ કરો";
@@ -9128,7 +9128,7 @@
 "SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION" = "ઍપ બૅજ";
 
 /* Explanation for the switch controlling whether a notification is shown when a phone contact joins Signal. */
-"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "જ્યારે કોઈ ફોન સંપર્ક Signalમાં જોડાય ત્યારે નોટિફિકેશન બતાવો.";
+"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "જ્યારે કોઈ ફોન સંપર્ક Tellomiમાં જોડાય ત્યારે નોટિફિકેશન બતાવો.";
 
 /* Label for a switch controlling whether reactions to your messages generate notifications. */
 "SETTINGS_NOTIFICATIONS_REACTIONS" = "પ્રતિક્રિયા નોટિફિકેશન";
@@ -9152,7 +9152,7 @@
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_AGREE" = "સક્રિય કરો";
 
 /* Description for the 'activate payments confirmation' UI in the payment settings. */
-"SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_DESCRIPTION" = "તમે હવે MobileCoin મોકલવા અને મેળવવા માટે Signalનો ઉપયોગ કરી શકો છો. તમામ ચુકવણીઓ MobileCoins અને MobileCoin Walletની ઉપયોગની શરતોને આધીન છે. તમને થોડી સમસ્યાઓ આવી શકે છે અને તમે ગુમાવી શકો તેવી ચુકવણીઓ કે બેલેન્સ પાછું ન પણ આવી શકે.";
+"SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_DESCRIPTION" = "તમે હવે MobileCoin મોકલવા અને મેળવવા માટે Tellomiનો ઉપયોગ કરી શકો છો. તમામ ચુકવણીઓ MobileCoins અને MobileCoin Walletની ઉપયોગની શરતોને આધીન છે. તમને થોડી સમસ્યાઓ આવી શકે છે અને તમે ગુમાવી શકો તેવી ચુકવણીઓ કે બેલેન્સ પાછું ન પણ આવી શકે.";
 
 /* Title for the 'activate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_TITLE" = "સક્રિય કરો";
@@ -9764,7 +9764,7 @@
 "SETTINGS_SECURITY_DETAIL_FACEID" = "Tellomi ને અનલૉક કરવા માટે, ફેસ ID નો ઉપયોગ કરો.";
 
 /* Section footer */
-"SETTINGS_SECURITY_DETAIL_OPTICID" = "Signalને અનલૉક કરવા ઑપ્ટિક IDનો ઉપયોગ કરો.";
+"SETTINGS_SECURITY_DETAIL_OPTICID" = "Tellomiને અનલૉક કરવા ઑપ્ટિક IDનો ઉપયોગ કરો.";
 
 /* Section footer */
 "SETTINGS_SECURITY_DETAIL_PASSCODE" = "Tellomi ને અનલૉક કરવા માટે તમારા ડિવાઇસના પાસકોડનો ઉપયોગ કરો.";
@@ -10550,7 +10550,7 @@
 "UNAVAILABLE_MEDIA_TAP_TOAST" = "આ મીડિયા હવે ઉપલબ્ધ નથી";
 
 /* Action sheet title when confirming you want to unblock release notes. */
-"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Signalને અનબ્લોક કરવું છે?";
+"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Tellomiને અનબ્લોક કરવું છે?";
 
 /* Action sheet body when confirming you want to unblock release notes */
 "UNBLOCK_RELEASE_NOTES_BEHAVIOR_EXPLANATION" = "Tellomi અપડેટ્સ અને સમાચારો મોકલવાનું ફરી શરૂ કરો.";
@@ -10604,7 +10604,7 @@
 "UNLINK_CONFIRMATION_ALERT_TITLE" = "અનલિંક \"%1$@\"?";
 
 /* Label warning the user that they have been unlinked from their primary device. */
-"UNLINKED_WARNING" = "આ ડિવાઇસ હવે લિંક થયેલ નથી. મેસેજિંગ ચાલુ રાખવા Signalને તમારા ફોન સાથે ફરીથી લિંક કરો.";
+"UNLINKED_WARNING" = "આ ડિવાઇસ હવે લિંક થયેલ નથી. મેસેજિંગ ચાલુ રાખવા Tellomiને તમારા ફોન સાથે ફરીથી લિંક કરો.";
 
 /* If this device has become unlinked from their primary device, they'll see a warning. This is the call to action on that warning. */
 "UNLINKED_WARNING_ACTION_TITLE" = "ડિવાઇસને ફરીથી લિંક કરો";

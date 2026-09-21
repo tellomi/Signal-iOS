@@ -377,13 +377,13 @@
 "ATTACHMENT_APPROVAL_MEDIA_QUALITY_TITLE" = "मिडिया दर्जा";
 
 /* Notification body shown when media sync to a linked device is complete. */
-"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "तुमच्या लिंक केलेल्या डिव्हाइसवरून Signalशी सिंक पूर्ण झाले.";
+"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "तुमच्या लिंक केलेल्या डिव्हाइसवरून Tellomiशी सिंक पूर्ण झाले.";
 
 /* Notification body shown when media sync to a linked device was interrupted. */
-"ATTACHMENT_BACKFILL_INTERRUPTED_NOTIFICATION" = "तुमच्या लिंक केलेल्या डिव्हाइसवरून Signalशी सिंक करणे चालू ठेवण्यासाठी Tellomi उघडा";
+"ATTACHMENT_BACKFILL_INTERRUPTED_NOTIFICATION" = "तुमच्या लिंक केलेल्या डिव्हाइसवरून Tellomiशी सिंक करणे चालू ठेवण्यासाठी Tellomi उघडा";
 
 /* Notification body shown while syncing media to a linked device. */
-"ATTACHMENT_BACKFILL_SYNCING_NOTIFICATION" = "तुमच्या लिंक केलेल्या डिव्हाइसवरून Signalशी सिंक करत आहोत";
+"ATTACHMENT_BACKFILL_SYNCING_NOTIFICATION" = "तुमच्या लिंक केलेल्या डिव्हाइसवरून Tellomiशी सिंक करत आहोत";
 
 /* Generic filename for an attachment with no known name */
 "ATTACHMENT_DEFAULT_FILENAME" = "संलग्न";
@@ -770,7 +770,7 @@
 "BACKUP_SAVE_KEY_SAVE_TO_PW_MGR_BUTTON_TITLE" = "पासवर्ड व्यवस्थापकामध्ये जतन करा";
 
 /* Message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "ऑटोमॅटिक बॅकअप्स बंद केले आहेत. Signalच्या परवानग्या अद्ययावत करून ऑटोमॅटिक बॅकअप्स चालू करा.";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "ऑटोमॅटिक बॅकअप्स बंद केले आहेत. Tellomiच्या परवानग्या अद्ययावत करून ऑटोमॅटिक बॅकअप्स चालू करा.";
 
 /* Add-on to a message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE_UPDATE_NOW" = "आता अद्यतनित करा";
@@ -779,7 +779,7 @@
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_GO_TO_SETTINGS_BUTTON" = "सेटिंग वर जा";
 
 /* Message for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Signalला तुमच्या संदेशांचा आपोआप बॅकअप घेता यावा, यासाठी खाली \"सेटिंग्जवर जा\" वर टॅप करा, आणि \"बॅकग्राऊंड अ‍ॅप रीफ्रेश\" चालू करा";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Tellomiला तुमच्या संदेशांचा आपोआप बॅकअप घेता यावा, यासाठी खाली \"सेटिंग्जवर जा\" वर टॅप करा, आणि \"बॅकग्राऊंड अ‍ॅप रीफ्रेश\" चालू करा";
 
 /* Title for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_TITLE" = "ऑटोमॅटिक बॅकअप्स बंद आहेत";
@@ -1208,7 +1208,7 @@
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_BUTTON_TITLE" = "आता बॅकअप करा";
 
 /* Message for a sheet shown after the user enables backups. */
-"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "यासाठी थोडा वेळ लागू शकतो. तुम्ही बॅकअप चालू असताना Signalचा नेहमीप्रमाणे वापर करू शकता.";
+"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "यासाठी थोडा वेळ लागू शकतो. तुम्ही बॅकअप चालू असताना Tellomiचा नेहमीप्रमाणे वापर करू शकता.";
 
 /* Footer for a toggle shown after the user enables backups, letting them enable the Optimize Storage feature. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_FOOTER" = "तुम्ही तुमचा पुढचा बॅकअप घ्याल तेव्हा जुना मीडिया ऑफलोड होईल, पण तो तुमच्या बॅकअपमधून कधीही डाऊनलोड करता येईल.";
@@ -1394,7 +1394,7 @@
 "BLOCK_LIST_BLOCK_GROUP_TITLE_FORMAT" = "\"%1$@\" गट अवरोधित करायचा आणि सोडायचा?";
 
 /* Label for 'block release notes' action sheet title. */
-"BLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Signalला ब्लॉक करायचे?";
+"BLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Tellomiला ब्लॉक करायचे?";
 
 /* A format for the 'block user' action sheet title. Embeds {{the blocked user's name or phone number}}. */
 "BLOCK_LIST_BLOCK_USER_TITLE_FORMAT" = "%1$@ ला अवरोधित करायचे?";
@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ ने आपल्या वतीने Tellomi ला देणगी दिली! आपल्या प्रोफाईलवर Tellomi साठी सपोर्ट दाखवा.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "एक स्वतंत्र ना-नफा संस्था असणारी Tellomi खासगी संदेशवहन आणि कॉल्ससाठी कायम कटिबद्ध आहे. कोणत्याही जाहिराती नाहीत, कोणतेही ट्रॅकर्स नाहीत, कोणावरही पाळत नाही. Signalला सपोर्ट करण्यासाठी आजच देणगी द्या.";
+"DONATION_READ_MORE_SHEET_BODY" = "एक स्वतंत्र ना-नफा संस्था असणारी Tellomi खासगी संदेशवहन आणि कॉल्ससाठी कायम कटिबद्ध आहे. कोणत्याही जाहिराती नाहीत, कोणतेही ट्रॅकर्स नाहीत, कोणावरही पाळत नाही. Tellomiला सपोर्ट करण्यासाठी आजच देणगी द्या.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "तुम्ही देणगी द्याल तेव्हा तुमच्या प्रोफाईलवर एक पर्यायी बॅज मिळवा";
@@ -5534,7 +5534,7 @@
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_BULLET_3" = "कोणत्याही वेळी बॅकअप्स बंद करा";
 
 /* Subtitle for a view introducing local file backups during the onboarding flow. */
-"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "तुमचे संदेश तुमच्या डिव्हाईसवरील एका फोल्डरमध्ये बॅकअप करून ठेवा. तुमचा बॅकअप एंड-टू-एंड कूटबद्ध केलेला आहे आणि Signalची नवी आवृत्ती इन्स्टॉल करून ती \"रीस्टोर करा किंवा हस्तांतरित करा\" निवडून तो परत मिळवता येऊ शकतो.";
+"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "तुमचे संदेश तुमच्या डिव्हाईसवरील एका फोल्डरमध्ये बॅकअप करून ठेवा. तुमचा बॅकअप एंड-टू-एंड कूटबद्ध केलेला आहे आणि Tellomiची नवी आवृत्ती इन्स्टॉल करून ती \"रीस्टोर करा किंवा हस्तांतरित करा\" निवडून तो परत मिळवता येऊ शकतो.";
 
 /* Title for a view introducing local file backups during the onboarding flow. */
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_TITLE" = "डिव्हाइसवर बॅकअप";
@@ -5750,7 +5750,7 @@
 "MEMBER_LABEL_VIEW_TITLE" = "सदस्य लेबल";
 
 /* A one-time confirmation that you, as an admin, want to delete for everyone */
-"MESSAGE_ACTION_ADMIN_DELETE_FOR_EVERYONE_CONFIRMATION" = "गट सदस्यांना Signalच्या नवीन आवृत्तीवर तुम्ही हे संदेश हटवल्याचे दिसेल.";
+"MESSAGE_ACTION_ADMIN_DELETE_FOR_EVERYONE_CONFIRMATION" = "गट सदस्यांना Tellomiच्या नवीन आवृत्तीवर तुम्ही हे संदेश हटवल्याचे दिसेल.";
 
 /* Action sheet button title */
 "MESSAGE_ACTION_COPY_TEXT" = "संदेश मजकूर कॉपी करा";
@@ -8201,7 +8201,7 @@
 "REGISTRATION_VOICE_CODE_FAILED_TRY_SMS_ERROR" = "आम्ही आपणाला व्हॉईस कॉल मार्फत पडताळणी कोड पाठवू शकत नाही. त्याऐवजी आपला कोड SMS ने प्राप्त करण्याचा प्रयत्न करा.";
 
 /* Bottom bar label for the release notes thread */
-"RELEASE_NOTES_BOTTOM_BAR_LABEL" = "Signalचे एकमेव अधिकृत चॅट";
+"RELEASE_NOTES_BOTTOM_BAR_LABEL" = "Tellomiचे एकमेव अधिकृत चॅट";
 
 /* Display name for the release notes channel */
 "RELEASE_NOTES_CHANNEL_NAME" = "Tellomi";
@@ -8213,10 +8213,10 @@
 "RELEASE_NOTES_DESCRIPTION_KEEP_UPDATED" = "बातम्या आणि प्रकाशन टिपण्या मिळवत राहा";
 
 /* Details text for the thread details view of the release notes channel */
-"RELEASE_NOTES_DETAILS" = "Signalचे एकमेव अधिकृत चॅट. न्यूज आणि प्रकाशन टीप मिळवत राहा";
+"RELEASE_NOTES_DETAILS" = "Tellomiचे एकमेव अधिकृत चॅट. न्यूज आणि प्रकाशन टीप मिळवत राहा";
 
 /* Settings description label for the release notes thread telling a user this is the only official chat */
-"RELEASE_NOTES_SETTINGS_DESCRIPTION_ONLY_OFFICAL_CHAT" = "Signalचे एकमेव अधिकृत चॅट";
+"RELEASE_NOTES_SETTINGS_DESCRIPTION_ONLY_OFFICAL_CHAT" = "Tellomiचे एकमेव अधिकृत चॅट";
 
 /* Button below the warning to fix a corrupted username. */
 "REMINDER_VIEW_USERNAME_CORRUPTED_FIX_BUTTON" = "आत्ता निश्चित करा";
@@ -9848,7 +9848,7 @@
 "SHARE_ACTION_MESSAGE" = "संदेश";
 
 /* Message for an action sheet shown when sharing fails because the device's date and time are incorrect. */
-"SHARE_EXTENSION_FAILED_SENDING_BECAUSE_CLOCK_SKEW_MESSAGE" = "तुमच्या डिव्हाईसवरील दिनांक व वेळ चुकीचे आहेत, त्यामुळे Signalने तुमचा संदेश पाठवला नसेल. सेटिंग्ज उघडा आणि तुमच्या डिव्हाईसवरील दिनांक व वेळ दुरुस्त करा.";
+"SHARE_EXTENSION_FAILED_SENDING_BECAUSE_CLOCK_SKEW_MESSAGE" = "तुमच्या डिव्हाईसवरील दिनांक व वेळ चुकीचे आहेत, त्यामुळे Tellomiने तुमचा संदेश पाठवला नसेल. सेटिंग्ज उघडा आणि तुमच्या डिव्हाईसवरील दिनांक व वेळ दुरुस्त करा.";
 
 /* alert body when sharing file failed because of untrusted/changed identity keys */
 "SHARE_EXTENSION_FAILED_SENDING_BECAUSE_UNTRUSTED_IDENTITY_FORMAT" = "आपला %1$@ सोबतचा सुरक्षितता नंबर अलीकडे बदलला आहे. पुन्हा पाठविण्यापूर्वी आपण मुख्य अॅप मध्ये त्यास सत्यापित करण्यास इच्छुक असाल.";
@@ -10550,7 +10550,7 @@
 "UNAVAILABLE_MEDIA_TAP_TOAST" = "हा मिडीया यापुढे उपलब्ध नाही";
 
 /* Action sheet title when confirming you want to unblock release notes. */
-"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Signalला अनब्लॉक करायचे?";
+"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Tellomiला अनब्लॉक करायचे?";
 
 /* Action sheet body when confirming you want to unblock release notes */
 "UNBLOCK_RELEASE_NOTES_BEHAVIOR_EXPLANATION" = "Tellomi अपडेट्स आणि बातम्या मिळवणे पुन्हा सुरू करा.";

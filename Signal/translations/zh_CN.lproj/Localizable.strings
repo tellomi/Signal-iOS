@@ -4967,13 +4967,13 @@
 "HOME_VIEW_DRAFT_PREFIX" = "草稿： ";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have 1 Signal contact.  Embeds {{The name of 1 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_1_CONTACT_FORMAT" = "您的一些联系人已经在使用Signal了，比如%1$@。";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_1_CONTACT_FORMAT" = "您的一些联系人已经在使用Tellomi了，比如%1$@。";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have 2 Signal contacts.  Embeds {{The names of 2 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "您的一些联系人已经在使用Signal了，比如%1$@和%2$@。";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "您的一些联系人已经在使用Tellomi了，比如%1$@和%2$@。";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have at least 3 Signal contacts.  Embeds {{The names of 3 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_3_CONTACTS_FORMAT" = "您的一些联系人已经在使用Signal了，比如%1$@，%2$@，以及%3$@。";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_3_CONTACTS_FORMAT" = "您的一些联系人已经在使用Tellomi了，比如%1$@，%2$@，以及%3$@。";
 
 /* A label offering to start a new conversation with your contacts, if you have no Signal contacts. */
 "HOME_VIEW_FIRST_CONVERSATION_OFFER_NO_CONTACTS" = "开启第一次聊天。";
@@ -5081,7 +5081,7 @@
 "INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_LEARN_MORE_BUTTON" = "了解详情";
 
 /* Title for an in-app megaphone about a user's inactive primary device. */
-"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_TITLE" = "在您的手机上打开Signal";
+"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_TITLE" = "在您的手机上打开Tellomi";
 
 /* Label reminding the user that they are in archive mode, and that muted chats remain archived when they receive a new message. */
 "INBOX_VIEW_ARCHIVE_MODE_MUTED_CHATS_REMINDER" = "当收到新消息时，已存档的静音聊天将会保持存档状态。";
@@ -5483,7 +5483,7 @@
 "LINKING_SYNCING_TIMING_INFO" = "这可能需要几分钟";
 
 /* Shown to users while the app is loading, asking them not to close the app. */
-"LOADING_VIEW_CONTROLLER_DONT_CLOSE_APP" = "请勿关闭Signal。";
+"LOADING_VIEW_CONTROLLER_DONT_CLOSE_APP" = "请勿关闭Tellomi。";
 
 /* Body for an error sheet shown when the user's folder choice does not contain a backup file. */
 "LOCAL_BACKUPS_MISSING_BACKUP_ACTION_SHEET_BODY" = "所选文件夹中未找到任何 Tellomi 备份。请尝试查看其他文件夹。";
@@ -6137,7 +6137,7 @@
 "MISSING_CAMERA_PERMISSION_MESSAGE" = "您可以在 iOS 设置应用中启用相机权限。";
 
 /* Alert title */
-"MISSING_CAMERA_PERMISSION_TITLE" = "Signal需要访问您的摄像头";
+"MISSING_CAMERA_PERMISSION_TITLE" = "Tellomi需要访问您的摄像头";
 
 /* Alert body indicating the user has denied location permissions */
 "MISSING_LOCATION_PERMISSION_MESSAGE" = "您可在”iOS 设置“中启用此权限。";
@@ -7595,7 +7595,7 @@
 "PRIVACY_VERIFICATION_FAILED_NO_SAFETY_NUMBERS_IN_CLIPBOARD" = "Tellomi 无法在剪贴板中找到安全码. 你正确的复制了吗?";
 
 /* Alert body when verifying with {{contact name}} */
-"PRIVACY_VERIFICATION_FAILED_THEY_HAVE_WRONG_KEY_FOR_ME" = "每一组Signal用户共享一个不同的安全码. 重复检查 %1$@ 显示你的安全码.";
+"PRIVACY_VERIFICATION_FAILED_THEY_HAVE_WRONG_KEY_FOR_ME" = "每一组Tellomi用户共享一个不同的安全码. 重复检查 %1$@ 显示你的安全码.";
 
 /* alert body */
 "PRIVACY_VERIFICATION_FAILED_WITH_OLD_LOCAL_VERSION" = "您的版本过低。升级后才可以继续校验。";
@@ -8561,7 +8561,7 @@
 "SECONDARY_LINKING_ERROR_OBSOLETE_LINKED_DEVICE_TITLE" = "不受支持的版本";
 
 /* alert message for outdated linking device */
-"SECONDARY_LINKING_ERROR_OLD_VERSION_MESSAGE" = "您的另一台设备正在使用老旧版本的Signal，故而无法扫描iPad二维码。请安装最新版本的Signal之后重试。";
+"SECONDARY_LINKING_ERROR_OLD_VERSION_MESSAGE" = "您的另一台设备正在使用老旧版本的Tellomi，故而无法扫描iPad二维码。请安装最新版本的Tellomi之后重试。";
 
 /* alert title for outdated linking device */
 "SECONDARY_LINKING_ERROR_OLD_VERSION_TITLE" = "更新扫描设备";
@@ -8591,16 +8591,16 @@
 "SECONDARY_ONBOARDING_CHOOSE_DEVICE_NAME_PLACEHOLDER" = "选择一个名称";
 
 /* header text before the user can link this device */
-"SECONDARY_ONBOARDING_GET_STARTED_BY_OPENING_PRIMARY" = "在您的手机上打开Signal用以将当前iPad关联至您的账户";
+"SECONDARY_ONBOARDING_GET_STARTED_BY_OPENING_PRIMARY" = "在您的手机上打开Tellomi用以将当前iPad关联至您的账户";
 
 /* Link explaining what to do when trying to link a device before having a primary device. */
 "SECONDARY_ONBOARDING_GET_STARTED_DO_NOT_HAVE_PRIMARY" = "我手机上没下 Tellomi……";
 
 /* alert body */
-"SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_BODY" = "前往你手机上的App Store安装Signal并完成注册过程，之后您可以将您的iPad关联至同一账户。";
+"SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_BODY" = "前往你手机上的App Store安装Tellomi并完成注册过程，之后您可以将您的iPad关联至同一账户。";
 
 /* alert title */
-"SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_TITLE" = "在您的手机上安装Signal";
+"SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_TITLE" = "在您的手机上安装Tellomi";
 
 /* Link text for page with troubleshooting info shown on the QR scanning screen */
 "SECONDARY_ONBOARDING_SCAN_CODE_HELP_TEXT" = "获取有关这些步骤的帮助";
@@ -9896,7 +9896,7 @@
 "SIGNAL_PROXY" = "Tellomi 代理服务器";
 
 /* body sent to contacts when inviting to Install Signal */
-"SMS_INVITE_BODY" = "请你下载Signal加密通讯软件！链接：";
+"SMS_INVITE_BODY" = "请你下载Tellomi加密通讯软件！链接：";
 
 /* An error message generically indicating that something went wrong. */
 "SOMETHING_WENT_WRONG_ERROR" = "出错了。";

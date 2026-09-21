@@ -3164,7 +3164,7 @@
 "DEVICE_TRANSFER_ERROR_NOT_ENOUGH_SPACE" = "磁碟上沒有足夠的空間來完成轉移";
 
 /* An error indicating the user must update their device before trying to transfer. */
-"DEVICE_TRANSFER_ERROR_UNSUPPORTED_VERSION" = "更新至最新版的Signal，然後重試。";
+"DEVICE_TRANSFER_ERROR_UNSUPPORTED_VERSION" = "更新至最新版的Tellomi，然後重試。";
 
 /* Body of the device transfer screen for pairing a new device, from the new device */
 "DEVICE_TRANSFER_PAIR_NEW_DEVICE_MESSAGE" = "若要轉移你的帳戶，請將此裝置與你的舊裝置配對";
@@ -3179,7 +3179,7 @@
 "DEVICE_TRANSFER_PAIR_OLD_DEVICE_TITLE" = "與你的舊裝置配對";
 
 /* The explanation on the view that shows receiving progress */
-"DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "保持兩個裝置互相靠近。請勿關閉裝置並始終開啟Signal。轉移已端對端加密。";
+"DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "保持兩個裝置互相靠近。請勿關閉裝置並始終開啟Tellomi。轉移已端對端加密。";
 
 /* The title on the view that shows receiving progress */
 "DEVICE_TRANSFER_RECEIVING_TITLE" = "正在接收資料";
@@ -3212,7 +3212,7 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_TRANSFERRING" = "轉移中";
 
 /* Description in the progress view displayed during device transfer. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_TRANSFERRING_DESCRIPTION" = "保持兩個裝置互相靠近。請勿關閉裝置並始終開啟Signal。轉移已端對端加密。";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_TRANSFERRING_DESCRIPTION" = "保持兩個裝置互相靠近。請勿關閉裝置並始終開啟Tellomi。轉移已端對端加密。";
 
 /* Status message on old device when cancelling transfer. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CANCELLING" = "正取消與新 iPhone 的連結…";
@@ -3776,7 +3776,7 @@
 "EMOJI_CATEGORY_TRAVEL_NAME" = "旅行及地點";
 
 /* Full width label displayed when attempting to compose message */
-"EMPTY_CONTACTS_LABEL_LINE1" = "你的聯絡人中沒有人正在使用Signal。";
+"EMPTY_CONTACTS_LABEL_LINE1" = "你的聯絡人中沒有人正在使用Tellomi。";
 
 /* Full width label displayed when attempting to compose message */
 "EMPTY_CONTACTS_LABEL_LINE2" = "不如邀請其他人？";
@@ -9896,7 +9896,7 @@
 "SIGNAL_PROXY" = "Tellomi 代理伺服器";
 
 /* body sent to contacts when inviting to Install Signal */
-"SMS_INVITE_BODY" = "我誠邀你裝Signal！網址係：";
+"SMS_INVITE_BODY" = "我誠邀你裝Tellomi！網址係：";
 
 /* An error message generically indicating that something went wrong. */
 "SOMETHING_WENT_WRONG_ERROR" = "發生一些錯誤。";

@@ -1286,7 +1286,7 @@
 "BACKUPS_SAVE_SPACE_MEGAPHONE_TITLE" = "課金備份，慳番啲儲存空間";
 
 /* Body for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to save on-device storage space. Embeds {{ the amount of storage space being consumed on-device by media, preformatted as a localized byte count, e.g. '1.2 GB' }}. */
-"BACKUPS_SAVE_SPACE_UPSELL_BODY" = "Tellomi 佔用緊 %1$@ 嘅儲存空間嚟放媒體。課金Signal 安全備份計劃可以用卸載媒體嘅方法嚟幫你慳番啲儲存空間，同時喺備份入面完整保留全部聊天紀錄。";
+"BACKUPS_SAVE_SPACE_UPSELL_BODY" = "Tellomi 佔用緊 %1$@ 嘅儲存空間嚟放媒體。課金Tellomi 安全備份計劃可以用卸載媒體嘅方法嚟幫你慳番啲儲存空間，同時喺備份入面完整保留全部聊天紀錄。";
 
 /* Title for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to save on-device storage space. */
 "BACKUPS_SAVE_SPACE_UPSELL_TITLE" = "課金備份，慳番啲儲存空間";

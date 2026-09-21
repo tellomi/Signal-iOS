@@ -5147,13 +5147,13 @@
 "INFO_MESSAGE_PAYMENTS_ACTIVATION_REQUEST_SENT" = "Vous avez envoyé une demande d'activation des paiements à %1$@.";
 
 /* Shown when a user reports a conversation as spam. */
-"INFO_MESSAGE_REPORTED_SPAM" = "Signalé comme spam";
+"INFO_MESSAGE_REPORTED_SPAM" = "Tellomié comme spam";
 
 /* Body message of the alert shown when a user taps on 'learn more' via the spam info message. */
 "INFO_MESSAGE_REPORTED_SPAM_LEARN_MORE_MESSAGE" = "Tellomi a été informé que cet utilisateur envoie peut-être des spams. Nous n’avons cependant jamais accès au contenu des conversations.";
 
 /* Title of the alert shown when a user taps on 'learn more' via the spam info message. */
-"INFO_MESSAGE_REPORTED_SPAM_LEARN_MORE_TITLE" = "Signalé comme spam";
+"INFO_MESSAGE_REPORTED_SPAM_LEARN_MORE_TITLE" = "Tellomié comme spam";
 
 /* Shown in inbox and conversation after syncing as a placeholder indicating why your message history is missing. */
 "INFO_MESSAGE_SYNCED_THREAD" = "Pour votre sécurité, l’historique des conversations n’est pas transféré vers les nouveaux appareils associés.";
@@ -5996,10 +5996,10 @@
 "MESSAGE_REQUEST_REPORT_SPAM_ACTION" = "Signaler comme spam";
 
 /* String indicating that spam has been reported. */
-"MESSAGE_REQUEST_SPAM_REPORTED" = "Signalé comme spam.";
+"MESSAGE_REQUEST_SPAM_REPORTED" = "Tellomié comme spam.";
 
 /* String indicating that spam has been reported and the chat has been blocked. */
-"MESSAGE_REQUEST_SPAM_REPORTED_AND_BLOCKED" = "Signalé comme spam et bloqué.";
+"MESSAGE_REQUEST_SPAM_REPORTED_AND_BLOCKED" = "Tellomié comme spam et bloqué.";
 
 /* A button used to accept a user on an incoming message request. */
 "MESSAGE_REQUEST_VIEW_ACCEPT_BUTTON" = "Accepter";

@@ -215,7 +215,7 @@
 "APN_Message" = "يېڭى ئۇچۇرىڭىز بار";
 
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. The embedded value is 'Update now' (translated via APP_EXPIRED_BOTTOM_UPDATE), and it will be formatted as a tappable link. */
-"APP_EXPIRED_BOTTOM" = "Signalنىڭ بۇ نەشرىنىڭ ۋاقتى ئ‍ۆتكەن. ئۇچۇر ئەۋەتىش ۋە قوبۇل قىلىش ئۈچۈن %1$@ ئىشلىتىڭ.";
+"APP_EXPIRED_BOTTOM" = "Tellomiنىڭ بۇ نەشرىنىڭ ۋاقتى ئ‍ۆتكەن. ئۇچۇر ئەۋەتىش ۋە قوبۇل قىلىش ئۈچۈن %1$@ ئىشلىتىڭ.";
 
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. This value is a tappable link embedded in a larger sentence. */
 "APP_EXPIRED_BOTTOM_UPDATE" = "ھازىر يېڭىلاڭ";
@@ -599,7 +599,7 @@
 "BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_ACTION" = "ئاچ";
 
 /* Body for Backup enablement reminder megaphone */
-"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_BODY" = "يېڭى تېلېفون ئالغاندا ياكى Signalنى قايتا قاچىلىغاندا ھەرقانداق ئۇچۇرنى يۈتتۈرۈپ قويمايسىز.";
+"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_BODY" = "يېڭى تېلېفون ئالغاندا ياكى Tellomiنى قايتا قاچىلىغاندا ھەرقانداق ئۇچۇرنى يۈتتۈرۈپ قويمايسىز.";
 
 /* Title for Backup enablement reminder megaphone */
 "BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_TITLE" = "شىفىرلانغان زاپاسلانمىلارنى قوزغىتىڭ";
@@ -674,7 +674,7 @@
 "BACKUP_ONBOARDING_INTRO_NOT_NOW_TOAST" = "«تەڭشەك»تىن زاپاسلاشنى قوزغىتالايسىز.";
 
 /* Subtitle for a view introducing Backups during an onboarding flow. */
-"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "ئۇچۇرلىرىڭىزنى ۋە مېدىيانى Signalنىڭ بىخەتەر ، ئاخىرىغىچە مەخپىيلەشتۈرۈلگەن ساقلاش مۇلازىمىتىنى ئىشلىتىپ زاپاسلاڭ. يېڭى تېلېفون ئالغاندا ياكى Signalنى قايتا قاچىلىغاندا ھەرقانداق ئۇچۇرنى يۈتتۈرۈپ قويمايسىز.";
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "ئۇچۇرلىرىڭىزنى ۋە مېدىيانى Tellomiنىڭ بىخەتەر ، ئاخىرىغىچە مەخپىيلەشتۈرۈلگەن ساقلاش مۇلازىمىتىنى ئىشلىتىپ زاپاسلاڭ. يېڭى تېلېفون ئالغاندا ياكى Tellomiنى قايتا قاچىلىغاندا ھەرقانداق ئۇچۇرنى يۈتتۈرۈپ قويمايسىز.";
 
 /* Title for a view introducing Backups during an onboarding flow. */
 "BACKUP_ONBOARDING_INTRO_TITLE" = "Tellomi بىخەتەر زاپاسلانمىللىرى";
@@ -770,7 +770,7 @@
 "BACKUP_SAVE_KEY_SAVE_TO_PW_MGR_BUTTON_TITLE" = "پارول باشقۇرغۇچىغا ساقلاڭ";
 
 /* Message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "ئاپتوماتىك زاپاسلاش چەكلەنگەن. Signalنىڭ ئىجازەت دائىرىسىنى يېڭىلاش ئارقىلىق ئاپتوماتىك زاپاسلاشنى قوزغىتىڭ.";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "ئاپتوماتىك زاپاسلاش چەكلەنگەن. Tellomiنىڭ ئىجازەت دائىرىسىنى يېڭىلاش ئارقىلىق ئاپتوماتىك زاپاسلاشنى قوزغىتىڭ.";
 
 /* Add-on to a message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE_UPDATE_NOW" = "دەرھال يېڭىلاش";
@@ -779,7 +779,7 @@
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_GO_TO_SETTINGS_BUTTON" = "تەڭشەكلەرگە يۆتكەل";
 
 /* Message for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Signalنىڭ ئۇچۇرلىرىڭىزنى ئاپتوماتىك زاپاسلىشىغا رۇخسەت قىلىش ئۈچۈن ئاستىدىكى «تەڭشەكلەرگە كىرىش»نى چېكىڭ ۋە «ئارقا سۇپىدا ئەپ يېڭىلاش»نى قوزغىتىڭ";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Tellomiنىڭ ئۇچۇرلىرىڭىزنى ئاپتوماتىك زاپاسلىشىغا رۇخسەت قىلىش ئۈچۈن ئاستىدىكى «تەڭشەكلەرگە كىرىش»نى چېكىڭ ۋە «ئارقا سۇپىدا ئەپ يېڭىلاش»نى قوزغىتىڭ";
 
 /* Title for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_TITLE" = "ئاپتوماتىك زاپاسلاش چەكلەنگەن";
@@ -896,16 +896,16 @@
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT" = "يېڭىلىنىش ۋاقتى %1$@";
 
 /* Footer for a menu section related to settings for when Backups are disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "زاپاسلاش ئېتىۋېتىلدى ۋە Signalنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىز ئۆچۈرۈلدى.";
+"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "زاپاسلاش ئېتىۋېتىلدى ۋە Tellomiنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىز ئۆچۈرۈلدى.";
 
 /* Description for a progress view tracking media being downloaded in service of disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "زاپاسلاش ئېتىۋېتىلدى، بۇ ئۈسكۈنىدە يوق ھەرقانداق مېدىيا ھازىر چۈشۈرۈلىۋاتىدۇ. چۈشۈرۈلگەندىن كېيىن، سانلىق مەلۇماتلىرىڭىز Signalنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن ئۆچۈرۈلىدۇ.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "زاپاسلاش ئېتىۋېتىلدى، بۇ ئۈسكۈنىدە يوق ھەرقانداق مېدىيا ھازىر چۈشۈرۈلىۋاتىدۇ. چۈشۈرۈلگەندىن كېيىن، سانلىق مەلۇماتلىرىڭىز Tellomiنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن ئۆچۈرۈلىدۇ.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "بىر خاتالىق كۆرۈلدى. ياردەمچى خادىم بىلەن ئالاقىلىشىڭ.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Signalنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىزنى ئۆچۈرىۋاتقاندا بىر خاتالىق كۆرۈلدى.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Tellomiنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىزنى ئۆچۈرىۋاتقاندا بىر خاتالىق كۆرۈلدى.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "زاپاسلاشنى ئۆچۈرەلمىدى";
@@ -914,7 +914,7 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "زاپاسلاشنى ئۆچۈرۈش ...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "زاپاسلاش ئېتىلدى ، Signalنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىز ئۆچۈرۈلىدۇ.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "زاپاسلاش ئېتىلدى ، Tellomiنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىز ئۆچۈرۈلىدۇ.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "زاپاسلاش تەپسىلاتى";
@@ -962,13 +962,13 @@
 "BACKUP_SETTINGS_DISABLING_CONFIRMATION_ACTION_SHEET_TITLE" = "ئېتىپ زاپاسلانمىنى ئۆچۈرەمسىز؟";
 
 /* Message shown in an action sheet when the user disables Backups, explaining that their media is downloading first. */
-"BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_MESSAGE" = "زاپاس سانلىق مەلۇماتىڭىزدا بۇ ئۈسكۈنىدە يوق مېدىيا بار. زاپىسىڭىزنى چۈشۈرۈشكە ئۇزۇن ۋاقىت كېتىشى مۇمكىن ، Signalنىڭ ئۈزۈلۈپ قېلىنىشىدىن ساقلىنىش ئۈچۈن داۋاملىق ئوچۇق تۇرۇشىغا كاپالەتلىك قىلىڭ .";
+"BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_MESSAGE" = "زاپاس سانلىق مەلۇماتىڭىزدا بۇ ئۈسكۈنىدە يوق مېدىيا بار. زاپىسىڭىزنى چۈشۈرۈشكە ئۇزۇن ۋاقىت كېتىشى مۇمكىن ، Tellomiنىڭ ئۈزۈلۈپ قېلىنىشىدىن ساقلىنىش ئۈچۈن داۋاملىق ئوچۇق تۇرۇشىغا كاپالەتلىك قىلىڭ .";
 
 /* Title shown in an action sheet when the user disables Backups, explaining that their media is downloading first. */
 "BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_TITLE" = "زاپاس مەلۇماتنى چۈشۈرۈۋاتىدۇ";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Signalنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىزنى ئۆچۈرىۋاتقاندا بىر خاتالىق كۆرۈلدى.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Tellomiنىڭ بىخەتەر ساقلاش مۇلازىمىتىدىن سانلىق مەلۇماتلىرىڭىزنى ئۆچۈرىۋاتقاندا بىر خاتالىق كۆرۈلدى.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "زاپاسلاشنى ئۆچۈرەلمىدى";
@@ -1067,7 +1067,7 @@
 "BACKUP_SETTINGS_LANDING_SET_UP_BUTTON" = "بەلگىلەش";
 
 /* Description of Signal Secure Backups on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Signalنىڭ بىخەتەر، ئاخىرىغىچە مەخپىيلەشتۈرۈلگەن ساقلاش مۇلازىمىتى بىلەن ئاپتوماتىك زاپاسلاش.";
+"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Tellomiنىڭ بىخەتەر، ئاخىرىغىچە مەخپىيلەشتۈرۈلگەن ساقلاش مۇلازىمىتى بىلەن ئاپتوماتىك زاپاسلاش.";
 
 /* Title for the Signal Secure Backups cell on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE" = "Tellomi بىخەتەر زاپاسلانمىللىرى";
@@ -1082,7 +1082,7 @@
 "BACKUP_SETTINGS_LINKED_DEVICE_MANAGE_ON_PRIMARY_FOOTER_PAID" = "ئاساسلىق ئۈسكۈنىڭىزدە Tellomi بىخەتەر زاپاسلانمىلىرى مۇشتەرىلىكىڭىزنى باشقۇرالايسىز ياكى ئەمەلدىن قالدۇرالايسىز.";
 
 /* Body text on the linked-device Backups screen, shown when Backups aren't set up, explaining the feature and that it can be enabled on the user's primary device. */
-"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Signalنىڭ بىخەتەر، ئاخىرىغىچە مەخپىيلەشتۈرۈلگەن ساقلاش مۇلازىمىتى بىلەن ئاپتوماتىك زاپاسلاش. ئاساسلىق ئۈسكۈنىڭىزدە بۇنى قىلىشنى باشلاڭ.";
+"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Tellomiنىڭ بىخەتەر، ئاخىرىغىچە مەخپىيلەشتۈرۈلگەن ساقلاش مۇلازىمىتى بىلەن ئاپتوماتىك زاپاسلاش. ئاساسلىق ئۈسكۈنىڭىزدە بۇنى قىلىشنى باشلاڭ.";
 
 /* Message on the linked-device Backups screen, shown when the user's paid subscription can't be found, prompting them to renew. */
 "BACKUP_SETTINGS_LINKED_DEVICE_SUBSCRIPTION_NOT_FOUND" = "مۇشتەرىلىكىڭىز تېپىلمىدى. Tellomi بىخەتەر زاپاسلانمىللىرىنى داۋاملىق ئشلىتىش ئۈچۈن يېڭىلاڭ.";
@@ -1136,7 +1136,7 @@
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_UPSELL_TITLE" = "«ساقلاش بوشلۇقىنى ئەلالاشتۇرۇشنى قوزغىتىش» دەرىجىسىگە كۆتۈرۈڭ";
 
 /* Subtitle for a notification telling the user they are out of remote storage space. */
-"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "زاپاسلاش ئامبىرىڭىزنىڭ چېكىگە يەتتىڭىز. پاراڭلار ۋە مېدىيانى داۋاملىق زاپاسلاش ئۈچۈن Signalدا بوشلۇق ھازىرلاڭ.";
+"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "زاپاسلاش ئامبىرىڭىزنىڭ چېكىگە يەتتىڭىز. پاراڭلار ۋە مېدىيانى داۋاملىق زاپاسلاش ئۈچۈن Tellomiدا بوشلۇق ھازىرلاڭ.";
 
 /* Title for a notification telling the user they are out of remote storage space. */
 "BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_TITLE" = "زاپاسلاش ئامبىرى چېكىگە يەتتى";
@@ -1196,7 +1196,7 @@
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "مېدىيانى يۈكلەش ۋاقىتلىق توختىتىلدى: Wi-Fi نى ساقلاۋاتىدۇ";
 
 /* Subtitle for a progress bar tracking uploads that are paused because the user is out of remote storage space. Embeds 1:{{ total storage space provided, e.g. 100 GB }}; 2:{{ space the user needs to free up by deleting media, e.g. 1 GB }}. */
-"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "زاپاسلاش پىلانىڭىزنى ئۆز ئىچىگە ئالغان %1$@لىق ساقلاش چېكىگە يەتتىڭىز. يېڭى پاراڭلار ۋە مېدىيانى زاپاسلاش ئۈچۈن، Signalدا %2$@ بوشلۇق ھازىرلاڭ، ئاندىن كېيىن «ھازىر زاپاسلاش» نى چېكىڭ.";
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "زاپاسلاش پىلانىڭىزنى ئۆز ئىچىگە ئالغان %1$@لىق ساقلاش چېكىگە يەتتىڭىز. يېڭى پاراڭلار ۋە مېدىيانى زاپاسلاش ئۈچۈن، Tellomiدا %2$@ بوشلۇق ھازىرلاڭ، ئاندىن كېيىن «ھازىر زاپاسلاش» نى چېكىڭ.";
 
 /* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the percentage uploaded as a percent, e.g. 40% }}. */
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "%2$@ نىڭ %1$@ تى يۈكلىنىۋاتىدۇ(%3$@)";
@@ -1649,7 +1649,7 @@
 "CALL_QUALITY_SURVEY_COMPLETION_TOAST" = "ئىنكاسىڭىزغا رەھمەت!";
 
 /* Footer text explaining custom issue descriptions in the call quality survey */
-"CALL_QUALITY_SURVEY_CUSTOM_ISSUE_FOOTER" = "مەسىلىگە مۇناسىۋەتلىك قانداق تەپسىلاتلار بولسا قوشۇپ قويۇڭ. بۇ يەردە ھەمبەھىرلىگەن ھەر قانداق مەزمۇن شەخسىي ھالەتتە ساقلىنىدۇ ھەمدە Signalدىكى تېلېفونلىشىش سۈپىتىنى ياردەملىشىپ ياخشىلاشقا ئىشلىتىلىدۇ.";
+"CALL_QUALITY_SURVEY_CUSTOM_ISSUE_FOOTER" = "مەسىلىگە مۇناسىۋەتلىك قانداق تەپسىلاتلار بولسا قوشۇپ قويۇڭ. بۇ يەردە ھەمبەھىرلىگەن ھەر قانداق مەزمۇن شەخسىي ھالەتتە ساقلىنىدۇ ھەمدە Tellomiدىكى تېلېفونلىشىش سۈپىتىنى ياردەملىشىپ ياخشىلاشقا ئىشلىتىلىدۇ.";
 
 /* Placeholder text for the custom issue entry in the call quality survey */
 "CALL_QUALITY_SURVEY_CUSTOM_ISSUE_PLACEHOLDER" = "بايقىغان مەسىلىنى تەسۋىرلەڭ";
@@ -1718,7 +1718,7 @@
 "CALL_QUALITY_SURVEY_ISSUES_SHEET_TITLE" = "سىز قانداق مەسىلىلەرنى بايقىدىڭىز؟";
 
 /* Header text explaining the purpose of the call quality survey */
-"CALL_QUALITY_SURVEY_RATING_HEADER" = "بۇ بىزنىڭ Signalدىكى تېلېفونلىشىش سۈپىتىنى ياخشىلىشىمىزغا ياردەم بېرىدۇ. شەخسىي سالاھىيەتكە باغلىنىشلىق ئۇچۇرلار ساقلانمايدۇ.";
+"CALL_QUALITY_SURVEY_RATING_HEADER" = "بۇ بىزنىڭ Tellomiدىكى تېلېفونلىشىش سۈپىتىنى ياخشىلىشىمىزغا ياردەم بېرىدۇ. شەخسىي سالاھىيەتكە باغلىنىشلىق ئۇچۇرلار ساقلانمايدۇ.";
 
 /* Title for the initial rating screen in the call quality survey */
 "CALL_QUALITY_SURVEY_RATING_TITLE" = "تېلېفونلىشىش جەريانى قانداق بولدى؟";
@@ -2105,7 +2105,7 @@
 "CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_BUTTON" = "ئەسلىگە كەلتۈرۈش";
 
 /* Message shown in an action sheet when the user tries to resume backup using cellular data. */
-"CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_MESSAGE" = "مېدىيانى زاپاسلاش ئۈچۈن يانفۇنىڭىزنىڭ ئېقىمىنى ئشلەتسىڭىزھەق ئېلىنىشى مۇمكىن. زاپىسىڭىزنى يۈكلەشكە ئۇزۇن ۋاقىت كېتىشى مۇمكىن، Signalنىڭ ئۈزۈلۈپ قېلىنىشىدىن ساقلىنىش ئۈچۈن داۋاملىق ئوچۇق تۇرۇشىغا كاپالەتلىك قىلىڭ.";
+"CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_MESSAGE" = "مېدىيانى زاپاسلاش ئۈچۈن يانفۇنىڭىزنىڭ ئېقىمىنى ئشلەتسىڭىزھەق ئېلىنىشى مۇمكىن. زاپىسىڭىزنى يۈكلەشكە ئۇزۇن ۋاقىت كېتىشى مۇمكىن، Tellomiنىڭ ئۈزۈلۈپ قېلىنىشىدىن ساقلىنىش ئۈچۈن داۋاملىق ئوچۇق تۇرۇشىغا كاپالەتلىك قىلىڭ.";
 
 /* Title for the action sheet shown when the user tries to resume backup using cellular data. */
 "CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_TITLE" = "يانفون ئارقىلىق ئەسلىگە كەلتۈرەمسىز؟";
@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ سىزنىڭ ئورنىڭىزدا Tellomi غا ئىئانە قىلدى! Tellomi غا بولغان قوللىشىڭىزنى ئارخىپىڭىزدا نامايەن قىلىڭ.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "مۇستەقىل پايدا ئالمايدىغان تەشكىلات بولۇش سۈپىتى بىلەن،   Tellomi شەخسىي ئۇچۇر ۋە تېلېفونلىشىشقا كاپالەتلىك قىلىدۇ. ئېلان، ئىز قوغلاش، نازارەت قىلىنىشتىن خالىي. Signalنى قوللاش ئۈچۈن بۈگۈنلا ئىئانە قىلىڭ.";
+"DONATION_READ_MORE_SHEET_BODY" = "مۇستەقىل پايدا ئالمايدىغان تەشكىلات بولۇش سۈپىتى بىلەن،   Tellomi شەخسىي ئۇچۇر ۋە تېلېفونلىشىشقا كاپالەتلىك قىلىدۇ. ئېلان، ئىز قوغلاش، نازارەت قىلىنىشتىن خالىي. Tellomiنى قوللاش ئۈچۈن بۈگۈنلا ئىئانە قىلىڭ.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "ئىئانە قىلىش ئارقىلىق قوشۇمچە بىر ئىزنەك تاپشۇرۇۋالىسىز";
@@ -3590,7 +3590,7 @@
 "DONATION_SCREEN_DONATE_BUTTON" = "ئىئانە قىلىڭ";
 
 /* On donation screens, a small amount of information text is shown. This is the subtitle for that text. */
-"DONATION_SCREENS_HEADER_DESCRIPTION" = "شەخسىي ئۇچۇرلىشىشنى قوللاش ئۈچۈن ئىئانە قىلىڭ. Signalنى مۇستەقىل ۋە ئېلاندىن خالىي قىلىشقا ياردەملىشىڭ.";
+"DONATION_SCREENS_HEADER_DESCRIPTION" = "شەخسىي ئۇچۇرلىشىشنى قوللاش ئۈچۈن ئىئانە قىلىڭ. Tellomiنى مۇستەقىل ۋە ئېلاندىن خالىي قىلىشقا ياردەملىشىڭ.";
 
 /* On donation screens, a small amount of information text is shown. Users can click this link to learn more information. */
 "DONATION_SCREENS_HEADER_READ_MORE" = "تېخىمۇ كۆپ";
@@ -5072,7 +5072,7 @@
 "INACTIVE_LINKED_DEVICE_REMINDER_MEGAPHONE_TITLE" = "ئاكتىپ ئەمەس ئۇلانغان ئۈسكۈنە";
 
 /* Body for an in-app megaphone about a user's inactive primary device. */
-"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_BODY" = "ھېساباتىڭىزنى ئاكتىپ ھالەتتە ساقلاش ئۈچۈن ئاساسلىق ئۈسكۈنىڭىزدە Signalنى ئېچىڭ.";
+"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_BODY" = "ھېساباتىڭىزنى ئاكتىپ ھالەتتە ساقلاش ئۈچۈن ئاساسلىق ئۈسكۈنىڭىزدە Tellomiنى ئېچىڭ.";
 
 /* Title for a button in an in-app megaphone about a user's inactive primary device, temporarily dismissing the megaphone. */
 "INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_GOT_IT_BUTTON" = "بىلدىم";
@@ -5390,7 +5390,7 @@
 "LINK_PREVIEW_UNKNOWN_DOMAIN" = "ئۇلانما ئالدىن كۆرۈش";
 
 /* Shown in an alert when trying to edit a contact. */
-"LINKED_DEVICE_CONTACTS_NOT_ALLOWED" = "تېلېفون ئالاقىلاشقۇچىلىرىنى باشقۇرۇشنى ئەمدى باغلانغان ئۈسكۈنىلەردە ئېلىپ بارغىلى بولمايدۇ. تېلېغونىڭىزنىڭ ئالاقىلاشقۇچىلار تىزىملىكىگە Signalدىكى ئالاقىلاشقۇچىلارنى قوشۇش ئۈچۈن ئاساسلىق ئۈسكىنىڭىزدىكى Signalنى ئېچىپ قىلىڭ.";
+"LINKED_DEVICE_CONTACTS_NOT_ALLOWED" = "تېلېفون ئالاقىلاشقۇچىلىرىنى باشقۇرۇشنى ئەمدى باغلانغان ئۈسكۈنىلەردە ئېلىپ بارغىلى بولمايدۇ. تېلېغونىڭىزنىڭ ئالاقىلاشقۇچىلار تىزىملىكىگە Tellomiدىكى ئالاقىلاشقۇچىلارنى قوشۇش ئۈچۈن ئاساسلىق ئۈسكىنىڭىزدىكى Tellomiنى ئېچىپ قىلىڭ.";
 
 /* Bullet point on the linked devices info sheet, describing what can be linked. */
 "LINKED_DEVICE_INFO_SHEET_BULLET_1" = "سىز ئۈستەل كومپيۇتېرى، تاختا كومپيۇتېر(مەسىلەن: iPad) ياكى قوشۇمچە تېلېفوننى باغلىيالايسىز.";
@@ -6368,13 +6368,13 @@
 "NO_OTHER_GROUPS_IN_COMMON" = "باشقا ئورتاق گۇرۇپپا يوق";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. The embedded value is 'Re-link' (translated via NOT_LINKED_BOTTOM_RELINK), and it will be formatted as a tappable link. */
-"NOT_LINKED_BOTTOM" = "بۇ ئۈسكۈنە ئەمدى ئۇلانمايدۇ. بۇ ئۈسكۈنىدە Signalنى ئىشلىتىشنى داۋاملاشتۇرۇش ئۈچۈن %1$@ بېسىڭ.";
+"NOT_LINKED_BOTTOM" = "بۇ ئۈسكۈنە ئەمدى ئۇلانمايدۇ. بۇ ئۈسكۈنىدە Tellomiنى ئىشلىتىشنى داۋاملاشتۇرۇش ئۈچۈن %1$@ بېسىڭ.";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. This value is a tappable link embedded in a larger sentence. */
 "NOT_LINKED_BOTTOM_RELINK" = "قايتا باغلاڭ";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. The embedded value is 'Re-register' (translated via NOT_REGISTERED_BOTTOM_REREGISTER), and it will be formatted as a tappable link. */
-"NOT_REGISTERED_BOTTOM" = "بۇ ئۈسكۈنە تىزىملاشتىن قالغان. Signalنى ئىشلىتىشنى داۋاملاشتۇرۇش ئۈچۈن %1$@ بېسىڭ.";
+"NOT_REGISTERED_BOTTOM" = "بۇ ئۈسكۈنە تىزىملاشتىن قالغان. Tellomiنى ئىشلىتىشنى داۋاملاشتۇرۇش ئۈچۈن %1$@ بېسىڭ.";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. This value is a tappable link embedded in a larger sentence. */
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "قايتا تىزىملىتىش";
@@ -6566,7 +6566,7 @@
 "ONBOARDING_MODE_SWITCH_BUTTON_REGISTERING" = "بۇ ئۈسكۈنىنى باغلاش";
 
 /* explanation to the user they're switching from linking to registering flow */
-"ONBOARDING_MODE_SWITCH_EXPLANATION_PROVISIONING" = "«IPad نى تىزىملاش» نى چىكىش ئارقىلىق يېڭى Tellomi ھېساباتى قۇرالايسىز ياكى بار بولغان ھېساباتنى بۇ iPad غا يۆتكىيەلەيسىز. ئەمما بۇنداق قىلىش ئوخشاش تېلېفون نومۇرى بىلەن تىزىملاتقان باشقا ئۈسكۈنىلەردىكى Signalنى چەكلەپ قويىدۇ.";
+"ONBOARDING_MODE_SWITCH_EXPLANATION_PROVISIONING" = "«IPad نى تىزىملاش» نى چىكىش ئارقىلىق يېڭى Tellomi ھېساباتى قۇرالايسىز ياكى بار بولغان ھېساباتنى بۇ iPad غا يۆتكىيەلەيسىز. ئەمما بۇنداق قىلىش ئوخشاش تېلېفون نومۇرى بىلەن تىزىملاتقان باشقا ئۈسكۈنىلەردىكى Tellomiنى چەكلەپ قويىدۇ.";
 
 /* explanation to the user they're switching from registering to linking flow */
 "ONBOARDING_MODE_SWITCH_EXPLANATION_REGISTERING" = "«بۇ ئۈسكۈنىنى باغلاش»نى چېكىش، سىزنى بۇ ئۈسكۈنىنى ئۆزىڭىزنىڭ ئەسلىدە بار بولغان Tellomi ھېساباتىڭىزغا باغلىشىڭىزغا يول قويىدۇ.";
@@ -6578,7 +6578,7 @@
 "ONBOARDING_MODE_SWITCH_TITLE_REGISTERING" = "بۇ ئۈسكۈنىنى باغلاش";
 
 /* warning to the user that registering an ipad is not recommended */
-"ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "بۇ iPad تىزىملىتىش ئوخشاش تېلېفون نومۇرى بىلەن تىزىملاتقان باشقا ئۈسكۈنىلەردىكى Signalنى چەكلەپ قويىدۇ.";
+"ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "بۇ iPad تىزىملىتىش ئوخشاش تېلېفون نومۇرى بىلەن تىزىملاتقان باشقا ئۈسكۈنىلەردىكى Tellomiنى چەكلەپ قويىدۇ.";
 
 /* Description of the 'Contacts' permission in the 'onboarding permissions' view. */
 "ONBOARDING_PERMISSIONS_CONTACTS_DESCRIPTION" = "سىز تونۇيدىغان كىشىلەرنى تېپىڭ. ئالاقىداشلىرىڭىز مەخپىيلەشتۈرۈلگەن بولۇپ، سىگنال مۇلازىمىتىگە كۆرۈنمەيدۇ.";
@@ -7310,7 +7310,7 @@
 "PIN_CREATION_DISABLE_CONFIRMATION_TITLE" = "ئاگاھلاندۇرۇش";
 
 /* The explanation in the 'pin creation' view. */
-"PIN_CREATION_EXPLANATION" = "PINلەر Signalدا ساقلانغان ئۇچۇرلارنى مەخپىيلەشتۈرۈپ ساقلايدۇ. شۇڭا سىزلا زىيارەت قىلالايسىز. ئارخىپىڭىز، سەپلىمىلىرىڭىز ۋە ئالاقەداشلىرىڭىز Tellomi نى قايتا قاچىلىغىنىڭىزدا ئەسلىگە كەلتۈرىلىدۇ. ئەپنى ئېچىش PIN نىڭىز كېرەك ئەمەس.";
+"PIN_CREATION_EXPLANATION" = "PINلەر Tellomiدا ساقلانغان ئۇچۇرلارنى مەخپىيلەشتۈرۈپ ساقلايدۇ. شۇڭا سىزلا زىيارەت قىلالايسىز. ئارخىپىڭىز، سەپلىمىلىرىڭىز ۋە ئالاقەداشلىرىڭىز Tellomi نى قايتا قاچىلىغىنىڭىزدا ئەسلىگە كەلتۈرىلىدۇ. ئەپنى ئېچىش PIN نىڭىز كېرەك ئەمەس.";
 
 /* Message when a generic error occurs while creating a PIN. */
 "PIN_CREATION_GENERIC_ERROR_MESSAGE" = "PIN نومۇرىنى قۇرۇش جەريانىدا خاتالىق كۆرۈلدى. ياردەمچى خادىم بىلەن ئالاقىلىشىڭ.";
@@ -8003,7 +8003,7 @@
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNRETRYABLE_SERVER_ERROR_TITLE" = "زاپاسلاشنى ئەسلىگە كەلتۈرگىلى بولمىدى";
 
 /* Body for a sheet warning users about an incompatible backup version. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_BODY" = "زاپاسلاشنى ئەسلىگە كەلتۈرۈش ئۈچۈن ، Signalنىڭ ئەڭ يېڭى نەشرىدە ئىكەنلىكىڭىزنى جەزملەشتۈرۈڭ ۋە قايتا سىناڭ. ئەگەر بۇ مەسىلە داۋاملاشسا ، Tellomi ياردەم مەركىزى بىلەن ئالاقىلىشىڭ.";
+"REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_BODY" = "زاپاسلاشنى ئەسلىگە كەلتۈرۈش ئۈچۈن ، Tellomiنىڭ ئەڭ يېڭى نەشرىدە ئىكەنلىكىڭىزنى جەزملەشتۈرۈڭ ۋە قايتا سىناڭ. ئەگەر بۇ مەسىلە داۋاملاشسا ، Tellomi ياردەم مەركىزى بىلەن ئالاقىلىشىڭ.";
 
 /* Title for a sheet warning users about an incompatible backup version. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_TITLE" = "يېڭىلاش لازىم";
@@ -9323,7 +9323,7 @@
 "SETTINGS_PAYMENTS_PASSPHRASE_DISCARD_CONFIRMATION_TITLE" = "ساقلىمايلا داۋاملاشتۇرامسىز؟";
 
 /* Explanation of the 'payments passphrase' in the 'view payments passphrase' settings. */
-"SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION" = "ئەگەرSignal نى قايتا قاچىلاپ Tellomi PIN نى جەزىملىسىڭىز قالدۇقىڭىز ئۆزلۈكىدىن ئەسلىگە كېلىدۇ. ئەسلىگە كەلتۈرۈش ئىبارىسى ئارقىلىقمۇ قالدۇقىڭىزنى ئەسلىگە كەلتۈرەلەيسىز ، بۇ 24-سۆزلۈك ئىبارە سىزگىلا خاس. ئۇنى يېزىۋېلىپ بىخەتەر جايدا ساقلاڭ.";
+"SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION" = "ئەگەرTellomi نى قايتا قاچىلاپ Tellomi PIN نى جەزىملىسىڭىز قالدۇقىڭىز ئۆزلۈكىدىن ئەسلىگە كېلىدۇ. ئەسلىگە كەلتۈرۈش ئىبارىسى ئارقىلىقمۇ قالدۇقىڭىزنى ئەسلىگە كەلتۈرەلەيسىز ، بۇ 24-سۆزلۈك ئىبارە سىزگىلا خاس. ئۇنى يېزىۋېلىپ بىخەتەر جايدا ساقلاڭ.";
 
 /* Explanation of the 'payments passphrase' when there is a balance. */
 "SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION_FROM_BALANCE" = "قالدۇق سوممىڭىز بار! قالدۇق سوممىڭىزنى ئەسلىگە كەلتۈرۈش ئۈچۈن ئەسلىگە كەلتۈرۈش ئىبارىسىنى (24 سۆزدىن تەركىب تاپقان بولىدۇ) ساقلىۋېلىڭ.";
@@ -9857,7 +9857,7 @@
 "SHARE_EXTENSION_LOADING" = "قاچىلىنىۋاتىدۇ…";
 
 /* Message for an error shown when the user tries to share to Signal but the device is too low on storage space. */
-"SHARE_EXTENSION_LOW_STORAGE_SPACE_MESSAGE" = "Signalغا ھەمبەھىرلىيەلمەيسىز چۈنكى ئۈسكۈنىڭىزدىكى ساقلاش بوشلۇقى يېتەرلىك ئەمەس. «تەڭشەكلەر»نى رەتلەش ئارقىلىق ساقلاش بوشلۇقى ھازىرلاڭ، ئۇنىڭدنن كېيىن قايتا سىناڭ.";
+"SHARE_EXTENSION_LOW_STORAGE_SPACE_MESSAGE" = "Tellomiغا ھەمبەھىرلىيەلمەيسىز چۈنكى ئۈسكۈنىڭىزدىكى ساقلاش بوشلۇقى يېتەرلىك ئەمەس. «تەڭشەكلەر»نى رەتلەش ئارقىلىق ساقلاش بوشلۇقى ھازىرلاڭ، ئۇنىڭدنن كېيىن قايتا سىناڭ.";
 
 /* Title for an error shown when the user tries to share to Signal but the device is too low on storage space. */
 "SHARE_EXTENSION_LOW_STORAGE_SPACE_TITLE" = "ساقلاش بوشلۇقى ئاز";
@@ -10523,7 +10523,7 @@
 "TIME_AMOUNT_WEEKS_SHORT_FORMAT" = "%1$@ ھەپتە";
 
 /* Button for bottom sheet shown when device transfer completes on the receiving device. Tapping will terminate the Signal app and trigger a notification to relaunch. */
-"TRANSFER_COMPLETE_SHEET_BUTTON" = "Signalلنى تاقاڭ";
+"TRANSFER_COMPLETE_SHEET_BUTTON" = "Tellomiلنى تاقاڭ";
 
 /* Subtitle for bottom sheet shown when device transfer completes on the receiving device. */
 "TRANSFER_COMPLETE_SHEET_SUBTITLE" = "بۇ ئۈسكۈنىدىكى ھېساۋاتىڭىزنى ئىشلىتىشكە باشلاش ئۈچۈن، سىگنالنى تاقاپ قايتا ئېچىڭ.";
@@ -10532,7 +10532,7 @@
 "TRANSFER_COMPLETE_SHEET_TITLE" = "يۆتكەش تاماملاندى";
 
 /* Notification prompting the user to relaunch Signal after a device transfer completed. */
-"TRANSFER_RELAUNCH_NOTIFICATION" = "ئۇچۇرلىشىش ئۈچۈن Signalنى ئېچىڭ";
+"TRANSFER_RELAUNCH_NOTIFICATION" = "ئۇچۇرلىشىش ئۈچۈن Tellomiنى ئېچىڭ";
 
 /* Label for a button that says 'Try Again'. */
 "TRY_AGAIN_BUTTON_TITLE" = "قايتا سىنا";
@@ -10550,7 +10550,7 @@
 "UNAVAILABLE_MEDIA_TAP_TOAST" = "بۇ مېدىيا ئەمدى مەۋجۇت ئەمەس";
 
 /* Action sheet title when confirming you want to unblock release notes. */
-"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Signalنى توسۇشنى ئەمەلدىن قالدۇرامسىز؟";
+"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Tellomiنى توسۇشنى ئەمەلدىن قالدۇرامسىز؟";
 
 /* Action sheet body when confirming you want to unblock release notes */
 "UNBLOCK_RELEASE_NOTES_BEHAVIOR_EXPLANATION" = "Tellomi يېڭىلاش ۋە خەۋەرلىرىنى قوبۇل قىلىدۇ.";
@@ -10799,7 +10799,7 @@
 "VERIFICATION_CODE_REQUESTED_HERO_BODY_FIRST" = "دەلىللەش كودى تەلەپ قىلىنغان";
 
 /* Second part of body for a hero sheet informing the user a verification code was requested. */
-"VERIFICATION_CODE_REQUESTED_HERO_BODY_SECOND" = "دەلىللەش كودىڭىزنى ھېچكىمگە بەرمەڭ. Tellomi ھەرگىز سىزگە ئۇچۇر يوللاپ كود سورىمايدۇ. ئەگەر سىز Signalنىڭ قىياپىتىگە كىرىۋالغان بىرىنىڭ ئۇچۇرىنى تاپشۇرۇۋالغان بولسىڭىز، بۇ بىر ئالدامچىلىق.\nئەگەر سىز ئۆزىڭىز كودنى تەلەپ قىلغان بولسىڭىز، بۇ ئۇچۇرغا پەرۋا قىلماڭ.";
+"VERIFICATION_CODE_REQUESTED_HERO_BODY_SECOND" = "دەلىللەش كودىڭىزنى ھېچكىمگە بەرمەڭ. Tellomi ھەرگىز سىزگە ئۇچۇر يوللاپ كود سورىمايدۇ. ئەگەر سىز Tellomiنىڭ قىياپىتىگە كىرىۋالغان بىرىنىڭ ئۇچۇرىنى تاپشۇرۇۋالغان بولسىڭىز، بۇ بىر ئالدامچىلىق.\nئەگەر سىز ئۆزىڭىز كودنى تەلەپ قىلغان بولسىڭىز، بۇ ئۇچۇرغا پەرۋا قىلماڭ.";
 
 /* Format for info message indicating that the verification state was unverified on this device. Embeds {{user's name or phone number}}. */
 "VERIFICATION_STATE_CHANGE_FORMAT_NOT_VERIFIED_LOCAL" = "«%1$@» گە دەلىللەنمىگەن دەپ بەلگە قويدىڭىز.";
