@@ -22,10 +22,23 @@ public struct PhoneNumberCountry: Equatable, Identifiable {
         self.countryCode = countryCode
     }
 
+    /// Tellomi：注册 / 输号码界面预选的国家。
+    ///
+    /// 上游用设备区域（`Locale.current.regionCode`，取不到时回落 "US"）。对 Signal 是对的；
+    /// 对我们，**主战场是中国大陆**，而且测试机上的区域五花八门——模拟器上是泰国 +66、
+    /// Android 模拟器是 +1，每次注册都要先去列表里翻一遍「中国大陆」。
+    ///
+    /// 所以这里固定预选 **CN**，**列表本身完全不动**：用户照常点开、照常选别的国家。
+    /// 这一点是有意的——号码能不能注册是**服务端**决定的（香港那套现在 +86 真发短信、
+    /// 其它号走「后六位」规则），客户端把列表藏起来只是障眼法，还会挡住我们自己用
+    /// `+1 415 555 0301` 这类测试号联调。以后要开放/限制国家，改服务端配置即可，
+    /// 不用发新版客户端。
+    private static let tellomiDefaultCountryCode = "CN"
+
     public static var defaultValue: PhoneNumberCountry {
         AssertIsOnMainThread()
 
-        let countryCode: String = PhoneNumberUtil.defaultCountryCode()
+        let countryCode: String = tellomiDefaultCountryCode
         let callingCodeNumber = SSKEnvironment.shared.phoneNumberUtilRef.getCallingCode(forRegion: countryCode)
         let plusPrefixedCallingCode = "\(PhoneNumber.countryCodePrefix)\(callingCodeNumber)"
         let countryName = PhoneNumberUtil.countryName(fromCountryCode: countryCode)

@@ -16,24 +16,23 @@ public class TSConstants {
     }
 
     private static let environment: Environment = {
-// You can set "USE_STAGING=1" in your Xcode Scheme. This allows you to
-// prepare a series of commits without accidentally committing the change
-// to the environment.
-#if DEBUG
-        // Tellomi：Debug 构建**默认连我们自己的服务端**（staging = 香港那套）。
-        // 上游默认连生产，对他们是对的；对我们，「Tellomi 的开发构建去连 Signal 官方生产环境」
-        // 没有任何合理用途，而且从桌面点图标启动时不会带 USE_STAGING，很容易在不知情的情况下
-        // 连错地方（2026-09-22 在真机上就差点这样）。要故意连上游生产时设 USE_PRODUCTION=1。
+        // Tellomi：**所有构建都默认连我们自己的服务端**（`.staging` = 香港那套；
+        // `.production` 在这个 fork 里指的仍然是 **Signal 官方**的服务器）。
+        //
+        // 上游的写法是「Debug 看 USE_STAGING，其余一律 production」。照搬会出两种事故，
+        // 2026-09-22 两种都真的发生了：
+        //   1. `USE_STAGING` 是启动参数带的，从桌面点图标打开时没有 —— 同一个 App，
+        //      命令行启动连香港、用户点图标连 Signal 生产。
+        //   2. 换成 `Testable Release` 给 owner 装真机之后，整段 `#if DEBUG` 直接失效，
+        //      于是那个包全程在连 Signal 官方服务器（owner 当场发现「登不上去了」）。
+        //
+        // 在我们自己的生产环境存在之前，「Tellomi 的包去连 Signal 官方服务器」
+        // 没有任何合理用途，所以不区分构建配置，一律 staging。
+        // 要故意连上游（比如对照上游行为排查）时设 `USE_PRODUCTION=1`。
         if ProcessInfo.processInfo.environment["USE_PRODUCTION"] == "1" {
             return .production
         }
         return .staging
-#else
-        // If you do want to make a build that will always connect to staging,
-        // change this value. (Scheme environment variables are only set when
-        // launching via Xcode, so this approach is still quite useful.)
-        return .production
-#endif
     }()
 
     public static var isUsingProductionService: Bool {
