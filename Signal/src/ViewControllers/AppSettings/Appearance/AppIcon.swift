@@ -15,12 +15,11 @@ extension UIApplication {
     }
 }
 
+// Tellomi：上游的 white / color / dark / dark-variant 四个备用图标画的是 Signal 的标，
+// 按商标红线整套删掉（.icon 包、预览图、pbxproj 条目、ALTERNATE_APPICON_NAMES 一并删）。
+// 剩下的是「伪装」图标（新闻 / 备忘 / 天气…），不含 Signal 品牌，保留。
 enum AppIcon: String {
     case `default` = "AppIcon"
-    case white = "AppIcon-white"
-    case color = "AppIcon-color"
-    case night = "AppIcon-dark"
-    case nightVariant = "AppIcon-dark-variant"
     case chat = "AppIcon-chat"
     case bubbles = "AppIcon-bubbles"
     case yellow = "AppIcon-yellow"
@@ -49,10 +48,6 @@ enum AppIcon: String {
     var previewImageResource: ImageResource {
         switch self {
         case .default: ImageResource.AppIconPreview.default
-        case .white: ImageResource.AppIconPreview.white
-        case .color: ImageResource.AppIconPreview.color
-        case .night: ImageResource.AppIconPreview.dark
-        case .nightVariant: ImageResource.AppIconPreview.darkVariant
         case .chat: ImageResource.AppIconPreview.chat
         case .bubbles: ImageResource.AppIconPreview.bubbles
         case .yellow: ImageResource.AppIconPreview.yellow
