@@ -35,10 +35,17 @@ class WADeviceTransferIncomingConnection: DeviceTransfer.IncomingConnection {
         self.peers = peers
         self.discoveredPeerStream = peers.subscribe()
 
-        Task {
-            for try await peerList in internalPeerStream {
-                // Publish peer data to any internal subscribers
-                peers.update(peerList)
+        // Tellomi: 上游写的是 `Task { for try await ... }`，Swift 6.3（Xcode 27）把「未使用的可抛出
+        // 非结构化 Task」从警告升级成错误（NoUseUnstructuredThrowingTask）。把错误显式接住，
+        // 行为不变（原来也是丢掉的），但至少会进日志。
+        Task { [logger] in
+            do {
+                for try await peerList in internalPeerStream {
+                    // Publish peer data to any internal subscribers
+                    peers.update(peerList)
+                }
+            } catch {
+                logger.warn("Peer discovery stream ended: \(error)")
             }
         }
     }
