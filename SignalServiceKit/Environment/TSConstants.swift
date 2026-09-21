@@ -77,6 +77,7 @@ public class TSConstants {
     public static var customServerChatHostname: String? { shared.customServerChatHostname }
     public static var svrEnclaveAvailable: Bool { shared.svrEnclaveAvailable }
     public static var cdsiAvailable: Bool { shared.cdsiAvailable }
+    public static var keyTransparencyAvailable: Bool { shared.keyTransparencyAvailable }
 
     /// Tellomi：阶段一**不做捐赠**（owner 2026-09-22 定）。
     ///
@@ -166,6 +167,10 @@ public protocol TSConstantsProtocol: AnyObject {
     /// Tellomi：这套部署有没有 CDSI（按手机号找人）的 enclave。与 svrEnclaveAvailable 同理。
     var cdsiAvailable: Bool { get }
 
+    /// Tellomi：这套部署有没有 key transparency 服务（独立的 key-transparency-server）。
+    /// 没有时服务端只能回 500，而客户端把任何非 200 都当错误、几秒一次地重试。
+    var keyTransparencyAvailable: Bool { get }
+
     var serverPublicParams: Data { get }
     var callLinkPublicParams: Data { get }
     var backupServerPublicParams: Data { get }
@@ -197,6 +202,7 @@ public class TSConstantsProduction: TSConstantsProtocol {
     public let customServerChatHostname: String? = nil
     public let svrEnclaveAvailable: Bool = true
     public let cdsiAvailable: Bool = true
+    public let keyTransparencyAvailable: Bool = true
 
     public let mainServiceURL = "https://chat.signal.org"
     public let textSecureCDN0ServerURL = "https://cdn.signal.org"
@@ -262,6 +268,7 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let customServerChatHostname: String? = "grpc.chat.tellomi.app"
     public let svrEnclaveAvailable: Bool = false
     public let cdsiAvailable: Bool = false
+    public let keyTransparencyAvailable: Bool = false
 
     public let mainServiceURL = "https://chat.tellomi.app"
     public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
@@ -306,7 +313,12 @@ public class TSConstantsStaging: TSConstantsProtocol {
     /// to perform a migration, check out `ZkParamsMigrator`.
     public let serverPublicParams = Data(base64Encoded: "ADKO0hJxgxBky6XbESgxS+kxUo0+0fZinOfVIZfT+Chs1lBx0vRYvMzp+gUsbOpVRfsRMfdSwHq4GdExEyIMDhwamT0uT7OyL25KHXgAUXu56vWApb8c1mgdsd6GbfyfAOqGNAR7e8emQLSivHo+oYJVciuQVAznjbWdtjpvXMs3QMxitzmOcxhskuV+E6Md8BNIIqK6kviBf6GTVVJRIGr655FBcPf89L6Iva9ZEirT0pzQPBcGZ7mkzq56khyHLVxx3VzxCDjEUhPrco1Y4yfNqE7WA8JKi8dXA3pEslk8ztjXZ2C3nOIl1DnsaOJytFo14Gjri895dlDHCvY0s25sJlep3NrCO6U4imVVFhmc77y0dbn2FTwnOwefltRFQxz5yVvD4y50n8f6zZblT6u6w7YSdkf9glpzJOSYMdxPnHtWzzgQxPfqms2JYimZRakIqPcfnb3JIFTJqFITI3/E966PuFsB2kgZUNa+L9WUnhEw9utSJeFGltuX4IYIPPIWe1htCnrAyQgmpSoEwHseozG+FPol+YF4Hqd/WyA0DrPNr1749cXRkfwM+dNwrE59LkBf8Fp5UhtlyUW21E6wA4MLRAc2uoPXRUFzTcVykb42EYI/sAOWIfT103RvUhQfSBDYCj8uMYOonZ9fpkIL0u6zLt8zUE4CwjfbLAZ0bkKdS/baN5UMlq8cd3HZa09mvvLuL0Grl5mqRIRhUD4EhX8sVZHOzbof0Rc5JL4GvI4QOCObatrKg73D5prfLqyaJPb0TxuACl2S5fnNHs5FmqkDEw62yiUsrw5f8XYUTq5Y85s9MXBSjMUCGg+davkwDlmm1A4gqHuTzbcgGBRIh1iqWJ93cBq+uWsnMhSSdPbv4l8FUJwpruaZEj6FSw==")!
 
-    public let callLinkPublicParams = Data(base64Encoded: "AYhaw+NbxtNLo/RlGFEsHd904hW38LpPJ59jYJlNmT4wwtyOq4xzCs/MyXsfRbIsAYhQjDnpE0rhFtWkMcn/kV740SISwFfpPHunrtZ9h0YWz5QNNbI5I3DRGUjhKXgMU7J7s7qOr0fdms+g0e+L9FMSjJLobDkOngp/m0B5TsxTyqLscJ5VyU69Cj8txImTfHMCKrYphYfRHO78RwPoz2g2tGUAzEbKHm12OgDna2qutkE5TvYqwZczvgZyLVHdHXpvdyOlEdv4afVyWkI7u/S0XYDonIJoHlxqJoTSepZR")!
+    // Tellomi：#877 之前香港的 calling zk secret 是独立生成的，这里曾经是那把派生出来的公钥
+    // （AYhaw…）。#877 把三个 generic secret 统一成 chatZkConfig 的之后它就废了，而群凭证响应里的
+    // call link 凭证是用统一后的那把签的 —— iOS 验到这一项就报 Verification failure in zkgroup，
+    // 表现为「新建群组点完就闪退」（owner 2026-09-22 真机）。taishi 用离线验签定位到这一行（#909）。
+    // 这一串与 docs/signal/CLIENT_LOCAL_SERVER.md 第 126 行、Desktop、Android staging 一致（225 字节）。
+    public let callLinkPublicParams = Data(base64Encoded: "AP56nq1D39Uj1w+IDJCLdI4Eu9oqaEVKGELsl9HUlLxsflrRKB+gotelWnixnUDG+8yux4794uDsyWQlGKp1xHq2UH8NB+3VDJWJ1TC0Dp9TaBv3Mm8u09WiycRRslZjQ8qr62rztIru/9qbgsm9nbsgnlu4eKIBSG0BTeNN+MEC0jzZyDBNeG+liynQyFBCAhgzT1Q9a4iBr451Su97P1hO4IQmKDPNwQtulriKtlLBXkqFmzL8GlZpyX1x0NRZDsimO8t+kEmovoAf+Ybbhe12PMQfVWS9IB+kJrOs+00r")!
 
     public let backupServerPublicParams = Data(base64Encoded: "AXYrGb9IfugAAJiPKp+mdXUx+OL9zBolPYHYQz6GI1gWjpEu5me3zVNSvmYY4zWboZHif+HG1sDHSuvwFd0QszS6h3nZ6vRdM/IYGK+cLynw3ucWo7idf3zjOG3b6JnGT/z7XYCr6HuOGkWH4DQWCH98hxVZMGOgmT8DCQoqebQb3oK1yrwEglRWmtI01KhRg9RGUKoQiwuej1JZEY8uaG4Uz9n1cVODJ1iuByhNqGHo+KfI4iWhjtx2AnhYqHViQ3CMd4ASGBJtic9UTFVk/4vegVIy0wfYsAmViftzK6t4")!
 
@@ -370,6 +382,7 @@ public class TSConstantsMock: TSConstantsProtocol {
     public lazy var customServerChatHostname: String? = defaultValues.customServerChatHostname
     public lazy var svrEnclaveAvailable: Bool = defaultValues.svrEnclaveAvailable
     public lazy var cdsiAvailable: Bool = defaultValues.cdsiAvailable
+    public lazy var keyTransparencyAvailable: Bool = defaultValues.keyTransparencyAvailable
 
     public lazy var serverPublicParams = defaultValues.serverPublicParams
 

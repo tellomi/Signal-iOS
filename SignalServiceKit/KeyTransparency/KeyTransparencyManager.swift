@@ -553,7 +553,13 @@ public struct KeyTransparencyStore {
     // MARK: - Opt-out
 
     fileprivate func isEnabled(tx: DBReadTransaction) -> Bool {
-        return kvStore.fetchValue(Bool.self, forKey: KVStoreKeys.isEnabled, tx: tx) ?? true
+        // Tellomi：这套部署没有 key transparency 服务（那是独立的一个 key-transparency-server），
+        // 服务端对 `/v1/key-transparency/distinguished` 只能回 500，而 libsignal 的 keytrans 客户端
+        // 把任何非 200 都当错误 —— 服务端没办法回「未启用」让它停，于是真机日志里几秒一次地重试
+        // （owner 2026-09-22 的 iPhone 日志）。所以默认关，形状与 svrEnclaveAvailable / cdsiAvailable
+        // 一致；以后真上 KT 把 TSConstants 那个常量翻回 true 即可。用户显式开过的以用户的选择为准。
+        let userChoice = kvStore.fetchValue(Bool.self, forKey: KVStoreKeys.isEnabled, tx: tx)
+        return userChoice ?? TSConstants.keyTransparencyAvailable
     }
 
     fileprivate func setIsEnabled(_ isEnabled: Bool, tx: DBWriteTransaction) {
