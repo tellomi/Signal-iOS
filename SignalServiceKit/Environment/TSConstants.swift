@@ -20,15 +20,20 @@ public class TSConstants {
 // prepare a series of commits without accidentally committing the change
 // to the environment.
 #if DEBUG
-        if ProcessInfo.processInfo.environment["USE_STAGING"] == "1" {
-            return .staging
+        // Tellomi：Debug 构建**默认连我们自己的服务端**（staging = 香港那套）。
+        // 上游默认连生产，对他们是对的；对我们，「Tellomi 的开发构建去连 Signal 官方生产环境」
+        // 没有任何合理用途，而且从桌面点图标启动时不会带 USE_STAGING，很容易在不知情的情况下
+        // 连错地方（2026-09-22 在真机上就差点这样）。要故意连上游生产时设 USE_PRODUCTION=1。
+        if ProcessInfo.processInfo.environment["USE_PRODUCTION"] == "1" {
+            return .production
         }
-#endif
-
+        return .staging
+#else
         // If you do want to make a build that will always connect to staging,
         // change this value. (Scheme environment variables are only set when
         // launching via Xcode, so this approach is still quite useful.)
         return .production
+#endif
     }()
 
     public static var isUsingProductionService: Bool {
