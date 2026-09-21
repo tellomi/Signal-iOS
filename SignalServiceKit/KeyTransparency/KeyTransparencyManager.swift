@@ -268,11 +268,12 @@ public final class KeyTransparencyManager {
                 }
 
                 // Tellomi：上游这里三个条件一起静默 return，于是「KT 已关掉」在日志里
-                // 没有任何痕迹，只能靠「日志里搜不到 KT 请求」反证——而那是个假判据：
-                // KT 的请求路径在 libsignal 里是 `log::debug!`（rust/net/chat/src/ws/keytrans.rs），
-                // 实测本 App 里 libsignal 只打到 INFO（真机日志 47 行 rust 记录全是 INF，
-                // 一条 DBG 都没有），所以那行永远搜不到，开着关着都一样。
-                // 拆出 isEnabled 单独打一行正向日志，判据才红得起来。
+                // 没有任何正面痕迹，只能靠「搜不到 KT 请求」反证。那个反证其实**是成立的**
+                // （`rust/net/chat/src/ws.rs:139/:152` 会以 INFO/WARN 打出
+                // `[kt ….] GET /v1/key-transparency/distinguished?`，红控制实测：
+                // 开着 184 行命中 8 次、关着 1466 行命中 0 次），但缺席判据读起来总要多绕一圈，
+                // 而且容易被 `keytrans` 这种会命中建表迁移日志的关键词带偏。
+                // 拆出 isEnabled 单独打一行，把它变成正面断言。
                 guard isEnabled else {
                     logger.info("Skipping KT self-check: opted out.")
                     return
