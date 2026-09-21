@@ -347,22 +347,40 @@ public class RecipientPickerViewController: OWSViewController, OWSNavigationChil
             ))
 
             // Find by phone number
-            staticSection.add(OWSTableItem.disclosureItem(
-                icon: .phoneNumber,
-                withText: OWSLocalizedString(
-                    "NEW_CONVERSATION_FIND_BY_PHONE_NUMBER",
-                    comment: "A label the cell that lets you add a new member to a group.",
-                ),
-                actionBlock: { [weak self] in
-                    guard let self else { return }
-                    let viewController = FindByPhoneNumberViewController(
-                        delegate: self,
-                        buttonText: self.findByPhoneNumberButtonTitle,
-                        requiresRegisteredNumber: self.selectionMode != .blocklist,
-                    )
-                    self.navigationController?.pushViewController(viewController, animated: true)
-                },
-            ))
+            //
+            // Tellomi：没有 CDSI enclave 时**整条按号码找人的路都是死的**，所以这一项只在
+            // 有 CDSI（或 blocklist——那条不查服务端，号码只在本地用）时才出现。
+            // 2026-09-22 在模拟器上把两种坏结果都跑出来过，所以才下这个判断：
+            //
+            // 1. 保留上游的「先校验号码是否注册」：`lookUp` 永远返回空，于是弹出
+            //    「+86 138 0000 0002 不是 Tellomi 用户，要邀请 TA 吗」——**那是假话**，
+            //    那个号当时正活着，还引导用户去发短信邀请。
+            // 2. 试过改成跳过校验直接开会话：界面不再撒谎，但更糟——查不到号码就拿不到
+            //    对方的 ACI，`MessageSender` 那次只发出了一条**给自己的同步回执**
+            //    （日志里只有 `OutgoingSentMessageTranscript`，没有发给收件人的那一次），
+            //    消息却照样显示「已发送」。**静默黑洞比假话更难发现。**
+            //
+            // 按用户名找人走的是服务端查询、拿得到 ACI，是这套部署里唯一能用的路，
+            // 上面那一项（NEW_CONVERSATION_FIND_BY_USERNAME）始终保留。
+            // 以后真上了 CDSI，把 TSConstants.cdsiAvailable 翻回 true 这一项自己会回来。
+            if TSConstants.cdsiAvailable || selectionMode == .blocklist {
+                staticSection.add(OWSTableItem.disclosureItem(
+                    icon: .phoneNumber,
+                    withText: OWSLocalizedString(
+                        "NEW_CONVERSATION_FIND_BY_PHONE_NUMBER",
+                        comment: "A label the cell that lets you add a new member to a group.",
+                    ),
+                    actionBlock: { [weak self] in
+                        guard let self else { return }
+                        let viewController = FindByPhoneNumberViewController(
+                            delegate: self,
+                            buttonText: self.findByPhoneNumberButtonTitle,
+                            requiresRegisteredNumber: self.selectionMode != .blocklist,
+                        )
+                        self.navigationController?.pushViewController(viewController, animated: true)
+                    },
+                ))
+            }
         }
 
         if staticSection.itemCount > 0 {
