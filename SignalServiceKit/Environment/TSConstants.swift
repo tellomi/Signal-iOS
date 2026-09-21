@@ -232,8 +232,10 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let storageServiceURL = "https://storage.tellomi.app"
     public let sfuURL = "https://sfu.staging.voip.signal.org"
     public let svr2URL = "wss://svr2.staging.signal.org"
-    public let registrationCaptchaURL = "https://signalcaptchas.org/staging/registration/generate.html"
-    public let challengeCaptchaURL = "https://signalcaptchas.org/staging/challenge/generate.html"
+    // 自建服务端：香港 nginx 上的开发用 captcha 页（打开即跳 signalcaptcha://noop...，服务端 stub 接受）。
+    // 上生产换成真 hCaptcha（服务端 captcha.allowHCaptcha + site keys）。
+    public let registrationCaptchaURL = "https://chat.tellomi.app/captcha/registration/generate.html"
+    public let challengeCaptchaURL = "https://chat.tellomi.app/captcha/challenge/generate.html"
     // There's no separate test SFU for staging.
     public let sfuTestURL = "https://sfu.test.voip.signal.org"
     public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]
