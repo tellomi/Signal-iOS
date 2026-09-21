@@ -38,7 +38,7 @@
 "ACCOUNT_DATA_REPORT_CONFIRM_EXPORT_CONFIRM_BUTTON" = "レポートをエクスポート";
 
 /* Users can request a report of their account data. Before they get their account export, they are warned to only share account data with trustworthy sources. This is the message on that warning. */
-"ACCOUNT_DATA_REPORT_CONFIRM_EXPORT_MESSAGE" = "Signal アカウントデータは、信頼できる人またはアプリとのみ共有してください。";
+"ACCOUNT_DATA_REPORT_CONFIRM_EXPORT_MESSAGE" = "Tellomi アカウントデータは、信頼できる人またはアプリとのみ共有してください。";
 
 /* Users can request a report of their account data. If this request fails (probably because of a network connection problem), they will see an error sheet. This is the message on that error. */
 "ACCOUNT_DATA_REPORT_ERROR_MESSAGE" = "インターネット接続を確認して再度試してください。";
@@ -62,10 +62,10 @@
 "ACCOUNT_DATA_REPORT_EXPORT_REPORT_BUTTON" = "レポートをエクスポート";
 
 /* Users can request a report of their account data. This text appears at the bottom of this screen, offering more information. */
-"ACCOUNT_DATA_REPORT_FOOTER" = "レポートはエクスポート時にのみ作成され、Signal がお客様の端末に保存することはありません。";
+"ACCOUNT_DATA_REPORT_FOOTER" = "レポートはエクスポート時にのみ作成され、Tellomi がお客様の端末に保存することはありません。";
 
 /* Users can request a report of their account data. This is the subtitle on the screen where they do this, giving them more information. */
-"ACCOUNT_DATA_REPORT_SUBTITLE" = "Signal アカウントデータのレポートをダウンロードし、エクスポートします。このレポートには、メッセージやメディアは一切含まれません。";
+"ACCOUNT_DATA_REPORT_SUBTITLE" = "Tellomi アカウントデータのレポートをダウンロードし、エクスポートします。このレポートには、メッセージやメディアは一切含まれません。";
 
 /* Users can request a report of their account data. This is the title on the screen where they do this. */
 "ACCOUNT_DATA_REPORT_TITLE" = "あなたのアカウントデータ";
@@ -224,13 +224,13 @@
 "APP_LAUNCH_FAILURE_ALERT_MESSAGE" = "Signalを起動できません。解決のため、デバッグログを support@signal.org にお送りください。";
 
 /* Button to try launching the app even though the last launch failed */
-"APP_LAUNCH_FAILURE_CONTINUE" = "Open Signal Instead";
+"APP_LAUNCH_FAILURE_CONTINUE" = "Open Tellomi Instead";
 
 /* Message for an error indicating that the app couldn't launch because some unexpected error happened with the user's registration status. */
 "APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_MESSAGE" = "解決のため、デバッグログを support@signal.org にお送りください。";
 
 /* Title for an error indicating that the app couldn't launch because some unexpected error happened with the user's registration status. */
-"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_TITLE" = "Signal を開けませんでした";
+"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_TITLE" = "Tellomi を開けませんでした";
 
 /* Error indicating that the app could not launch because the database could not be loaded. */
 "APP_LAUNCH_FAILURE_COULD_NOT_LOAD_DATABASE" = "データベースを読み込めませんでした";
@@ -980,7 +980,7 @@
 "BACKUP_SETTINGS_DISABLING_SUBSCRIPTION_CANCEL_ACTION_SHEET_MANAGE_SUBSCRIPTION_BUTTON" = "サブスクリプションを管理";
 
 /* Message for an action sheet shown when the user disables Backups, but is still subscribed to the paid plan. */
-"BACKUP_SETTINGS_DISABLING_SUBSCRIPTION_CANCEL_ACTION_SHEET_MESSAGE" = "サブスクリプションを解約したい場合は、「サブスクリプションを管理する」> Signal >「サブスクリプションを解約する」をタップしてください";
+"BACKUP_SETTINGS_DISABLING_SUBSCRIPTION_CANCEL_ACTION_SHEET_MESSAGE" = "サブスクリプションを解約したい場合は、「サブスクリプションを管理する」> Tellomi >「サブスクリプションを解約する」をタップしてください";
 
 /* Title for an action sheet shown when the user disables Backups, but is still subscribed to the paid plan. */
 "BACKUP_SETTINGS_DISABLING_SUBSCRIPTION_CANCEL_ACTION_SHEET_TITLE" = "有料バックアッププランにまだご加入中です";
@@ -1235,7 +1235,7 @@
 "BACKUP_SUBSCRIPTION_EXPIRING_SOON_PENDING_DOWNLOADS_HERO_SHEET_SECONDARY_BUTTON" = "バックアップをダウンロードしない";
 
 /* Message for a sheet shown when your Backup subscription fails to renew. */
-"BACKUP_SUBSCRIPTION_FAILED_TO_RENEW_SHEET_MESSAGE" = "お支払い方法が現在も有効なものであるかをご確認ください。「サブスクリプションを管理する」>「Signal」>「支払い方法をアップデートする」をタップします。";
+"BACKUP_SUBSCRIPTION_FAILED_TO_RENEW_SHEET_MESSAGE" = "お支払い方法が現在も有効なものであるかをご確認ください。「サブスクリプションを管理する」>「Tellomi」>「支払い方法をアップデートする」をタップします。";
 
 /* Primary button for a sheet shown when your Backup subscription fails to renew. */
 "BACKUP_SUBSCRIPTION_FAILED_TO_RENEW_SHEET_PRIMARY_BUTTON" = "サブスクリプションを管理";
@@ -1604,7 +1604,7 @@
 "CALL_LINK_JOIN_REQUEST_PROMPT" = "待機中…";
 
 /* Shown in a message bubble when you send a call link in a Signal chat */
-"CALL_LINK_LINK_PREVIEW_DESCRIPTION" = "リンクを使用して Signal 通話に参加";
+"CALL_LINK_LINK_PREVIEW_DESCRIPTION" = "リンクを使用して Tellomi 通話に参加";
 
 /* Text that appears on a toast in a call lobby before joining a call link informing the user what information will be shared with other call members when they have phone number sharing turned off. */
 "CALL_LINK_LOBBY_SHARING_INFO_PHONE_NUMBER_SHARING_OFF" = "リンク経由でこの通話に参加する人には、あなたの名前と写真が表示されます。";
@@ -3092,7 +3092,7 @@
 "DEREGISTRATION_REREGISTER_PROMPT_TITLE" = "この電話番号を再登録しますか？";
 
 /* Label warning the user that they have been de-registered. */
-"DEREGISTRATION_WARNING" = "この端末は登録されていません。以前、おそらく別の端末で Signal に電話番号を登録したことが原因です。";
+"DEREGISTRATION_WARNING" = "この端末は登録されていません。以前、おそらく別の端末で Tellomi に電話番号を登録したことが原因です。";
 
 /* If the user has been deregistered, they'll see a warning. This is This is the call to action on that warning. */
 "DEREGISTRATION_WARNING_ACTION_TITLE" = "端末を再登録する";
@@ -3482,7 +3482,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_FAILED_ERROR_TITLE" = "決済に失敗しました";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, this error message will be shown. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "お支払いは処理されましたが、Signal は寄付メッセージを送信できませんでした。サポートにお問い合わせください。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_BODY" = "お支払いは処理されましたが、Tellomi は寄付メッセージを送信できませんでした。サポートにお問い合わせください。";
 
 /* Users can donate on a friend's behalf. If the payment was processed but the donation failed to send, an error dialog will be shown. This is the title of that dialog. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_SUCCEEDED_BUT_MESSAGE_FAILED_ERROR_TITLE" = "寄付できませんでした";
@@ -3923,7 +3923,7 @@
 "ERROR_NOTIFICATION_MESSAGE_FORMAT" = "このエラーとあなたの端末のデバッグログを support@signal.org に報告して、Signalの改善にご協力ください; %1$@";
 
 /* Format string for an error alert notification title. */
-"ERROR_NOTIFICATION_TITLE" = "Signal Beta: エラーが発生しました";
+"ERROR_NOTIFICATION_TITLE" = "Tellomi Beta: エラーが発生しました";
 
 /* Error indicating a send failure due to a delinked application. */
 "ERROR_SENDING_DELINKED" = "この端末はもうリンクされていません。メッセージを送信するには、リンクし直してください。";
@@ -3944,16 +3944,16 @@
 "EXIT_REREGISTRATION" = "登録を終了する";
 
 /* Label notifying the user that the app has expired. */
-"EXPIRATION_ERROR" = "このバージョンの Signal は期限が切れています。メッセージを送受信するには、アップデートしてください。";
+"EXPIRATION_ERROR" = "このバージョンの Tellomi は期限が切れています。メッセージを送受信するには、アップデートしてください。";
 
 /* If the user's app is too old, they'll be shown a warning asking them to upgrade. This is the text on the warning, and tapping it will open the App Store page for Signal. */
 "EXPIRATION_WARNING_ACTION_TITLE" = "アップデートする";
 
 /* Label warning the user that the app will expire soon. Embeds {{date}}. */
-"EXPIRATION_WARNING_SOON" = "このバージョンの Signal は、%1$@に期限が切れます。アップデートするとメッセージの送受信を継続できます。";
+"EXPIRATION_WARNING_SOON" = "このバージョンの Tellomi は、%1$@に期限が切れます。アップデートするとメッセージの送受信を継続できます。";
 
 /* Label warning the user that the app will expire today. */
-"EXPIRATION_WARNING_TODAY" = "このバージョンの Signal は、今日で期限が切れます。アップデートするとメッセージの送受信を継続できます。";
+"EXPIRATION_WARNING_TODAY" = "このバージョンの Tellomi は、今日で期限が切れます。アップデートするとメッセージの送受信を継続できます。";
 
 /* action sheet header when re-sending message which failed because of an invalid key signature */
 "FAILED_SENDING_BECAUSE_INVALID_KEY_SIGNATURE" = "%1$@ がSignalを更新して開く必要があるため、メッセージを送信できませんでした。";
@@ -5339,7 +5339,7 @@
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_TITLE" = "QRコードをスキャン";
 
 /* Body text for a sheet when a user tries to link a device informing them that they will need to authenticate their device */
-"LINK_NEW_DEVICE_AUTHENTICATION_INFO_SHEET_BODY" = "［Continue］をタップし、スマートフォンの解錠コードを入力して確認します。Signal PINを入力しないようにしてください。";
+"LINK_NEW_DEVICE_AUTHENTICATION_INFO_SHEET_BODY" = "［Continue］をタップし、スマートフォンの解錠コードを入力して確認します。Tellomi PINを入力しないようにしてください。";
 
 /* Title for a sheet when a user tries to link a device informing them that they will need to authenticate their device */
 "LINK_NEW_DEVICE_AUTHENTICATION_INFO_SHEET_TITLE" = "リンクする前に、本人確認が必要です";
@@ -5429,7 +5429,7 @@
 "LINKED_DEVICES_EDUCATION_POINT_DOWNLOADS" = "他の端末の場合は、%1$@ にアクセスしてiPadアプリをインストールする、または %2$@ にアクセスしてDesktopアプリをインストールします。";
 
 /* Bullet point about message sync on the linked devices education sheet */
-"LINKED_DEVICES_EDUCATION_POINT_MESSAGES" = "Signal メッセージは、リンク後にお使いのスマートフォンの Signal と同期されます。";
+"LINKED_DEVICES_EDUCATION_POINT_MESSAGES" = "Tellomi メッセージは、リンク後にお使いのスマートフォンの Tellomi と同期されます。";
 
 /* Bullet point about privacy on the linked devices education sheet */
 "LINKED_DEVICES_EDUCATION_POINT_PRIVACY" = "リンク済み端末上のすべてのメッセージはプライバシーが保護されています";
@@ -6623,7 +6623,7 @@
 "ONBOARDING_PIN_ATTEMPTS_EXHAUSTED_TITLE" = "PINが違います";
 
 /* Explanation of the 'onboarding pin attempts exhausted' view when it is unknown if reglock is enabled. */
-"ONBOARDING_PIN_ATTEMPTS_EXHAUSTED_WITH_UNKNOWN_REGLOCK_EXPLANATION" = "PIN の試行回数はなくなりましたが、電話番号を認証させることで Signal アカウントにアクセスできます。プライバシーとセキュリティー保護のため、アカウントに保存されているプロフィールや設定情報は復元されません。";
+"ONBOARDING_PIN_ATTEMPTS_EXHAUSTED_WITH_UNKNOWN_REGLOCK_EXPLANATION" = "PIN の試行回数はなくなりましたが、電話番号を認証させることで Tellomi アカウントにアクセスできます。プライバシーとセキュリティー保護のため、アカウントに保存されているプロフィールや設定情報は復元されません。";
 
 /* Explanation of 'do not have old device' flow for the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_BODY" = "または、Signalを同じ端末に再インストールする場合";
@@ -6692,19 +6692,19 @@
 "OPEN_SETTINGS_BUTTON" = "設定";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on unsupported version. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this text. */
-"OS_EXPIRED_AND_CAN_UPGRADE_OS" = "この端末では Signal は動作しなくなりました。再び Signal をご利用になるには、お使いの端末で iOS のバージョンをアップデートしてください。";
+"OS_EXPIRED_AND_CAN_UPGRADE_OS" = "この端末では Tellomi は動作しなくなりました。再び Tellomi をご利用になるには、お使いの端末で iOS のバージョンをアップデートしてください。";
 
 /* Signal doesn't support old devices. If that's the case, they'll be shown this action, and tapping it will open information about Signal's minimum supported operating systems. */
-"OS_EXPIRED_AND_DEVICE_IS_STUCK" = "この端末では Signal は動作しなくなりました。再び Signal をご利用になるには、新しい端末に機種変更をしてください。";
+"OS_EXPIRED_AND_DEVICE_IS_STUCK" = "この端末では Tellomi は動作しなくなりました。再び Tellomi をご利用になるには、新しい端末に機種変更をしてください。";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on an old version. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this action, and tapping it will open device update instructions. */
 "OS_SOON_TO_EXPIRE_ACTION_TITLE" = "アップデートする";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're an old version that will soon lose support. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this text. Embeds {{expiration date}}. */
-"OS_SOON_TO_EXPIRE_AND_CAN_UPGRADE_OS_FORMAT" = "Signal は、お使いの端末の iOS のバージョンサポートをまもなく終了する予定です。Signal を引き続きご利用になるには、 %1$@までにお使いの端末で iOS のバージョンをアップデートしてください。";
+"OS_SOON_TO_EXPIRE_AND_CAN_UPGRADE_OS_FORMAT" = "Tellomi は、お使いの端末の iOS のバージョンサポートをまもなく終了する予定です。Tellomi を引き続きご利用になるには、 %1$@までにお使いの端末で iOS のバージョンをアップデートしてください。";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on an old version that will soon lose support. This is the text on that warning when users can't upgrade iOS without getting a new device. Embeds {{expiration date}}. */
-"OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Signal は、お使いの端末の iOS のバージョンサポートをまもなく終了する予定です。Signal を引き続きご利用になるには、 %1$@までに新しい端末に機種変更をしてください。";
+"OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomi は、お使いの端末の iOS のバージョンサポートをまもなく終了する予定です。Tellomi を引き続きご利用になるには、 %1$@までに新しい端末に機種変更をしてください。";
 
 /* Info Message when another user disabled disappearing messages. Embeds {{name of other user}}. */
 "OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ が消えるメッセージを無効にしました。";
@@ -7319,10 +7319,10 @@
 "PIN_CREATION_LEARN_MORE" = "PIN とは？";
 
 /* Users can create PINs to restore their account data later. They can learn more about this on a sheet. This is the text on that sheet. */
-"PIN_CREATION_LEARN_MORE_TEXT" = "Signal 内に保存された情報は、PIN により暗号化を保持されるため、あなたのみがアクセスできます。PIN を使うことで、再インストール時にあなたのプロフィール、設定および連絡先が復元されます。";
+"PIN_CREATION_LEARN_MORE_TEXT" = "Tellomi 内に保存された情報は、PIN により暗号化を保持されるため、あなたのみがアクセスできます。PIN を使うことで、再インストール時にあなたのプロフィール、設定および連絡先が復元されます。";
 
 /* Users can create PINs to restore their account data later. They can learn more about this on a sheet. This is the title on that sheet. */
-"PIN_CREATION_LEARN_MORE_TITLE" = "Signal PIN について";
+"PIN_CREATION_LEARN_MORE_TITLE" = "Tellomi PIN について";
 
 /* Label indicating that the attempted PIN does not match the first PIN */
 "PIN_CREATION_MISMATCH_ERROR" = "PINが一致しません。再度試してください。";
@@ -7376,7 +7376,7 @@
 "PIN_REMINDER_MEGAPHONE_FEW_DAYS_TOAST" = "数日後に再度お知らせします。";
 
 /* Title for PIN reminder megaphone */
-"PIN_REMINDER_MEGAPHONE_TITLE" = "Signal PINを確認";
+"PIN_REMINDER_MEGAPHONE_TITLE" = "Tellomi PINを確認";
 
 /* Toast indicating that we'll ask you for your PIN again in 2 weeks, after successfully entering it. */
 "PIN_REMINDER_MEGAPHONE_TWO_WEEK_SUCCESSFUL_TOAST" = "正しいPINが入力されました。2週間後に再度お知らせします。";
@@ -7394,7 +7394,7 @@
 "PIN_REMINDER_MISMATCH_ERROR" = "PINが違います。再度試してください。";
 
 /* The title for the 'pin reminder' dialog. */
-"PIN_REMINDER_TITLE" = "Signal PINを入力してください";
+"PIN_REMINDER_TITLE" = "Tellomi PINを入力してください";
 
 /* Label indicating that the attempted PIN is too short */
 "PIN_REMINDER_TOO_SHORT_ERROR" = "PINは4桁以上の数字にしてください。";
@@ -7478,7 +7478,7 @@
 "PINS_MEGAPHONE_ACTION" = "PINを作成";
 
 /* Body for PIN megaphone when user doesn't have a PIN */
-"PINS_MEGAPHONE_BODY" = "Signal PINを作成しましょう。";
+"PINS_MEGAPHONE_BODY" = "Tellomi PINを作成しましょう。";
 
 /* Title for PIN megaphone when user doesn't have a PIN */
 "PINS_MEGAPHONE_TITLE" = "PINを作成しましょう";
@@ -8015,7 +8015,7 @@
 "REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_ACTION" = "アップデートする";
 
 /* During (re)registration, users may need to update their app to continue. They'll be presented with an alert if this is the case, prompting them to update. This is the description text on that alert. */
-"REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_DESCRIPTION" = "登録を続行するには、Signal の最新バージョンにアップデートしてください。";
+"REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_DESCRIPTION" = "登録を続行するには、Tellomi の最新バージョンにアップデートしてください。";
 
 /* During (re)registration, users may need to update their app to continue. They'll be presented with an alert if this is the case, prompting them to update. This is the title on that alert. */
 "REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_TITLE" = "アップデートが必要です";
@@ -8204,7 +8204,7 @@
 "RELEASE_NOTES_BOTTOM_BAR_LABEL" = "Signalの唯一の公式チャットです";
 
 /* Display name for the release notes channel */
-"RELEASE_NOTES_CHANNEL_NAME" = "Signal";
+"RELEASE_NOTES_CHANNEL_NAME" = "Tellomi";
 
 /* Label displayed in thread details of the release notes chat */
 "RELEASE_NOTES_CHANNEL_OFFICIAL_LABEL" = "公式チャット";
@@ -8789,13 +8789,13 @@
 "SETTINGS_ADVANCED_SUBMIT_DEBUGLOG" = "デバッグログを送信する";
 
 /* Information on sheet about changing the app icon - first line */
-"SETTINGS_APP_ICON_EDUCATION_APP_NAME" = "アプリ名の「Signal」は、ホーム画面、通知、アプリライブラリでは表示されます。";
+"SETTINGS_APP_ICON_EDUCATION_APP_NAME" = "アプリ名の「Tellomi」は、ホーム画面、通知、アプリライブラリでは表示されます。";
 
 /* Information on sheet about changing the app icon - second line */
-"SETTINGS_APP_ICON_EDUCATION_HOME_SCREEN_DOCK" = "ホーム画面下部のDockにアプリを移動させると、「Signal」というアプリ名は非表示になります。";
+"SETTINGS_APP_ICON_EDUCATION_HOME_SCREEN_DOCK" = "ホーム画面下部のDockにアプリを移動させると、「Tellomi」というアプリ名は非表示になります。";
 
 /* The footer for the app icon selection settings page. */
-"SETTINGS_APP_ICON_FOOTER" = "アプリ名の「Signal」は、ホーム画面、通知、アプリライブラリでは表示されます。";
+"SETTINGS_APP_ICON_FOOTER" = "アプリ名の「Tellomi」は、ホーム画面、通知、アプリライブラリでは表示されます。";
 
 /* The title for the app icon selection settings page. */
 "SETTINGS_APP_ICON_TITLE" = "アプリアイコン";
@@ -9671,7 +9671,7 @@
 "SETTINGS_PIN_REMINDER_DISABLE_CONFIRMATION_EXPLANATION" = "PINは復元できないため、記憶するか安全に保管してください。PINを忘れると、Signalアカウントの再登録時にデータが失われる可能性があります。";
 
 /* The title for the dialog asking user to confirm their PIN to disable reminders */
-"SETTINGS_PIN_REMINDER_DISABLE_CONFIRMATION_TITLE" = "Signal PINの確認";
+"SETTINGS_PIN_REMINDER_DISABLE_CONFIRMATION_TITLE" = "Tellomi PINの確認";
 
 /* Label for the 'pin reminder' switch of the privacy settings. */
 "SETTINGS_PIN_REMINDER_SWITCH_LABEL" = "PINリマインダー";
@@ -9686,7 +9686,7 @@
 "SETTINGS_PINS_ITEM_CREATE" = "PINを作成";
 
 /* Title for the 'PINs' section of the privacy settings. */
-"SETTINGS_PINS_TITLE" = "Signal PIN";
+"SETTINGS_PINS_TITLE" = "Tellomi PIN";
 
 /* Footer for table section */
 "SETTINGS_PRIVACY_ADVANCED_FOOTER" = "検閲回避、通話の中継および送信者の保護について設定します。";
@@ -9791,7 +9791,7 @@
 "SETTINGS_TWO_FACTOR_AUTH_SWITCH_LABEL" = "登録ロック";
 
 /* Footer for the 'two factor auth' section of the privacy settings when Signal PINs are available. */
-"SETTINGS_TWO_FACTOR_PINS_AUTH_FOOTER" = "あなたの電話番号をSignalに登録する際、Signal PINを要求します。";
+"SETTINGS_TWO_FACTOR_PINS_AUTH_FOOTER" = "あなたの電話番号をSignalに登録する際、Tellomi PINを要求します。";
 
 /* Label for the 'typing indicators' setting. */
 "SETTINGS_TYPING_INDICATORS" = "入力中アイコン";
@@ -10307,7 +10307,7 @@
 "SUPPORT_EMAIL_LOG_URL_LABEL_FORMAT" = "ログURL: %1$@";
 
 /* Localized subject for support request emails */
-"SUPPORT_EMAIL_SUBJECT" = "Signal iOSサポートリクエスト";
+"SUPPORT_EMAIL_SUBJECT" = "Tellomi iOSサポートリクエスト";
 
 /* Header for emoji mood selection */
 "SUPPORT_EMOJI_PROMPT" = "どう感じていますか？ (任意)";
@@ -10385,7 +10385,7 @@
 "SWITCH_ON" = "オン";
 
 /* Name to display for the 'system' sender, e.g. for release notes and the onboarding story */
-"SYSTEM_ADDRESS_NAME" = "Signal";
+"SYSTEM_ADDRESS_NAME" = "Tellomi";
 
 /* Label for button to verify a user's safety number. */
 "SYSTEM_MESSAGE_ACTION_VERIFY_SAFETY_NUMBER" = "検証する";
@@ -10604,7 +10604,7 @@
 "UNLINK_CONFIRMATION_ALERT_TITLE" = "「%1$@」のリンクを解除しますか？";
 
 /* Label warning the user that they have been unlinked from their primary device. */
-"UNLINKED_WARNING" = "この端末はリンクされていません。メッセージを送受信するには、Signal とお使いの携帯電話をリンクし直してください。";
+"UNLINKED_WARNING" = "この端末はリンクされていません。メッセージを送受信するには、Tellomi とお使いの携帯電話をリンクし直してください。";
 
 /* If this device has become unlinked from their primary device, they'll see a warning. This is the call to action on that warning. */
 "UNLINKED_WARNING_ACTION_TITLE" = "端末をリンクし直す";
