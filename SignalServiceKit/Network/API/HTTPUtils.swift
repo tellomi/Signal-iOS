@@ -182,8 +182,34 @@ public func owsFailDebugUnlessNetworkFailure(
     if error.isNetworkFailureOrTimeout {
         // Log but otherwise ignore network failures.
         Logger.warn("Error: \(error)", file: file, function: function, line: line)
+    } else if error.isServiceUnimplementedOrUnavailable {
+        // Tellomi：见 isServiceUnimplementedOrUnavailable 的说明。
+        Logger.warn("Service not available in this deployment: \(error)", file: file, function: function, line: line)
     } else {
         owsFailDebug("Error: \(error)", file: file, function: function, line: line)
+    }
+}
+
+extension Error {
+    /// Tellomi：服务端**还没接这个服务**（而不是客户端发错了）。
+    ///
+    /// 上游的 `owsFailDebugUnlessNetworkFailure` 只放过「网络不通」，其余一律按客户端 bug
+    /// 断言掉——在 Debug 构建上就是杀进程。这个前提对上游成立（他们的服务端什么都实现了），
+    /// 对我们不成立：香港那套是自建的，很多端点要么没接、要么下发的是上游测试数据。
+    ///
+    /// 2026-09-22 一天之内在 iPhone 真机上撞了三次，每次都是同一形状：
+    /// 捐赠配置解析失败、捐赠页第二层、`GET v2/calling/relays` 返回 503 拨号即杀进程。
+    ///
+    /// 所以这里只放过「服务端说它没有/不可用」这一类：**5xx** 与 **404 / 501**。
+    /// 4xx 里的 400 / 403 / 409 这些「客户端发错了」仍然断言——那正是这条断言的价值，
+    /// 我们同样需要它继续抓真正的客户端 bug。等服务端把对应服务补齐，这里不用改回去：
+    /// 服务正常返回 200 时本来就走不到这个分支。
+    public var isServiceUnimplementedOrUnavailable: Bool {
+        guard let httpError = self as? OWSHTTPError else {
+            return false
+        }
+        let code = httpError.responseStatusCode
+        return code >= 500 || code == 404
     }
 }
 
