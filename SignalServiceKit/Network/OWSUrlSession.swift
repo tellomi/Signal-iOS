@@ -72,7 +72,12 @@ public class OWSURLSession: OWSURLSessionProtocol {
     // directly and not touch the protocol.
 
     public static let defaultSecurityPolicy = HttpSecurityPolicy.systemDefault
-    public static let signalServiceSecurityPolicy = HttpSecurityPolicy.signalCaPinned
+    // Tellomi: 自建服务端用的是公开 CA 签发的证书，钉 Signal 自己的 CA 一定失败。
+    // 这一档用系统信任库——和 libsignal 连自建服务端时用 `RootCertificates::Native` 是同一个判断。
+    // 官方环境（`customServerChatHostname == nil`）仍然钉 Signal 的 CA，行为不变。
+    public static let signalServiceSecurityPolicy = TSConstants.customServerChatHostname == nil
+        ? HttpSecurityPolicy.signalCaPinned
+        : HttpSecurityPolicy.systemDefault
 
     public static var defaultConfigurationWithCaching: URLSessionConfiguration {
         .ephemeral

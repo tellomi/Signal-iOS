@@ -70,6 +70,7 @@ public class TSConstants {
     static var svr2Enclaves: [MrEnclave] { shared.svr2Enclaves }
 
     public static var applicationGroup: String { shared.applicationGroup }
+    public static var customServerChatHostname: String? { shared.customServerChatHostname }
 
     public static var serverPublicParams: Data { shared.serverPublicParams }
     public static var callLinkPublicParams: Data { shared.callLinkPublicParams }
@@ -126,6 +127,11 @@ public protocol TSConstantsProtocol: AnyObject {
 
     var applicationGroup: String { get }
 
+    /// Tellomi: 自建服务端的 libsignal（Omnibus）主机名；`nil` = 用 Signal 官方环境。
+    /// libsignal-net 把官方 staging / prod 的域名与根证书编译在 Rust 里，客户端侧覆盖不了，
+    /// 所以连自建服务端只能走 `Net(customServerHostname:)`（tellomi/libsignal 的 tellomi-0.102.0 分支）。
+    var customServerChatHostname: String? { get }
+
     var serverPublicParams: Data { get }
     var callLinkPublicParams: Data { get }
     var backupServerPublicParams: Data { get }
@@ -153,6 +159,8 @@ public struct MrEnclave: Equatable {
 public class TSConstantsProduction: TSConstantsProtocol {
 
     public init() {}
+
+    public let customServerChatHostname: String? = nil
 
     public let mainServiceURL = "https://chat.signal.org"
     public let textSecureCDN0ServerURL = "https://cdn.signal.org"
@@ -210,18 +218,21 @@ public class TSConstantsStaging: TSConstantsProtocol {
 
     public init() {}
 
-    public let mainServiceURL = "https://chat.staging.signal.org"
-    public let textSecureCDN0ServerURL = "https://cdn-staging.signal.org"
-    public let textSecureCDN2ServerURL = "https://cdn2-staging.signal.org"
-    public let textSecureCDN3ServerURL = "https://cdn3-staging.signal.org"
-    public let storageServiceURL = "https://storage-staging.signal.org"
+    /// Tellomi 自建服务端（香港）。REST 与 libsignal 是两个主机，见 docs/signal/CLIENT_LOCAL_SERVER.md 第四节。
+    public let customServerChatHostname: String? = "grpc.chat.tellomi.app"
+
+    public let mainServiceURL = "https://chat.tellomi.app"
+    public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
+    public let textSecureCDN2ServerURL = "https://cdn2.tellomi.app"
+    public let textSecureCDN3ServerURL = "https://cdn3.tellomi.app"
+    public let storageServiceURL = "https://storage.tellomi.app"
     public let sfuURL = "https://sfu.staging.voip.signal.org"
     public let svr2URL = "wss://svr2.staging.signal.org"
     public let registrationCaptchaURL = "https://signalcaptchas.org/staging/registration/generate.html"
     public let challengeCaptchaURL = "https://signalcaptchas.org/staging/challenge/generate.html"
     // There's no separate test SFU for staging.
     public let sfuTestURL = "https://sfu.test.voip.signal.org"
-    public let kUDTrustRoots = ["BbqY1DzohE4NUZoVF+L18oUPrK3kILllLEJh2UnPSsEx", "BYhU6tPjqP46KGZEzRs1OL4U39V5dlPJ/X09ha4rErkm"]
+    public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]
     // There's no separate updates endpoint for staging.
     public let updatesURL = "https://updates.signal.org"
     public let updates2URL = "https://updates2.signal.org"
@@ -249,7 +260,7 @@ public class TSConstantsStaging: TSConstantsProtocol {
     /// We *might* need to clear credentials (or perform some other migration)
     /// when this value changes, depending on how it's changing. If you do need
     /// to perform a migration, check out `ZkParamsMigrator`.
-    public let serverPublicParams = Data(base64Encoded: "ABSY21VckQcbSXVNCGRYJcfWHiAMZmpTtTELcDmxgdFbtp/bWsSxZdMKzfCp8rvIs8ocCU3B37fT3r4Mi5qAemeGeR2X+/YmOGR5ofui7tD5mDQfstAI9i+4WpMtIe8KC3wU5w3Inq3uNWVmoGtpKndsNfwJrCg0Hd9zmObhypUnSkfYn2ooMOOnBpfdanRtrvetZUayDMSC5iSRcXKpdlukrpzzsCIvEwjwQlJYVPOQPj4V0F4UXXBdHSLK05uoPBCQG8G9rYIGedYsClJXnbrgGYG3eMTG5hnx4X4ntARBgELuMWWUEEfSK0mjXg+/2lPmWcTZWR9nkqgQQP0tbzuiPm74H2wMO4u1Wafe+UwyIlIT9L7KLS19Aw8r4sPrXZSSsOZ6s7M1+rTJN0bI5CKY2PX29y5Ok3jSWufIKcgKOnWoP67d5b2du2ZVJjpjfibNIHbT/cegy/sBLoFwtHogVYUewANUAXIaMPyCLRArsKhfJ5wBtTminG/PAvuBdJ70Z/bXVPf8TVsR292zQ65xwvWTejROW6AZX6aqucUjlENAErBme1YHmOSpU6tr6doJ66dPzVAWIanmO/5mgjNEDeK7DDqQdB1xd03HT2Qs2TxY3kCK8aAb/0iM0HQiXjxZ9HIgYhbtvGEnDKW5ILSUydqH/KBhW4Pb0jZWnqN/YgbWDKeJxnDbYcUob5ZY5Lt5ZCMKuaGUvCJRrCtuugSMaqjowCGRempsDdJEt+cMaalhZ6gczklJB/IbdwENW9KeVFPoFNFzhxWUIS5ML9riVYhAtE6JE5jX0xiHNVIIPthb458cfA8daR0nYfYAUKogQArm0iBezOO+mPk5vCNWI+wwkyFCqNDXz/qxl1gAntuCJtSfq9OC3NkdhQlgYQ==")!
+    public let serverPublicParams = Data(base64Encoded: "ADKO0hJxgxBky6XbESgxS+kxUo0+0fZinOfVIZfT+Chs1lBx0vRYvMzp+gUsbOpVRfsRMfdSwHq4GdExEyIMDhwamT0uT7OyL25KHXgAUXu56vWApb8c1mgdsd6GbfyfAOqGNAR7e8emQLSivHo+oYJVciuQVAznjbWdtjpvXMs3QMxitzmOcxhskuV+E6Md8BNIIqK6kviBf6GTVVJRIGr655FBcPf89L6Iva9ZEirT0pzQPBcGZ7mkzq56khyHLVxx3VzxCDjEUhPrco1Y4yfNqE7WA8JKi8dXA3pEslk8ztjXZ2C3nOIl1DnsaOJytFo14Gjri895dlDHCvY0s25sJlep3NrCO6U4imVVFhmc77y0dbn2FTwnOwefltRFQxz5yVvD4y50n8f6zZblT6u6w7YSdkf9glpzJOSYMdxPnHtWzzgQxPfqms2JYimZRakIqPcfnb3JIFTJqFITI3/E966PuFsB2kgZUNa+L9WUnhEw9utSJeFGltuX4IYIPPIWe1htCnrAyQgmpSoEwHseozG+FPol+YF4Hqd/WyA0DrPNr1749cXRkfwM+dNwrE59LkBf8Fp5UhtlyUW21E6wA4MLRAc2uoPXRUFzTcVykb42EYI/sAOWIfT103RvUhQfSBDYCj8uMYOonZ9fpkIL0u6zLt8zUE4CwjfbLAZ0bkKdS/baN5UMlq8cd3HZa09mvvLuL0Grl5mqRIRhUD4EhX8sVZHOzbof0Rc5JL4GvI4QOCObatrKg73D5prfLqyaJPb0TxuACl2S5fnNHs5FmqkDEw62yiUsrw5f8XYUTq5Y85s9MXBSjMUCGg+davkwDlmm1A4gqHuTzbcgGBRIh1iqWJ93cBq+uWsnMhSSdPbv4l8FUJwpruaZEj6FSw")!
 
     public let callLinkPublicParams = Data(base64Encoded: "AYhaw+NbxtNLo/RlGFEsHd904hW38LpPJ59jYJlNmT4wwtyOq4xzCs/MyXsfRbIsAYhQjDnpE0rhFtWkMcn/kV740SISwFfpPHunrtZ9h0YWz5QNNbI5I3DRGUjhKXgMU7J7s7qOr0fdms+g0e+L9FMSjJLobDkOngp/m0B5TsxTyqLscJ5VyU69Cj8txImTfHMCKrYphYfRHO78RwPoz2g2tGUAzEbKHm12OgDna2qutkE5TvYqwZczvgZyLVHdHXpvdyOlEdv4afVyWkI7u/S0XYDonIJoHlxqJoTSepZR")!
 
@@ -311,6 +322,8 @@ public class TSConstantsMock: TSConstantsProtocol {
     public lazy var activeSvr2EnclaveCount = defaultValues.activeSvr2EnclaveCount
 
     public lazy var applicationGroup = defaultValues.applicationGroup
+
+    public lazy var customServerChatHostname: String? = defaultValues.customServerChatHostname
 
     public lazy var serverPublicParams = defaultValues.serverPublicParams
 

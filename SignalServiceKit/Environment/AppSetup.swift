@@ -216,12 +216,24 @@ extension AppSetup.GlobalsContinuation {
             return remoteConfigProvider.warmCaches(tx: tx)
         }
 
-        let libsignalNet = Net(
-            env: TSConstants.isUsingProductionService ? .production : .staging,
-            userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
-            buildVariant: BuildFlags.netBuildVariant,
-            remoteConfig: remoteConfig.netConfig(),
-        )
+        // Tellomi: 自建服务端的域名与根证书编译在 libsignal 的 Rust 里，客户端侧覆盖不了，
+        // 只能走 customServer 入口；`customServerChatHostname` 为 nil 时保持上游行为。
+        let libsignalNet: Net
+        if let customServerHostname = TSConstants.customServerChatHostname {
+            libsignalNet = Net(
+                customServerHostname: customServerHostname,
+                userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+                buildVariant: BuildFlags.netBuildVariant,
+                remoteConfig: remoteConfig.netConfig(),
+            )
+        } else {
+            libsignalNet = Net(
+                env: TSConstants.isUsingProductionService ? .production : .staging,
+                userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+                buildVariant: BuildFlags.netBuildVariant,
+                remoteConfig: remoteConfig.netConfig(),
+            )
+        }
 
         let cron = Cron(
             appVersion: appVersion.currentAppVersion4,
