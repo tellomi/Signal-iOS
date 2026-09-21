@@ -462,7 +462,19 @@ final class IndividualCallService: CallServiceStateObserver {
                     statsIntervalSecs: statsIntervalSecs > 0 ? UInt16(exactly: statsIntervalSecs) : nil,
                 )
             } catch {
-                owsFailDebug("\(error)")
+                // Tellomi：这套部署还没有 TURN 中继，服务端 `GET v2/calling/relays` 返回 503
+                //（真机实测：`HTTP 503 <- ID GET v2/calling/relays`），于是拨号必然走到这里，
+                // 而 owsFailDebug 在 Debug 构建上是致命断言 —— owner 2026-09-22 给联系人拨号
+                // 直接闪退回桌面、进程被杀（`Fatal error: HTTP 503` / `terminated due to signal 5`）。
+                //
+                // 下面 drop + handleFailedCall 的处理本来就是对的（挂断 + 提示通话失败），
+                // 少的只是「别把服务端错误当客户端 bug 断言掉」。服务端错误只记日志；
+                // 其它错误仍然断言，那对上游是有用的。
+                if error is OWSHTTPError {
+                    Logger.warn("Call setup failed with a server error: \(error). Calling is not configured in this deployment (no TURN relays).")
+                } else {
+                    owsFailDebug("\(error)")
+                }
                 guard call === self.callServiceState.currentCall else {
                     return
                 }
