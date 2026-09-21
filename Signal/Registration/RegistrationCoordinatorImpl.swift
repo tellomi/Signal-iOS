@@ -3920,8 +3920,27 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
     // returns nil if no steps performed.
     private func showPinEntryIfNeeded(
         accountIdentity: AccountIdentity,
-    ) -> RegistrationStep? {
+    ) async -> RegistrationStep? {
         logger.info("")
+
+        // Tellomi：没有 SVR enclave 的部署里，PIN 这一步只会在 SVR 握手上超时，而新账号路径上
+        // 这一页没有跳过入口，用户就卡死在这里。把它当作「已跳过」——用的是上游自己的
+        // hasSkippedPinEntry / hasGivenUpTryingToRestoreWithSVR，不碰 enclave。
+        // 见 docs/signal/ENCLAVES.md 与 TSConstantsProtocol.svrEnclaveAvailable。
+        if !TSConstants.svrEnclaveAvailable {
+            if !persistedState.hasSkippedPinEntry {
+                logger.info("No SVR enclave in this deployment; skipping PIN entry.")
+                // 这里在 Task 里，必须用 awaitableWrite：同步 db.write 会撞
+                // SDSDatabaseStorage 的 "Must use awaitableWrite in Tasks." 断言（实测崩过）。
+                await db.awaitableWrite { tx in
+                    self.updatePersistedState(tx) {
+                        $0.hasSkippedPinEntry = true
+                        $0.hasGivenUpTryingToRestoreWithSVR = true
+                    }
+                }
+            }
+            return nil
+        }
 
         let isRestoringPinBackup: Bool = (
             accountIdentity.hasPreviouslyUsedSVR &&
@@ -3969,7 +3988,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
 
         logger.info("")
         guard let pin = inMemoryState.pinFromUser ?? inMemoryState.pinFromDisk else {
-            return showPinEntryIfNeeded(accountIdentity: accountIdentity)
+            return await showPinEntryIfNeeded(accountIdentity: accountIdentity)
         }
 
         if
@@ -3993,7 +4012,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         logger.info("")
 
         guard let pin = inMemoryState.pinFromUser ?? inMemoryState.pinFromDisk else {
-            return showPinEntryIfNeeded(accountIdentity: accountIdentity)
+            return await showPinEntryIfNeeded(accountIdentity: accountIdentity)
         }
 
         if !persistedState.hasSkippedPinEntry {

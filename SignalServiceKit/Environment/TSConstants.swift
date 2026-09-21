@@ -71,6 +71,7 @@ public class TSConstants {
 
     public static var applicationGroup: String { shared.applicationGroup }
     public static var customServerChatHostname: String? { shared.customServerChatHostname }
+    public static var svrEnclaveAvailable: Bool { shared.svrEnclaveAvailable }
 
     public static var serverPublicParams: Data { shared.serverPublicParams }
     public static var callLinkPublicParams: Data { shared.callLinkPublicParams }
@@ -132,6 +133,18 @@ public protocol TSConstantsProtocol: AnyObject {
     /// 所以连自建服务端只能走 `Net(customServerHostname:)`（tellomi/libsignal 的 tellomi-0.102.0 分支）。
     var customServerChatHostname: String? { get }
 
+    /// Tellomi：这套部署有没有 SVR（Secure Value Recovery）enclave。
+    ///
+    /// SVR2 是 Intel SGX enclave，客户端握手要校验 Intel 根证书签的 DCAP quote 与 mrenclave
+    /// 白名单（libsignal `rust/attest`），**没有真 SGX 机器就通不过**，没有绕过开关。自建服务端
+    /// （香港）现在没有，所以注册末尾「创建 PIN」必然超时，而注册流程里那一页在新账号路径上
+    /// 没有跳过入口，用户就卡死在那里。
+    ///
+    /// 为 false 时：注册流程把 PIN 那一步当作「已跳过」（走上游自己的 `hasSkippedPinEntry`，
+    /// 不碰 enclave）。以后真装了 enclave，把这个值翻回 true 就恢复上游行为。
+    /// 细节与阶段一决定见 `docs/signal/ENCLAVES.md`。
+    var svrEnclaveAvailable: Bool { get }
+
     var serverPublicParams: Data { get }
     var callLinkPublicParams: Data { get }
     var backupServerPublicParams: Data { get }
@@ -161,6 +174,7 @@ public class TSConstantsProduction: TSConstantsProtocol {
     public init() {}
 
     public let customServerChatHostname: String? = nil
+    public let svrEnclaveAvailable: Bool = true
 
     public let mainServiceURL = "https://chat.signal.org"
     public let textSecureCDN0ServerURL = "https://cdn.signal.org"
@@ -224,6 +238,7 @@ public class TSConstantsStaging: TSConstantsProtocol {
     /// 少填充会返回 nil 然后在这里强解包崩溃；而 Android 侧的 Java 解码器是宽松的，同一个值在那边不报错。
     /// 2026-09-21 踩过一次：`serverPublicParams` 从文档里抄来时少了结尾的 `==`。
     public let customServerChatHostname: String? = "grpc.chat.tellomi.app"
+    public let svrEnclaveAvailable: Bool = false
 
     public let mainServiceURL = "https://chat.tellomi.app"
     public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
@@ -330,6 +345,7 @@ public class TSConstantsMock: TSConstantsProtocol {
     public lazy var applicationGroup = defaultValues.applicationGroup
 
     public lazy var customServerChatHostname: String? = defaultValues.customServerChatHostname
+    public lazy var svrEnclaveAvailable: Bool = defaultValues.svrEnclaveAvailable
 
     public lazy var serverPublicParams = defaultValues.serverPublicParams
 
