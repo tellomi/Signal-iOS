@@ -124,6 +124,17 @@ public final class ContactDiscoveryManagerImpl: ContactDiscoveryManager {
     }
 
     public func lookUp(phoneNumbers: Set<String>, mode: ContactDiscoveryMode) async throws -> [SignalRecipient] {
+        // Tellomi：CDSI 是 Intel SGX enclave，自建服务端没有，握手必失败。按
+        // docs/signal/ENCLAVES.md 的阶段一决定：按手机号找人关掉，按用户名找人。
+        // 这里是所有按号码查询的唯一汇合点（通讯录求交、单个号码查询都走它），
+        // 所以一道门就够。返回空 = 「目录里没有这些号」，调用方本来就处理这种情况；
+        // 不抛错，才能做到「安静失败」——否则通讯录同步会不停重试（真机日志里就是这样：
+        // `[cdsi] connection failed` 一轮接一轮）。
+        guard TSConstants.cdsiAvailable else {
+            Logger.info("No CDSI enclave in this deployment; skipping lookup of \(phoneNumbers.count) number(s). Use usernames to find people.")
+            return []
+        }
+
         let isStateful = try await withCheckedThrowingContinuation { continuation in
             let pendingRequest = PendingRequest(mode: mode, continuation: continuation)
             lock.withLock {

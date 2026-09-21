@@ -585,6 +585,16 @@ public class SecureValueRecovery2Impl: SecureValueRecovery {
     // MARK: - Migrations
 
     public func refreshBackupIfNecessary() async throws {
+        // Tellomi：没有 SVR enclave 的部署里，这条后台维护（备份主密钥 / 清理旧 enclave）
+        // 只会一轮一轮地握手失败——真机日志里就是 `SgxWebsocketConnection: Disconnecting socket
+        // after failed handshake` 与 `wipeObsoleteEnclaves: couldn't wipe enclave; may retry eventually`
+        // 反复出现。注册时已经 opt-out PIN，本来也没有要备份的东西，直接不做。
+        // 见 docs/signal/ENCLAVES.md 与 TSConstantsProtocol.svrEnclaveAvailable。
+        guard TSConstants.svrEnclaveAvailable else {
+            Logger.info("No SVR enclave in this deployment; skipping backup refresh and enclave maintenance.")
+            return
+        }
+
         try await backupQueue.runWithThrowingTask {
             let pin = db.read(block: twoFAManager.pinCode(transaction:))
 

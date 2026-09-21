@@ -804,7 +804,13 @@ class DonateViewController: OWSViewController, OWSNavigationChildController {
             )
         } catch {
             Logger.warn("[Donations] \(error)")
-            owsFailDebugUnlessNetworkFailure(error)
+            // Tellomi：同 DonationSettingsViewController——这套部署没有接捐赠通道，
+            // 服务端下发的还是上游的测试配置（真机日志里是
+            // `ParseError: Invalid type for key minimum! Expected Int, found __NSCFNumber`，
+            // 因为 `/v1/subscription/configuration` 的 `xts` 档 `minimum` 是 0.5 这样的小数）。
+            // Debug 构建上 owsFailDebugUnlessNetworkFailure 是致命断言，点进来就闪退。
+            // 降级成日志，按页面自己的 loadFailed 显示——Release 本来就是这个行为。
+            Logger.warn("[Donations] Donations are not configured for this deployment; showing load-failed state.")
             return currentState.loadFailed()
         }
     }

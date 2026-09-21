@@ -77,6 +77,7 @@ public class TSConstants {
     public static var applicationGroup: String { shared.applicationGroup }
     public static var customServerChatHostname: String? { shared.customServerChatHostname }
     public static var svrEnclaveAvailable: Bool { shared.svrEnclaveAvailable }
+    public static var cdsiAvailable: Bool { shared.cdsiAvailable }
 
     public static var serverPublicParams: Data { shared.serverPublicParams }
     public static var callLinkPublicParams: Data { shared.callLinkPublicParams }
@@ -150,6 +151,9 @@ public protocol TSConstantsProtocol: AnyObject {
     /// 细节与阶段一决定见 `docs/signal/ENCLAVES.md`。
     var svrEnclaveAvailable: Bool { get }
 
+    /// Tellomi：这套部署有没有 CDSI（按手机号找人）的 enclave。与 svrEnclaveAvailable 同理。
+    var cdsiAvailable: Bool { get }
+
     var serverPublicParams: Data { get }
     var callLinkPublicParams: Data { get }
     var backupServerPublicParams: Data { get }
@@ -180,6 +184,7 @@ public class TSConstantsProduction: TSConstantsProtocol {
 
     public let customServerChatHostname: String? = nil
     public let svrEnclaveAvailable: Bool = true
+    public let cdsiAvailable: Bool = true
 
     public let mainServiceURL = "https://chat.signal.org"
     public let textSecureCDN0ServerURL = "https://cdn.signal.org"
@@ -244,6 +249,7 @@ public class TSConstantsStaging: TSConstantsProtocol {
     /// 2026-09-21 踩过一次：`serverPublicParams` 从文档里抄来时少了结尾的 `==`。
     public let customServerChatHostname: String? = "grpc.chat.tellomi.app"
     public let svrEnclaveAvailable: Bool = false
+    public let cdsiAvailable: Bool = false
 
     public let mainServiceURL = "https://chat.tellomi.app"
     public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
@@ -351,6 +357,7 @@ public class TSConstantsMock: TSConstantsProtocol {
 
     public lazy var customServerChatHostname: String? = defaultValues.customServerChatHostname
     public lazy var svrEnclaveAvailable: Bool = defaultValues.svrEnclaveAvailable
+    public lazy var cdsiAvailable: Bool = defaultValues.cdsiAvailable
 
     public lazy var serverPublicParams = defaultValues.serverPublicParams
 
