@@ -32,7 +32,11 @@ public class InviteFlow: NSObject {
         }
     }
 
-    private let installUrl = "https://signal.org/install/"
+    // 这条会**发到对方手机上**（151 行的短信正文、173 行的邮件正文）。留着上游值等于
+    // 让我们的用户替 Signal 发安装邀请。Android 早就是 tellomi.app/download（#966，
+    // values/strings.xml 的 install_url），iOS 这条漏了：rename-links.py 的白名单里
+    // 有 signal.org/download 却没有 /install/，所以同一个文件里 homepageUrl 改了、它没改。
+    private let installUrl = "https://tellomi.app/download/"
     private let homepageUrl = "https://tellomi.app"
 
     private weak var presentingViewController: UIViewController?

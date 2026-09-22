@@ -267,7 +267,10 @@ class AdvancedPrivacySettingsViewController: OWSTableViewController2 {
                 ),
                 " ",
                 CommonStrings.learnMore.styled(
-                    with: .link(URL(string: "https://signal.org/blog/sealed-sender/")!),
+                    // 上游指向 signal.org 的博客文章，我们没有对应文章。Android 早就是
+                    // 帮助中心首页（AdvancedPrivacySettingsFragment__sealed_sender_link
+                    // = https://tellomi.app/help/），两端取同一个值。
+                    with: .link(URL(string: "https://tellomi.app/help/")!),
                 ),
             ])
             .styled(with: Self.defaultFooterTextStyle)
