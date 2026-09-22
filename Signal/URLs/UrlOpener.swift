@@ -17,6 +17,8 @@ private enum OpenableUrl {
     case completeIDEALDonation(Stripe.IDEALCallbackType)
     case callLink(CallLink)
     case quickRestore(URL)
+    /// Tellomi：`tell.cc/u#u/<明文用户名>`（t.me 式），上游没有的形状。
+    case plainUsername(String)
 }
 
 class UrlOpener {
@@ -59,7 +61,13 @@ class UrlOpener {
         return ParsedUrl(openableUrl: openableUrl)
     }
 
-    private static func parseOpenableUrl(_ url: URL) -> OpenableUrl? {
+    private static func parseOpenableUrl(_ originalUrl: URL) -> OpenableUrl? {
+        // Tellomi：新形状（tellomi:// · tell.cc/{u,g,s,call}）先换算成旧形状，下面的上游解析器一行不动；
+        // 只有 tell.cc/u#u/<username> 上游没有等价物，单独接。
+        if let username = TellomiLinks.plainUsername(in: originalUrl) {
+            return .plainUsername(username)
+        }
+        let url = TellomiLinks.legacyEquivalent(of: originalUrl)
         if SignalDotMePhoneNumberLink.isPossibleUrl(url) {
             return .phoneNumberLink(url)
         }
@@ -145,7 +153,7 @@ class UrlOpener {
     private func shouldDismiss(for url: OpenableUrl) -> Bool {
         switch url {
         case .completeIDEALDonation: return false
-        case .groupInvite, .linkDevice, .phoneNumberLink, .signalProxy, .stickerPack, .usernameLink, .callLink, .quickRestore: return true
+        case .groupInvite, .linkDevice, .phoneNumberLink, .signalProxy, .stickerPack, .usernameLink, .callLink, .quickRestore, .plainUsername: return true
         }
     }
 
@@ -171,6 +179,24 @@ class UrlOpener {
                 guard
                     let (_, aci) = await UsernameQuerier().queryForUsernameLink(
                         link: link,
+                        fromViewController: rootViewController,
+                    )
+                else {
+                    return
+                }
+
+                SignalApp.shared.presentConversationForAddress(
+                    SignalServiceAddress(aci),
+                    animated: true,
+                )
+            }
+
+        case .plainUsername(let username):
+            _ = try tsAccountManager.registeredStateWithMaybeSneakyTransaction()
+            Task {
+                guard
+                    let aci = await UsernameQuerier().queryForUsername(
+                        username: username,
                         fromViewController: rootViewController,
                     )
                 else {

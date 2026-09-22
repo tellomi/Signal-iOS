@@ -43,6 +43,8 @@
 			<string>$(SIGNAL_BUNDLEID_PREFIX).signal</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>tellomi</string>
+				<string>tellomicaptcha</string>
 				<string>sgnl</string>
 			</array>
 		</dict>
