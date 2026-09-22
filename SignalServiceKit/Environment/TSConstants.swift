@@ -277,10 +277,10 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let storageServiceURL = "https://storage.tellomi.app"
     public let sfuURL = "https://sfu.staging.voip.signal.org"
     public let svr2URL = "wss://svr2.staging.signal.org"
-    // 自建服务端：香港 nginx 上的开发用 captcha 页（打开即跳 signalcaptcha://noop...，服务端 stub 接受）。
-    // 上生产换成真 hCaptcha（服务端 captcha.allowHCaptcha + site keys）。
-    public let registrationCaptchaURL = "https://chat.tellomi.app/captcha/registration/generate.html"
-    public let challengeCaptchaURL = "https://chat.tellomi.app/captcha/challenge/generate.html"
+    // 自建服务端：香港 nginx 上的 captcha 页（Cloudflare Turnstile，#930；通过后跳 tellomicaptcha://turnstile.<siteKey>.<action>.<token>，
+    // CaptchaView 新旧 scheme 都认）。/captcha/ 那份回旧的 signalcaptcha://，两阶段迁移完成后下线。
+    public let registrationCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/registration/generate.html"
+    public let challengeCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/challenge/generate.html"
     // There's no separate test SFU for staging.
     public let sfuTestURL = "https://sfu.test.voip.signal.org"
     public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]

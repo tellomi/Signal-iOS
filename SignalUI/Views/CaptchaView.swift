@@ -120,7 +120,7 @@ extension CaptchaView: WKNavigationDelegate {
             return .cancel
         }
 
-        if url.scheme == "signalcaptcha" {
+        if TellomiLinks.isCaptchaCallback(url) {   // tellomicaptcha:// 与 signalcaptcha:// 都认（两阶段迁移）
             parseCaptchaResult(url: url)
             return .cancel
         }
