@@ -1,7 +1,7 @@
 NSAppleMusicUsageDescription = "Tellomi måste använda Apple Music för att spela mediebilagor.";
 NSCameraUsageDescription = "Tellomi använder din kamera för att ta foton och för videosamtal.";
 NSContactsUsageDescription = "Tellomi använder dina kontakter för att hitta användare du känner. Vi lagrar inte dina kontakter på servern.";
-NSFaceIDUsageDescription = "Signals skärmlås använder Face ID.";
+NSFaceIDUsageDescription = "Tellomis skärmlås använder Face ID.";
 NSLocationWhenInUseUsageDescription = "Tellomi behöver åtkomst till din plats för att dela din nuvarande plats.";
 NSMicrophoneUsageDescription = "Tellomi behöver åtkomst till din mikrofon för att ringa och ta emot telefonsamtal och spela in röstmeddelanden.";
 NSPhotoLibraryAddUsageDescription = "Tellomi sparar foton till ditt bibliotek.";

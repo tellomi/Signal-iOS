@@ -6827,7 +6827,7 @@
 "OVERSIZE_TEXT_UNAVAILABLE_SHEET_TITLE" = "Volledig bericht niet beschikbaar";
 
 /* The name of the Signal app, used as the title for an entry in a user's password manager for their Signal Recovery Key. Should be localized with the same value as the app's name in the iOS App Store. */
-"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Signal Messenger";
+"PASSWORD_MANAGER_SIGNAL_APP_NAME" = "Tellomi Messenger";
 
 /* Header title for bank payment details screen */
 "PAYMENT_DETAILS_BANK_TITLE" = "Bankoverschrijving";
@@ -7310,7 +7310,7 @@
 "PIN_CREATION_DISABLE_CONFIRMATION_TITLE" = "Waarschuwing";
 
 /* The explanation in the 'pin creation' view. */
-"PIN_CREATION_EXPLANATION" = "Met een pincode wordt informatie versleuteld opgeslagen op Signals servers zodat alleen jij er toegang toe hebt. Je kunt hierdoor je profiel, instellingen en contacten herstellen wanneer je Tellomi opnieuw installeert. Je hebt de pincode niet nodig om de app te openen.";
+"PIN_CREATION_EXPLANATION" = "Met een pincode wordt informatie versleuteld opgeslagen op Tellomi's servers zodat alleen jij er toegang toe hebt. Je kunt hierdoor je profiel, instellingen en contacten herstellen wanneer je Tellomi opnieuw installeert. Je hebt de pincode niet nodig om de app te openen.";
 
 /* Message when a generic error occurs while creating a PIN. */
 "PIN_CREATION_GENERIC_ERROR_MESSAGE" = "Er ging iets mis bij het aanmaken van je pincode. Neem contact op met ondersteuning.";
@@ -7319,7 +7319,7 @@
 "PIN_CREATION_LEARN_MORE" = "Meer over pincodes";
 
 /* Users can create PINs to restore their account data later. They can learn more about this on a sheet. This is the text on that sheet. */
-"PIN_CREATION_LEARN_MORE_TEXT" = "Met een pincode wordt informatie versleuteld opgeslagen op Signals servers zodat alleen jij er toegang toe hebt. Je kunt hierdoor je profiel, instellingen en contacten herstellen wanneer je Tellomi opnieuw installeert.";
+"PIN_CREATION_LEARN_MORE_TEXT" = "Met een pincode wordt informatie versleuteld opgeslagen op Tellomi's servers zodat alleen jij er toegang toe hebt. Je kunt hierdoor je profiel, instellingen en contacten herstellen wanneer je Tellomi opnieuw installeert.";
 
 /* Users can create PINs to restore their account data later. They can learn more about this on a sheet. This is the title on that sheet. */
 "PIN_CREATION_LEARN_MORE_TITLE" = "Over Tellomi-pincodes";
@@ -7352,7 +7352,7 @@
 "PIN_CREATION_WEAK_ERROR" = "Verzin een sterkere pincode";
 
 /* If your attempted PIN is too weak, you'll see an error message. This is the text on the error dialog. */
-"PIN_CREATION_WEAK_ERROR_MESSAGE" = "Met een pincode wordt informatie versleuteld opgeslagen op Signals servers zodat alleen jij er toegang toe hebt. Kies een sterkere pincode om je account te beschermen.";
+"PIN_CREATION_WEAK_ERROR_MESSAGE" = "Met een pincode wordt informatie versleuteld opgeslagen op Tellomi's servers zodat alleen jij er toegang toe hebt. Kies een sterkere pincode om je account te beschermen.";
 
 /* If the user is re-registering, they need to enter their PIN to restore all their data. In some cases, they can skip this entry and lose some data. This text is shown on a button that lets them begin to do this. */
 "PIN_ENTER_EXISTING_SKIP" = "Pincode overslaan";
@@ -7751,7 +7751,7 @@
 "PROXY_ADDRESS" = "Proxyadres";
 
 /* The provided proxy connected successfully */
-"PROXY_CONNECTED_SUCCESSFULLY" = "Tellomi is verbonden met de proxy. Je kunt de proxy op elk gewenst moment uitschakelen vanuit Signals instellingen.";
+"PROXY_CONNECTED_SUCCESSFULLY" = "Tellomi is verbonden met de proxy. Je kunt de proxy op elk gewenst moment uitschakelen vanuit Tellomi's instellingen.";
 
 /* The provided proxy couldn't connect */
 "PROXY_FAILED_TO_CONNECT" = "Kan geen verbinding maken met de proxy. Controleer het proxy-adres en probeer het opnieuw.";
@@ -8765,7 +8765,7 @@
 "SETTINGS_ADVANCED_CENSORSHIP_CIRCUMVENTION_FOOTER_NO_CONNECTION" = "Censuuromzeiling kan alleen worden ingeschakeld als je verbonden bent met het internet.";
 
 /* Table footer for the 'censorship circumvention' section shown when the app is connected to the Signal service. */
-"SETTINGS_ADVANCED_CENSORSHIP_CIRCUMVENTION_FOOTER_WEBSOCKET_CONNECTED" = "Censuuromzeiling is voor jou op dit moment niet nodig, want je bent al verbonden met Signals servers.";
+"SETTINGS_ADVANCED_CENSORSHIP_CIRCUMVENTION_FOOTER_WEBSOCKET_CONNECTED" = "Censuuromzeiling is voor jou op dit moment niet nodig, want je bent al verbonden met Tellomi's servers.";
 
 /* Label for the 'advanced pin settings' button. */
 "SETTINGS_ADVANCED_PIN_SETTINGS" = "Geavanceerde pincode-instellingen";
@@ -9677,7 +9677,7 @@
 "SETTINGS_PIN_REMINDER_SWITCH_LABEL" = "Pincode-herinneringen";
 
 /* Footer for the 'PINs' section of the privacy settings. */
-"SETTINGS_PINS_FOOTER" = "Met een pincode wordt informatie versleuteld opgeslagen op Signals servers zodat alleen jij er toegang toe hebt. Je kunt hierdoor je profiel, instellingen en contacten herstellen wanneer je Tellomi opnieuw installeert. Je pincode kan niet worden hersteld.";
+"SETTINGS_PINS_FOOTER" = "Met een pincode wordt informatie versleuteld opgeslagen op Tellomi's servers zodat alleen jij er toegang toe hebt. Je kunt hierdoor je profiel, instellingen en contacten herstellen wanneer je Tellomi opnieuw installeert. Je pincode kan niet worden hersteld.";
 
 /* Label for the 'pins' item of the privacy settings when the user does have a pin. */
 "SETTINGS_PINS_ITEM" = "Pincode wijzigen";

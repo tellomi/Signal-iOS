@@ -674,7 +674,7 @@
 "BACKUP_ONBOARDING_INTRO_NOT_NOW_TOAST" = "Du kan aktivere sikkerhedskopier under Indstillinger.";
 
 /* Subtitle for a view introducing Backups during an onboarding flow. */
-"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Opret en sikkerhedskopi af dine beskeder og medier, og brug Signals sikre E2E-krypterede lagringstjeneste. Mist aldrig en besked, når du får en ny telefon eller geninstallerer Tellomi.";
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Opret en sikkerhedskopi af dine beskeder og medier, og brug Tellomis sikre E2E-krypterede lagringstjeneste. Mist aldrig en besked, når du får en ny telefon eller geninstallerer Tellomi.";
 
 /* Title for a view introducing Backups during an onboarding flow. */
 "BACKUP_ONBOARDING_INTRO_TITLE" = "Sikre Tellomi-sikkerhedskopier";
@@ -896,16 +896,16 @@
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT" = "Fornyes %1$@";
 
 /* Footer for a menu section related to settings for when Backups are disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Sikkerhedskopiering er slået fra, og dine data er blevet slettet fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Sikkerhedskopiering er slået fra, og dine data er blevet slettet fra Tellomis sikre lagringstjeneste.";
 
 /* Description for a progress view tracking media being downloaded in service of disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Sikkerhedskopier er blevet slået fra, og alle medier, der ikke er på denne enhed, bliver nu downloadet. Når dine data er hentet, slettes de fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Sikkerhedskopier er blevet slået fra, og alle medier, der ikke er på denne enhed, bliver nu downloadet. Når dine data er hentet, slettes de fra Tellomis sikre lagringstjeneste.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Der opstod en fejl. Kontakt support.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Der opstod en fejl under sletning af dine data fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Der opstod en fejl under sletning af dine data fra Tellomis sikre lagringstjeneste.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Kunne ikke slette din sikkerhedskopiering";
@@ -914,7 +914,7 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Sletter sikkerhedskopi...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Sikkerhedskopiering er slået fra, og dine data er blevet slettet fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Sikkerhedskopiering er slået fra, og dine data er blevet slettet fra Tellomis sikre lagringstjeneste.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Sikkerhedskopioplysninger";
@@ -968,7 +968,7 @@
 "BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_TITLE" = "Downloader din sikkerhedskopi";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Der opstod en fejl under sletning af din data fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Der opstod en fejl under sletning af din data fra Tellomis sikre lagringstjeneste.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Kunne ikke slette din sikkerhedskopiering";
@@ -1067,7 +1067,7 @@
 "BACKUP_SETTINGS_LANDING_SET_UP_BUTTON" = "Opsæt";
 
 /* Description of Signal Secure Backups on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automatiske sikkerhedskopier med Signals sikre E2E-krypterede lagertjeneste.";
+"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automatiske sikkerhedskopier med Tellomis sikre E2E-krypterede lagertjeneste.";
 
 /* Title for the Signal Secure Backups cell on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE" = "Sikre sikkerhedskopier";
@@ -1082,7 +1082,7 @@
 "BACKUP_SETTINGS_LINKED_DEVICE_MANAGE_ON_PRIMARY_FOOTER_PAID" = "Du kan administrere eller opsige dit abonnement på Tellomi-sikkerhedskopier på din primære enhed.";
 
 /* Body text on the linked-device Backups screen, shown when Backups aren't set up, explaining the feature and that it can be enabled on the user's primary device. */
-"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automatiske sikkerhedskopier med Signals sikre E2E-krypterede lagertjeneste. Kom i gang på din primære enhed.";
+"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automatiske sikkerhedskopier med Tellomis sikre E2E-krypterede lagertjeneste. Kom i gang på din primære enhed.";
 
 /* Message on the linked-device Backups screen, shown when the user's paid subscription can't be found, prompting them to renew. */
 "BACKUP_SETTINGS_LINKED_DEVICE_SUBSCRIPTION_NOT_FOUND" = "Dit abonnement blev ikke fundet. Forny dit abonnement for at fortsætte med at bruge Sikre Tellomi-sikkerhedskopier.";
@@ -1127,7 +1127,7 @@
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_FOOTER_UNAVAILABLE" = "Lageroptimering kan kun bruges, hvis du betaler for Tellomi-sikkerhedskopier. Opgrader dit abonnement på sikkerhedskopiering for at begynde at bruge denne funktion.";
 
 /* Title for a toggle allowing users to change the Optimize Local Storage setting. */
-"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_TITLE" = "Optimer Signals lagerplads";
+"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_TITLE" = "Optimer Tellomis lagerplads";
 
 /* Body for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to use storage optimization. */
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_UPSELL_BODY" = "Lageroptimering kan kun bruges, hvis du betaler for Sikre Tellomi-sikkerhedskopier. Opgrader dit abonnement på sikkerhedskopiering for at begynde at bruge denne funktion.";
@@ -1214,7 +1214,7 @@
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_FOOTER" = "Ældre medier vil blive fjernet, men de kan downloades fra din sikkerhedskopi når som helst.";
 
 /* Title for a toggle shown after the user enables backups, letting them enable the Optimize Storage feature. */
-"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_TITLE" = "Optimer Signals lagerplads";
+"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_TITLE" = "Optimer Tellomis lagerplads";
 
 /* Title for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_TITLE" = "Det var det. Start din sikkerhedskopiering nu.";
@@ -5549,10 +5549,10 @@
 "LOCAL_FILE_BACKUPS_CHOOSE_FOLDER_TITLE" = "Vælg en mappe";
 
 /* Warning shown when a user tries to enable local file backups with optimize media enabled */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "Funktionen \"Optimer Signals lagerplads\" er slået til. Hvis du vil inkludere alle medier i sikkerhedskopien på denne enhed, skal du slå indstillingen fra.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "Funktionen \"Optimer Tellomis lagerplads\" er slået til. Hvis du vil inkludere alle medier i sikkerhedskopien på denne enhed, skal du slå indstillingen fra.";
 
 /* Message for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "Når \"Optimer Signals lagerplads\" aktiveres, fjernes ældre medier fra din enhed for at frigøre plads. Du kan downloade dem igen når som helst. Det fjerner også ældre medier fra din enheds sikkerhedskopi.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "Når \"Optimer Tellomis lagerplads\" aktiveres, fjernes ældre medier fra din enhed for at frigøre plads. Du kan downloade dem igen når som helst. Det fjerner også ældre medier fra din enheds sikkerhedskopi.";
 
 /* Title for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
 "LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TITLE" = "Medier fjernes fra sikkerhedskopien på denne enhed";
@@ -8477,7 +8477,7 @@
 "SAFETY_TIPS_SIGNAL_CHATS_BODY" = "Tellomi kontakter dig aldrig for at bede om din registreringskode, pinkode eller gendannelsesnøgle. Svar aldrig på en chat, der udgiver sig for at være fra Tellomi.";
 
 /* Message body describing the signal chats tip in the 'view more' flow. */
-"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "Tellomi kontakter dig aldrig for at bede om din registreringskode, pinkode eller gendannelsesnøgle. Svar ikke på beskeder, der udgiver sig for at være Tellomi eller Signals supportafdeling. Svindlere opretter falske chats for at forsøge at overtage din konto.";
+"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "Tellomi kontakter dig aldrig for at bede om din registreringskode, pinkode eller gendannelsesnøgle. Svar ikke på beskeder, der udgiver sig for at være Tellomi eller Tellomis supportafdeling. Svindlere opretter falske chats for at forsøge at overtage din konto.";
 
 /* Message title describing the signal chats tip. */
 "SAFETY_TIPS_SIGNAL_CHATS_TITLE" = "Svar ikke på chats fra Tellomi";

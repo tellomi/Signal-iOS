@@ -1,7 +1,7 @@
 NSAppleMusicUsageDescription = "Tellomi tarvitsee Apple Music -käyttöoikeuden medialiitteiden toistamiseen.";
 NSCameraUsageDescription = "Tellomi käyttää kameraa kuvaamiseen ja videopuheluihin.";
-NSContactsUsageDescription = "Tellomi käyttää yhteystietoja tuntemiesi ihmisten löytämiseen. Yhteystietoja ei tallenneta Signalin palvelimelle.";
-NSFaceIDUsageDescription = "Signalin näytön lukitus käyttää Face ID:tä.";
+NSContactsUsageDescription = "Tellomi käyttää yhteystietoja tuntemiesi ihmisten löytämiseen. Yhteystietoja ei tallenneta Tellomin palvelimelle.";
+NSFaceIDUsageDescription = "Tellomin näytön lukitus käyttää Face ID:tä.";
 NSLocationWhenInUseUsageDescription = "Tellomi tarvitsee sijaintitietojen käyttöoikeuden sijaintisi jakamiseksi.";
 NSMicrophoneUsageDescription = "Tellomi tarvitsee mikrofonin käyttöoikeuden puheluihin ja ääniviesteihin.";
 NSPhotoLibraryAddUsageDescription = "Tellomi tallentaa kuvat kirjastoon.";

@@ -5,7 +5,7 @@
 "ABOUT_SECTION_FOOTER" = "Copyright Signal Messenger\nLisensoitu AGPLv3-lisenssillä\nSignal on voittoa tavoittelematon organisaatio";
 
 /* Title for the 'about' help section */
-"ABOUT_SECTION_TITLE" = "Tietoja Signalista";
+"ABOUT_SECTION_TITLE" = "Tietoja Tellomista";
 
 /* Label for forward button in media control panel */
 "ACCESSIBILITY_FORWARD_BUTTON_LABEL" = "Välitä";
@@ -71,7 +71,7 @@
 "ACCOUNT_DATA_REPORT_TITLE" = "Tilitietosi";
 
 /* Label for 'invite' button in contact view. */
-"ACTION_INVITE" = "Kutsu Signaliin";
+"ACTION_INVITE" = "Kutsu Tellomiin";
 
 /* Label for button that lets you send a message to a contact. */
 "ACTION_SEND_MESSAGE" = "Lähetä viesti";
@@ -230,7 +230,7 @@
 "APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_MESSAGE" = "Lähetä virheenkorjausloki osoitteeseen support@tellomi.app, jotta voimme selvittää ongelman.";
 
 /* Title for an error indicating that the app couldn't launch because some unexpected error happened with the user's registration status. */
-"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_TITLE" = "Signalia ei voitu avata";
+"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_TITLE" = "Tellomia ei voitu avata";
 
 /* Error indicating that the app could not launch because the database could not be loaded. */
 "APP_LAUNCH_FAILURE_COULD_NOT_LOAD_DATABASE" = "Tietokannan lataaminen ei onnistunut";
@@ -245,10 +245,10 @@
 "APP_LAUNCH_FAILURE_DATABASE_RECOVERY_ACTION_TITLE" = "Korjaa";
 
 /* Action in an action sheet offering to exit the app. */
-"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Poistu Signalista";
+"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Poistu Tellomista";
 
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
-"APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "Päivitä Signalin uusimpaan versioon.";
+"APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "Päivitä Tellomin uusimpaan versioon.";
 
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_TITLE" = "Tuntematon tietokantaversio.";
@@ -266,7 +266,7 @@
 "APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "Ei tarpeeksi tallennustilaa";
 
 /* Error indicating that the app could not restore transferred data. */
-"APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "Aiemmasta laitteesta siirrettyjä tietoja ei voitu palauttaa. Lähetä virheenkorjausloki osoitteeseen support@tellomi.app, jotta voimme selvittää ongelman. Jos asennat Signalin uudelleen, viestihistoriasi saatetaan menettää.";
+"APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "Aiemmasta laitteesta siirrettyjä tietoja ei voitu palauttaa. Lähetä virheenkorjausloki osoitteeseen support@tellomi.app, jotta voimme selvittää ongelman. Jos asennat Tellomin uudelleen, viestihistoriasi saatetaan menettää.";
 
 /* Error indicating that the app could not restore transferred data. */
 "APP_LAUNCH_FAILURE_RESTORE_FAILED_TITLE" = "Siirtoa ei voitu suorittaa loppuun";
@@ -377,13 +377,13 @@
 "ATTACHMENT_APPROVAL_MEDIA_QUALITY_TITLE" = "Median laatu";
 
 /* Notification body shown when media sync to a linked device is complete. */
-"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "Synkronointi Signalin kanssa yhdistetyllä laitteellasi on valmis.";
+"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "Synkronointi Tellomin kanssa yhdistetyllä laitteellasi on valmis.";
 
 /* Notification body shown when media sync to a linked device was interrupted. */
 "ATTACHMENT_BACKFILL_INTERRUPTED_NOTIFICATION" = "Avaa Tellomi ja jatka synkronointia yhdistetyllä laitteellasi";
 
 /* Notification body shown while syncing media to a linked device. */
-"ATTACHMENT_BACKFILL_SYNCING_NOTIFICATION" = "Synkronoidaan Signalin kanssa yhdistetyllä laitteellasi";
+"ATTACHMENT_BACKFILL_SYNCING_NOTIFICATION" = "Synkronoidaan Tellomin kanssa yhdistetyllä laitteellasi";
 
 /* Generic filename for an attachment with no known name */
 "ATTACHMENT_DEFAULT_FILENAME" = "Liitetiedosto";
@@ -440,7 +440,7 @@
 "ATTACHMENT_KEYBOARD_GIF" = "GIF";
 
 /* Text in chat attachment panel when Signal only has access to some photos/videos. This string is in a compact horizontal space, so it should be short if possible. */
-"ATTACHMENT_KEYBOARD_LIMITED_ACCESS" = "Signalilla on rajoitettu pääsy kuviin";
+"ATTACHMENT_KEYBOARD_LIMITED_ACCESS" = "Tellomilla on rajoitettu pääsy kuviin";
 
 /* A button to select a location from the Attachment Keyboard */
 "ATTACHMENT_KEYBOARD_LOCATION" = "Sijainti";
@@ -452,7 +452,7 @@
 "ATTACHMENT_KEYBOARD_NO_MEDIA_TITLE" = "Ei valokuvia tai videoita";
 
 /* Text in chat attachment panel explaining that user needs to give Signal permission to access photos. */
-"ATTACHMENT_KEYBOARD_NO_PHOTO_ACCESS" = "Signalilla ei ole käyttöoikeutta valokuviisi tai videoihisi. Ota käyttö käyttöön avaamalla Asetukset ja napauttamalla Valokuvat";
+"ATTACHMENT_KEYBOARD_NO_PHOTO_ACCESS" = "Tellomilla ei ole käyttöoikeutta valokuviisi tai videoihisi. Ota käyttö käyttöön avaamalla Asetukset ja napauttamalla Valokuvat";
 
 /* Button in chat attachment panel to let user open Settings app and give Signal persmission to access photos. */
 "ATTACHMENT_KEYBOARD_OPEN_SETTINGS" = "Avaa asetukset";
@@ -599,7 +599,7 @@
 "BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_ACTION" = "Ota käyttöön";
 
 /* Body for Backup enablement reminder megaphone */
-"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_BODY" = "Älä koskaan menetä viestiä, kun hankit uuden puhelimen tai asennat Signalin uudelleen.";
+"BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_BODY" = "Älä koskaan menetä viestiä, kun hankit uuden puhelimen tai asennat Tellomin uudelleen.";
 
 /* Title for Backup enablement reminder megaphone */
 "BACKUP_ENABLEMENT_REMINDER_MEGAPHONE_TITLE" = "Ota salatut varmuuskopiot käyttöön";
@@ -632,7 +632,7 @@
 "BACKUP_KEY_SEE_FULL_KEY_BUTTON_TITLE" = "Näytä koko avain";
 
 /* Body for a warning sheet shown to discourage the user from sharing their 'Recovery Key', warning them not to share it with anyone. */
-"BACKUP_NEVER_SHARE_RECOVERY_KEY_SHEET_BODY" = "Älä koskaan jaa palautusavaintasi kenellekään. Palautusavaimen avulla toinen voi ottaa tilisi hallintaansa. <bold>Tellomi ei koskaan lähetä viestejä</bold> pyytääkseen palautusavainta. Älä vastaa keskusteluihin, joissa lähettäjä esittää edustavansa Signalia.";
+"BACKUP_NEVER_SHARE_RECOVERY_KEY_SHEET_BODY" = "Älä koskaan jaa palautusavaintasi kenellekään. Palautusavaimen avulla toinen voi ottaa tilisi hallintaansa. <bold>Tellomi ei koskaan lähetä viestejä</bold> pyytääkseen palautusavainta. Älä vastaa keskusteluihin, joissa lähettäjä esittää edustavansa Tellomia.";
 
 /* Title for a warning sheet shown to discourage the user from sharing their 'Recovery Key'. */
 "BACKUP_NEVER_SHARE_RECOVERY_KEY_SHEET_TITLE" = "Älä jaa palautusavainta";
@@ -674,7 +674,7 @@
 "BACKUP_ONBOARDING_INTRO_NOT_NOW_TOAST" = "Voit ottaa varmuuskopiot käyttöön asetuksissa.";
 
 /* Subtitle for a view introducing Backups during an onboarding flow. */
-"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Varmuuskopioi viestit ja mediasisältö käyttämällä Signalin turvallista, päästä päähän salattua tallennuspalvelua. Älä koskaan menetä viestiä, kun hankit uuden puhelimen tai asennat Signalin uudelleen.";
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Varmuuskopioi viestit ja mediasisältö käyttämällä Tellomin turvallista, päästä päähän salattua tallennuspalvelua. Älä koskaan menetä viestiä, kun hankit uuden puhelimen tai asennat Tellomin uudelleen.";
 
 /* Title for a view introducing Backups during an onboarding flow. */
 "BACKUP_ONBOARDING_INTRO_TITLE" = "Tellomi Secure -varmuuskopiointi";
@@ -770,7 +770,7 @@
 "BACKUP_SAVE_KEY_SAVE_TO_PW_MGR_BUTTON_TITLE" = "Tallenna salasananhallintaan";
 
 /* Message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "Automaattinen varmuuskopiointi on poistettu käytöstä. Ota automaattinen varmuuskopiointi käyttöön päivittämällä Signalin käyttöoikeudet.";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "Automaattinen varmuuskopiointi on poistettu käytöstä. Ota automaattinen varmuuskopiointi käyttöön päivittämällä Tellomin käyttöoikeudet.";
 
 /* Add-on to a message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE_UPDATE_NOW" = "Päivitä nyt";
@@ -779,7 +779,7 @@
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_GO_TO_SETTINGS_BUTTON" = "Siirry asetuksiin";
 
 /* Message for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Jos haluat Signalin varmuuskopioivan viestit automaattisesti, napauta alta Siirry asetuksiin ja ota käyttöön Taustalla olevan sovelluksen päivitys.";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_MESSAGE" = "Jos haluat Tellomin varmuuskopioivan viestit automaattisesti, napauta alta Siirry asetuksiin ja ota käyttöön Taustalla olevan sovelluksen päivitys.";
 
 /* Title for a sheet warning the user about the Background App Refresh permission. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_SHEET_TITLE" = "Automaattinen varmuuskopiointi poistettu käytöstä";
@@ -896,16 +896,16 @@
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT" = "Uusiutuu %1$@";
 
 /* Footer for a menu section related to settings for when Backups are disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Varmuuskopiointi on poistettu käytöstä ja tietosi on poistettu Signalin suojatusta tallennuspalvelusta.";
+"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Varmuuskopiointi on poistettu käytöstä ja tietosi on poistettu Tellomin suojatusta tallennuspalvelusta.";
 
 /* Description for a progress view tracking media being downloaded in service of disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Varmuuskopiointi on poistettu käytöstä. Kaikki mediasisältö, joka ei ole laitteellasi, ladataan nyt. Latauksen jälkeen tiedot poistetaan Signalin suojatusta tallennuspalvelusta.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Varmuuskopiointi on poistettu käytöstä. Kaikki mediasisältö, joka ei ole laitteellasi, ladataan nyt. Latauksen jälkeen tiedot poistetaan Tellomin suojatusta tallennuspalvelusta.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Tapahtui virhe. Ota yhteys tukeen.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Virhe poistettaessa tietojasi Signalin suojatusta tallennuspalvelusta.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Virhe poistettaessa tietojasi Tellomin suojatusta tallennuspalvelusta.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Varmuuskopion poistaminen epäonnistui";
@@ -914,7 +914,7 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Poistetaan varmuuskopiota...";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Varmuuskopiointi on poistettu käytöstä ja tietosi poistetaan Signalin suojatusta tallennuspalvelusta.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Varmuuskopiointi on poistettu käytöstä ja tietosi poistetaan Tellomin suojatusta tallennuspalvelusta.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Varmuuskopion tiedot";
@@ -968,7 +968,7 @@
 "BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_TITLE" = "Ladataan varmuuskopiota";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Virhe poistettaessa tietojasi Signalin suojatusta tallennuspalvelusta.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Virhe poistettaessa tietojasi Tellomin suojatusta tallennuspalvelusta.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Varmuuskopion poistaminen epäonnistui";
@@ -1061,13 +1061,13 @@
 "BACKUP_SETTINGS_LANDING_OTHER_WAYS_HEADER" = "Muita tapoja varmuuskopioida";
 
 /* Subtitle on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_PAGE_SUBTITLE" = "Varmuuskopioi viestihistoriasi, jotta et koskaan menetä tietoja, kun hankit uuden puhelimen tai asennat Signalin uudelleen.";
+"BACKUP_SETTINGS_LANDING_PAGE_SUBTITLE" = "Varmuuskopioi viestihistoriasi, jotta et koskaan menetä tietoja, kun hankit uuden puhelimen tai asennat Tellomin uudelleen.";
 
 /* Button to begin setting up Signal Secure Backups on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SET_UP_BUTTON" = "Määritä";
 
 /* Description of Signal Secure Backups on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automaattiset varmuuskopiot Signalin turvallisella, päästä päähän salatulla tallennuspalvelulla.";
+"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automaattiset varmuuskopiot Tellomin turvallisella, päästä päähän salatulla tallennuspalvelulla.";
 
 /* Title for the Signal Secure Backups cell on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE" = "Tellomi Secure -varmuuskopiointi";
@@ -1082,7 +1082,7 @@
 "BACKUP_SETTINGS_LINKED_DEVICE_MANAGE_ON_PRIMARY_FOOTER_PAID" = "Tellomi-varmuuskopioinnin tilausta voi hallinnoida tai sen voi peruuttaa ensisijaisella laitteella.";
 
 /* Body text on the linked-device Backups screen, shown when Backups aren't set up, explaining the feature and that it can be enabled on the user's primary device. */
-"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automaattiset varmuuskopiot Signalin turvallisella, päästä päähän salatulla tallennuspalvelulla. Siirry pääasialliselle laitteellesi.";
+"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automaattiset varmuuskopiot Tellomin turvallisella, päästä päähän salatulla tallennuspalvelulla. Siirry pääasialliselle laitteellesi.";
 
 /* Message on the linked-device Backups screen, shown when the user's paid subscription can't be found, prompting them to renew. */
 "BACKUP_SETTINGS_LINKED_DEVICE_SUBSCRIPTION_NOT_FOUND" = "Tilaustasi ei löydy. Uusi jatkaaksesi Tellomi Secure -varmuuskopioinnin käyttöä.";
@@ -1124,10 +1124,10 @@
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_FOOTER_AVAILABLE" = "Vanhempi media siirretään sivuun seuraavan varmuuskopion yhteydessä, mutta se voidaan ladata varmuuskopiosta milloin tahansa.";
 
 /* Footer for a toggle allowing users to change the Optimize Local Storage setting, if the toggle is unavailable. */
-"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_FOOTER_UNAVAILABLE" = "Tallennustilan optimointia voidaan käyttää vain Signalin maksullisen varmuuskopiointitilauksen yhteydessä. Päivitä varmuuskopioinnin tilaus, jotta voit alkaa käyttää tätä ominaisuutta.";
+"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_FOOTER_UNAVAILABLE" = "Tallennustilan optimointia voidaan käyttää vain Tellomin maksullisen varmuuskopiointitilauksen yhteydessä. Päivitä varmuuskopioinnin tilaus, jotta voit alkaa käyttää tätä ominaisuutta.";
 
 /* Title for a toggle allowing users to change the Optimize Local Storage setting. */
-"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_TITLE" = "Optimoi Signalin tallennustila";
+"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_TOGGLE_TITLE" = "Optimoi Tellomin tallennustila";
 
 /* Body for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to use storage optimization. */
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_UPSELL_BODY" = "Tallennustilan optimointia voidaan käyttää vain maksullisen Tellomi Secure -varmuuskopiointitilauksen yhteydessä. Päivitä varmuuskopioinnin tilaus, jotta voit alkaa käyttää tätä ominaisuutta.";
@@ -1136,7 +1136,7 @@
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_UPSELL_TITLE" = "Päivitä ja kytke tallennustilan optimointi päälle";
 
 /* Subtitle for a notification telling the user they are out of remote storage space. */
-"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "Varmuuskopioinnin tilaraja on tullut täyteen. Vapauta tilaa Signalista, jotta voit jatkaa keskustelujen ja median varmuuskopiointia.";
+"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "Varmuuskopioinnin tilaraja on tullut täyteen. Vapauta tilaa Tellomista, jotta voit jatkaa keskustelujen ja median varmuuskopiointia.";
 
 /* Title for a notification telling the user they are out of remote storage space. */
 "BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_TITLE" = "Varmuuskopioinnin tallennustila täynnä";
@@ -1196,7 +1196,7 @@
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Median lataus keskeytetty: odotetaan Wi-Fi-yhteyttä";
 
 /* Subtitle for a progress bar tracking uploads that are paused because the user is out of remote storage space. Embeds 1:{{ total storage space provided, e.g. 100 GB }}; 2:{{ space the user needs to free up by deleting media, e.g. 1 GB }}. */
-"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "Tilaukseesi sisältyvän varmuuskopioinin %1$@:n tallennusraja on tullut täyteen. Voit varmuuskopioida uudet keskustelut ja mediasisällön vapauttamalla Signalista %2$@ tallennustilaa ja napauttamalla sitten Varmuuskopioi nyt.";
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "Tilaukseesi sisältyvän varmuuskopioinin %1$@:n tallennusraja on tullut täyteen. Voit varmuuskopioida uudet keskustelut ja mediasisällön vapauttamalla Tellomista %2$@ tallennustilaa ja napauttamalla sitten Varmuuskopioi nyt.";
 
 /* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the percentage uploaded as a percent, e.g. 40% }}. */
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "Lähetetään: %1$@ / %2$@ (%3$@ )";
@@ -1208,13 +1208,13 @@
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_BUTTON_TITLE" = "Varmuuskopioi nyt";
 
 /* Message for a sheet shown after the user enables backups. */
-"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "Tämä voi kestää hetken. Voit käyttää Signalia normaalisti varmuuskopioinnin aikana.";
+"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "Tämä voi kestää hetken. Voit käyttää Tellomia normaalisti varmuuskopioinnin aikana.";
 
 /* Footer for a toggle shown after the user enables backups, letting them enable the Optimize Storage feature. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_FOOTER" = "Vanhempi media siirretään sivuun seuraavan varmuuskopion yhteydessä, mutta se voidaan ladata varmuuskopiosta milloin tahansa.";
 
 /* Title for a toggle shown after the user enables backups, letting them enable the Optimize Storage feature. */
-"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_TITLE" = "Optimoi Signalin tallennustila";
+"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_TITLE" = "Optimoi Tellomin tallennustila";
 
 /* Title for a sheet shown after the user enables backups. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_TITLE" = "Kaikki on valmista. Aloita varmuuskopiointi nyt.";
@@ -1253,7 +1253,7 @@
 "BACKUPS_BACK_UP_YOUR_MEDIA_MEGAPHONE_TITLE" = "Varmuuskopioi kaikki mediasisältö";
 
 /* Body for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to back up all their media. Embeds {{ the amount of storage included in the paid plan, preformatted as a localized byte count, e.g. '100 GB' }}. */
-"BACKUPS_BACK_UP_YOUR_MEDIA_UPSELL_BODY" = "Maksulliset Tellomi Secure -varmuuskopiointitilaukset tallentavat kaiken lähettämäsi ja vastaanottamasi median, enintään %1$@. Älä koskaan menetä kuvaa tai videota, kun hankit uuden puhelimen tai asennat Signalin uudelleen.";
+"BACKUPS_BACK_UP_YOUR_MEDIA_UPSELL_BODY" = "Maksulliset Tellomi Secure -varmuuskopiointitilaukset tallentavat kaiken lähettämäsi ja vastaanottamasi median, enintään %1$@. Älä koskaan menetä kuvaa tai videota, kun hankit uuden puhelimen tai asennat Tellomin uudelleen.";
 
 /* Title for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to back up all their media. */
 "BACKUPS_BACK_UP_YOUR_MEDIA_UPSELL_TITLE" = "Päivitä tilaus tallentaaksesi kaiken median";
@@ -1295,7 +1295,7 @@
 "BACKUPS_SETTINGS_TITLE" = "Tellomi Secure -varmuuskopiointi";
 
 /* Message for an action sheet shown on iPad saying you need to set up backups on your phone */
-"BACKUPS_SETUP_ON_PRIMARY_MESSAGE" = "Voit määrittää varmuuskopioinnin asetukset avaamalla Signalin pääasiallisella iPhone- tai Android-laitteellasi ja siirtymällä kohtaan Asetukset > Varmuuskopiot.";
+"BACKUPS_SETUP_ON_PRIMARY_MESSAGE" = "Voit määrittää varmuuskopioinnin asetukset avaamalla Tellomin pääasiallisella iPhone- tai Android-laitteellasi ja siirtymällä kohtaan Asetukset > Varmuuskopiot.";
 
 /* Body for system notification or megaphone when backups is enabled. Embeds {{ time backups was enabled }} */
 "BACKUPS_TURNED_ON_NOTIFICATION_BODY_FORMAT" = "Tellomi-varmuuskopiot otettiin käyttöön tälle tilille klo %1$@. Näytä napauttamalla.";
@@ -1316,10 +1316,10 @@
 "BADGE_DETAILS_DONATE_TO_SIGNAL" = "Lahjoita nyt";
 
 /* When viewing someone else's donor badge, you'll see a sheet. This is the title on that sheet. Embeds {badge owner's short name} */
-"BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ tukee Signalia";
+"BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ tukee Tellomia";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "Boost-merkkisi on vanhentunut, eikä se näy enää profiilissasi.\n\nVoit jatkaa Signalin käyttöä, mutta jos haluat tukea sinua varten luotua teknologiaa, harkitse kuukausilahjoittajaksi ryhtymistä.";
+"BADGE_EXPIRED_BOOST_BODY" = "Boost-merkkisi on vanhentunut, eikä se näy enää profiilissasi.\n\nVoit jatkaa Tellomin käyttöä, mutta jos haluat tukea sinua varten luotua teknologiaa, harkitse kuukausilahjoittajaksi ryhtymistä.";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "Boost-merkkisi on vanhentunut, eikä se näy enää profiilissasi.\n\nVoit aktivoida Boost-merkkisi uudelleen 30 päiväksi tekemällä kertalahjoituksen.";
@@ -1340,13 +1340,13 @@
 "BADGE_SUBSCRIPTION_EXPIRED_BECAUSE_OF_CHARGE_FAILURE_BODY_FORMAT" = "Toistuva kuukausilahjoituksesi on peruutettu. %1$@\n\nMerkkiä ei enää näytetä profiilissasi.";
 
 /* Body for a sheet explaining that a bank transfer donation is complete, and that you have received a badge. */
-"BADGE_THANKS_BANK_DONATION_COMPLETE_BODY" = "Pankkisiirtosi saapui perille. Voit halutessasi näyttää tämän merkin profiilissasi ja osoittaa, että tuet Signalia.";
+"BADGE_THANKS_BANK_DONATION_COMPLETE_BODY" = "Pankkisiirtosi saapui perille. Voit halutessasi näyttää tämän merkin profiilissasi ja osoittaa, että tuet Tellomia.";
 
 /* Title for a sheet explaining that a bank transfer donation is complete, and that you have received a badge. */
 "BADGE_THANKS_BANK_DONATION_COMPLETE_TITLE" = "Lahjoitus on valmis";
 
 /* When you make a donation to Signal, you will receive a badge. A thank-you sheet appears when this happens. This is the body text on that sheet. */
-"BADGE_THANKS_BODY" = "Voit halutessasi näyttää tämän merkin profiilissasi ja osoittaa, että tuet Signalia.";
+"BADGE_THANKS_BODY" = "Voit halutessasi näyttää tämän merkin profiilissasi ja osoittaa, että tuet Tellomia.";
 
 /* Label prompting the user to display the new badge on their profile on the badge thank you sheet. */
 "BADGE_THANKS_DISPLAY_ON_PROFILE_LABEL" = "Näytä profiilissa";
@@ -1373,7 +1373,7 @@
 "BANK_MANDATE_READ_MORE" = "Lue lisää";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is a subtitle about the payment processor Stripe above that mandate. */
-"BANK_MANDATE_SUBTITLE" = "Stripe käsittelee Signalille tehdyt lahjoitukset. Tellomi ei kerää tai tallenna henkilötietojasi.";
+"BANK_MANDATE_SUBTITLE" = "Stripe käsittelee Tellomille tehdyt lahjoitukset. Tellomi ei kerää tai tallenna henkilötietojasi.";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is the title above that mandate. */
 "BANK_MANDATE_TITLE" = "Pankkisiirto";
@@ -1454,7 +1454,7 @@
 "BLOCK_LIST_VIEW_UNBLOCKED_GROUP_ALERT_BODY" = "Ryhmän nykyiset jäsenet voivat lisätä sinut takaisin ryhmään.";
 
 /* An explanation of the consequences of blocking release notes. */
-"BLOCK_RELEASE_NOTES_BEHAVIOR_EXPLANATION" = "Estä Signalin päivitysten ja uutisten vastaanotto.";
+"BLOCK_RELEASE_NOTES_BEHAVIOR_EXPLANATION" = "Estä Tellomin päivitysten ja uutisten vastaanotto.";
 
 /* An explanation of the consequences of blocking another user. */
 "BLOCK_USER_BEHAVIOR_EXPLANATION" = "Estetyt käyttäjät eivät voi soittaa sinulle tai lähettää sinulle viestejä.";
@@ -1628,7 +1628,7 @@
 "CALL_LINK_REQUIRE_APPROVAL" = "Vaadi järjestelmänvalvojan hyväksyntä";
 
 /* Button to open UI to share a Call Link with someone on Signal. */
-"CALL_LINK_SHARE_VIA_SIGNAL" = "Jaa linkki Signalissa";
+"CALL_LINK_SHARE_VIA_SIGNAL" = "Jaa linkki Tellomissa";
 
 /* Button to open the system share sheet to share a Call Link. */
 "CALL_LINK_SHARE_VIA_SYSTEM" = "Jaa linkki";
@@ -1718,7 +1718,7 @@
 "CALL_QUALITY_SURVEY_ISSUES_SHEET_TITLE" = "Mitä ongelmia sinulla oli?";
 
 /* Header text explaining the purpose of the call quality survey */
-"CALL_QUALITY_SURVEY_RATING_HEADER" = "Palaute auttaa meitä parantamaan puheluita Signalissa. Henkilökohtaisesti tunnistettavia tietoja ei tallenneta.";
+"CALL_QUALITY_SURVEY_RATING_HEADER" = "Palaute auttaa meitä parantamaan puheluita Tellomissa. Henkilökohtaisesti tunnistettavia tietoja ei tallenneta.";
 
 /* Title for the initial rating screen in the call quality survey */
 "CALL_QUALITY_SURVEY_RATING_TITLE" = "Millainen oli puhelun laatu?";
@@ -2183,7 +2183,7 @@
 "CHOOSE_BACKUP_PLAN_BULLET_STORAGE_AMOUNT" = "%1$@ tallennustilaa";
 
 /* Text for a bullet point in a list of Backup features, thanking the user for supporting Signal by subscribing to the paid Backup plan. */
-"CHOOSE_BACKUP_PLAN_BULLET_THANKS_FOR_SUPPORTING_SIGNAL" = "Kiitos Signalin tukemisesta!";
+"CHOOSE_BACKUP_PLAN_BULLET_THANKS_FOR_SUPPORTING_SIGNAL" = "Kiitos Tellomin tukemisesta!";
 
 /* Message shown in an action sheet when the user tries to confirm a plan selection, but is not registered. */
 "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_NOT_REGISTERED" = "Varmuuskopion ottaminen käyttöön edellyttää rekisteröitymistä.";
@@ -2237,7 +2237,7 @@
 "CLOCK_SKEW_APP_BLOCKING_DEVICE_TIME_FORMAT" = "Laitteesi päiväys ja kellonaika ovat %1$@ UTC.";
 
 /* Subtitle for a screen shown when the app can't be used until the user corrects their device's date and time. */
-"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "Signalia ei voi käyttää, koska laitteesi päivämäärä ja kellonaika ovat virheelliset. Korjaa ne avaamalla asetukset.";
+"CLOCK_SKEW_APP_BLOCKING_SUBTITLE" = "Tellomia ei voi käyttää, koska laitteesi päivämäärä ja kellonaika ovat virheelliset. Korjaa ne avaamalla asetukset.";
 
 /* Title for a screen shown when the app can't be used until the user corrects their device's date and time. */
 "CLOCK_SKEW_APP_BLOCKING_TITLE" = "Päivämäärä ei ole oikein";
@@ -2285,13 +2285,13 @@
 "COMPOSE_SCREEN_LIMITED_CONTACTS_CTA" = "Hallinnoi";
 
 /* Multi-line label explaining why compose-screen contact picker is empty. */
-"COMPOSE_SCREEN_LIMITED_CONTACTS_PERMISSION" = "Signalilla on rajoitettu pääsy järjestelmän yhteystietoihin";
+"COMPOSE_SCREEN_LIMITED_CONTACTS_PERMISSION" = "Tellomilla on rajoitettu pääsy järjestelmän yhteystietoihin";
 
 /* Button to open settings from an empty compose-screen contact picker. */
 "COMPOSE_SCREEN_MISSING_CONTACTS_CTA" = "Avaa asetukset";
 
 /* Multi-line label explaining why compose-screen contact picker is empty. */
-"COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "Voit hakea yhteystiedoistasi Signalin käyttäjiä sallimalla yhteystietojen käyttö iOS:n asetuksissa.";
+"COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "Voit hakea yhteystiedoistasi Tellomin käyttäjiä sallimalla yhteystietojen käyttö iOS:n asetuksissa.";
 
 /* Configure reactions title text */
 "CONFIGURE_REACTIONS" = "Reaktioiden asetukset";
@@ -2333,7 +2333,7 @@
 "CONTACT_ABOUT_SHEET_PROFILE_NAMES_EDUCATION" = "Profiilin nimiä ei vahvisteta";
 
 /* Message for a tooltip that appears above a parenthesized name for another user, indicating that that name is the name the other user set for themself. Embeds {{name}} */
-"CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "”%1$@” on profiilinimi, jonka tämä henkilö on asettanut Signalissa.";
+"CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "”%1$@” on profiilinimi, jonka tämä henkilö on asettanut Tellomissa.";
 
 /* A label indicating a user is a signal connection. */
 "CONTACT_ABOUT_SHEET_SIGNAL_CONNECTION_LABEL" = "Tellomi-kontaktit";
@@ -2378,7 +2378,7 @@
 "CONTACT_NOTE_TITLE" = "Huomautus";
 
 /* Body for contact permission action sheet */
-"CONTACT_PERMISSION_ACTION_SHEET_2_BODY" = "Näin löydät tuntemasi ihmiset Signalista:";
+"CONTACT_PERMISSION_ACTION_SHEET_2_BODY" = "Näin löydät tuntemasi ihmiset Tellomista:";
 
 /* First step for contact permission action sheet */
 "CONTACT_PERMISSION_ACTION_SHEET_2_STEP_ONE" = "Napauta alla Siirry asetuksiin";
@@ -2411,10 +2411,10 @@
 "CONTACT_PERMISSION_REMINDER_MEGAPHONE_ACTION" = "Myönnä käyttöoikeus";
 
 /* Body for contact permission reminder megaphone */
-"CONTACT_PERMISSION_REMINDER_MEGAPHONE_BODY" = "Anna yhteystietojen käyttöoikeus, jotta löydät heidät nopeasti Signalista.";
+"CONTACT_PERMISSION_REMINDER_MEGAPHONE_BODY" = "Anna yhteystietojen käyttöoikeus, jotta löydät heidät nopeasti Tellomista.";
 
 /* Title for contact permission reminder megaphone */
-"CONTACT_PERMISSION_REMINDER_MEGAPHONE_TITLE" = "Etsi yhteystietoja Signalista";
+"CONTACT_PERMISSION_REMINDER_MEGAPHONE_TITLE" = "Etsi yhteystietoja Tellomista";
 
 /* Label for a contact's phone number. */
 "CONTACT_PHONE" = "Puhelin";
@@ -2612,7 +2612,7 @@
 "CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "Valitse, kuka voi muokata ryhmän nimeä, kuvaa, kuvausta, katoavien viestien ajastusta sekä kiinnitettyjä viestejä.";
 
 /* Footer string for a contact's badges in conversation settings */
-"CONVERSATION_SETTINGS_BADGES_FOOTER" = "Hanki profiiliisi merkkejä tukemalla Signalia. Lue lisää napauttamalla merkkiä.";
+"CONVERSATION_SETTINGS_BADGES_FOOTER" = "Hanki profiiliisi merkkejä tukemalla Tellomia. Lue lisää napauttamalla merkkiä.";
 
 /* Header title for a contact's badges in conversation settings */
 "CONVERSATION_SETTINGS_BADGES_HEADER" = "Merkit";
@@ -2915,7 +2915,7 @@
 "DATABASE_RECOVERY_MORE_STORAGE_SPACE_NEEDED_TITLE" = "Tallennustila ei riitä";
 
 /* The user has tried to recover their data after it was lost due to corruption. (They have not been hacked.) This is the description on the screen where we show an error message. */
-"DATABASE_RECOVERY_RECOVERY_FAILED_DESCRIPTION" = "Viestihistoriaa ei voitu palauttaa. Voit jatkaa Signalin käyttöä asennettuasi sen uudelleen. Lähetä virheenkorjausloki, jotta voimme paremmin ymmärtää, mikä meni vikaan.";
+"DATABASE_RECOVERY_RECOVERY_FAILED_DESCRIPTION" = "Viestihistoriaa ei voitu palauttaa. Voit jatkaa Tellomin käyttöä asennettuasi sen uudelleen. Lähetä virheenkorjausloki, jotta voimme paremmin ymmärtää, mikä meni vikaan.";
 
 /* The user has tried to recover their data after it was lost due to corruption. (They have not been hacked.) This button lets them delete all of their data. */
 "DATABASE_RECOVERY_RECOVERY_FAILED_RESET_APP_BUTTON" = "Palauta Tellomi";
@@ -3083,7 +3083,7 @@
 "DELETED_USER" = "Poistettu tili";
 
 /* Notification warning the user that they have been de-registered. */
-"DEREGISTRATION_NOTIFICATION" = "Olet kirjautunut ulos Signalista tällä laitteella.";
+"DEREGISTRATION_NOTIFICATION" = "Olet kirjautunut ulos Tellomista tällä laitteella.";
 
 /* Button that lets users re-register using the same phone number. */
 "DEREGISTRATION_REREGISTER_BUTTON" = "Rekisteröidy uudelleen";
@@ -3092,7 +3092,7 @@
 "DEREGISTRATION_REREGISTER_PROMPT_TITLE" = "Rekisteröidäänkö tämä puhelinnumero uudelleen?";
 
 /* Label warning the user that they have been de-registered. */
-"DEREGISTRATION_WARNING" = "Tämä laite ei ole enää rekisteröity. Todennäköisesti olet rekisteröinyt puhelinnumerosi Signaliin toisella laitteella.";
+"DEREGISTRATION_WARNING" = "Tämä laite ei ole enää rekisteröity. Todennäköisesti olet rekisteröinyt puhelinnumerosi Tellomiin toisella laitteella.";
 
 /* If the user has been deregistered, they'll see a warning. This is This is the call to action on that warning. */
 "DEREGISTRATION_WARNING_ACTION_TITLE" = "Rekisteröi laite uudelleen";
@@ -3338,13 +3338,13 @@
 "DONATE_CHOOSE_PAYMENT_METHOD_SHEET_SUBTITLE_FOR_ONE_TIME_DONATION" = "Hanki %1$@-merkki 30 päiväksi";
 
 /* When users make donations on a friend's behalf, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "Summan %1$@ lahjoitus Signalille";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "Summan %1$@ lahjoitus Tellomille";
 
 /* When users make monthly donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money per month}}, such as \"$5/month\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "Lahjoita Signalille %1$@";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "Lahjoita Tellomille %1$@";
 
 /* When users make one-time donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_ONE_TIME_DONATION" = "Lahjoita Signalille %1$@";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_ONE_TIME_DONATION" = "Lahjoita Tellomille %1$@";
 
 /* Users can donate on a friend's behalf and can optionally add a message. This is tells users about that optional message. */
 "DONATE_ON_BEHALF_OF_A_FRIEND_ADDITIONAL_MESSAGE_INFO" = "Vastaanottaja saa ilmoituksen lahjoituksesta kahdenkeskisessä viestissä. Lisää oma viestisi alle.";
@@ -3458,7 +3458,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_BADGE_REDEEMED" = "Lunastettu";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is a short paragraph on the screen where users choose the badge their friend will receive. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Tue Signalia tekemällä lahjoitus Signalia käyttävän ystävän tai perheenjäsenen puolesta. Hänellä on mahdollisuus näyttää omassa profiilissaan, että hän tukee Signalia.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Tue Tellomia tekemällä lahjoitus Tellomia käyttävän ystävän tai perheenjäsenen puolesta. Hänellä on mahdollisuus näyttää omassa profiilissaan, että hän tukee Tellomia.";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is the title on the screen where users choose the badge their friend will receive. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_TITLE" = "Lahjoita ystävän puolesta";
@@ -3494,7 +3494,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PREVIEW_OUTGOING" = "✨ Lahjoitit henkilön %1$@ puolesta";
 
 /* You received a donation from a friend. This is the title of that message in the chat. Embeds {{short contact name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@ lahjoitti Signalille puolestasi";
+"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@ lahjoitti Tellomille puolestasi";
 
 /* Users can donate on a friend's behalf. This is the error message that appears if the try to do this, but the recipient is blocked. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_RECIPIENT_IS_BLOCKED_ERROR_BODY" = "Et voi tehdä lahjoitusta tämän käyttäjän puolesta, koska olet estänyt hänet.";
@@ -3518,7 +3518,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_SENT_TITLE_FORMAT" = "Lahjoitus henkilön %1$@ puolesta";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the text on that sheet. Embeds {{recipient name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "Olet tehnyt lahjoituksen Signalille henkilön %1$@ puolesta. Hän saa mahdollisuuden näyttää omassa profiilissaan, että hän tukee Signalia.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_BODY_FORMAT" = "Olet tehnyt lahjoituksen Tellomille henkilön %1$@ puolesta. Hän saa mahdollisuuden näyttää omassa profiilissaan, että hän tukee Tellomia.";
 
 /* When you donate on behalf of a friend, a thank-you sheet will appear. This is the title on that sheet. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_THANKS_TITLE" = "Kiitos tuestasi!";
@@ -3527,10 +3527,10 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_VIEW" = "Näytä";
 
 /* A friend has donated on your behalf and you received a badge. This text says that you received a badge, and from whom. Embeds {{contact's short name, such as a first name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ teki lahjoituksen Signalille puolestasi! Näytä profiilissasi, että tuet Signalia.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ teki lahjoituksen Tellomille puolestasi! Näytä profiilissasi, että tuet Tellomia.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Itsenäisenä, voittoa tavoittelemattomana organisaationa Tellomi on sitoutunut yksityiseen viestintään ja puheluihin. Ei mainoksia, seurantaevästeitä tai valvontaa. Tue Signalia lahjoittamalla.";
+"DONATION_READ_MORE_SHEET_BODY" = "Itsenäisenä, voittoa tavoittelemattomana organisaationa Tellomi on sitoutunut yksityiseen viestintään ja puheluihin. Ei mainoksia, seurantaevästeitä tai valvontaa. Tue Tellomia lahjoittamalla.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "Saat lahjoituksen yhteydessä merkin, jonka voit liittää halutessasi profiiliisi.";
@@ -3554,7 +3554,7 @@
 "DONATION_RECEIPT_EXPORT_RECEIPT_BUTTON" = "Jaa kuitti";
 
 /* Footer text at the bottom of donation receipts */
-"DONATION_RECEIPT_FOOTER" = "Kiitos, että tuet Signalia. Lahjoituksesi auttaa meitä edistämään tavoitettamme suojata sananvapautta ja mahdollistaa turvallinen maailmanlaajuinen viestintä miljoonille käyttäjille ympäri maailmaa avoimen lähdekoodin tietosuojateknologialla. Jos asut Yhdysvalloissa, säilytä tämä kuitti verotusta varten. Signal Technology Foundation on verovapaa voittoa tavoittelematon organisaatio Yhdysvaltojen Internal Revenue Code -pykälän 501c3 mukaisesti. Signalin liittovaltion verotunnus on 82-4506840. Signal ei ole tarjonnut lahjoituksesta tavaroita tai palveluja vastineeksi.";
+"DONATION_RECEIPT_FOOTER" = "Kiitos, että tuet Tellomia. Lahjoituksesi auttaa meitä edistämään tavoitettamme suojata sananvapautta ja mahdollistaa turvallinen maailmanlaajuinen viestintä miljoonille käyttäjille ympäri maailmaa avoimen lähdekoodin tietosuojateknologialla. Jos asut Yhdysvalloissa, säilytä tämä kuitti verotusta varten. Signal Technology Foundation on verovapaa voittoa tavoittelematon organisaatio Yhdysvaltojen Internal Revenue Code -pykälän 501c3 mukaisesti. Tellomin liittovaltion verotunnus on 82-4506840. Signal ei ole tarjonnut lahjoituksesta tavaroita tai palveluja vastineeksi.";
 
 /* Title for receipts for donations given on a friend's behalf */
 "DONATION_RECEIPT_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "Lahjoitus ystävän puolesta";
@@ -3575,7 +3575,7 @@
 "DONATION_RECEIPTS" = "Lahjoituskuitit";
 
 /* Text at the bottom of the donation receipts list, telling users that receipts might not be available */
-"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Jos olet asentanut Signalin uudelleen, kuitit vanhemmista lahjoituksista eivät näy.";
+"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Jos olet asentanut Tellomin uudelleen, kuitit vanhemmista lahjoituksista eivät näy.";
 
 /* Error message displayed if something goes wrong with 3DSecure/iDEAL payment authorization.  This will be encountered if the user cancels the webview before authrizing the payment. */
 "DONATION_REDIRECT_ERROR_CANCELLED_MESSAGE" = "Maksu peruutettu. Yritä uudelleen.";
@@ -3665,7 +3665,7 @@
 "DONATION_VIEW_DONATE_ON_BEHALF_OF_A_FRIEND" = "Lahjoita ystävän puolesta";
 
 /* Text describing to the user that they're going to pay a donation to Signal */
-"DONATION_VIEW_DONATION_TO_SIGNAL" = "Lahjoitus Signalille";
+"DONATION_VIEW_DONATION_TO_SIGNAL" = "Lahjoitus Tellomille";
 
 /* Title for the 'Donor FAQ' button on the donation screen */
 "DONATION_VIEW_DONOR_FAQ" = "Usein kysyttyä lahjoituksista";
@@ -3677,13 +3677,13 @@
 "DONATION_VIEW_MANAGE_BADGES" = "Merkit";
 
 /* Text describing to the user that they're going to pay a monthly donation to Signal */
-"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "Kuukausilahjoitus Signalille";
+"DONATION_VIEW_MONTHLY_DONATION_TO_SIGNAL" = "Kuukausilahjoitus Tellomille";
 
 /* Title for the 'my support' section in the donation view */
 "DONATION_VIEW_MY_SUPPORT_TITLE" = "Antamani tuki";
 
 /* Title on the 'Donate to Signal' screen */
-"DONATION_VIEW_TITLE" = "Lahjoita Signalille";
+"DONATION_VIEW_TITLE" = "Lahjoita Tellomille";
 
 /* Label for the currency picker button in donation views */
 "DONATIONS_CURRENCY_PICKER_LABEL" = "Valuutta";
@@ -3707,7 +3707,7 @@
 "EDIT_GROUP_DEFAULT_TITLE" = "Muokkaa ryhmää";
 
 /* Error message indicating the a user can't be added to a group. */
-"EDIT_GROUP_ERROR_CANNOT_ADD_MEMBER" = "Tätä käyttäjää ei voida lisätä ryhmään, ennen kuin hän on päivittänyt Signalin.";
+"EDIT_GROUP_ERROR_CANNOT_ADD_MEMBER" = "Tätä käyttäjää ei voida lisätä ryhmään, ennen kuin hän on päivittänyt Tellomin.";
 
 /* Error message indicating that an avatar image is invalid and cannot be used. */
 "EDIT_GROUP_ERROR_INVALID_AVATAR" = "Virheellinen kuva.";
@@ -3734,10 +3734,10 @@
 "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR" = "EDIT_MESSAGE_SEND_MESSAGE_UNKNOWN_ERROR";
 
 /* body of email sent to contacts when inviting to install Signal. Embeds {{link to install Signal}} and {{link to the Signal home page}} */
-"EMAIL_INVITE_BODY" = "Hei!\n\nViime aikoina olen käyttänyt Signalia iPhonella pitääkseni keskustelut yksityisinä. Toivoisin myös sinun asentavan sen, jotta voimme olla varmoja, ettei kukaan muu lue viestejämme tai kuuntele puheluitamme.\n\nTellomi on saatavilla iPhonelle, Androidille ja tietokoneelle. Lataa se täältä: %1$@\n\nTellomi toimii kuten muutkin viestintäsovellukset. Sillä voi lähettää kuvia ja videoita, soittaa puheluita ja käydä ryhmäkeskusteluja. Ja mikä parasta, kukaan ulkopuolinen ei pääse käsiksi viesteihin, eivät edes Signalin kehittäjät!\n\nVoit lukea lisää Signalista täältä: %2$@";
+"EMAIL_INVITE_BODY" = "Hei!\n\nViime aikoina olen käyttänyt Tellomia iPhonella pitääkseni keskustelut yksityisinä. Toivoisin myös sinun asentavan sen, jotta voimme olla varmoja, ettei kukaan muu lue viestejämme tai kuuntele puheluitamme.\n\nTellomi on saatavilla iPhonelle, Androidille ja tietokoneelle. Lataa se täältä: %1$@\n\nTellomi toimii kuten muutkin viestintäsovellukset. Sillä voi lähettää kuvia ja videoita, soittaa puheluita ja käydä ryhmäkeskusteluja. Ja mikä parasta, kukaan ulkopuolinen ei pääse käsiksi viesteihin, eivät edes Tellomin kehittäjät!\n\nVoit lukea lisää Tellomista täältä: %2$@";
 
 /* subject of email sent to contacts when inviting to install Signal */
-"EMAIL_INVITE_SUBJECT" = "Vaihdetaan Signaliin";
+"EMAIL_INVITE_SUBJECT" = "Vaihdetaan Tellomiin";
 
 /* Description for the fallback support sheet if user cannot send email */
 "EMAIL_SIGNAL_MESSAGE" = "Laitteesi ei tue sähköpostien lähetystä. Lähettääksesi tukipyynnön, määritä laitteesi sähköpostiasetukset tai lähetä sähköposti osoitteeseen support@tellomi.app";
@@ -3776,7 +3776,7 @@
 "EMOJI_CATEGORY_TRAVEL_NAME" = "Matkailu ja paikat";
 
 /* Full width label displayed when attempting to compose message */
-"EMPTY_CONTACTS_LABEL_LINE1" = "Kukaan yhteystiedoistasi ei käytä Signalia.";
+"EMPTY_CONTACTS_LABEL_LINE1" = "Kukaan yhteystiedoistasi ei käytä Tellomia.";
 
 /* Full width label displayed when attempting to compose message */
 "EMPTY_CONTACTS_LABEL_LINE2" = "Haluaisitko kutsua jonkun?";
@@ -3875,7 +3875,7 @@
 "ERROR_DESCRIPTION_UNKNOWN_ERROR" = "Tuntematon virhe.";
 
 /* Error message when attempting to send message */
-"ERROR_DESCRIPTION_UNREGISTERED_RECIPIENT" = "Viestiä ei voitu lähettää, koska henkilö ei enää käytä Signalia.";
+"ERROR_DESCRIPTION_UNREGISTERED_RECIPIENT" = "Viestiä ei voitu lähettää, koska henkilö ei enää käytä Tellomia.";
 
 /* Error message indicating that attachment upload(s) failed. */
 "ERROR_MESSAGE_ATTACHMENT_UPLOAD_FAILED" = "Liitteen lähettäminen epäonnistui.";
@@ -3920,7 +3920,7 @@
 "ERROR_NETWORK_FAILURE" = "Verkkovirhe";
 
 /* Format string for an error alert notification message. Embeds {{ error string }} */
-"ERROR_NOTIFICATION_MESSAGE_FORMAT" = "Ole hyvä ja auta meitä parantamaan Signalia lähettämällä tämä virheilmoitus laitteesi virheenkorjauslokien kanssa osoitteeseen support@tellomi.app; %1$@";
+"ERROR_NOTIFICATION_MESSAGE_FORMAT" = "Ole hyvä ja auta meitä parantamaan Tellomia lähettämällä tämä virheilmoitus laitteesi virheenkorjauslokien kanssa osoitteeseen support@tellomi.app; %1$@";
 
 /* Format string for an error alert notification title. */
 "ERROR_NOTIFICATION_TITLE" = "Tellomi Beta: Tapahtui virhe";
@@ -3932,7 +3932,7 @@
 "ERROR_SENDING_DEREGISTERED" = "Laitteesi ei ole enää rekisteröity. Rekisteröidy uudelleen jatkaaksesi viestintää.";
 
 /* Error indicating a send failure due to an expired application. */
-"ERROR_SENDING_EXPIRED" = "Käyttämäsi Signalin versio on vanhentunut. Napsauta päivittääksesi uudempaan versioon, jotta voit jatkaa viestintää.";
+"ERROR_SENDING_EXPIRED" = "Käyttämäsi Tellomin versio on vanhentunut. Napsauta päivittääksesi uudempaan versioon, jotta voit jatkaa viestintää.";
 
 /* Format string for 'unregistered user' error. Embeds {{the unregistered user's name or signal id}}. */
 "ERROR_UNREGISTERED_USER_FORMAT" = "Rekisteröimätön käyttäjä: %1$@";
@@ -4517,7 +4517,7 @@
 "GROUP_LINK_VIEW_SHARE_LINK_VIA_QR_CODE" = "QR-koodi";
 
 /* Label for the 'share group link via Signal' button in the 'group link' view. */
-"GROUP_LINK_VIEW_SHARE_LINK_VIA_SIGNAL" = "Jaa Signalilla";
+"GROUP_LINK_VIEW_SHARE_LINK_VIA_SIGNAL" = "Jaa Tellomilla";
 
 /* Message for the 'share group link' action sheet in the 'group link' view. */
 "GROUP_LINK_VIEW_SHARE_SHEET_MESSAGE" = "Kuka tahansa, jolla on tämä linkki, näkee ryhmän nimen ja kuvan ja voi pyytää liittymistä jäseneksi. Jaa linkki vain henkilöille, joihin luotat.";
@@ -4967,13 +4967,13 @@
 "HOME_VIEW_DRAFT_PREFIX" = "Luonnos: ";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have 1 Signal contact.  Embeds {{The name of 1 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_1_CONTACT_FORMAT" = "Osa yhteystiedoistasi käyttää jo Signalia, esimerkiksi %1$@.";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_1_CONTACT_FORMAT" = "Osa yhteystiedoistasi käyttää jo Tellomia, esimerkiksi %1$@.";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have 2 Signal contacts.  Embeds {{The names of 2 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "Osa yhteystiedoistasi käyttää jo Signalia, esimerkiksi %1$@ ja %2$@";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "Osa yhteystiedoistasi käyttää jo Tellomia, esimerkiksi %1$@ ja %2$@";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have at least 3 Signal contacts.  Embeds {{The names of 3 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_3_CONTACTS_FORMAT" = "Osa yhteystiedoistasi käyttää jo Signalia, esimerkiksi %1$@, %2$@ ja %3$@";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_3_CONTACTS_FORMAT" = "Osa yhteystiedoistasi käyttää jo Tellomia, esimerkiksi %1$@, %2$@ ja %3$@";
 
 /* A label offering to start a new conversation with your contacts, if you have no Signal contacts. */
 "HOME_VIEW_FIRST_CONVERSATION_OFFER_NO_CONTACTS" = "Aloita ensimmäinen keskustelu.";
@@ -5168,7 +5168,7 @@
 "INFO_MESSAGE_USER_CHANGED_PHONE_NUMBER_FORMAT" = "%1$@ vaihtoi puhelinnumeroaan.";
 
 /* Shown in inbox and conversation when a user joins Signal, embeds the new user's {{contact name}} */
-"INFO_MESSAGE_USER_JOINED_SIGNAL_BODY_FORMAT" = "%1$@ käyttää Signalia!";
+"INFO_MESSAGE_USER_JOINED_SIGNAL_BODY_FORMAT" = "%1$@ käyttää Tellomia!";
 
 /* Label at the top of the input text when editing a message */
 "INPUT_TOOLBAR_EDIT_MESSAGE_LABEL" = "Muokkaa viestiä";
@@ -5195,13 +5195,13 @@
 "INVALID_PROXY_HOST_ERROR" = "Antamasi välityspalvelinosoite on virheellinen. Tarkista osoite ja yritä uudelleen.";
 
 /* Alert body when contacts disabled while trying to invite contacts to signal */
-"INVITE_FLOW_REQUIRES_CONTACT_ACCESS_BODY" = "Kutsu kavereita Signaliin sallimalla yhteystietojen käyttö iOS:n asetuksissa.";
+"INVITE_FLOW_REQUIRES_CONTACT_ACCESS_BODY" = "Kutsu kavereita Tellomiin sallimalla yhteystietojen käyttö iOS:n asetuksissa.";
 
 /* Alert title when contacts disabled while trying to invite contacts to signal */
 "INVITE_FLOW_REQUIRES_CONTACT_ACCESS_TITLE" = "Salli yhteystietojen käyttö";
 
 /* Label for the cell that presents the 'invite contacts' workflow. */
-"INVITE_FRIENDS_CONTACT_TABLE_BUTTON" = "Kutsu kavereita Signaliin";
+"INVITE_FRIENDS_CONTACT_TABLE_BUTTON" = "Kutsu kavereita Tellomiin";
 
 /* Header label above a section for more options for adding contacts */
 "INVITE_FRIENDS_CONTACT_TABLE_HEADER" = "Lisää";
@@ -5339,7 +5339,7 @@
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_TITLE" = "Skannaa QR-koodi";
 
 /* Body text for a sheet when a user tries to link a device informing them that they will need to authenticate their device */
-"LINK_NEW_DEVICE_AUTHENTICATION_INFO_SHEET_BODY" = "Napauta Jatka ja vahvista puhelimen lukituskoodilla. Älä anna Signalin PIN-koodia.";
+"LINK_NEW_DEVICE_AUTHENTICATION_INFO_SHEET_BODY" = "Napauta Jatka ja vahvista puhelimen lukituskoodilla. Älä anna Tellomin PIN-koodia.";
 
 /* Title for a sheet when a user tries to link a device informing them that they will need to authenticate their device */
 "LINK_NEW_DEVICE_AUTHENTICATION_INFO_SHEET_TITLE" = "Varmista henkilöllisyytesi ennen laitteen yhdistämistä";
@@ -5348,7 +5348,7 @@
 "LINK_NEW_DEVICE_AUTHENTICATION_REASON" = "Suorita todennus yhdistääksesi laitteen";
 
 /* Body text for a sheet when a user has started linking a device informing them to finish the process on that other device */
-"LINK_NEW_DEVICE_FINISH_ON_OTHER_DEVICE_SHEET_BODY" = "Viimeistele Signalin yhdistäminen toisella laitteellasi.";
+"LINK_NEW_DEVICE_FINISH_ON_OTHER_DEVICE_SHEET_BODY" = "Viimeistele Tellomin yhdistäminen toisella laitteellasi.";
 
 /* Title for a sheet when a user has started linking a device informing them to finish the process on that other device */
 "LINK_NEW_DEVICE_FINISH_ON_OTHER_DEVICE_SHEET_TITLE" = "Viimeistele yhdistäminen toisella laitteellasi";
@@ -5405,7 +5405,7 @@
 "LINKED_DEVICE_INFO_SHEET_HEADER" = "<bold>Yhdistetyt laitteet</bold> mahdollistaa pääsyn Tellomi-tilille ja -viesteihin turvallisesti myös muilta laitteilta.";
 
 /* Shown in a banner when you tap the 'New Chat' icon at the top of the list of chats. */
-"LINKED_DEVICE_MANAGE_CONTACTS_BANNER" = "Yhteystietojen hallinnointia ei enää tueta yhdistetyillä laitteilla. Signalin yhteystietoluetteloon tehdyt muutokset synkronoituvat ensisijaiselta laitteelta tälle laitteelle.";
+"LINKED_DEVICE_MANAGE_CONTACTS_BANNER" = "Yhteystietojen hallinnointia ei enää tueta yhdistetyillä laitteilla. Tellomin yhteystietoluetteloon tehdyt muutokset synkronoituvat ensisijaiselta laitteelta tälle laitteelle.";
 
 /* A button shown in a banner when you tap the 'New Chat' icon at the top of the list of chats. Tapping it opens a website with more details. */
 "LINKED_DEVICE_MANAGE_CONTACTS_LEARN_MORE" = "Lue lisää";
@@ -5420,16 +5420,16 @@
 "LINKED_DEVICE_NOTIFICATION_TITLE" = "Yhdistit uuden laitteen";
 
 /* Message for an action sheet telling users how to link a device, when trying to open an external device-linking URL. */
-"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "Jos haluat yhdistää tietokoneen tai iPadin tähän Tellomi-tiliin, siirry kohtaan Yhdistetyt laitteet, napauta Yhdistä uusi laite ja skannaa QR-koodi uudelleen. Skannaa vain QR-koodeja, jotka tulevat suoraan Signalista.";
+"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "Jos haluat yhdistää tietokoneen tai iPadin tähän Tellomi-tiliin, siirry kohtaan Yhdistetyt laitteet, napauta Yhdistä uusi laite ja skannaa QR-koodi uudelleen. Skannaa vain QR-koodeja, jotka tulevat suoraan Tellomista.";
 
 /* Message for an action sheet telling users how to link a device, when trying to open a device-linking URL from the in-app camera. */
-"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_IN_APP_CAMERA_MESSAGE" = "Vaikuttaa siltä, että yrität yhdistää laitetta Signaliin. Napauta Jatka ja napauta sitten Yhdistä uusi laite ja skannaa QR-koodi uudelleen.";
+"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_IN_APP_CAMERA_MESSAGE" = "Vaikuttaa siltä, että yrität yhdistää laitetta Tellomiin. Napauta Jatka ja napauta sitten Yhdistä uusi laite ja skannaa QR-koodi uudelleen.";
 
 /* Bullet point about downloads on the linked devices education sheet. Embeds {{ %1$@ iPad download link, %2$@ desktop download link }} */
 "LINKED_DEVICES_EDUCATION_POINT_DOWNLOADS" = "Asenna iPad-sovellus toiseen laitteeseesi käymällä osoitteessa %1$@ tai asenna työpöytäsovellus osoitteesta %2$@.";
 
 /* Bullet point about message sync on the linked devices education sheet */
-"LINKED_DEVICES_EDUCATION_POINT_MESSAGES" = "Signalin viestit synkronoidaan matkapuhelimesi Tellomi-sovelluksen kanssa, kun laite on yhdistetty.";
+"LINKED_DEVICES_EDUCATION_POINT_MESSAGES" = "Tellomin viestit synkronoidaan matkapuhelimesi Tellomi-sovelluksen kanssa, kun laite on yhdistetty.";
 
 /* Bullet point about privacy on the linked devices education sheet */
 "LINKED_DEVICES_EDUCATION_POINT_PRIVACY" = "Kaikki viestit yhdistetyillä laitteilla ovat yksityisiä";
@@ -5441,7 +5441,7 @@
 "LINKED_DEVICES_EMPTY_STATE" = "Ei yhdistettyjä laitteita";
 
 /* Description for header of the linked devices list */
-"LINKED_DEVICES_HEADER_DESCRIPTION" = "Käytä Signalia tietokoneella tai iPadilla.";
+"LINKED_DEVICES_HEADER_DESCRIPTION" = "Käytä Tellomia tietokoneella tai iPadilla.";
 
 /* Footer text below the list of currently-linked devices */
 "LINKED_DEVICES_LIST_FOOTER" = "Viestit ja keskustelujen tiedot on suojattu päästä päähän -salauksella kaikilla laitteilla";
@@ -5483,7 +5483,7 @@
 "LINKING_SYNCING_TIMING_INFO" = "Tämä saattaa kestää muutaman minuutin";
 
 /* Shown to users while the app is loading, asking them not to close the app. */
-"LOADING_VIEW_CONTROLLER_DONT_CLOSE_APP" = "Älä sulje Signalia.";
+"LOADING_VIEW_CONTROLLER_DONT_CLOSE_APP" = "Älä sulje Tellomia.";
 
 /* Body for an error sheet shown when the user's folder choice does not contain a backup file. */
 "LOCAL_BACKUPS_MISSING_BACKUP_ACTION_SHEET_BODY" = "Valitusta kansiosta ei löytynyt Tellomi-varmuuskopiota. Valitse toinen kansio.";
@@ -5534,7 +5534,7 @@
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_BULLET_3" = "Varmuuskopioinnin saa poistettua milloin tahansa";
 
 /* Subtitle for a view introducing local file backups during the onboarding flow. */
-"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Tallenna viestien varmuuskopiot laitteellasi olevaan kansioon. Varmuuskopiot salataan päästä päähän, ja ne voidaan palauttaa asentamalla uusi kopio Signalista ja valitsemalla Palauta tai siirrä.";
+"LOCAL_FILE_BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Tallenna viestien varmuuskopiot laitteellasi olevaan kansioon. Varmuuskopiot salataan päästä päähän, ja ne voidaan palauttaa asentamalla uusi kopio Tellomista ja valitsemalla Palauta tai siirrä.";
 
 /* Title for a view introducing local file backups during the onboarding flow. */
 "LOCAL_FILE_BACKUP_ONBOARDING_INTRO_TITLE" = "Varmuuskopiot laitteella";
@@ -5549,10 +5549,10 @@
 "LOCAL_FILE_BACKUPS_CHOOSE_FOLDER_TITLE" = "Valitse kansio";
 
 /* Warning shown when a user tries to enable local file backups with optimize media enabled */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "Signalin tallennustilan optimointi on päällä. Jos haluat sisällyttää kaiken median laitteessa olevaan varmuuskopioon, laita asetus pois päältä.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET" = "Tellomin tallennustilan optimointi on päällä. Jos haluat sisällyttää kaiken median laitteessa olevaan varmuuskopioon, laita asetus pois päältä.";
 
 /* Message for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
-"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "Laittamalla Signalin tallennustilan optimoinnin pois päältä voit siirtää vanhan mediasisällön sivuun. Voit ladata sen takaisin laitteellesi milloin vain. Tämä poistaa myös vanhan mediasisällön laitteessa olevasta varmuuskopiosta.";
+"LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_BODY" = "Laittamalla Tellomin tallennustilan optimoinnin pois päältä voit siirtää vanhan mediasisällön sivuun. Voit ladata sen takaisin laitteellesi milloin vain. Tämä poistaa myös vanhan mediasisällön laitteessa olevasta varmuuskopiosta.";
 
 /* Title for a sheet warning the user about enabling Optimize Storage with local backups enabled. */
 "LOCAL_FILE_BACKUPS_OPTIMIZE_MEDIA_WARNING_ACTION_SHEET_2_TITLE" = "Mediasisältö poistetaan laitteessa olevasta varmuuskopiosta";
@@ -5576,7 +5576,7 @@
 "LOGGING_SECTION" = "Lokit";
 
 /* Footer for the 'logging' help section. */
-"LOGGING_SECTION_FOOTER" = "Virheenkorjauslokeja käytetään Signalin teknisten ongelmien korjaamiseen.";
+"LOGGING_SECTION_FOOTER" = "Virheenkorjauslokeja käytetään Tellomin teknisten ongelmien korjaamiseen.";
 
 /* Title for the 'long text message' view. */
 "LONG_TEXT_VIEW_TITLE" = "Viesti";
@@ -5585,7 +5585,7 @@
 "LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "Laitteen %1$@ tallennustila on vähissä. Jos tallennustila täyttyy, Tellomi lopettaa toimintansa ja voit menettää tietoja. Vapauta vähintään %2$@ tilaa.";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Poista suuret videot Kuvat-sovelluksesta, Signalista tai muista viestisovelluksista";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Poista suuret videot Kuvat-sovelluksesta, Tellomista tai muista viestisovelluksista";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
 "LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "Poista ladattu musiikki tai muu media";
@@ -5759,7 +5759,7 @@
 "MESSAGE_ACTION_DELETE_FOR_EVERYONE" = "Poista kaikilta";
 
 /* A one-time confirmation that you want to delete for everyone */
-"MESSAGE_ACTION_DELETE_FOR_EVERYONE_CONFIRMATION" = "Tämä viesti poistetaan kaikilta keskustelussa olevilta, jos he käyttävät Signalin uusinta versiota. He näkevät, että poistit viestin.";
+"MESSAGE_ACTION_DELETE_FOR_EVERYONE_CONFIRMATION" = "Tämä viesti poistetaan kaikilta keskustelussa olevilta, jos he käyttävät Tellomin uusinta versiota. He näkevät, että poistit viestin.";
 
 /* The title for the action sheet asking who the user wants to delete the message for. */
 "MESSAGE_ACTION_DELETE_FOR_TITLE" = "Keneltä viesti poistetaan?";
@@ -5804,7 +5804,7 @@
 "MESSAGE_ACTION_LINK_OPEN_LINK" = "Avaa linkki";
 
 /* Label for button to open a signal proxy. */
-"MESSAGE_ACTION_LINK_OPEN_PROXY" = "Avaa Signalin välityspalvelin";
+"MESSAGE_ACTION_LINK_OPEN_PROXY" = "Avaa Tellomin välityspalvelin";
 
 /* Label for button to open a sticker pack. */
 "MESSAGE_ACTION_LINK_OPEN_STICKER_PACK" = "Selaa tarrapakettia";
@@ -6116,7 +6116,7 @@
 "MISSED_CALL_BLOCKED_SYSTEM_CONTACT" = "Vastaamaton puhelu puhelimen asetuksissa estetyltä yhteyshenkilöltä";
 
 /* Action to block contact in Signal for sheet shown when the user taps a missed call from a contact blocked in iOS settings. */
-"MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_BLOCK_ACTION" = "Estä yhteystieto myös Signalissa";
+"MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_BLOCK_ACTION" = "Estä yhteystieto myös Tellomissa";
 
 /* Message for sheet shown when the user taps a missed call from a contact blocked in iOS settings. */
 "MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_MESSAGE" = "Et huomannut tätä puhelua, koska käyttäjä on estetty puhelimesi asetuksissa. Siirry kohtaan Asetukset > Puhelin ja napauta Estetyt yhteystiedot tehdäksesi tähän muutoksia.";
@@ -6341,7 +6341,7 @@
 "NICKNAME_EDITOR_DELETE_CONFIRMATION_TITLE" = "Poistetaanko lempinimi?";
 
 /* The description below the title on the profile nickname editor view. */
-"NICKNAME_EDITOR_DESCRIPTION" = "Lempinimet ja huomautukset tallennetaan Signalin päästä päähän salattua tallennuspalvelua käyttäen. Ne näkyvät vain sinulle.";
+"NICKNAME_EDITOR_DESCRIPTION" = "Lempinimet ja huomautukset tallennetaan Tellomin päästä päähän salattua tallennuspalvelua käyttäen. Ne näkyvät vain sinulle.";
 
 /* Placeholder text it the text field for the family name in the profile nickname editor. */
 "NICKNAME_EDITOR_FAMILY_NAME_PLACEHOLDER" = "Sukunimi";
@@ -6374,7 +6374,7 @@
 "NOT_LINKED_BOTTOM_RELINK" = "Yhdistä uudelleen";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. The embedded value is 'Re-register' (translated via NOT_REGISTERED_BOTTOM_REREGISTER), and it will be formatted as a tappable link. */
-"NOT_REGISTERED_BOTTOM" = "Tämä laite ei ole enää rekisteröity. %1$@ jatkaaksesi Signalin käyttöä.";
+"NOT_REGISTERED_BOTTOM" = "Tämä laite ei ole enää rekisteröity. %1$@ jatkaaksesi Tellomin käyttöä.";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. This value is a tappable link embedded in a larger sentence. */
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "Rekisteröidy uudelleen";
@@ -6422,7 +6422,7 @@
 "NOTIFICATION_PERMISSION_REMINDER_MEGAPHONE_TITLE" = "Otetaanko Ilmoitukset käyttöön?";
 
 /* Shown as the body of an alert when notifications can't be shown due to an error. */
-"NOTIFICATIONS_ERROR_MESSAGE" = "Käynnistä %1$@ uudelleen, jos et saa Signalin ilmoituksia.";
+"NOTIFICATIONS_ERROR_MESSAGE" = "Käynnistä %1$@ uudelleen, jos et saa Tellomin ilmoituksia.";
 
 /* Shown as the title of an alert when notifications can't be shown due to an error. */
 "NOTIFICATIONS_ERROR_TITLE" = "Ilmoituksia ei voitu näyttää";
@@ -6566,7 +6566,7 @@
 "ONBOARDING_MODE_SWITCH_BUTTON_REGISTERING" = "Yhdistä laite";
 
 /* explanation to the user they're switching from linking to registering flow */
-"ONBOARDING_MODE_SWITCH_EXPLANATION_PROVISIONING" = "Napauttamalla Rekisteröi iPad voit luoda uuden Tellomi-tilin tai siirtää olemassa olevan tilin tähän iPadiin. Tämä poistaa Signalin käytöstä muissa samalla puhelinnumerolla rekisteröidyissä laitteissa.";
+"ONBOARDING_MODE_SWITCH_EXPLANATION_PROVISIONING" = "Napauttamalla Rekisteröi iPad voit luoda uuden Tellomi-tilin tai siirtää olemassa olevan tilin tähän iPadiin. Tämä poistaa Tellomin käytöstä muissa samalla puhelinnumerolla rekisteröidyissä laitteissa.";
 
 /* explanation to the user they're switching from registering to linking flow */
 "ONBOARDING_MODE_SWITCH_EXPLANATION_REGISTERING" = "Laite yhdistetään olemassa olevaan Tellomi-tiliin, kun napautat Yhdistä tämä laite.";
@@ -6578,7 +6578,7 @@
 "ONBOARDING_MODE_SWITCH_TITLE_REGISTERING" = "Yhdistä laite";
 
 /* warning to the user that registering an ipad is not recommended */
-"ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "Tämän iPadin rekisteröiminen poistaa Signalin käytöstä muissa samalla puhelinnumerolla rekisteröidyissä laitteissa.";
+"ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "Tämän iPadin rekisteröiminen poistaa Tellomin käytöstä muissa samalla puhelinnumerolla rekisteröidyissä laitteissa.";
 
 /* Description of the 'Contacts' permission in the 'onboarding permissions' view. */
 "ONBOARDING_PERMISSIONS_CONTACTS_DESCRIPTION" = "Etsi tuntemiasi ihmisiä. Yhteystietosi salataan, eivätkä ne näy Tellomi-palvelussa.";
@@ -6599,7 +6599,7 @@
 "ONBOARDING_PERMISSIONS_TITLE" = "Myönnä käyttöoikeudet";
 
 /* Explanation of the 'onboarding phone number discoverability' view. Embeds {user phone number} */
-"ONBOARDING_PHONE_NUMBER_DISCOVERABILITY_EXPLANATION_FORMAT" = "Valitse kuka voi löytää sinut Signalista puhelinnumerolla %1$@";
+"ONBOARDING_PHONE_NUMBER_DISCOVERABILITY_EXPLANATION_FORMAT" = "Valitse kuka voi löytää sinut Tellomista puhelinnumerolla %1$@";
 
 /* Title of the 'onboarding phone number discoverability' view. */
 "ONBOARDING_PHONE_NUMBER_DISCOVERABILITY_TITLE" = "Kuka voi löytää sinut puhelinnumerollasi?";
@@ -6626,7 +6626,7 @@
 "ONBOARDING_PIN_ATTEMPTS_EXHAUSTED_WITH_UNKNOWN_REGLOCK_EXPLANATION" = "Olet syöttänyt PIN-koodin liian monta kertaa väärin, mutta voit vielä yrittää käyttää Tellomi-tiliäsi vahvistamalla puhelinnumerosi. Yksityisyys- ja tietoturvasyistä tilisi palautetaan ilman tallennettuja profiilitietoja tai asetuksia.";
 
 /* Explanation of 'do not have old device' flow for the 'Restore or Transfer' prompt */
-"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_BODY" = "Tai jos asennat Signalia uudelleen samalle laitteelle";
+"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_BODY" = "Tai jos asennat Tellomia uudelleen samalle laitteelle";
 
 /* Title for the 'do not have my old device' choice of the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_TITLE" = "Minulla ei ole vanhaa puhelintani";
@@ -6692,19 +6692,19 @@
 "OPEN_SETTINGS_BUTTON" = "Asetukset";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on unsupported version. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this text. */
-"OS_EXPIRED_AND_CAN_UPGRADE_OS" = "Tellomi ei enää toimi tässä laitteessa. Jos haluat käyttää Signalia uudelleen, päivitä laite uudempaan iOS-versioon.";
+"OS_EXPIRED_AND_CAN_UPGRADE_OS" = "Tellomi ei enää toimi tässä laitteessa. Jos haluat käyttää Tellomia uudelleen, päivitä laite uudempaan iOS-versioon.";
 
 /* Signal doesn't support old devices. If that's the case, they'll be shown this action, and tapping it will open information about Signal's minimum supported operating systems. */
-"OS_EXPIRED_AND_DEVICE_IS_STUCK" = "Tellomi ei enää toimi tässä laitteessa. Jos haluat käyttää Signalia uudelleen, vaihda uudempaan laitteeseen.";
+"OS_EXPIRED_AND_DEVICE_IS_STUCK" = "Tellomi ei enää toimi tässä laitteessa. Jos haluat käyttää Tellomia uudelleen, vaihda uudempaan laitteeseen.";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on an old version. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this action, and tapping it will open device update instructions. */
 "OS_SOON_TO_EXPIRE_ACTION_TITLE" = "Päivitä nyt";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're an old version that will soon lose support. Some users can upgrade their device to a newer version of iOS to continue using Signal. If that's the case, they'll be shown this text. Embeds {{expiration date}}. */
-"OS_SOON_TO_EXPIRE_AND_CAN_UPGRADE_OS_FORMAT" = "Signalin tuki laitteesi iOS-versiolle päättyy pian. Jos haluat jatkaa Signalin käyttöä, päivitä laite uudempaan iOS-versioon %1$@ mennessä.";
+"OS_SOON_TO_EXPIRE_AND_CAN_UPGRADE_OS_FORMAT" = "Tellomin tuki laitteesi iOS-versiolle päättyy pian. Jos haluat jatkaa Tellomin käyttöä, päivitä laite uudempaan iOS-versioon %1$@ mennessä.";
 
 /* Signal doesn't support old versions of iOS and shows a warning if you're on an old version that will soon lose support. This is the text on that warning when users can't upgrade iOS without getting a new device. Embeds {{expiration date}}. */
-"OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Signalin tuki laitteesi iOS-versiolle päättyy pian. Jos haluat jatkaa Signalin käyttöä, vaihda uudempaan laitteeseen %1$@ mennessä.";
+"OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomin tuki laitteesi iOS-versiolle päättyy pian. Jos haluat jatkaa Tellomin käyttöä, vaihda uudempaan laitteeseen %1$@ mennessä.";
 
 /* Info Message when another user disabled disappearing messages. Embeds {{name of other user}}. */
 "OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ asetti katoavat viestit pois päältä.";
@@ -6713,13 +6713,13 @@
 "OTHER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ asetti viestien katoamisajaksi %2$@.";
 
 /* Label warning the user that the Signal service may be down. */
-"OUTAGE_WARNING" = "Signalissa ilmenee tällä hetkellä teknisiä ongelmia. Työskentelemme parhaillaan palvelun palauttamiseksi.";
+"OUTAGE_WARNING" = "Tellomissa ilmenee tällä hetkellä teknisiä ongelmia. Työskentelemme parhaillaan palvelun palauttamiseksi.";
 
 /* Label for action link when the user has an outdated payment client */
 "OUTDATED_PAYMENT_CLIENT_ACTION_TITLE" = "Päivitä nyt";
 
 /* Label warning the user that they should update Signal to continue using payments. */
-"OUTDATED_PAYMENT_CLIENT_REMINDER_TEXT" = "Maksut-toiminto edellyttää Signalin uusinta versiota. Saldosi ei ehkä ole ajan tasalla.";
+"OUTDATED_PAYMENT_CLIENT_REMINDER_TEXT" = "Maksut-toiminto edellyttää Tellomin uusinta versiota. Saldosi ei ehkä ole ajan tasalla.";
 
 /* Body of prompt notifying restore was cancelled. */
 "OUTGOING_DEVICE_REGISTRATION_CANCELLED_RESTORE_BODY" = "Palautus peruutettiin. Yritä uudelleen.";
@@ -6806,7 +6806,7 @@
 "OUTGOING_MISSED_VOICE_CALL" = "Vastaamaton äänipuhelu";
 
 /* Button for action sheet shown when device transfer completes; quits the Signal app immediately (does not automatically relaunch, but the user may choose to relaunch). */
-"OUTGOING_TRANSFER_COMPLETE_EXIT_ACTION" = "Poistu Signalista";
+"OUTGOING_TRANSFER_COMPLETE_EXIT_ACTION" = "Poistu Tellomista";
 
 /* Message for action sheet shown when device transfer completes */
 "OUTGOING_TRANSFER_COMPLETE_MESSAGE" = "Signaali sulkeutuu nyt laitteessa";
@@ -6965,7 +6965,7 @@
 "PAYMENTS_NEW_PAYMENT_ERROR_INVALID_TRANSACTION" = "Virheellinen tapahtuma";
 
 /* Indicates that a payment failed due to an outdated client. */
-"PAYMENTS_NEW_PAYMENT_ERROR_OUTDATED_CLIENT" = "Maksut-toiminto edellyttää Signalin uusinta versiota.";
+"PAYMENTS_NEW_PAYMENT_ERROR_OUTDATED_CLIENT" = "Maksut-toiminto edellyttää Tellomin uusinta versiota.";
 
 /* Indicates that an outgoing payment could not be verified in a timely way. */
 "PAYMENTS_NEW_PAYMENT_ERROR_OUTGOING_VERIFICATION_TAKING_TOO_LONG" = "Maksua ei ole vielä varmennettu";
@@ -7208,13 +7208,13 @@
 "PHONE_NUMBER_DISCOVERABILITY_EVERYBODY" = "Kaikki";
 
 /* A user friendly description of the 'everybody' phone number discoverability mode. */
-"PHONE_NUMBER_DISCOVERABILITY_EVERYBODY_DESCRIPTION" = "Kuka tahansa, jolla on puhelinnumerosi, näkee, että olet Signalissa, ja voi aloittaa keskustelut kanssasi.";
+"PHONE_NUMBER_DISCOVERABILITY_EVERYBODY_DESCRIPTION" = "Kuka tahansa, jolla on puhelinnumerosi, näkee, että olet Tellomissa, ja voi aloittaa keskustelut kanssasi.";
 
 /* A user friendly name for the 'nobody' phone number discoverability mode. */
 "PHONE_NUMBER_DISCOVERABILITY_NOBODY" = "Ei kukaan";
 
 /* A user friendly description of the 'nobody' phone number discoverability mode. */
-"PHONE_NUMBER_DISCOVERABILITY_NOBODY_DESCRIPTION" = "Kukaan ei näe, että olet Signalissa, ellet lähetä heille viestiä tai keskustele heidän kanssaan.";
+"PHONE_NUMBER_DISCOVERABILITY_NOBODY_DESCRIPTION" = "Kukaan ei näe, että olet Tellomissa, ellet lähetä heille viestiä tai keskustele heidän kanssaan.";
 
 /* A format for a label showing an example phone number. Embeds {{the example phone number}}. */
 "PHONE_NUMBER_EXAMPLE_FORMAT" = "Esimerkki: %1$@";
@@ -7304,13 +7304,13 @@
 "PIN_CREATION_DISABLE_CONFIRMATION_ACTION" = "Poista tunnusluku käytöstä";
 
 /* Message of the 'pin disable' action sheet. */
-"PIN_CREATION_DISABLE_CONFIRMATION_MESSAGE" = "Jos poistat tunnusluvun käytöstä, menetät kaikki tietosi rekisteröityessäsi Signaliin uudelleen, ellet siirrä tietojasi toisesta iOS-laitteesta. Et voi myöskään ottaa rekisteröintiestoa käyttöön, jos tunnusluku on pois päältä.";
+"PIN_CREATION_DISABLE_CONFIRMATION_MESSAGE" = "Jos poistat tunnusluvun käytöstä, menetät kaikki tietosi rekisteröityessäsi Tellomiin uudelleen, ellet siirrä tietojasi toisesta iOS-laitteesta. Et voi myöskään ottaa rekisteröintiestoa käyttöön, jos tunnusluku on pois päältä.";
 
 /* Title of the 'pin disable' action sheet. */
 "PIN_CREATION_DISABLE_CONFIRMATION_TITLE" = "Varoitus";
 
 /* The explanation in the 'pin creation' view. */
-"PIN_CREATION_EXPLANATION" = "Tunnusluvulla salataan Signaliin tallentamasi tiedot, jotta vain sinä pääset niihin käsiksi. Profiilisi, asetuksesi ja yhteystietosi palautetaan, kun asennat Signalin uudelleen. Tunnuslukua ei tarvita sovelluksen avaamiseen.";
+"PIN_CREATION_EXPLANATION" = "Tunnusluvulla salataan Tellomiin tallentamasi tiedot, jotta vain sinä pääset niihin käsiksi. Profiilisi, asetuksesi ja yhteystietosi palautetaan, kun asennat Tellomin uudelleen. Tunnuslukua ei tarvita sovelluksen avaamiseen.";
 
 /* Message when a generic error occurs while creating a PIN. */
 "PIN_CREATION_GENERIC_ERROR_MESSAGE" = "PIN-koodin luomisessa tapahtui virhe. Ota yhteys tukeen.";
@@ -7319,7 +7319,7 @@
 "PIN_CREATION_LEARN_MORE" = "Lisätietoja PIN-koodeista";
 
 /* Users can create PINs to restore their account data later. They can learn more about this on a sheet. This is the text on that sheet. */
-"PIN_CREATION_LEARN_MORE_TEXT" = "PIN-koodin avulla salataan Signaliin tallennetut tietosi, jotta vain sinulla on pääsy niihin. Profiilitiedot, asetukset ja yhteystiedot palautetaan, jos Tellomi asennetaan uudelleen.";
+"PIN_CREATION_LEARN_MORE_TEXT" = "PIN-koodin avulla salataan Tellomiin tallennetut tietosi, jotta vain sinulla on pääsy niihin. Profiilitiedot, asetukset ja yhteystiedot palautetaan, jos Tellomi asennetaan uudelleen.";
 
 /* Users can create PINs to restore their account data later. They can learn more about this on a sheet. This is the title on that sheet. */
 "PIN_CREATION_LEARN_MORE_TITLE" = "Tietoja Tellomi-PIN-koodeista";
@@ -7352,7 +7352,7 @@
 "PIN_CREATION_WEAK_ERROR" = "Valitse vahvempi tunnusluku";
 
 /* If your attempted PIN is too weak, you'll see an error message. This is the text on the error dialog. */
-"PIN_CREATION_WEAK_ERROR_MESSAGE" = "PIN-koodin avulla salataan Signaliin tallennetut tietosi, jotta vain sinulla on pääsy niihin. Suojaa tilisi valitsemalla vahvempi PIN-koodi.";
+"PIN_CREATION_WEAK_ERROR_MESSAGE" = "PIN-koodin avulla salataan Tellomiin tallennetut tietosi, jotta vain sinulla on pääsy niihin. Suojaa tilisi valitsemalla vahvempi PIN-koodi.";
 
 /* If the user is re-registering, they need to enter their PIN to restore all their data. In some cases, they can skip this entry and lose some data. This text is shown on a button that lets them begin to do this. */
 "PIN_ENTER_EXISTING_SKIP" = "Ohita PIN-koodi";
@@ -7598,13 +7598,13 @@
 "PRIVACY_VERIFICATION_FAILED_THEY_HAVE_WRONG_KEY_FOR_ME" = "Turvanumero on yksilöllinen aina kahden Tellomi-käyttäjän välillä. Tarkista vielä, että käyttäjän %1$@ laitteessa näkyy juuri tämä turvanumero.";
 
 /* alert body */
-"PRIVACY_VERIFICATION_FAILED_WITH_OLD_LOCAL_VERSION" = "Käytössäsi on vanha Tellomi-versio Signalista. Päivitä sovellus, jotta voit varmentaa.";
+"PRIVACY_VERIFICATION_FAILED_WITH_OLD_LOCAL_VERSION" = "Käytössäsi on vanha Tellomi-versio Tellomista. Päivitä sovellus, jotta voit varmentaa.";
 
 /* alert body */
-"PRIVACY_VERIFICATION_FAILED_WITH_OLD_REMOTE_VERSION" = "Vastapuolella on käytössä vanha versio Signalista. Hänen tulee ensin päivittää, jotta voitte varmentaa.";
+"PRIVACY_VERIFICATION_FAILED_WITH_OLD_REMOTE_VERSION" = "Vastapuolella on käytössä vanha versio Tellomista. Hänen tulee ensin päivittää, jotta voitte varmentaa.";
 
 /* alert body */
-"PRIVACY_VERIFICATION_FAILURE_INVALID_QRCODE" = "Skannattu koodi ei näytä olevan turvanumero. Onko teillä kummallakin viimeisin versio Signalista käytössä?";
+"PRIVACY_VERIFICATION_FAILURE_INVALID_QRCODE" = "Skannattu koodi ei näytä olevan turvanumero. Onko teillä kummallakin viimeisin versio Tellomista käytössä?";
 
 /* Navbar title */
 "PRIVACY_VERIFICATION_TITLE" = "Varmenna turvanumero";
@@ -7682,7 +7682,7 @@
 "PROFILE_NAME_EDUCATION_SHEET_BULLET_4" = "Älä jaa henkilökohtaisia tietoja tuntemattomien ihmisten kanssa";
 
 /* Header for the explainer sheet for profile names */
-"PROFILE_NAME_EDUCATION_SHEET_HEADER_FORMAT" = "<bold>Signalissa</bold> profiilin nimi on tilin haltijan valittavissa.";
+"PROFILE_NAME_EDUCATION_SHEET_HEADER_FORMAT" = "<bold>Tellomissa</bold> profiilin nimi on tilin haltijan valittavissa.";
 
 /* Title for the profile name view. */
 "PROFILE_NAME_VIEW_TITLE" = "Nimi";
@@ -7781,7 +7781,7 @@
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_TITLE" = "Skannaa QR-koodi";
 
 /* Message for an action sheet telling users how to use quick restore, when trying to open an external quick restore URL. */
-"QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "Jos haluat siirtää tilin uudelle laitteelle, napauta Jatka ja skannaa QR-koodi Signalin kameralla. Skannaa vain Signalin lähettämiä QR-koodeja.";
+"QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "Jos haluat siirtää tilin uudelle laitteelle, napauta Jatka ja skannaa QR-koodi Tellomin kameralla. Skannaa vain Tellomin lähettämiä QR-koodeja.";
 
 /* Accessibility label stating the author of the message to which you are replying. Embeds: {{ the author of the message to which you are replying }} {{ original message }}. */
 "QUOTED_REPLY_ACCESSIBILITY_LABEL_FORMAT" = "Vastaus käyttäjälle %1$@. %2$@";
@@ -7895,7 +7895,7 @@
 "RECIPIENT_PICKER_ERROR_USER_CANNOT_BE_SELECTED" = "Käyttäjää ei voi valita.";
 
 /* Alert text. Shown after selecting a phone number that isn't valid. */
-"RECIPIENT_PICKER_INVALID_NUMBER_MESSAGE" = "%1$@ ei ole Signalin käyttäjä. Yritä uudelleen kelvollisella puhelinnumerolla.";
+"RECIPIENT_PICKER_INVALID_NUMBER_MESSAGE" = "%1$@ ei ole Tellomin käyttäjä. Yritä uudelleen kelvollisella puhelinnumerolla.";
 
 /* Alert title. Shown after selecting a phone number that isn't valid. */
 "RECIPIENT_PICKER_INVALID_NUMBER_TITLE" = "Virheellinen puhelinnumero";
@@ -7904,10 +7904,10 @@
 "RECIPIENT_PICKER_INVITE_ACTION" = "Kutsu";
 
 /* Alert text. Shown after selecting a phone number that isn't a Signal user. */
-"RECIPIENT_PICKER_INVITE_MESSAGE" = "%1$@ ei ole Signalin käyttäjä. Haluatko kutsua tämän numeron?";
+"RECIPIENT_PICKER_INVITE_MESSAGE" = "%1$@ ei ole Tellomin käyttäjä. Haluatko kutsua tämän numeron?";
 
 /* Alert title. Shown after selecting a phone number that isn't a Signal user. */
-"RECIPIENT_PICKER_INVITE_TITLE" = "Kutsu Signaliin";
+"RECIPIENT_PICKER_INVITE_TITLE" = "Kutsu Tellomiin";
 
 /* Alert title explaining what happens if you forget your 'two-factor auth pin'. */
 "REGISTER_2FA_FORGOT_PIN_ALERT_TITLE" = "Tarvitsetko apua?";
@@ -8003,7 +8003,7 @@
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNRETRYABLE_SERVER_ERROR_TITLE" = "Varmuuskopiota ei voitu palauttaa";
 
 /* Body for a sheet warning users about an incompatible backup version. */
-"REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_BODY" = "Palauttaaksesi varmuuskopion, varmista, että käytät Signalin uusinta versiota ja yritä uudelleen. Jos ongelma jatkuu, ota yhteyttä tukeen.";
+"REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_BODY" = "Palauttaaksesi varmuuskopion, varmista, että käytät Tellomin uusinta versiota ja yritä uudelleen. Jos ongelma jatkuu, ota yhteyttä tukeen.";
 
 /* Title for a sheet warning users about an incompatible backup version. */
 "REGISTRATION_BACKUP_RESTORE_ERROR_UNSUPPORTED_BACKUP_VERSION_TITLE" = "Päivitys vaaditaan";
@@ -8015,7 +8015,7 @@
 "REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_ACTION" = "Päivitä";
 
 /* During (re)registration, users may need to update their app to continue. They'll be presented with an alert if this is the case, prompting them to update. This is the description text on that alert. */
-"REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_DESCRIPTION" = "Jatka rekisteröintiä päivittämällä Signalin uusimpaan versioon.";
+"REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_DESCRIPTION" = "Jatka rekisteröintiä päivittämällä Tellomin uusimpaan versioon.";
 
 /* During (re)registration, users may need to update their app to continue. They'll be presented with an alert if this is the case, prompting them to update. This is the title on that alert. */
 "REGISTRATION_CANNOT_CONTINUE_WITHOUT_UPDATING_APP_TITLE" = "Päivitys vaaditaan";
@@ -8087,13 +8087,13 @@
 "REGISTRATION_PIN_CONFIRM_TITLE" = "Vahvista PIN-koodi";
 
 /* During registration, users are asked to create a PIN code. This is the subtitle on the screen where this happens. A \"learn more\" link will be added to the end of this string. */
-"REGISTRATION_PIN_CREATE_SUBTITLE" = "PIN-koodien avulla voit palauttaa tilisi ja pitää tietosi salattuna Signalissa.";
+"REGISTRATION_PIN_CREATE_SUBTITLE" = "PIN-koodien avulla voit palauttaa tilisi ja pitää tietosi salattuna Tellomissa.";
 
 /* During registration, users are asked to create a PIN code. This is the title on the screen where this happens. */
 "REGISTRATION_PIN_CREATE_TITLE" = "Luo PIN-koodi";
 
 /* During re-registration, users may be asked to re-enter their PIN code. This is the subtitle on the screen where this happens. A \"learn more\" link will be added to the end of this string. */
-"REGISTRATION_PIN_ENTER_EXISTING_SUBTITLE" = "PIN-koodien avulla voit palauttaa tilisi ja pitää tietosi salattuna Signalissa.";
+"REGISTRATION_PIN_ENTER_EXISTING_SUBTITLE" = "PIN-koodien avulla voit palauttaa tilisi ja pitää tietosi salattuna Tellomissa.";
 
 /* During re-registration, users may be asked to re-enter their PIN code. This is the title on the screen where this happens. */
 "REGISTRATION_PIN_ENTER_EXISTING_TITLE" = "Syötä PIN-koodi";
@@ -8465,19 +8465,19 @@
 "SAFETY_TIPS_MESSAGE_LINKS_TITLE" = "Viestit, joissa on linkkejä verkkoon";
 
 /* Message body describing the review names safety tip. */
-"SAFETY_TIPS_REVIEW_NAMES_BODY" = "Kiinnitä huomiota ilmoitukseen ”Nimeä ei ole vahvistettu”. Jokainen asettaa itse profiilinsa nimen ja kuvan Signalissa.";
+"SAFETY_TIPS_REVIEW_NAMES_BODY" = "Kiinnitä huomiota ilmoitukseen ”Nimeä ei ole vahvistettu”. Jokainen asettaa itse profiilinsa nimen ja kuvan Tellomissa.";
 
 /* Message body describing the review names safety tip in the 'view more' flow. */
-"SAFETY_TIPS_REVIEW_NAMES_BODY_VIEW_MORE" = "Kiinnitä huomiota ilmoitukseen ”Nimeä ei ole vahvistettu”. Jokainen asettaa itse profiilinsa nimen ja kuvan Signalissa. Jos et ole varma, keneltä uusi pyyntö on peräisin, on turvallisinta jättää se huomiotta.";
+"SAFETY_TIPS_REVIEW_NAMES_BODY_VIEW_MORE" = "Kiinnitä huomiota ilmoitukseen ”Nimeä ei ole vahvistettu”. Jokainen asettaa itse profiilinsa nimen ja kuvan Tellomissa. Jos et ole varma, keneltä uusi pyyntö on peräisin, on turvallisinta jättää se huomiotta.";
 
 /* Message title describing the review names safety tip. */
 "SAFETY_TIPS_REVIEW_NAMES_TITLE" = "Tarkista nimet ja kuvat";
 
 /* Message body describing the signal chats tip. */
-"SAFETY_TIPS_SIGNAL_CHATS_BODY" = "Tellomi ei koskaan lähetä viestejä pyytääkseen rekisteröintikoodia, PIN-koodia tai palautusavainta. Älä vastaa keskusteluihin, joissa lähettäjä esittää edustavansa Signalia.";
+"SAFETY_TIPS_SIGNAL_CHATS_BODY" = "Tellomi ei koskaan lähetä viestejä pyytääkseen rekisteröintikoodia, PIN-koodia tai palautusavainta. Älä vastaa keskusteluihin, joissa lähettäjä esittää edustavansa Tellomia.";
 
 /* Message body describing the signal chats tip in the 'view more' flow. */
-"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "Tellomi ei koskaan lähetä viestejä pyytääkseen rekisteröintikoodia, PIN-koodia tai palautusavainta. Älä vastaa keskusteluihin, joissa lähettäjä esittää edustavansa Signalia tai Tellomi-tukea. Huijarit aloittavat väärennettyjä keskusteluja tarkoituksenaan kaapata tilisi.";
+"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "Tellomi ei koskaan lähetä viestejä pyytääkseen rekisteröintikoodia, PIN-koodia tai palautusavainta. Älä vastaa keskusteluihin, joissa lähettäjä esittää edustavansa Tellomia tai Tellomi-tukea. Huijarit aloittavat väärennettyjä keskusteluja tarkoituksenaan kaapata tilisi.";
 
 /* Message title describing the signal chats tip. */
 "SAFETY_TIPS_SIGNAL_CHATS_TITLE" = "Älä vastaa keskusteluihin, joiden lähettäjänä on Tellomi";
@@ -8522,7 +8522,7 @@
 "SCREEN_LOCK_UNLOCK_FAILED" = "Tunnistautuminen epäonnistui";
 
 /* Label for button on lock screen that lets users unlock Signal. */
-"SCREEN_LOCK_UNLOCK_SIGNAL" = "Avaa Signalin lukitus";
+"SCREEN_LOCK_UNLOCK_SIGNAL" = "Avaa Tellomin lukitus";
 
 /* Placeholder text indicating the user can search for contacts by name, username, or phone number. */
 "SEARCH_BY_NAME_OR_USERNAME_OR_NUMBER_PLACEHOLDER_TEXT" = "Nimi, käyttäjänimi tai numero";
@@ -8561,7 +8561,7 @@
 "SECONDARY_LINKING_ERROR_OBSOLETE_LINKED_DEVICE_TITLE" = "Ei-tuettu versio";
 
 /* alert message for outdated linking device */
-"SECONDARY_LINKING_ERROR_OLD_VERSION_MESSAGE" = "Toisella laitteellasi on vanha Signalin versio, joka ei tue iPadin QR-koodien skannausta. Asenna Signalin uusin versio ja yritä uudelleen.";
+"SECONDARY_LINKING_ERROR_OLD_VERSION_MESSAGE" = "Toisella laitteellasi on vanha Tellomin versio, joka ei tue iPadin QR-koodien skannausta. Asenna Tellomin uusin versio ja yritä uudelleen.";
 
 /* alert title for outdated linking device */
 "SECONDARY_LINKING_ERROR_OLD_VERSION_TITLE" = "Päivitä skannaava laite";
@@ -8594,7 +8594,7 @@
 "SECONDARY_ONBOARDING_GET_STARTED_BY_OPENING_PRIMARY" = "Aloita tämän iPadin yhdistäminen avaamalla Tellomi puhelimessasi";
 
 /* Link explaining what to do when trying to link a device before having a primary device. */
-"SECONDARY_ONBOARDING_GET_STARTED_DO_NOT_HAVE_PRIMARY" = "Minulla ei ole Signalia puhelimessa…";
+"SECONDARY_ONBOARDING_GET_STARTED_DO_NOT_HAVE_PRIMARY" = "Minulla ei ole Tellomia puhelimessa…";
 
 /* alert body */
 "SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_BODY" = "Siirry puhelimesi App Store -sovellukseen, asenna Tellomi, viimeistele rekisteröintiprosessi ja yhdistä sitten iPad samaan tiliin.";
@@ -8717,7 +8717,7 @@
 "SEPA_DONATION_NAME_PLACEHOLDER" = "Pankkitilin haltijan nimi";
 
 /* Description for the session refresh alert */
-"SESSION_REFRESH_ALERT_MESSAGE" = "Signalin sisältö salataan päästä päähän. Tästä syystä keskustelu täytyy joskus päivittää. Tämä ei vaikuta tietoturvaan. Tämän yhteyshenkilön viimeisin viesti ei välttämättä näy. Voit pyytää häntä lähettämään sen uudelleen.";
+"SESSION_REFRESH_ALERT_MESSAGE" = "Tellomin sisältö salataan päästä päähän. Tästä syystä keskustelu täytyy joskus päivittää. Tämä ei vaikuta tietoturvaan. Tämän yhteyshenkilön viimeisin viesti ei välttämättä näy. Voit pyytää häntä lähettämään sen uudelleen.";
 
 /* Title for the session refresh alert */
 "SESSION_REFRESH_ALERT_TITLE" = "Keskustelu on päivitetty";
@@ -8825,7 +8825,7 @@
 "SETTINGS_BLOCK_LIST_ADD_BUTTON" = "Lisää estetty käyttäjä";
 
 /* A label that indicates the user has no Signal contacts that they haven't blocked. */
-"SETTINGS_BLOCK_LIST_NO_CONTACTS" = "Sinulla ei ole yhteystietoja Signalissa.";
+"SETTINGS_BLOCK_LIST_NO_CONTACTS" = "Sinulla ei ole yhteystietoja Tellomissa.";
 
 /* A label that indicates the user's search has no matching results. */
 "SETTINGS_BLOCK_LIST_NO_SEARCH_RESULTS" = "Ei hakutuloksia";
@@ -8837,7 +8837,7 @@
 "SETTINGS_CALLING_HIDES_IP_ADDRESS_PREFERENCE_TITLE" = "Välitä puhelut aina";
 
 /* User settings section footer, a detailed explanation */
-"SETTINGS_CALLING_HIDES_IP_ADDRESS_PREFERENCE_TITLE_DETAIL" = "Kaikki puhelut välitetään Signalin palvelimen kautta, jotta IP-osoitteesi ei paljastu yhteystiedollesi. Heikentää puhelun laatua.";
+"SETTINGS_CALLING_HIDES_IP_ADDRESS_PREFERENCE_TITLE_DETAIL" = "Kaikki puhelut välitetään Tellomin palvelimen kautta, jotta IP-osoitteesi ei paljastu yhteystiedollesi. Heikentää puhelun laatua.";
 
 /* Label for the 'edit phone number' button in the 'change phone number' views. */
 "SETTINGS_CHANGE_PHONE_NUMBER_BACK_TO_EDIT_BUTTON" = "Muokkaa numeroa";
@@ -8870,7 +8870,7 @@
 "SETTINGS_CHANGE_PHONE_NUMBER_SPLASH_CANT_CHANGE_TITLE" = "Puhelinnumeron vaihtaminen ei onnistu";
 
 /* Description text in the 'change phone number splash' view. */
-"SETTINGS_CHANGE_PHONE_NUMBER_SPLASH_DESCRIPTION" = "Voit vaihtaa Signaliin kytketyn puhelinnumeron toiseen. Toimintoa ei voi kumota.\n\nVarmista ensin, että uuteen numeroon voi vastaanottaa tekstiviestejä tai puheluja.";
+"SETTINGS_CHANGE_PHONE_NUMBER_SPLASH_DESCRIPTION" = "Voit vaihtaa Tellomiin kytketyn puhelinnumeron toiseen. Toimintoa ei voi kumota.\n\nVarmista ensin, että uuteen numeroon voi vastaanottaa tekstiviestejä tai puheluja.";
 
 /* Title text in the 'change phone number splash' view. */
 "SETTINGS_CHANGE_PHONE_NUMBER_SPLASH_TITLE" = "Vaihda puhelinnumeroa";
@@ -8957,7 +8957,7 @@
 "SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "Valitse oletusajastin katoaville viesteille kaikissa uusissa aloittamissasi keskusteluissa.";
 
 /* Title for the 'donate to signal' link in settings. */
-"SETTINGS_DONATE" = "Lahjoita Signalille";
+"SETTINGS_DONATE" = "Lahjoita Tellomille";
 
 /* Title for help button and help pages in app settings. */
 "SETTINGS_HELP" = "Tuki";
@@ -9044,7 +9044,7 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "Laitteeseen tallennettua varmuuskopiota ei voida tehdä, koska Tellomi Secure -varmuuskopiointi on käynnissä. Yritä myöhemmin uudelleen.";
 
 /* Footer text on the on-device backups settings page explaining how to restore a backup. */
-"SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "Palauta varmuuskopio asentamalla uusi kopio Signalista. Avaa sovellus, napauta Palauta tai Siirrä ja valitse Laitteella oleva varmuuskopio.";
+"SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "Palauta varmuuskopio asentamalla uusi kopio Tellomista. Avaa sovellus, napauta Palauta tai Siirrä ja valitse Laitteella oleva varmuuskopio.";
 
 /* Label for the button that turns off on-device backups. */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "Kytke varmuuskopio pois käytöstä ja poista se";
@@ -9119,7 +9119,7 @@
 "SETTINGS_NOTIFICATION_CONTENT_TITLE" = "Ilmoitusten sisältö";
 
 /* When the local device discovers a contact has recently installed signal, the app can generates a message encouraging the local user to say hello. Turning this switch off disables that feature. */
-"SETTINGS_NOTIFICATION_EVENTS_CONTACT_JOINED_SIGNAL" = "Yhteystieto liittyy Signaliin";
+"SETTINGS_NOTIFICATION_EVENTS_CONTACT_JOINED_SIGNAL" = "Yhteystieto liittyy Tellomiin";
 
 /* The title for the notification settings. */
 "SETTINGS_NOTIFICATIONS" = "Ilmoitukset";
@@ -9128,7 +9128,7 @@
 "SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION" = "Sovelluksen merkki";
 
 /* Explanation for the switch controlling whether a notification is shown when a phone contact joins Signal. */
-"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Näytä ilmoitus, kun puhelimesi yhteystieto liittyy Signaliin.";
+"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Näytä ilmoitus, kun puhelimesi yhteystieto liittyy Tellomiin.";
 
 /* Label for a switch controlling whether reactions to your messages generate notifications. */
 "SETTINGS_NOTIFICATIONS_REACTIONS" = "Reaktioiden ilmoitukset";
@@ -9152,7 +9152,7 @@
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_AGREE" = "Aktivoi";
 
 /* Description for the 'activate payments confirmation' UI in the payment settings. */
-"SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_DESCRIPTION" = "Signalissa voi lähettää tai vastaanottaa MobileCoineja. Maksut tapahtuvat MobileCoinin ja MobileCoin Walletin käyttöehtojen mukaisesti. Mahdollisten teknisten ongelmien takia keskeytyneitä maksuja tai katemenetyksiä ei korvata.";
+"SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_DESCRIPTION" = "Tellomissa voi lähettää tai vastaanottaa MobileCoineja. Maksut tapahtuvat MobileCoinin ja MobileCoin Walletin käyttöehtojen mukaisesti. Mahdollisten teknisten ongelmien takia keskeytyneitä maksuja tai katemenetyksiä ei korvata.";
 
 /* Title for the 'activate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_ACTIVATE_PAYMENTS_CONFIRM_TITLE" = "Aktivoi";
@@ -9176,7 +9176,7 @@
 "SETTINGS_PAYMENTS_BALANCE_CONVERSION_FORMAT" = "%1$@ %2$@ kurssilla %3$@";
 
 /* Error message indicating that payments could not be activated because the feature is not currently available. */
-"SETTINGS_PAYMENTS_CANNOT_ACTIVATE_PAYMENTS_KILL_SWITCH" = "Signalin maksutoiminto ei ole enää käytettävissä. Varat voi yhä siirtää toiseen kauppapaikkaan, mutta varojen lisääminen tai maksujen lähettäminen ja vastaanottaminen ei ole enää mahdollista.";
+"SETTINGS_PAYMENTS_CANNOT_ACTIVATE_PAYMENTS_KILL_SWITCH" = "Tellomin maksutoiminto ei ole enää käytettävissä. Varat voi yhä siirtää toiseen kauppapaikkaan, mutta varojen lisääminen tai maksujen lähettäminen ja vastaanottaminen ei ole enää mahdollista.";
 
 /* Error message indicating that payments could not be deactivated because the current balance is unavailable. */
 "SETTINGS_PAYMENTS_CANNOT_DEACTIVATE_PAYMENTS_NO_BALANCE" = "Maksuja ei voi ottaa pois käytöstä, koska saldotieto ei ole saatavilla. Tarkista verkkoyhteys ja yritä uudelleen.";
@@ -9185,10 +9185,10 @@
 "SETTINGS_PAYMENTS_CANNOT_SEND_PAYMENT_NO_BALANCE" = "Maksu epäonnistui, koska saldotieto ei ole saatavilla. Tarkista verkkoyhteys ja yritä uudelleen.";
 
 /* Error message indicating that payments cannot be sent because the feature is not currently available. */
-"SETTINGS_PAYMENTS_CANNOT_SEND_PAYMENTS_KILL_SWITCH" = "Signalin maksutoiminto ei ole enää käytettävissä. Varat voi yhä siirtää toiseen kauppapaikkaan, mutta varojen lisääminen tai maksujen lähettäminen ja vastaanottaminen ei ole enää mahdollista.";
+"SETTINGS_PAYMENTS_CANNOT_SEND_PAYMENTS_KILL_SWITCH" = "Tellomin maksutoiminto ei ole enää käytettävissä. Varat voi yhä siirtää toiseen kauppapaikkaan, mutta varojen lisääminen tai maksujen lähettäminen ja vastaanottaminen ei ole enää mahdollista.";
 
 /* Error message indicating that you cannot transfer into your payments wallet because the feature is not currently available. */
-"SETTINGS_PAYMENTS_CANNOT_TRANSFER_IN_KILL_SWITCH" = "Signalin maksutoiminto ei ole enää käytettävissä. Varat voi yhä siirtää toiseen kauppapaikkaan, mutta varojen lisääminen tai maksujen lähettäminen ja vastaanottaminen ei ole enää mahdollista.";
+"SETTINGS_PAYMENTS_CANNOT_TRANSFER_IN_KILL_SWITCH" = "Tellomin maksutoiminto ei ole enää käytettävissä. Varat voi yhä siirtää toiseen kauppapaikkaan, mutta varojen lisääminen tai maksujen lähettäminen ja vastaanottaminen ei ole enää mahdollista.";
 
 /* Message for the 'currency conversions info' alert. */
 "SETTINGS_PAYMENTS_CURRENCY_CONVERSIONS_INFO_ALERT_MESSAGE" = "Muunnokset ovat vain arvioita ja saattavat olla epätarkkoja.";
@@ -9206,7 +9206,7 @@
 "SETTINGS_PAYMENTS_DEACTIVATE_PAYMENTS" = "Poista maksut käytöstä";
 
 /* Description for the 'deactivate payments confirmation' UI in the payment settings. */
-"SETTINGS_PAYMENTS_DEACTIVATE_PAYMENTS_CONFIRM_DESCRIPTION" = "Mobilecoin-maksut eivät ole enää käytössä Signalissa, jos maksut otetaan pois käytöstä.";
+"SETTINGS_PAYMENTS_DEACTIVATE_PAYMENTS_CONFIRM_DESCRIPTION" = "Mobilecoin-maksut eivät ole enää käytössä Tellomissa, jos maksut otetaan pois käytöstä.";
 
 /* Title for the 'deactivate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_DEACTIVATE_PAYMENTS_CONFIRM_TITLE" = "Poistetaanko maksut käytöstä?";
@@ -9245,7 +9245,7 @@
 "SETTINGS_PAYMENTS_HELP_CARD_ABOUT_MOBILECOIN_TITLE" = "Tietoa MobileCoinista";
 
 /* Description for the 'Adding to your wallet' help card in the payments settings. */
-"SETTINGS_PAYMENTS_HELP_CARD_ADDING_TO_YOUR_WALLET_DESCRIPTION" = "Voit lisätä rahaa käytettäväksi Signalissa lähettämällä MobileCoineja lompakko-osoitteeseen.";
+"SETTINGS_PAYMENTS_HELP_CARD_ADDING_TO_YOUR_WALLET_DESCRIPTION" = "Voit lisätä rahaa käytettäväksi Tellomissa lähettämällä MobileCoineja lompakko-osoitteeseen.";
 
 /* Title for the 'Adding to your wallet' help card in the payments settings. */
 "SETTINGS_PAYMENTS_HELP_CARD_ADDING_TO_YOUR_WALLET_TITLE" = "Varojen lisääminen";
@@ -9323,7 +9323,7 @@
 "SETTINGS_PAYMENTS_PASSPHRASE_DISCARD_CONFIRMATION_TITLE" = "Jatketaanko tallentamatta?";
 
 /* Explanation of the 'payments passphrase' in the 'view payments passphrase' settings. */
-"SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION" = "Tilin saldo palautetaan automaattisesti Signalin uudelleenasennuksen yhteydessä syöttämällä Signalin tunnusluku. Saldon voi palauttaa myös henkilökohtaisella 24-sanaisella palautuslauseella. Kirjoita se ylös ja säilytä turvallisessa paikassa.";
+"SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION" = "Tilin saldo palautetaan automaattisesti Tellomin uudelleenasennuksen yhteydessä syöttämällä Tellomin tunnusluku. Saldon voi palauttaa myös henkilökohtaisella 24-sanaisella palautuslauseella. Kirjoita se ylös ja säilytä turvallisessa paikassa.";
 
 /* Explanation of the 'payments passphrase' when there is a balance. */
 "SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION_FROM_BALANCE" = "Sinulla on saldoa! On aika tallentaa palautuslause – 24 sanan mittainen avain, jonka avulla voit palauttaa saldosi.";
@@ -9563,7 +9563,7 @@
 "SETTINGS_PAYMENTS_TITLE" = "Maksut";
 
 /* Error indicating that it is not valid to send yourself a payment. */
-"SETTINGS_PAYMENTS_TRANSFER_OUT_CANNOT_SEND_TO_SELF" = "Siirtoa ei voi tehdä Signalin lompakko-osoitteeseen. Syötä yhteensopivan kauppapaikan tilin lompakko-osoite.";
+"SETTINGS_PAYMENTS_TRANSFER_OUT_CANNOT_SEND_TO_SELF" = "Siirtoa ei voi tehdä Tellomin lompakko-osoitteeseen. Syötä yhteensopivan kauppapaikan tilin lompakko-osoite.";
 
 /* Footer of the 'transfer currency out' view in the payment settings. */
 "SETTINGS_PAYMENTS_TRANSFER_OUT_FOOTER" = "MobileCoin-siirron voi tehdä yhteensopivan kauppapaikan lompakko-osoitteeseen, joka on tyypillisesti kirjaimista ja numeroista koostuva merkkisarja QR-koodin alapuolella.";
@@ -9647,7 +9647,7 @@
 "SETTINGS_PHONE_NUMBER_DISCOVERABILITY_DISABLED_TOAST" = "Jos haluat muuttaa tätä asetusta, määritä Kuka näkee numeroni -asetukseksi Ei kukaan.";
 
 /* The description for a sheet asking for confirmation that the user wants to set their phone number discoverability to 'nobody'. */
-"SETTINGS_PHONE_NUMBER_DISCOVERABILITY_NOBODY_CONFIRMATION_DESCRIPTION" = "Jos määrität asetuksen \"Kuka voi löytää minut puhelinnumerolla\" tilaan ”Ei kukaan”, sinua on vaikea löytää Signalissa.";
+"SETTINGS_PHONE_NUMBER_DISCOVERABILITY_NOBODY_CONFIRMATION_DESCRIPTION" = "Jos määrität asetuksen \"Kuka voi löytää minut puhelinnumerolla\" tilaan ”Ei kukaan”, sinua on vaikea löytää Tellomissa.";
 
 /* The title for a sheet asking for confirmation that the user wants to set their phone number discoverability to 'nobody'. */
 "SETTINGS_PHONE_NUMBER_DISCOVERABILITY_NOBODY_CONFIRMATION_TITLE" = "Oletko varma?";
@@ -9656,7 +9656,7 @@
 "SETTINGS_PHONE_NUMBER_DISCOVERABILITY_TITLE" = "Kuka voi löytää minut puhelinnumerolla";
 
 /* Description label for Phone Number Privacy */
-"SETTINGS_PHONE_NUMBER_PRIVACY_DESCRIPTION_LABEL" = "Valitse, kuka voi nähdä puhelinnumerosi ja kuka voi ottaa sinuun yhteyttä Signalissa sen avulla.";
+"SETTINGS_PHONE_NUMBER_PRIVACY_DESCRIPTION_LABEL" = "Valitse, kuka voi nähdä puhelinnumerosi ja kuka voi ottaa sinuun yhteyttä Tellomissa sen avulla.";
 
 /* The title for phone number privacy settings. */
 "SETTINGS_PHONE_NUMBER_PRIVACY_TITLE" = "Puhelinnumero";
@@ -9677,7 +9677,7 @@
 "SETTINGS_PIN_REMINDER_SWITCH_LABEL" = "Tunnuslukumuistutukset";
 
 /* Footer for the 'PINs' section of the privacy settings. */
-"SETTINGS_PINS_FOOTER" = "Tunnusluvulla salataan Signaliin tallennetut tiedot, jotta vain sinä pääset niihin käsiksi. Profiili, asetukset ja yhteystiedot palautetaan, jos Tellomi asennetaan uudelleen.";
+"SETTINGS_PINS_FOOTER" = "Tunnusluvulla salataan Tellomiin tallennetut tiedot, jotta vain sinä pääset niihin käsiksi. Profiili, asetukset ja yhteystiedot palautetaan, jos Tellomi asennetaan uudelleen.";
 
 /* Label for the 'pins' item of the privacy settings when the user does have a pin. */
 "SETTINGS_PINS_ITEM" = "Vaihda tunnusluku";
@@ -9728,7 +9728,7 @@
 "SETTINGS_REGISTRATION_LOCK_TURN_ON_ERROR_PIN_REQUIRED" = "Sinun on luotava PIN-koodi käyttääksesi rekisteröintiestoa.";
 
 /* Body for the alert confirming that the user wants to turn on registration lock. */
-"SETTINGS_REGISTRATION_LOCK_TURN_ON_MESSAGE" = "Jos et muista Tellomi-tunnuslukua, kun rekisteröit Signalin uudelleen, tili lukitaan 7 päiväksi.";
+"SETTINGS_REGISTRATION_LOCK_TURN_ON_MESSAGE" = "Jos et muista Tellomi-tunnuslukua, kun rekisteröit Tellomin uudelleen, tili lukitaan 7 päiväksi.";
 
 /* Title for the alert confirming that the user wants to turn on registration lock. */
 "SETTINGS_REGISTRATION_LOCK_TURN_ON_TITLE" = "Otetaanko rekisteröintiesto käyttöön?";
@@ -9758,19 +9758,19 @@
 "SETTINGS_SECTION_TITLE_CALLING" = "Puhelut";
 
 /* Section footer */
-"SETTINGS_SECURITY_DETAIL" = "Signalin lukitus avataan Touch ID:llä, Face ID:llä tai iOS-pääsykoodilla.";
+"SETTINGS_SECURITY_DETAIL" = "Tellomin lukitus avataan Touch ID:llä, Face ID:llä tai iOS-pääsykoodilla.";
 
 /* Section footer */
-"SETTINGS_SECURITY_DETAIL_FACEID" = "Signalin lukitus avataan Face ID:llä.";
+"SETTINGS_SECURITY_DETAIL_FACEID" = "Tellomin lukitus avataan Face ID:llä.";
 
 /* Section footer */
-"SETTINGS_SECURITY_DETAIL_OPTICID" = "Signalin lukitus avataan Optic ID:llä.";
+"SETTINGS_SECURITY_DETAIL_OPTICID" = "Tellomin lukitus avataan Optic ID:llä.";
 
 /* Section footer */
-"SETTINGS_SECURITY_DETAIL_PASSCODE" = "Signalin lukitus avataan laitteen pääsykoodilla.";
+"SETTINGS_SECURITY_DETAIL_PASSCODE" = "Tellomin lukitus avataan laitteen pääsykoodilla.";
 
 /* Section footer */
-"SETTINGS_SECURITY_DETAIL_TOUCHID" = "Signalin lukitus avataan Touch ID:llä.";
+"SETTINGS_SECURITY_DETAIL_TOUCHID" = "Tellomin lukitus avataan Touch ID:llä.";
 
 /* Section header */
 "SETTINGS_SECURITY_TITLE" = "Turvallisuus";
@@ -9791,7 +9791,7 @@
 "SETTINGS_TWO_FACTOR_AUTH_SWITCH_LABEL" = "Rekisteröintiesto";
 
 /* Footer for the 'two factor auth' section of the privacy settings when Signal PINs are available. */
-"SETTINGS_TWO_FACTOR_PINS_AUTH_FOOTER" = "Vaadi Tellomi-tunnuslukua aina, kun tällä puhelinnumerolla rekisteröidytään Signaliin.";
+"SETTINGS_TWO_FACTOR_PINS_AUTH_FOOTER" = "Vaadi Tellomi-tunnuslukua aina, kun tällä puhelinnumerolla rekisteröidytään Tellomiin.";
 
 /* Label for the 'typing indicators' setting. */
 "SETTINGS_TYPING_INDICATORS" = "Kirjoittamisen ilmaisin";
@@ -9857,7 +9857,7 @@
 "SHARE_EXTENSION_LOADING" = "Ladataan…";
 
 /* Message for an error shown when the user tries to share to Signal but the device is too low on storage space. */
-"SHARE_EXTENSION_LOW_STORAGE_SPACE_MESSAGE" = "Laitteessasi on liian vähän tallennustilaa, joten et voi jakaa sisältöä Signaliin. Siirry asetuksiin, vapauta tallennustilaa ja yritä sitten uudelleen.";
+"SHARE_EXTENSION_LOW_STORAGE_SPACE_MESSAGE" = "Laitteessasi on liian vähän tallennustilaa, joten et voi jakaa sisältöä Tellomiin. Siirry asetuksiin, vapauta tallennustilaa ja yritä sitten uudelleen.";
 
 /* Title for an error shown when the user tries to share to Signal but the device is too low on storage space. */
 "SHARE_EXTENSION_LOW_STORAGE_SPACE_TITLE" = "Tallennustila vähissä";
@@ -9881,7 +9881,7 @@
 "SHARE_EXTENSION_UNABLE_TO_BUILD_ATTACHMENT_ALERT_TITLE" = "Liitteen valmistelu epäonnistui";
 
 /* Title for the 'share extension' view. */
-"SHARE_EXTENSION_VIEW_TITLE" = "Jaa Signaliin";
+"SHARE_EXTENSION_VIEW_TITLE" = "Jaa Tellomiin";
 
 /* Title of alert indicating sharing suggestions failed to deactivate */
 "SHARING_SUGGESTIONS_DISABLE_ERROR" = "Jakamisehdotusten käytöstä poistaminen epäonnistui.";
@@ -9896,7 +9896,7 @@
 "SIGNAL_PROXY" = "Tellomi-välityspalvelin";
 
 /* body sent to contacts when inviting to Install Signal */
-"SMS_INVITE_BODY" = "Tule käyttämään Signalia! Tässä linkki:";
+"SMS_INVITE_BODY" = "Tule käyttämään Tellomia! Tässä linkki:";
 
 /* An error message generically indicating that something went wrong. */
 "SOMETHING_WENT_WRONG_ERROR" = "Jokin meni pieleen.";
@@ -9923,7 +9923,7 @@
 "SPAM_CAPTCHA_SHEET_BODY" = "Suorita varmennus, jotta SIgnal pystyy vähentämään roskapostia.\n\nViestin lähettämistä ja vastaanottamista voi jatkaa, kun olet viimeistellyt varmennuksen. Kaikki pysäytetyt viestit lähtevät automaattisesti.";
 
 /* Title for action sheet explaining captcha requirement. */
-"SPAM_CAPTCHA_SHEET_TITLE" = "Varmenna jatkaaksesi viestintää Signalissa.";
+"SPAM_CAPTCHA_SHEET_TITLE" = "Varmenna jatkaaksesi viestintää Tellomissa.";
 
 /* Action to skip verification */
 "SPAM_CAPTCHA_SKIP_VERIFICATION_ACTION" = "Ohita varmennus";
@@ -10550,10 +10550,10 @@
 "UNAVAILABLE_MEDIA_TAP_TOAST" = "Media ei ole enää saatavilla";
 
 /* Action sheet title when confirming you want to unblock release notes. */
-"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Poistetaanko Signalin esto?";
+"UNBLOCK_LIST_BLOCK_RELEASE_NOTES_TITLE" = "Poistetaanko Tellomin esto?";
 
 /* Action sheet body when confirming you want to unblock release notes */
-"UNBLOCK_RELEASE_NOTES_BEHAVIOR_EXPLANATION" = "Jatka Signalin päivitysten ja uutisten vastaanottoa.";
+"UNBLOCK_RELEASE_NOTES_BEHAVIOR_EXPLANATION" = "Jatka Tellomin päivitysten ja uutisten vastaanottoa.";
 
 /* Message shown in conversation view that offers to block an unknown user. */
 "UNKNOWN_CONTACT_BLOCK_OFFER" = "Käyttäjä ei ole yhteystiedoissasi. Estetäänkö käyttäjä?";
@@ -10631,7 +10631,7 @@
 "UNSUPPORTED_FEATURE_ERROR" = "Laitteesi ei tue tätä ominaisuutta.";
 
 /* Description for the unverified safety number change. Embeds {name of contact with identity change} */
-"UNVERIFIED_SAFETY_NUMBER_CHANGE_DESCRIPTION_FORMAT" = "Turvanumerosi yhteystiedon %1$@ kanssa on vaihtunut, luultavasti koska hän on uudelleenasentanut Signalin tai vaihtanut käyttämäänsä laitetta. Vahvista uusi turvanumero napauttamalla Vahvista. Toiminto on valinnainen.";
+"UNVERIFIED_SAFETY_NUMBER_CHANGE_DESCRIPTION_FORMAT" = "Turvanumerosi yhteystiedon %1$@ kanssa on vaihtunut, luultavasti koska hän on uudelleenasentanut Tellomin tai vaihtanut käyttämäänsä laitetta. Vahvista uusi turvanumero napauttamalla Vahvista. Toiminto on valinnainen.";
 
 /* Action to verify a safety number after it has changed */
 "UNVERIFIED_SAFETY_NUMBER_VERIFY_ACTION" = "Vahvista";
@@ -10649,7 +10649,7 @@
 "USE_PROXY_BUTTON" = "Käytä välityspalvelinta";
 
 /* Explanation of when you should use a signal proxy */
-"USE_PROXY_EXPLANATION" = "Käytä välityspalvelinta vain, jos et saa yhteyttä Signaliin mobiiliverkolla tai Wi-Fi:llä.";
+"USE_PROXY_EXPLANATION" = "Käytä välityspalvelinta vain, jos et saa yhteyttä Tellomiin mobiiliverkolla tai Wi-Fi:llä.";
 
 /* Description of username links and QR codes on the username education sheet */
 "USERNAME_EDUCATION_LINK_DESCRIPTION" = "Käyttäjänimillä on yksilöllinen QR-koodi ja linkki, jotka voit jakaa ystävillesi, jotta he voivat aloittaa keskustelun kanssasi.";
@@ -10742,13 +10742,13 @@
 "USERNAME_LOOKUP_LINK_NO_LONGER_VALID_MESSAGE" = "Tämä käyttäjänimen linkki ei ole enää kelvollinen.";
 
 /* A message indicating that the given username is not associated with a registered Signal account. Embeds {{ a username }}. */
-"USERNAME_LOOKUP_NOT_FOUND_MESSAGE_FORMAT" = "%1$@ ei ole Signalin käyttäjä. Varmista, että olet syöttänyt koko käyttäjänimen.";
+"USERNAME_LOOKUP_NOT_FOUND_MESSAGE_FORMAT" = "%1$@ ei ole Tellomin käyttäjä. Varmista, että olet syöttänyt koko käyttäjänimen.";
 
 /* Title for an action sheet indicating that the given username is not associated with a registered Signal account. */
 "USERNAME_LOOKUP_NOT_FOUND_TITLE" = "Käyttäjää ei löydy";
 
 /* Instructions that appear below the username QR code on a sharable exported image. */
-"USERNAME_QR_CODE_EXPORT_INSTRUCTIONS" = "Skannaa tämä QR-koodi puhelimellasi, niin voit keskustella kanssani Signalissa.";
+"USERNAME_QR_CODE_EXPORT_INSTRUCTIONS" = "Skannaa tämä QR-koodi puhelimellasi, niin voit keskustella kanssani Tellomissa.";
 
 /* A message in a toast informing the user their username, link, and QR code have successfully been reset. Embeds {{ the user's new username }}. */
 "USERNAME_RESET_SUCCESSFUL_TOAST" = "QR-koodisi ja linkkisi on palautettu oletusasetukseen ja käyttäjänimesi on %1$@";

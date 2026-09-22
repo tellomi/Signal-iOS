@@ -1,9 +1,9 @@
-NSAppleMusicUsageDescription = "A Signalnak szüksége van Apple Music hozzáférésre a média csatolmány lejátszásához.";
+NSAppleMusicUsageDescription = "A Tellominak szüksége van Apple Music hozzáférésre a média csatolmány lejátszásához.";
 NSCameraUsageDescription = "A Tellomi a kamerád segítségével készít fotókat és végez videóhívásokat.";
 NSContactsUsageDescription = "A Tellomi a kontaktlistádat használja ismerőseid megtalálásához. Nem tárolunk kontaktlistát szerverünkön.";
 NSFaceIDUsageDescription = "A Tellomi képernyőzár Face ID funkciót használ.";
-NSLocationWhenInUseUsageDescription = "A Signalnak szüksége van a helyzetadataidra pozíciód megosztásához.";
-NSMicrophoneUsageDescription = "A Signalnak szüksége van mikrofon hozzáférésre hívások indításához, fogadásához és hangjegyzetek küldéséhez.";
+NSLocationWhenInUseUsageDescription = "A Tellominak szüksége van a helyzetadataidra pozíciód megosztásához.";
+NSMicrophoneUsageDescription = "A Tellominak szüksége van mikrofon hozzáférésre hívások indításához, fogadásához és hangjegyzetek küldéséhez.";
 NSPhotoLibraryAddUsageDescription = "A Tellomi a fotógalériádba menti képeidet.";
-NSPhotoLibraryUsageDescription = "A Signalban válogathatsz melyik képet szeretnéd elküldeni.";
+NSPhotoLibraryUsageDescription = "A Tellomiban válogathatsz melyik képet szeretnéd elküldeni.";
 NSLocalNetworkUsageDescription = "Amennyiben tudatosan ezt a funkciót választod, a Tellomi a helyi hálózatot a fiókod új telefonra költöztetéséhez használja - semmilyen más célra nem.";

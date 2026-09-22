@@ -674,7 +674,7 @@
 "BACKUP_ONBOARDING_INTRO_NOT_NOW_TOAST" = "Du kan aktivera säkerhetskopiering i Inställningar.";
 
 /* Subtitle for a view introducing Backups during an onboarding flow. */
-"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Säkerhetskopiera dina meddelanden och media med Signals säkra, totalsträckskrypterade lagringstjänst. Förlora aldrig ett meddelande när du skaffar en ny telefon eller installerar om Tellomi.";
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Säkerhetskopiera dina meddelanden och media med Tellomis säkra, totalsträckskrypterade lagringstjänst. Förlora aldrig ett meddelande när du skaffar en ny telefon eller installerar om Tellomi.";
 
 /* Title for a view introducing Backups during an onboarding flow. */
 "BACKUP_ONBOARDING_INTRO_TITLE" = "Säkerhetskopiering av Tellomi";
@@ -770,7 +770,7 @@
 "BACKUP_SAVE_KEY_SAVE_TO_PW_MGR_BUTTON_TITLE" = "Spara i lösenordshanterare";
 
 /* Message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "Automatiska säkerhetskopior är inaktiverade. Aktivera automatiska säkerhetskopior genom att uppdatera Signals behörigheter.";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "Automatiska säkerhetskopior är inaktiverade. Aktivera automatiska säkerhetskopior genom att uppdatera Tellomis behörigheter.";
 
 /* Add-on to a message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE_UPDATE_NOW" = "Uppdatera nu";
@@ -896,16 +896,16 @@
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT" = "Förnyas %1$@";
 
 /* Footer for a menu section related to settings for when Backups are disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Säkerhetskopieringar har stängts av och dina data har tagits bort från Signals säkra lagringstjänst.";
+"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Säkerhetskopieringar har stängts av och dina data har tagits bort från Tellomis säkra lagringstjänst.";
 
 /* Description for a progress view tracking media being downloaded in service of disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Säkerhetskopiering har inaktiverats. Alla mediefiler som inte finns på enheten laddas ner nu. När dina data har laddats ner kommer de att raderas från Signals säkra lagringstjänst.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Säkerhetskopiering har inaktiverats. Alla mediefiler som inte finns på enheten laddas ner nu. När dina data har laddats ner kommer de att raderas från Tellomis säkra lagringstjänst.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Ett fel inträffade. Kontakta supporten.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Ett fel uppstod när dina data skulle raderas från Signals säkra lagringstjänst.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Ett fel uppstod när dina data skulle raderas från Tellomis säkra lagringstjänst.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Det gick inte att ta bort säkerhetskopian";
@@ -914,7 +914,7 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Tar bort säkerhetskopia …";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Säkerhetskopieringar har stängts av och dina data kommer att tas bort från Signals säkra lagringstjänst.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Säkerhetskopieringar har stängts av och dina data kommer att tas bort från Tellomis säkra lagringstjänst.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Information om säkerhetskopiering";
@@ -968,7 +968,7 @@
 "BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_TITLE" = "Laddar ner din säkerhetskopia";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Ett fel uppstod när dina data skulle raderas från Signals säkra lagringstjänst.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Ett fel uppstod när dina data skulle raderas från Tellomis säkra lagringstjänst.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Det gick inte att ta bort säkerhetskopian";
@@ -1067,7 +1067,7 @@
 "BACKUP_SETTINGS_LANDING_SET_UP_BUTTON" = "Ställ in";
 
 /* Description of Signal Secure Backups on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automatiska säkerhetskopieringar med Signals säkra totalsträckskrypterade lagringstjänst.";
+"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automatiska säkerhetskopieringar med Tellomis säkra totalsträckskrypterade lagringstjänst.";
 
 /* Title for the Signal Secure Backups cell on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE" = "Säker säkerhetskopiering av Tellomi";
@@ -1082,7 +1082,7 @@
 "BACKUP_SETTINGS_LINKED_DEVICE_MANAGE_ON_PRIMARY_FOOTER_PAID" = "Du kan hantera eller avsluta ditt abonnemang på Säkerhetskopiering av Tellomi på din primära enhet.";
 
 /* Body text on the linked-device Backups screen, shown when Backups aren't set up, explaining the feature and that it can be enabled on the user's primary device. */
-"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automatiska säkerhetskopieringar med Signals säkra totalsträckskrypterade lagringstjänst. Kom igång på din primära enhet.";
+"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automatiska säkerhetskopieringar med Tellomis säkra totalsträckskrypterade lagringstjänst. Kom igång på din primära enhet.";
 
 /* Message on the linked-device Backups screen, shown when the user's paid subscription can't be found, prompting them to renew. */
 "BACKUP_SETTINGS_LINKED_DEVICE_SUBSCRIPTION_NOT_FOUND" = "Ditt abonnemang hittades inte. Förnya för att fortsätta använda Säkerhetskopiering av Tellomi.";

@@ -71,7 +71,7 @@
 "ACCOUNT_DATA_REPORT_TITLE" = "Fiókadataid";
 
 /* Label for 'invite' button in contact view. */
-"ACTION_INVITE" = "Meghívás Signalba";
+"ACTION_INVITE" = "Meghívás Tellomiba";
 
 /* Label for button that lets you send a message to a contact. */
 "ACTION_SEND_MESSAGE" = "Üzenet küldése";
@@ -230,7 +230,7 @@
 "APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_MESSAGE" = "Kérjük, küldj egy hibanapló fájlt a support@tellomi.app e-mail-címre, hogy kivizsgálhassuk, mi történt.";
 
 /* Title for an error indicating that the app couldn't launch because some unexpected error happened with the user's registration status. */
-"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_TITLE" = "Nem sikerült megnyitni a Signalt";
+"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_TITLE" = "Nem sikerült megnyitni a Tellomit";
 
 /* Error indicating that the app could not launch because the database could not be loaded. */
 "APP_LAUNCH_FAILURE_COULD_NOT_LOAD_DATABASE" = "Adatbázis-betöltési hiba";
@@ -245,7 +245,7 @@
 "APP_LAUNCH_FAILURE_DATABASE_RECOVERY_ACTION_TITLE" = "Javítás";
 
 /* Action in an action sheet offering to exit the app. */
-"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Kilépés a Signalból";
+"APP_LAUNCH_FAILURE_EXIT_APP_ACTION_TITLE" = "Kilépés a Tellomiból";
 
 /* Error indicating that the app could not launch without reverting unknown database migrations. */
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_MESSAGE" = "Kérlek frissíts a legújabb Tellomi verzióra.";
@@ -260,13 +260,13 @@
 "APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_TITLE" = "Hibás Tellomi indítás legutóbb";
 
 /* Message for an error sheet shown when the app cannot launch because the device is out of storage space. Embeds 1:{{ the localized name of the user's device model, e.g. iPhone }}; 2:{{ an amount of storage space as a file size, e.g. 1 GB }}. */
-"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "A Tellomi nem nyitható meg, mert a(z) %1$@ eszközön elfogyott a tárhely. Szabadíts fel legalább %2$@ tárhelyet, majd nyisd meg újra a Signalt.\n\nLépj az iOS-beállítások > Általános > Tárhely menüpontra, és távolítsd el a nem használt alkalmazásokat, töröld a nagy videókat a Fotók alkalmazásból vagy más alkalmazásokból, és töröld a letöltött zenéket és médiafájlokat.";
+"APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_MESSAGE_FORMAT" = "A Tellomi nem nyitható meg, mert a(z) %1$@ eszközön elfogyott a tárhely. Szabadíts fel legalább %2$@ tárhelyet, majd nyisd meg újra a Tellomit.\n\nLépj az iOS-beállítások > Általános > Tárhely menüpontra, és távolítsd el a nem használt alkalmazásokat, töröld a nagy videókat a Fotók alkalmazásból vagy más alkalmazásokból, és töröld a letöltött zenéket és médiafájlokat.";
 
 /* Title for an error sheet shown when the app cannot launch because the device is out of storage space. */
 "APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "Nincs elég tárhely";
 
 /* Error indicating that the app could not restore transferred data. */
-"APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "A régi eszközödről hozott adat nem helyreállítható. Kérjük, küldj egy hibanapló fájlt a support@tellomi.app e-mail-címre, hogy megvizsgálhassuk, mi történt. Ha újratelepíted a Signalt, az üzenet-előzményeid elveszhetnek.";
+"APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "A régi eszközödről hozott adat nem helyreállítható. Kérjük, küldj egy hibanapló fájlt a support@tellomi.app e-mail-címre, hogy megvizsgálhassuk, mi történt. Ha újratelepíted a Tellomit, az üzenet-előzményeid elveszhetnek.";
 
 /* Error indicating that the app could not restore transferred data. */
 "APP_LAUNCH_FAILURE_RESTORE_FAILED_TITLE" = "Az adatok visszaállítása sikertelen.";
@@ -377,13 +377,13 @@
 "ATTACHMENT_APPROVAL_MEDIA_QUALITY_TITLE" = "Média minősége";
 
 /* Notification body shown when media sync to a linked device is complete. */
-"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "Befejeződött a szinkronizálás a Signallal a kapcsolt eszközödön.";
+"ATTACHMENT_BACKFILL_FINISHED_NOTIFICATION" = "Befejeződött a szinkronizálás a Tellomival a kapcsolt eszközödön.";
 
 /* Notification body shown when media sync to a linked device was interrupted. */
-"ATTACHMENT_BACKFILL_INTERRUPTED_NOTIFICATION" = "Nyisd meg a Signalt a kapcsolt eszközöddel való szinkronizálás folytatásához";
+"ATTACHMENT_BACKFILL_INTERRUPTED_NOTIFICATION" = "Nyisd meg a Tellomit a kapcsolt eszközöddel való szinkronizálás folytatásához";
 
 /* Notification body shown while syncing media to a linked device. */
-"ATTACHMENT_BACKFILL_SYNCING_NOTIFICATION" = "Szinkronizálás a Signallal a kapcsolt eszközödön";
+"ATTACHMENT_BACKFILL_SYNCING_NOTIFICATION" = "Szinkronizálás a Tellomival a kapcsolt eszközödön";
 
 /* Generic filename for an attachment with no known name */
 "ATTACHMENT_DEFAULT_FILENAME" = "Csatolmány";
@@ -1097,7 +1097,7 @@
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_DOWNLOAD_SHEET_LATER_ACTION" = "Letöltés később";
 
 /* Message for an action sheet allowing users to download their offloaded media. */
-"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_DOWNLOAD_SHEET_MESSAGE" = "A biztonsági mentésben olyan médiatartalmak vannak, amelyek nincsenek ezen az eszközön. A letöltés eltarthat egy ideig, a letöltés megszakításának elkerülése érdekében hagyd nyitva a Signalt.";
+"BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_DOWNLOAD_SHEET_MESSAGE" = "A biztonsági mentésben olyan médiatartalmak vannak, amelyek nincsenek ezen az eszközön. A letöltés eltarthat egy ideig, a letöltés megszakításának elkerülése érdekében hagyd nyitva a Tellomit.";
 
 /* Action in an action sheet allowing users to download their offloaded media now. */
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_DOWNLOAD_SHEET_NOW_ACTION" = "Letöltés most";
@@ -1136,7 +1136,7 @@
 "BACKUP_SETTINGS_OPTIMIZE_LOCAL_STORAGE_UPSELL_TITLE" = "Váltás a Tárhely-optimalizálás bekapcsolására";
 
 /* Subtitle for a notification telling the user they are out of remote storage space. */
-"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "Elérted a biztonsági mentések tárhelykorlátját. A csevegések és médiafájlok biztonsági mentésének folytatásához szabadíts fel tárhelyet a Signalban.";
+"BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_SUBTITLE" = "Elérted a biztonsági mentések tárhelykorlátját. A csevegések és médiafájlok biztonsági mentésének folytatásához szabadíts fel tárhelyet a Tellomiban.";
 
 /* Title for a notification telling the user they are out of remote storage space. */
 "BACKUP_SETTINGS_OUT_OF_STORAGE_SPACE_NOTIFICATION_TITLE" = "A biztonsági mentések tárhelye megtelt";
@@ -1196,7 +1196,7 @@
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_NEEDS_WIFI" = "Médiafeltöltés szünetel: wifire vár";
 
 /* Subtitle for a progress bar tracking uploads that are paused because the user is out of remote storage space. Embeds 1:{{ total storage space provided, e.g. 100 GB }}; 2:{{ space the user needs to free up by deleting media, e.g. 1 GB }}. */
-"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "Elérted a biztonsági mentési csomagodban foglalt %1$@ tárhelykorlátot. Az új csevegések és médiatartalmak biztonsági mentéséhez szabadíts fel %2$@ tárhelyet a Signalban, majd koppints a „Biztonsági mentés most” lehetőségre!";
+"BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_PAUSED_OUT_OF_STORAGE_SPACE_FORMAT" = "Elérted a biztonsági mentési csomagodban foglalt %1$@ tárhelykorlátot. Az új csevegések és médiatartalmak biztonsági mentéséhez szabadíts fel %2$@ tárhelyet a Tellomiban, majd koppints a „Biztonsági mentés most” lehetőségre!";
 
 /* Subtitle for a progress bar tracking active uploading. Embeds 1:{{ the amount uploaded as a file size, e.g. 100 MB }}; 2:{{ the total amount to upload as a file size, e.g. 1 GB }}; 3:{{ the percentage uploaded as a percent, e.g. 40% }}. */
 "BACKUP_SETTINGS_UPLOAD_PROGRESS_SUBTITLE_RUNNING" = "Feltöltés: %1$@/%2$@ (%3$@)";
@@ -1208,7 +1208,7 @@
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_BUTTON_TITLE" = "Biztonsági mentés készítése";
 
 /* Message for a sheet shown after the user enables backups. */
-"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "Ez eltarthat egy ideig. A Signalt a szokásos módon használhatod biztonsági mentés közben.";
+"BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_MESSAGE" = "Ez eltarthat egy ideig. A Tellomit a szokásos módon használhatod biztonsági mentés közben.";
 
 /* Footer for a toggle shown after the user enables backups, letting them enable the Optimize Storage feature. */
 "BACKUP_SETTINGS_WELCOME_TO_BACKUPS_SHEET_OPTIMIZE_MEDIA_TOGGLE_FOOTER" = "A régebbi médiafájlok a következő biztonsági mentéskor le lesznek törölve, de bármikor letölthetők a biztonsági mentésből.";
@@ -1253,7 +1253,7 @@
 "BACKUPS_BACK_UP_YOUR_MEDIA_MEGAPHONE_TITLE" = "Készíts biztonsági mentést az összes médiafájlodról";
 
 /* Body for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to back up all their media. Embeds {{ the amount of storage included in the paid plan, preformatted as a localized byte count, e.g. '100 GB' }}. */
-"BACKUPS_BACK_UP_YOUR_MEDIA_UPSELL_BODY" = "A fizetős Tellomi biztonsági mentés funkció az összes médiafájlodat tárolja, maximum %1$@ méretig. Soha többé nem veszítesz el egyetlen fotót vagy videót sem, amikor új telefont kapsz, vagy újratelepíted a Signalt.";
+"BACKUPS_BACK_UP_YOUR_MEDIA_UPSELL_BODY" = "A fizetős Tellomi biztonsági mentés funkció az összes médiafájlodat tárolja, maximum %1$@ méretig. Soha többé nem veszítesz el egyetlen fotót vagy videót sem, amikor új telefont kapsz, vagy újratelepíted a Tellomit.";
 
 /* Title for a Backup plan upsell view encouraging users to subscribe to a paid Backup plan to back up all their media. */
 "BACKUPS_BACK_UP_YOUR_MEDIA_UPSELL_TITLE" = "Váltás az Összes médiafájl mentésére";
@@ -1316,10 +1316,10 @@
 "BADGE_DETAILS_DONATE_TO_SIGNAL" = "Adományozás most";
 
 /* When viewing someone else's donor badge, you'll see a sheet. This is the title on that sheet. Embeds {badge owner's short name} */
-"BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ támogatja a Signalt";
+"BADGE_DETAILS_TITLE_FOR_SUPPORTER" = "%1$@ támogatja a Tellomit";
 
 /* String explaining to the user that their boost badge has expired on the badge expiry sheet. */
-"BADGE_EXPIRED_BOOST_BODY" = "A Boost-jelvényed érvényessége lejárt, így már nem jelenik meg a profilodon.\n\nTovábbra is használhatod a Signalt, de a számodra kifejlesztett technológia támogatása érdekében fontold meg, hogy havi adományozóvá válj!";
+"BADGE_EXPIRED_BOOST_BODY" = "A Boost-jelvényed érvényessége lejárt, így már nem jelenik meg a profilodon.\n\nTovábbra is használhatod a Tellomit, de a számodra kifejlesztett technológia támogatása érdekében fontold meg, hogy havi adományozóvá válj!";
 
 /* String explaining to the user that their boost badge has expired while they are a current subscription sustainer on the badge expiry sheet. */
 "BADGE_EXPIRED_BOOST_CURRENT_SUSTAINER_BODY" = "A Boost-jelvényed érvényessége lejárt, így már nem jelenik meg a profilodon.\n\nEgy egyszeri hozzájárulással újraaktiválhatod a Boost-jelvényed újabb 30 napra.";
@@ -1373,7 +1373,7 @@
 "BANK_MANDATE_READ_MORE" = "Koppints a teljeshez";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is a subtitle about the payment processor Stripe above that mandate. */
-"BANK_MANDATE_SUBTITLE" = "A Stripe feldolgozza a Signalnak adott adományokat. A Tellomi nem gyűjti és nem tárolja a személyes adataidat.";
+"BANK_MANDATE_SUBTITLE" = "A Stripe feldolgozza a Tellominak adott adományokat. A Tellomi nem gyűjti és nem tárolja a személyes adataidat.";
 
 /* Users can donate to Signal with a bank account. We are required to show them a mandate with information about bank transfers. This is the title above that mandate. */
 "BANK_MANDATE_TITLE" = "Banki átutalás";
@@ -1628,7 +1628,7 @@
 "CALL_LINK_REQUIRE_APPROVAL" = "Adminisztrátori jóváhagyás szükséges";
 
 /* Button to open UI to share a Call Link with someone on Signal. */
-"CALL_LINK_SHARE_VIA_SIGNAL" = "Hivatkozás megosztása a Signalon keresztül";
+"CALL_LINK_SHARE_VIA_SIGNAL" = "Hivatkozás megosztása a Tellomin keresztül";
 
 /* Button to open the system share sheet to share a Call Link. */
 "CALL_LINK_SHARE_VIA_SYSTEM" = "Link megosztása";
@@ -2105,7 +2105,7 @@
 "CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_BUTTON" = "Folytatás";
 
 /* Message shown in an action sheet when the user tries to resume backup using cellular data. */
-"CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_MESSAGE" = "A médiatartalmak mobilinternettel történő biztonsági mentése adatforgalmi díjakkal járhat. A biztonsági mentésed feltöltése hosszú időt vehet igénybe, a megszakítások elkerülése érdekében tartsd megnyitva a Signalt.";
+"CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_MESSAGE" = "A médiatartalmak mobilinternettel történő biztonsági mentése adatforgalmi díjakkal járhat. A biztonsági mentésed feltöltése hosszú időt vehet igénybe, a megszakítások elkerülése érdekében tartsd megnyitva a Tellomit.";
 
 /* Title for the action sheet shown when the user tries to resume backup using cellular data. */
 "CHAT_LIST_BACKUP_PROGRESS_VIEW_RESUME_CELLULAR_DATA_TITLE" = "Folytatod a mobilinternet használatát?";
@@ -2183,7 +2183,7 @@
 "CHOOSE_BACKUP_PLAN_BULLET_STORAGE_AMOUNT" = "%1$@ tárhely";
 
 /* Text for a bullet point in a list of Backup features, thanking the user for supporting Signal by subscribing to the paid Backup plan. */
-"CHOOSE_BACKUP_PLAN_BULLET_THANKS_FOR_SUPPORTING_SIGNAL" = "Köszönjük, hogy támogattad a Signalt!";
+"CHOOSE_BACKUP_PLAN_BULLET_THANKS_FOR_SUPPORTING_SIGNAL" = "Köszönjük, hogy támogattad a Tellomit!";
 
 /* Message shown in an action sheet when the user tries to confirm a plan selection, but is not registered. */
 "CHOOSE_BACKUP_PLAN_CONFIRMATION_ERROR_NOT_REGISTERED" = "A biztonsági mentések engedélyezéséhez regisztrálnod kell.";
@@ -2333,7 +2333,7 @@
 "CONTACT_ABOUT_SHEET_PROFILE_NAMES_EDUCATION" = "A profilnevek nincsenek ellenőrizve";
 
 /* Message for a tooltip that appears above a parenthesized name for another user, indicating that that name is the name the other user set for themself. Embeds {{name}} */
-"CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "A(z) „ %1$@” az a profilnév, amelyet ez a személy beállított magának a Signalban.";
+"CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "A(z) „ %1$@” az a profilnév, amelyet ez a személy beállított magának a Tellomiban.";
 
 /* A label indicating a user is a signal connection. */
 "CONTACT_ABOUT_SHEET_SIGNAL_CONNECTION_LABEL" = "Tellomi Névjegyek";
@@ -2378,7 +2378,7 @@
 "CONTACT_NOTE_TITLE" = "Megjegyzés";
 
 /* Body for contact permission action sheet */
-"CONTACT_PERMISSION_ACTION_SHEET_2_BODY" = "Ismerősök keresése a Signalban:";
+"CONTACT_PERMISSION_ACTION_SHEET_2_BODY" = "Ismerősök keresése a Tellomiban:";
 
 /* First step for contact permission action sheet */
 "CONTACT_PERMISSION_ACTION_SHEET_2_STEP_ONE" = "Koppints a \"Beállításokhoz\" címkére lent";
@@ -2411,10 +2411,10 @@
 "CONTACT_PERMISSION_REMINDER_MEGAPHONE_ACTION" = "Hozzáférés engedélyezése";
 
 /* Body for contact permission reminder megaphone */
-"CONTACT_PERMISSION_REMINDER_MEGAPHONE_BODY" = "Engedélyezd a hozzáférést a névjegyeidhez, hogy gyorsan megtaláld őket a Signalban.";
+"CONTACT_PERMISSION_REMINDER_MEGAPHONE_BODY" = "Engedélyezd a hozzáférést a névjegyeidhez, hogy gyorsan megtaláld őket a Tellomiban.";
 
 /* Title for contact permission reminder megaphone */
-"CONTACT_PERMISSION_REMINDER_MEGAPHONE_TITLE" = "Névjegyek keresése a Signalban";
+"CONTACT_PERMISSION_REMINDER_MEGAPHONE_TITLE" = "Névjegyek keresése a Tellomiban";
 
 /* Label for a contact's phone number. */
 "CONTACT_PHONE" = "Telefonszám";
@@ -2438,7 +2438,7 @@
 "CONTACT_SHARE_INVALID_CONTACT" = "Helytelen kontakt";
 
 /* Alert body when contacts disabled while trying to share a contact. */
-"CONTACT_SHARING_NO_ACCESS_BODY" = "A Signalnak hozzá kell férnie a névjegyeidhez. Menj az iOS beállításokba és kapcsold be a névjegyeket. A névjegyeid titkosítva vannak, és nem láthatók a Tellomi számára.";
+"CONTACT_SHARING_NO_ACCESS_BODY" = "A Tellominak hozzá kell férnie a névjegyeidhez. Menj az iOS beállításokba és kapcsold be a névjegyeket. A névjegyeid titkosítva vannak, és nem láthatók a Tellomi számára.";
 
 /* Alert title when contacts disabled while trying to share a contact. */
 "CONTACT_SHARING_NO_ACCESS_TITLE" = "Kontaktokhoz hozzáférés engedélyezése";
@@ -3083,7 +3083,7 @@
 "DELETED_USER" = "Fiók törlése";
 
 /* Notification warning the user that they have been de-registered. */
-"DEREGISTRATION_NOTIFICATION" = "Kijelentkeztél a Signalból ezen a készüléken.";
+"DEREGISTRATION_NOTIFICATION" = "Kijelentkeztél a Tellomiból ezen a készüléken.";
 
 /* Button that lets users re-register using the same phone number. */
 "DEREGISTRATION_REREGISTER_BUTTON" = "Újraregisztrálás";
@@ -3092,7 +3092,7 @@
 "DEREGISTRATION_REREGISTER_PROMPT_TITLE" = "Telefonszám újraregisztrálása?";
 
 /* Label warning the user that they have been de-registered. */
-"DEREGISTRATION_WARNING" = "Ez az eszköz már nincs regisztrálva. Ennek valószínűleg az az oka, hogy egy másik eszközön regisztráltad a telefonszámod a Signalon.";
+"DEREGISTRATION_WARNING" = "Ez az eszköz már nincs regisztrálva. Ennek valószínűleg az az oka, hogy egy másik eszközön regisztráltad a telefonszámod a Tellomin.";
 
 /* If the user has been deregistered, they'll see a warning. This is This is the call to action on that warning. */
 "DEREGISTRATION_WARNING_ACTION_TITLE" = "Regisztráld újra az eszközt";
@@ -3179,7 +3179,7 @@
 "DEVICE_TRANSFER_PAIR_OLD_DEVICE_TITLE" = "Párosítsd a régi eszközöddel";
 
 /* The explanation on the view that shows receiving progress */
-"DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "Tartsd a két eszközt egymás közelében. Ne kapcsold ki egyik eszközt sem és tartsd a Signalt nyitva. Az adatvitel végpontok között titkosított.";
+"DEVICE_TRANSFER_RECEIVING_EXPLANATION" = "Tartsd a két eszközt egymás közelében. Ne kapcsold ki egyik eszközt sem és tartsd a Tellomit nyitva. Az adatvitel végpontok között titkosított.";
 
 /* The title on the view that shows receiving progress */
 "DEVICE_TRANSFER_RECEIVING_TITLE" = "Adat fogadása";
@@ -3212,7 +3212,7 @@
 "DEVICE_TRANSFER_STATUS_NEW_DEVICE_TRANSFERRING" = "Áthelyezés";
 
 /* Description in the progress view displayed during device transfer. */
-"DEVICE_TRANSFER_STATUS_NEW_DEVICE_TRANSFERRING_DESCRIPTION" = "Tartsd a két eszközt egymás közelében. Ne kapcsold ki egyik eszközt sem és tartsd a Signalt nyitva. Az adatvitel végpontok között titkosított.";
+"DEVICE_TRANSFER_STATUS_NEW_DEVICE_TRANSFERRING_DESCRIPTION" = "Tartsd a két eszközt egymás közelében. Ne kapcsold ki egyik eszközt sem és tartsd a Tellomit nyitva. Az adatvitel végpontok között titkosított.";
 
 /* Status message on old device when cancelling transfer. */
 "DEVICE_TRANSFER_STATUS_OLD_DEVICE_CANCELLING" = "Az új iPhone-nal való kapcsolat megszakítása…";
@@ -3338,13 +3338,13 @@
 "DONATE_CHOOSE_PAYMENT_METHOD_SHEET_SUBTITLE_FOR_ONE_TIME_DONATION" = "Szerezd meg a(z) %1$@ jelvényt 30 napra";
 
 /* When users make donations on a friend's behalf, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ adomány a Signalnak";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "%1$@ adomány a Tellominak";
 
 /* When users make monthly donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money per month}}, such as \"$5/month\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "Adományozz %1$@ összeget a Signalnak";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_MONTHLY_DONATION" = "Adományozz %1$@ összeget a Tellominak";
 
 /* When users make one-time donations, they see a sheet that lets them pick a payment method. This is the title on that sheet. Embeds {{amount of money}}, such as \"$5\". */
-"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_ONE_TIME_DONATION" = "Adományozz %1$@ összeget a Signalnak";
+"DONATE_CHOOSE_PAYMENT_METHOD_SHEET_TITLE_FOR_ONE_TIME_DONATION" = "Adományozz %1$@ összeget a Tellominak";
 
 /* Users can donate on a friend's behalf and can optionally add a message. This is tells users about that optional message. */
 "DONATE_ON_BEHALF_OF_A_FRIEND_ADDITIONAL_MESSAGE_INFO" = "Az adományozásról közvetlenül üzenetben értesítjük a címzettet. Add hozzá a saját üzeneted alább.";
@@ -3458,7 +3458,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_BADGE_REDEEMED" = "Beváltva";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is a short paragraph on the screen where users choose the badge their friend will receive. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Támogasd a Signalt azáltal, hogy adományozol egy olyan ismerősödnek vagy családtagodnak, aki használja a Signalt. Az adott személy pedig lehetőséget kap arra, hogy a profilján megjelenítse a támogatást.";
+"DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_DESCRIPTION" = "Támogasd a Tellomit azáltal, hogy adományozol egy olyan ismerősödnek vagy családtagodnak, aki használja a Tellomit. Az adott személy pedig lehetőséget kap arra, hogy a profilján megjelenítse a támogatást.";
 
 /* Users can donate on behalf of a friend, and the friend will receive a badge. This is the title on the screen where users choose the badge their friend will receive. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_CHOOSE_BADGE_TITLE" = "Adomány egy ismerősnek";
@@ -3494,7 +3494,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_PREVIEW_OUTGOING" = "Adományoztál %1$@ számára";
 
 /* You received a donation from a friend. This is the title of that message in the chat. Embeds {{short contact name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@ adományozott a Signalnak a nevedben";
+"DONATION_ON_BEHALF_OF_A_FRIEND_RECEIVED_TITLE_FORMAT" = "%1$@ adományozott a Tellominak a nevedben";
 
 /* Users can donate on a friend's behalf. This is the error message that appears if the try to do this, but the recipient is blocked. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_RECIPIENT_IS_BLOCKED_ERROR_BODY" = "Nem adományozhatsz ennek a felhasználónak, mert letiltottad.";
@@ -3527,10 +3527,10 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_VIEW" = "Megtekintés";
 
 /* A friend has donated on your behalf and you received a badge. This text says that you received a badge, and from whom. Embeds {{contact's short name, such as a first name}}. */
-"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ adományozott a Signalnak a nevedben! Mutasd meg a profilodon, hogy támogatod a Signalt!";
+"DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ adományozott a Tellominak a nevedben! Mutasd meg a profilodon, hogy támogatod a Tellomit!";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Független nonprofit szervezetként a Signal elkötelezett a privát üzenetek és hívások iránt. Nincsenek hirdetések, nincsenek nyomkövetők és nincs megfigyelés. Adományozz még ma, és támogasd a Signalt!";
+"DONATION_READ_MORE_SHEET_BODY" = "Független nonprofit szervezetként a Signal elkötelezett a privát üzenetek és hívások iránt. Nincsenek hirdetések, nincsenek nyomkövetők és nincs megfigyelés. Adományozz még ma, és támogasd a Tellomit!";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "Szerezz opcionális jelvényt a profilodra, amikor adományozol";
@@ -3554,7 +3554,7 @@
 "DONATION_RECEIPT_EXPORT_RECEIPT_BUTTON" = "Nyugta megosztása";
 
 /* Footer text at the bottom of donation receipts */
-"DONATION_RECEIPT_FOOTER" = "Köszönjük, hogy támogatod a Signalt! Adományoddal hozzájárulsz a szabad véleménynyilvánítást és milliók számára biztonságos kommunikációt biztosító, nyílt forrású adatvédelmi technológiák fejlesztéséhez. Ha az Egyesült Államokban adózol, kérünk, őrizd meg ezt a nyugtát adóbevallásodhoz. A Signal Technology Foundation egy adómentes, nonprofit szervezet, amely az USA területén az 501c3 Internal Revenue Code hatálya alá tartozik. Federal Tax ID: 82-4506840. A Signal semmilyen terméket vagy szolgáltatást nem nyújtott e hozzájárulás fejében.";
+"DONATION_RECEIPT_FOOTER" = "Köszönjük, hogy támogatod a Tellomit! Adományoddal hozzájárulsz a szabad véleménynyilvánítást és milliók számára biztonságos kommunikációt biztosító, nyílt forrású adatvédelmi technológiák fejlesztéséhez. Ha az Egyesült Államokban adózol, kérünk, őrizd meg ezt a nyugtát adóbevallásodhoz. A Signal Technology Foundation egy adómentes, nonprofit szervezet, amely az USA területén az 501c3 Internal Revenue Code hatálya alá tartozik. Federal Tax ID: 82-4506840. A Signal semmilyen terméket vagy szolgáltatást nem nyújtott e hozzájárulás fejében.";
 
 /* Title for receipts for donations given on a friend's behalf */
 "DONATION_RECEIPT_FOR_DONATION_ON_BEHALF_OF_A_FRIEND" = "Adomány egy ismerősnek";
@@ -3575,7 +3575,7 @@
 "DONATION_RECEIPTS" = "Adomány nyugták";
 
 /* Text at the bottom of the donation receipts list, telling users that receipts might not be available */
-"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Ha újratelepítetted a Signalt, korábbi adományaid nyugtái nem lesznek elérhetőek.";
+"DONATION_RECEIPTS_MIGHT_BE_MISSING_IF_YOU_REINSTALLED" = "Ha újratelepítetted a Tellomit, korábbi adományaid nyugtái nem lesznek elérhetőek.";
 
 /* Error message displayed if something goes wrong with 3DSecure/iDEAL payment authorization.  This will be encountered if the user cancels the webview before authrizing the payment. */
 "DONATION_REDIRECT_ERROR_CANCELLED_MESSAGE" = "Fizetés törölve. Próbáld újra!";
@@ -3701,13 +3701,13 @@
 "EDIT_CONTACT_WITHOUT_CONTACTS_PERMISSION_ALERT_BODY" = "Hozzáférés az iOS Beállításokban adható.";
 
 /* Alert title for when the user has just tried to edit a contacts after declining to give Signal contacts permissions */
-"EDIT_CONTACT_WITHOUT_CONTACTS_PERMISSION_ALERT_TITLE" = "A Signalnak hozzáférésre van szüksége Kontakt listádhoz hogy szerkeszthesd az elemeit";
+"EDIT_CONTACT_WITHOUT_CONTACTS_PERMISSION_ALERT_TITLE" = "A Tellominak hozzáférésre van szüksége Kontakt listádhoz hogy szerkeszthesd az elemeit";
 
 /* The navbar title for the 'update group' view. */
 "EDIT_GROUP_DEFAULT_TITLE" = "Csoport szerkesztése";
 
 /* Error message indicating the a user can't be added to a group. */
-"EDIT_GROUP_ERROR_CANNOT_ADD_MEMBER" = "A felhasználó nem adható a csoporthoz, amíg nem frissíti a Signalt.";
+"EDIT_GROUP_ERROR_CANNOT_ADD_MEMBER" = "A felhasználó nem adható a csoporthoz, amíg nem frissíti a Tellomit.";
 
 /* Error message indicating that an avatar image is invalid and cannot be used. */
 "EDIT_GROUP_ERROR_INVALID_AVATAR" = "Érvénytelen fotófájl.";
@@ -3737,7 +3737,7 @@
 "EMAIL_INVITE_BODY" = "Szia!\n\nÚjabban privát csevegéseimet a Tellomi üzenetküldő alkalmazással bonyolítom iPhone-on. Örülnék, ha te is telepítenéd, így biztosak lehetünk benne, hogy amit írunk, vagy mondunk a telefonba, az köztünk marad.\n\nA Tellomi elérhető iPhone és Android telefonokra, valamint asztali számítógépre. Itt szerezheted meg: %1$@\n\nA Tellomi az ismert csevegőprogramokhoz hasonlóan működik: küldhetünk képeket, videókat, hívhatjuk egymást, csoportos csevegést indíthatunk. A legjobb, hogy a fentiekbe senkinek, még a Tellomi fejlesztőinek sincs semmilyen betekintési, belehallgatási lehetősége.\n\nA Signalról itt olvashatsz bővebben: %2$@.";
 
 /* subject of email sent to contacts when inviting to install Signal */
-"EMAIL_INVITE_SUBJECT" = "Váltsunk Signalra!";
+"EMAIL_INVITE_SUBJECT" = "Váltsunk Tellomira!";
 
 /* Description for the fallback support sheet if user cannot send email */
 "EMAIL_SIGNAL_MESSAGE" = "Készülékeden nincs beállítva levelező kliens. Vagy állítsd be, vagy támogatási kérelmedet emailben küldd el erre a címre: support@tellomi.app";
@@ -3875,7 +3875,7 @@
 "ERROR_DESCRIPTION_UNKNOWN_ERROR" = "Ismeretlen hiba történt.";
 
 /* Error message when attempting to send message */
-"ERROR_DESCRIPTION_UNREGISTERED_RECIPIENT" = "Nem sikerült elküldeni az üzenetet, mert ez a személy már nem használja a Signalt.";
+"ERROR_DESCRIPTION_UNREGISTERED_RECIPIENT" = "Nem sikerült elküldeni az üzenetet, mert ez a személy már nem használja a Tellomit.";
 
 /* Error message indicating that attachment upload(s) failed. */
 "ERROR_MESSAGE_ATTACHMENT_UPLOAD_FAILED" = "A csatolmány feltöltése sikertelen.";
@@ -4517,7 +4517,7 @@
 "GROUP_LINK_VIEW_SHARE_LINK_VIA_QR_CODE" = "QR kód";
 
 /* Label for the 'share group link via Signal' button in the 'group link' view. */
-"GROUP_LINK_VIEW_SHARE_LINK_VIA_SIGNAL" = "Megosztás Signallal";
+"GROUP_LINK_VIEW_SHARE_LINK_VIA_SIGNAL" = "Megosztás Tellomival";
 
 /* Message for the 'share group link' action sheet in the 'group link' view. */
 "GROUP_LINK_VIEW_SHARE_SHEET_MESSAGE" = "Ennek a linknek a birtokában bárki láthatja a csoportnevet és a tagok listáját, továbbá belépési kéréssel fordulhat a csoport felé. Azokkal oszd csak meg, akikben megbízol.";
@@ -5081,7 +5081,7 @@
 "INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_LEARN_MORE_BUTTON" = "Tudj meg többet";
 
 /* Title for an in-app megaphone about a user's inactive primary device. */
-"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_TITLE" = "Nyisd meg a Signalt a telefonodon!";
+"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_TITLE" = "Nyisd meg a Tellomit a telefonodon!";
 
 /* Label reminding the user that they are in archive mode, and that muted chats remain archived when they receive a new message. */
 "INBOX_VIEW_ARCHIVE_MODE_MUTED_CHATS_REMINDER" = "A némítva archivált csevegések új üzenet érkezésekor továbbra is archiválva maradnak.";
@@ -5168,7 +5168,7 @@
 "INFO_MESSAGE_USER_CHANGED_PHONE_NUMBER_FORMAT" = "%1$@ megváltoztatta a telefonszámát.";
 
 /* Shown in inbox and conversation when a user joins Signal, embeds the new user's {{contact name}} */
-"INFO_MESSAGE_USER_JOINED_SIGNAL_BODY_FORMAT" = "%1$@ már elérhető Signalon!";
+"INFO_MESSAGE_USER_JOINED_SIGNAL_BODY_FORMAT" = "%1$@ már elérhető Tellomin!";
 
 /* Label at the top of the input text when editing a message */
 "INPUT_TOOLBAR_EDIT_MESSAGE_LABEL" = "Üzenet szerkesztése";
@@ -5420,7 +5420,7 @@
 "LINKED_DEVICE_NOTIFICATION_TITLE" = "Összekapcsoltál egy új eszközt";
 
 /* Message for an action sheet telling users how to link a device, when trying to open an external device-linking URL. */
-"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "Ha asztali számítógépet vagy iPadet szeretnél kapcsolni ehhez a Tellomi-fiókhoz, lépj a Kapcsolt eszközök oldalra, koppints az „Új eszköz összekapcsolása” lehetőségre, és olvasd be újra a QR-kódot. Ügyelj rá, hogy csak közvetlenül a Signaltól származó QR-kódokat olvass be.";
+"LINKED_DEVICE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "Ha asztali számítógépet vagy iPadet szeretnél kapcsolni ehhez a Tellomi-fiókhoz, lépj a Kapcsolt eszközök oldalra, koppints az „Új eszköz összekapcsolása” lehetőségre, és olvasd be újra a QR-kódot. Ügyelj rá, hogy csak közvetlenül a Tellomitól származó QR-kódokat olvass be.";
 
 /* Message for an action sheet telling users how to link a device, when trying to open a device-linking URL from the in-app camera. */
 "LINKED_DEVICE_URL_OPENED_ACTION_SHEET_IN_APP_CAMERA_MESSAGE" = "Úgy tűnik, hogy egy Tellomi-eszközt próbálsz társítani. Koppints a Folytatás, majd az „Új eszköz összekapcsolása” elemre, és olvasd be újra a QR-kódot.";
@@ -5429,7 +5429,7 @@
 "LINKED_DEVICES_EDUCATION_POINT_DOWNLOADS" = "A másik eszközödön az iPad alkalmazás telepítéséhez keresd fel a(z) %1$@ oldalt, vagy a(z) %2$@ oldalt az asztali alkalmazás telepítéséhez.";
 
 /* Bullet point about message sync on the linked devices education sheet */
-"LINKED_DEVICES_EDUCATION_POINT_MESSAGES" = "A Tellomi-üzenetek szinkronizálva vannak a mobiltelefonodon megtalálható Signallal, miután összekapcsolásra kerültek.";
+"LINKED_DEVICES_EDUCATION_POINT_MESSAGES" = "A Tellomi-üzenetek szinkronizálva vannak a mobiltelefonodon megtalálható Tellomival, miután összekapcsolásra kerültek.";
 
 /* Bullet point about privacy on the linked devices education sheet */
 "LINKED_DEVICES_EDUCATION_POINT_PRIVACY" = "A kapcsolt eszközökön minden üzenet privát";
@@ -5585,7 +5585,7 @@
 "LOW_DISK_SPACE_WARNING_SHEET_MESSAGE_FORMAT" = "Kevés a tárhely a(z) %1$@ eszközödön. Ha megtelik, a Tellomi nem fog működni, és adatvesztés történhet. Szabadíts fel legalább %2$@ tárhelyet.";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
-"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Töröld a nagy méretű videókat a Fotók alkalmazásból, a Signalból vagy más üzenetküldő alkalmazásokból";
+"LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_CAMERA_ROLL_MEDIA" = "Töröld a nagy méretű videókat a Fotók alkalmazásból, a Tellomiból vagy más üzenetküldő alkalmazásokból";
 
 /* A suggestion for freeing up storage space, on a sheet warning the user that their device is low on storage space. */
 "LOW_DISK_SPACE_WARNING_SHEET_SUGGESTION_DELETE_DOWNLOADED_MEDIA" = "Töröld a letöltött zenéket vagy más médiafájlokat";
@@ -6116,7 +6116,7 @@
 "MISSED_CALL_BLOCKED_SYSTEM_CONTACT" = "Nem fogadott hívás a telefon beállításaiban letiltott névjegytől";
 
 /* Action to block contact in Signal for sheet shown when the user taps a missed call from a contact blocked in iOS settings. */
-"MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_BLOCK_ACTION" = "A Signalban is tiltsd le a névjegyet";
+"MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_BLOCK_ACTION" = "A Tellomiban is tiltsd le a névjegyet";
 
 /* Message for sheet shown when the user taps a missed call from a contact blocked in iOS settings. */
 "MISSED_CALL_BLOCKED_SYSTEM_SETTINGS_SHEET_MESSAGE" = "Nem fogadtad a hívását, mert a telefon beállításaiban le van tiltva. Lépj a Beállítások > Telefon menüpontra, és koppints a Letiltott névjegyek elemre a névjegy kezeléséhez.";
@@ -6143,7 +6143,7 @@
 "MISSING_LOCATION_PERMISSION_MESSAGE" = "Engedélyezheted az iOS Beállításokban.";
 
 /* Alert title indicating the user has denied location permissions */
-"MISSING_LOCATION_PERMISSION_TITLE" = "Ehhez a művelethez a Signalnak helymeghatározási hozzáférés kell.";
+"MISSING_LOCATION_PERMISSION_TITLE" = "Ehhez a művelethez a Tellominak helymeghatározási hozzáférés kell.";
 
 /* Alert body when user has previously denied media library access */
 "MISSING_MEDIA_LIBRARY_PERMISSION_MESSAGE" = "Engedélyezheted az iOS Beállításokban.";
@@ -6578,7 +6578,7 @@
 "ONBOARDING_MODE_SWITCH_TITLE_REGISTERING" = "Eszköz összekapcsolása";
 
 /* warning to the user that registering an ipad is not recommended */
-"ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "Ezen iPad regisztrálása letiltja a Signalt az ezzel a telefonszámmal regisztrált egyéb eszközökön.";
+"ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "Ezen iPad regisztrálása letiltja a Tellomit az ezzel a telefonszámmal regisztrált egyéb eszközökön.";
 
 /* Description of the 'Contacts' permission in the 'onboarding permissions' view. */
 "ONBOARDING_PERMISSIONS_CONTACTS_DESCRIPTION" = "Találj olyan személyeket, akiket ismersz. A névjegyeid titkosítva vannak, és nem láthatók a Tellomi számára.";
@@ -6599,7 +6599,7 @@
 "ONBOARDING_PERMISSIONS_TITLE" = "Jogosultságok engedélyezése";
 
 /* Explanation of the 'onboarding phone number discoverability' view. Embeds {user phone number} */
-"ONBOARDING_PHONE_NUMBER_DISCOVERABILITY_EXPLANATION_FORMAT" = "Válassz, hogy a(z) %1$@ telefonszámod alapján ki találhat meg Signalon";
+"ONBOARDING_PHONE_NUMBER_DISCOVERABILITY_EXPLANATION_FORMAT" = "Válassz, hogy a(z) %1$@ telefonszámod alapján ki találhat meg Tellomin";
 
 /* Title of the 'onboarding phone number discoverability' view. */
 "ONBOARDING_PHONE_NUMBER_DISCOVERABILITY_TITLE" = "Ki találhat meg telefonszámod alapján?";
@@ -6626,7 +6626,7 @@
 "ONBOARDING_PIN_ATTEMPTS_EXHAUSTED_WITH_UNKNOWN_REGLOCK_EXPLANATION" = "Kifogytál a PIN-kód megadási lehetőségekből, de továbbra is hozzáférhetsz Tellomi-fiókodhoz, ha hitelesíted a telefonszámod. Az adataid védelme és a biztonságod érdekében a fiókod csak a mentett profilbeállítások nélkül állítható vissza.";
 
 /* Explanation of 'do not have old device' flow for the 'Restore or Transfer' prompt */
-"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_BODY" = "Vagy telepítsd újra a Signalt ugyanarra az eszközre";
+"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_BODY" = "Vagy telepítsd újra a Tellomit ugyanarra az eszközre";
 
 /* Title for the 'do not have my old device' choice of the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_TITLE" = "Nincs nálam a régi telefonom";
@@ -6719,7 +6719,7 @@
 "OUTDATED_PAYMENT_CLIENT_ACTION_TITLE" = "Frissítés most";
 
 /* Label warning the user that they should update Signal to continue using payments. */
-"OUTDATED_PAYMENT_CLIENT_REMINDER_TEXT" = "A fizetések további használatához frissítsd a Signalt. Előfordulhat, hogy az egyenleged nem naprakész.";
+"OUTDATED_PAYMENT_CLIENT_REMINDER_TEXT" = "A fizetések további használatához frissítsd a Tellomit. Előfordulhat, hogy az egyenleged nem naprakész.";
 
 /* Body of prompt notifying restore was cancelled. */
 "OUTGOING_DEVICE_REGISTRATION_CANCELLED_RESTORE_BODY" = "Visszaállítás megszakítva. Próbáld újra!";
@@ -6806,7 +6806,7 @@
 "OUTGOING_MISSED_VOICE_CALL" = "Nem fogadott hanghívás";
 
 /* Button for action sheet shown when device transfer completes; quits the Signal app immediately (does not automatically relaunch, but the user may choose to relaunch). */
-"OUTGOING_TRANSFER_COMPLETE_EXIT_ACTION" = "Kilépés a Signalból";
+"OUTGOING_TRANSFER_COMPLETE_EXIT_ACTION" = "Kilépés a Tellomiból";
 
 /* Message for action sheet shown when device transfer completes */
 "OUTGOING_TRANSFER_COMPLETE_MESSAGE" = "A Tellomi most kilép ezen az eszközön";
@@ -6965,7 +6965,7 @@
 "PAYMENTS_NEW_PAYMENT_ERROR_INVALID_TRANSACTION" = "Érvénytelen tranzakció";
 
 /* Indicates that a payment failed due to an outdated client. */
-"PAYMENTS_NEW_PAYMENT_ERROR_OUTDATED_CLIENT" = "Frissítsd a Signalt a fizetések használatához!";
+"PAYMENTS_NEW_PAYMENT_ERROR_OUTDATED_CLIENT" = "Frissítsd a Tellomit a fizetések használatához!";
 
 /* Indicates that an outgoing payment could not be verified in a timely way. */
 "PAYMENTS_NEW_PAYMENT_ERROR_OUTGOING_VERIFICATION_TAKING_TOO_LONG" = "A fizetés még nem került ellenőrzésre";
@@ -7208,13 +7208,13 @@
 "PHONE_NUMBER_DISCOVERABILITY_EVERYBODY" = "Mindenki";
 
 /* A user friendly description of the 'everybody' phone number discoverability mode. */
-"PHONE_NUMBER_DISCOVERABILITY_EVERYBODY_DESCRIPTION" = "Bárki, aki tudja a telefonszámodat, látni fogja, hogy használod a Signalt, és csevegést kezdeményezhet veled.";
+"PHONE_NUMBER_DISCOVERABILITY_EVERYBODY_DESCRIPTION" = "Bárki, aki tudja a telefonszámodat, látni fogja, hogy használod a Tellomit, és csevegést kezdeményezhet veled.";
 
 /* A user friendly name for the 'nobody' phone number discoverability mode. */
 "PHONE_NUMBER_DISCOVERABILITY_NOBODY" = "Senki";
 
 /* A user friendly description of the 'nobody' phone number discoverability mode. */
-"PHONE_NUMBER_DISCOVERABILITY_NOBODY_DESCRIPTION" = "Senki sem láthatja, hogy használod a Signalt, hacsak nem küldesz valakinek üzenetet, vagy nem folytatsz csevegést valakivel.";
+"PHONE_NUMBER_DISCOVERABILITY_NOBODY_DESCRIPTION" = "Senki sem láthatja, hogy használod a Tellomit, hacsak nem küldesz valakinek üzenetet, vagy nem folytatsz csevegést valakivel.";
 
 /* A format for a label showing an example phone number. Embeds {{the example phone number}}. */
 "PHONE_NUMBER_EXAMPLE_FORMAT" = "Például: %1$@";
@@ -7352,7 +7352,7 @@
 "PIN_CREATION_WEAK_ERROR" = "Válassz egy erősebb PIN kódot";
 
 /* If your attempted PIN is too weak, you'll see an error message. This is the text on the error dialog. */
-"PIN_CREATION_WEAK_ERROR_MESSAGE" = "A PIN-kód titkosítja a Signalban tárolt adataidat, így csak te férhetsz hozzá. Válassz erősebb PIN-kódot a fiókod védelme érdekében.";
+"PIN_CREATION_WEAK_ERROR_MESSAGE" = "A PIN-kód titkosítja a Tellomiban tárolt adataidat, így csak te férhetsz hozzá. Válassz erősebb PIN-kódot a fiókod védelme érdekében.";
 
 /* If the user is re-registering, they need to enter their PIN to restore all their data. In some cases, they can skip this entry and lose some data. This text is shown on a button that lets them begin to do this. */
 "PIN_ENTER_EXISTING_SKIP" = "PIN-kód kihagyása";
@@ -7682,7 +7682,7 @@
 "PROFILE_NAME_EDUCATION_SHEET_BULLET_4" = "Ne oszd meg a személyes adataidat olyanokkal, akiket nem ismersz";
 
 /* Header for the explainer sheet for profile names */
-"PROFILE_NAME_EDUCATION_SHEET_HEADER_FORMAT" = "A <bold>profilneveket</bold> a Signalon a fióktulajdonos választja ki.";
+"PROFILE_NAME_EDUCATION_SHEET_HEADER_FORMAT" = "A <bold>profilneveket</bold> a Tellomin a fióktulajdonos választja ki.";
 
 /* Title for the profile name view. */
 "PROFILE_NAME_VIEW_TITLE" = "Neved";
@@ -7781,7 +7781,7 @@
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_TITLE" = "QR-kód beolvasása";
 
 /* Message for an action sheet telling users how to use quick restore, when trying to open an external quick restore URL. */
-"QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "A fiók új eszközre való átviteléhez koppints a „Folytatás” gombra, és olvasd be a QR-kódot a Tellomi kamerával. Ügyelj rá, hogy csak közvetlenül a Signaltól származó QR-kódokat olvass be.";
+"QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_MESSAGE" = "A fiók új eszközre való átviteléhez koppints a „Folytatás” gombra, és olvasd be a QR-kódot a Tellomi kamerával. Ügyelj rá, hogy csak közvetlenül a Tellomitól származó QR-kódokat olvass be.";
 
 /* Accessibility label stating the author of the message to which you are replying. Embeds: {{ the author of the message to which you are replying }} {{ original message }}. */
 "QUOTED_REPLY_ACCESSIBILITY_LABEL_FORMAT" = "Válasz %1$@ számára. %2$@";
@@ -7907,7 +7907,7 @@
 "RECIPIENT_PICKER_INVITE_MESSAGE" = "%1$@ nem Tellomi-felhasználó. Szeretnéd meghívni ezt a számot?";
 
 /* Alert title. Shown after selecting a phone number that isn't a Signal user. */
-"RECIPIENT_PICKER_INVITE_TITLE" = "Meghívás a Signalba";
+"RECIPIENT_PICKER_INVITE_TITLE" = "Meghívás a Tellomiba";
 
 /* Alert title explaining what happens if you forget your 'two-factor auth pin'. */
 "REGISTER_2FA_FORGOT_PIN_ALERT_TITLE" = "Segítség?";
@@ -8135,7 +8135,7 @@
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_ENABLE_BACKUPS" = "Engedélyezd a biztonsági mentéseket, és várd meg, amíg a biztonsági mentés befejeződik";
 
 /* First step in directions for how to make a backup */
-"REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_OPEN_SIGNAL" = "Nyisd meg a Signalt a régi eszközödön";
+"REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_OPEN_SIGNAL" = "Nyisd meg a Tellomit a régi eszközödön";
 
 /* Second step in directions for how to make a backup */
 "REGISTRATION_RESTORE_METHOD_MAKE_BACKUP_TUTORIAL_TAP_SETTINGS" = "Koppints a Beállítások > Biztonsági mentések lehetőségre";
@@ -8153,7 +8153,7 @@
 "REGISTRATION_SCAN_QR_CODE_TITLE" = "Olvasd be ezt a kódot a régi eszközöddel";
 
 /* Tutorial text describing the first step to scanning the restore/transfer QR code with your old phone: opening Signal */
-"REGISTRATION_SCAN_QR_CODE_TUTORIAL_OPEN_SIGNAL" = "Nyisd meg a Signalt a régi eszközödön";
+"REGISTRATION_SCAN_QR_CODE_TUTORIAL_OPEN_SIGNAL" = "Nyisd meg a Tellomit a régi eszközödön";
 
 /* Tutorial text describing the third step to scanning the restore/transfer QR code with your old phone: scan the code */
 "REGISTRATION_SCAN_QR_CODE_TUTORIAL_SCAN" = "Olvasd be ezt a kódot a kamerával";
@@ -8201,7 +8201,7 @@
 "REGISTRATION_VOICE_CODE_FAILED_TRY_SMS_ERROR" = "Nem sikerült ellenőrző kódot küldenünk hanghíváson keresztül. Inkább SMS-ben próbáld meg megkapni a kódot.";
 
 /* Bottom bar label for the release notes thread */
-"RELEASE_NOTES_BOTTOM_BAR_LABEL" = "Az egyetlen hivatalos csevegés a Signaltól";
+"RELEASE_NOTES_BOTTOM_BAR_LABEL" = "Az egyetlen hivatalos csevegés a Tellomitól";
 
 /* Display name for the release notes channel */
 "RELEASE_NOTES_CHANNEL_NAME" = "Tellomi";
@@ -8213,10 +8213,10 @@
 "RELEASE_NOTES_DESCRIPTION_KEEP_UPDATED" = "Legyél naprakész a hírekkel és a frissítésekkel kapcsolatban";
 
 /* Details text for the thread details view of the release notes channel */
-"RELEASE_NOTES_DETAILS" = "Az egyetlen hivatalos csevegés a Signaltól. Legyél naprakész a hírekkel és a frissítésekkel kapcsolatban";
+"RELEASE_NOTES_DETAILS" = "Az egyetlen hivatalos csevegés a Tellomitól. Legyél naprakész a hírekkel és a frissítésekkel kapcsolatban";
 
 /* Settings description label for the release notes thread telling a user this is the only official chat */
-"RELEASE_NOTES_SETTINGS_DESCRIPTION_ONLY_OFFICAL_CHAT" = "Az egyetlen hivatalos csevegés a Signaltól";
+"RELEASE_NOTES_SETTINGS_DESCRIPTION_ONLY_OFFICAL_CHAT" = "Az egyetlen hivatalos csevegés a Tellomitól";
 
 /* Button below the warning to fix a corrupted username. */
 "REMINDER_VIEW_USERNAME_CORRUPTED_FIX_BUTTON" = "Javítás most";
@@ -8363,7 +8363,7 @@
 "SAFETY_NUMBER_CHANGED_CONFIRM_SEND_ACTION" = "Küldés ennek ellenére";
 
 /* Message for the 'safety number confirmation' view */
-"SAFETY_NUMBER_CONFIRMATION_MESSAGE" = "A következő személyek lehet, hogy újratelepítették a Signalt vagy készüléket cseréltek. Ellenőrizd biztonsági számotokat a privacy biztosítása érdekében!";
+"SAFETY_NUMBER_CONFIRMATION_MESSAGE" = "A következő személyek lehet, hogy újratelepítették a Tellomit vagy készüléket cseréltek. Ellenőrizd biztonsági számotokat a privacy biztosítása érdekében!";
 
 /* Text explaining that the given contact previously had their safety number verified. */
 "SAFETY_NUMBER_CONFIRMATION_PREVIOUSLY_VERIFIED" = "Már Ellenőrzött";
@@ -8465,10 +8465,10 @@
 "SAFETY_TIPS_MESSAGE_LINKS_TITLE" = "Üzenetek webhivatkozásokkal";
 
 /* Message body describing the review names safety tip. */
-"SAFETY_TIPS_REVIEW_NAMES_BODY" = "Vigyázz a „Név nincs ellenőrizve” értesítések esetén. A Signalban mindenki saját maga állítja be a profilnevét.";
+"SAFETY_TIPS_REVIEW_NAMES_BODY" = "Vigyázz a „Név nincs ellenőrizve” értesítések esetén. A Tellomiban mindenki saját maga állítja be a profilnevét.";
 
 /* Message body describing the review names safety tip in the 'view more' flow. */
-"SAFETY_TIPS_REVIEW_NAMES_BODY_VIEW_MORE" = "Vigyázz a „Név nincs ellenőrizve” értesítések esetén. A Signalban mindenki saját maga állítja be a profilnevét és fotóját. Ha nem vagy biztos benne, hogy kitől érkezett egy új kérés, biztonságosabb, ha figyelmen kívül hagyod.";
+"SAFETY_TIPS_REVIEW_NAMES_BODY_VIEW_MORE" = "Vigyázz a „Név nincs ellenőrizve” értesítések esetén. A Tellomiban mindenki saját maga állítja be a profilnevét és fotóját. Ha nem vagy biztos benne, hogy kitől érkezett egy új kérés, biztonságosabb, ha figyelmen kívül hagyod.";
 
 /* Message title describing the review names safety tip. */
 "SAFETY_TIPS_REVIEW_NAMES_TITLE" = "Nevek és fotók felülvizsgálata";
@@ -8477,7 +8477,7 @@
 "SAFETY_TIPS_SIGNAL_CHATS_BODY" = "A Tellomi soha nem küld üzenetet a regisztrációs kódoddal, a PIN-kódoddal vagy a helyreállítási kulcsoddal kapcsolatban. Soha ne válaszolj olyan csevegésre, amelyben úgy tesznek, mintha a Tellomi nevében írnának.";
 
 /* Message body describing the signal chats tip in the 'view more' flow. */
-"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "A Tellomi soha nem küld üzenetet a regisztrációs kódoddal, a PIN-kódoddal vagy a helyreállítási kulcsoddal kapcsolatban. Ne válaszolj olyan csevegésekre, amelyek a Signalnak vagy a Tellomi ügyfélszolgálatának adják ki magukat. A rosszindulatú szereplők hamis neveket adnak meg, hogy megpróbálják átvenni az irányítást a fiókod felett.";
+"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "A Tellomi soha nem küld üzenetet a regisztrációs kódoddal, a PIN-kódoddal vagy a helyreállítási kulcsoddal kapcsolatban. Ne válaszolj olyan csevegésekre, amelyek a Tellominak vagy a Tellomi ügyfélszolgálatának adják ki magukat. A rosszindulatú szereplők hamis neveket adnak meg, hogy megpróbálják átvenni az irányítást a fiókod felett.";
 
 /* Message title describing the signal chats tip. */
 "SAFETY_TIPS_SIGNAL_CHATS_TITLE" = "Ne válaszolj a Tellomi csevegéseire";
@@ -8555,7 +8555,7 @@
 "SECONDARY_LINKING_ERROR_DIFFERENT_ACCOUNT_TITLE" = "Nem egyező fiók";
 
 /* Message for error alert indicating that a linked device must be upgraded before it can be linked. */
-"SECONDARY_LINKING_ERROR_OBSOLETE_LINKED_DEVICE_MESSAGE" = "A telefonod párosításához frissítsd a Signalt ezen az eszközön!";
+"SECONDARY_LINKING_ERROR_OBSOLETE_LINKED_DEVICE_MESSAGE" = "A telefonod párosításához frissítsd a Tellomit ezen az eszközön!";
 
 /* Title for error alert indicating that a linked device must be upgraded before it can be linked. */
 "SECONDARY_LINKING_ERROR_OBSOLETE_LINKED_DEVICE_TITLE" = "Nem támogatott verzió";
@@ -8564,7 +8564,7 @@
 "SECONDARY_LINKING_ERROR_OLD_VERSION_MESSAGE" = "Ez az eszköz a Tellomi egy régebbi verzióját futtatja, ami még nem képes iOS QR kód beolvasására. Kérlek frissíts a legújabb verzióra és próbáld újra.";
 
 /* alert title for outdated linking device */
-"SECONDARY_LINKING_ERROR_OLD_VERSION_TITLE" = "Frissítsd a Signalt a társítandó eszközön";
+"SECONDARY_LINKING_ERROR_OLD_VERSION_TITLE" = "Frissítsd a Tellomit a társítandó eszközön";
 
 /* alert title */
 "SECONDARY_LINKING_ERROR_WAITING_FOR_SCAN" = "Nem sikerült a készülék társítása";
@@ -8591,7 +8591,7 @@
 "SECONDARY_ONBOARDING_CHOOSE_DEVICE_NAME_PLACEHOLDER" = "Válassz egy nevet";
 
 /* header text before the user can link this device */
-"SECONDARY_ONBOARDING_GET_STARTED_BY_OPENING_PRIMARY" = "Nyisd meg a telefonodon a Signalt ezen iPad társításához";
+"SECONDARY_ONBOARDING_GET_STARTED_BY_OPENING_PRIMARY" = "Nyisd meg a telefonodon a Tellomit ezen iPad társításához";
 
 /* Link explaining what to do when trying to link a device before having a primary device. */
 "SECONDARY_ONBOARDING_GET_STARTED_DO_NOT_HAVE_PRIMARY" = "Nincs Tellomi a telefonomon…";
@@ -8600,7 +8600,7 @@
 "SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_BODY" = "Telepítsd a Tellomi alkalmazást az App Store alól, végezd el a regisztrációs folyamatot, ez után már képes leszel ugyan ahhoz a fiókhoz társítani az iPad készüléked.";
 
 /* alert title */
-"SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_TITLE" = "Telepítsd a Signalt a telefonodra";
+"SECONDARY_ONBOARDING_INSTALL_PRIMARY_FIRST_TITLE" = "Telepítsd a Tellomit a telefonodra";
 
 /* Link text for page with troubleshooting info shown on the QR scanning screen */
 "SECONDARY_ONBOARDING_SCAN_CODE_HELP_TEXT" = "Kérj segítséget ezekkel a lépésekkel kapcsolatban";
@@ -8612,7 +8612,7 @@
 "SECONDARY_ONBOARDING_SCAN_CODE_STEP_LINK_DEVICE" = "Koppints a „Kapcsolt eszközök” és az „Új eszköz összekapcsolása” lehetőségre";
 
 /* First bullet point on the QR code screen for linking a device */
-"SECONDARY_ONBOARDING_SCAN_CODE_STEP_OPEN_PRIMARY" = "Nyisd meg a Signalt az elsődleges eszközödön";
+"SECONDARY_ONBOARDING_SCAN_CODE_STEP_OPEN_PRIMARY" = "Nyisd meg a Tellomit az elsődleges eszközödön";
 
 /* Second bullet point on the QR code screen for linking a device */
 "SECONDARY_ONBOARDING_SCAN_CODE_STEP_OPEN_SETTINGS" = "A Tellomi beállításainak megnyitásához koppints a profilképedre";
@@ -8621,7 +8621,7 @@
 "SECONDARY_ONBOARDING_SCAN_CODE_TITLE" = "A fiókod összekapcsolásához olvasd be ezt a kódot";
 
 /* header text before the user can transfer to this device */
-"SECONDARY_TRANSFER_GET_STARTED_BY_OPENING_IPAD" = "Indítsd el a Signalt régi Ipad-eden a fiók átmozgatásához";
+"SECONDARY_TRANSFER_GET_STARTED_BY_OPENING_IPAD" = "Indítsd el a Tellomit régi Ipad-eden a fiók átmozgatásához";
 
 /* No comment provided by engineer. */
 "SECURE_SESSION_RESET" = "Biztonságos munkamenet alaphelyzetbe állítva.";
@@ -9044,7 +9044,7 @@
 "SETTINGS_LOCAL_FILE_BACKUPS_REMOTE_BACKUP_IN_PROGRESS_MESSAGE" = "Nem sikerült biztonsági mentést végezni az eszközön, mert folyamatban van egy Tellomi biztonsági mentés. Próbáld újra később!";
 
 /* Footer text on the on-device backups settings page explaining how to restore a backup. */
-"SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "Egy biztonsági mentés visszaállításához először is telepítsd a Signalt! Nyisd meg az alkalmazást, koppints a „Visszaállítás vagy átvitel” lehetőségre, majd válaszd a „Biztonsági mentés az eszközön” lehetőséget.";
+"SETTINGS_LOCAL_FILE_BACKUPS_RESTORE_FOOTER" = "Egy biztonsági mentés visszaállításához először is telepítsd a Tellomit! Nyisd meg az alkalmazást, koppints a „Visszaállítás vagy átvitel” lehetőségre, majd válaszd a „Biztonsági mentés az eszközön” lehetőséget.";
 
 /* Label for the button that turns off on-device backups. */
 "SETTINGS_LOCAL_FILE_BACKUPS_TURN_OFF" = "Biztonsági mentés kikapcsolása és törlése";
@@ -9119,7 +9119,7 @@
 "SETTINGS_NOTIFICATION_CONTENT_TITLE" = "Értesítés tartalma";
 
 /* When the local device discovers a contact has recently installed signal, the app can generates a message encouraging the local user to say hello. Turning this switch off disables that feature. */
-"SETTINGS_NOTIFICATION_EVENTS_CONTACT_JOINED_SIGNAL" = "Ismerős csatlakozott Signalon";
+"SETTINGS_NOTIFICATION_EVENTS_CONTACT_JOINED_SIGNAL" = "Ismerős csatlakozott Tellomin";
 
 /* The title for the notification settings. */
 "SETTINGS_NOTIFICATIONS" = "Értesítések";
@@ -9128,7 +9128,7 @@
 "SETTINGS_NOTIFICATIONS_APP_BADGE_SECTION" = "Alkalmazásjelvény";
 
 /* Explanation for the switch controlling whether a notification is shown when a phone contact joins Signal. */
-"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Értesítés megjelenítése, amikor egy telefonos névjegy csatlakozik a Signalhoz.";
+"SETTINGS_NOTIFICATIONS_CONTACT_JOINED_SIGNAL_FOOTER" = "Értesítés megjelenítése, amikor egy telefonos névjegy csatlakozik a Tellomihoz.";
 
 /* Label for a switch controlling whether reactions to your messages generate notifications. */
 "SETTINGS_NOTIFICATIONS_REACTIONS" = "Reakció értesítések";
@@ -9176,7 +9176,7 @@
 "SETTINGS_PAYMENTS_BALANCE_CONVERSION_FORMAT" = "%1$@ %2$@ @ %3$@";
 
 /* Error message indicating that payments could not be activated because the feature is not currently available. */
-"SETTINGS_PAYMENTS_CANNOT_ACTIVATE_PAYMENTS_KILL_SWITCH" = "A Fizetés a Signalban a továbbiakban nem elérhető. Továbbra is átviheted egyenlegedet egy átváltó szolgáltatáson, de a továbbiakban már nem tudsz küldeni vagy fogadni fizetéseket, vagy feltölteni az egyenleged.";
+"SETTINGS_PAYMENTS_CANNOT_ACTIVATE_PAYMENTS_KILL_SWITCH" = "A Fizetés a Tellomiban a továbbiakban nem elérhető. Továbbra is átviheted egyenlegedet egy átváltó szolgáltatáson, de a továbbiakban már nem tudsz küldeni vagy fogadni fizetéseket, vagy feltölteni az egyenleged.";
 
 /* Error message indicating that payments could not be deactivated because the current balance is unavailable. */
 "SETTINGS_PAYMENTS_CANNOT_DEACTIVATE_PAYMENTS_NO_BALANCE" = "Nem deaktiválható a fizetés, mert az egyenleged nem elérhető. Ellenőrizd a kapcsolatod és próbáld újra.";
@@ -9185,10 +9185,10 @@
 "SETTINGS_PAYMENTS_CANNOT_SEND_PAYMENT_NO_BALANCE" = "Nem végrehajtható a fizetés, mert az egyenleged nem elérhető. Ellenőrizd a kapcsolatod és próbáld újra.";
 
 /* Error message indicating that payments cannot be sent because the feature is not currently available. */
-"SETTINGS_PAYMENTS_CANNOT_SEND_PAYMENTS_KILL_SWITCH" = "A fizetés funkció a Signalban a továbbiakban nem elérhető. Továbbra is átviheted egyenlegedet egy átváltó szolgáltatáson, de a továbbiakban már nem tudsz küldeni vagy fogadni fizetéseket, vagy feltölteni az egyenleged.adni fizetéseket vagy feltölteni az egyenleged.";
+"SETTINGS_PAYMENTS_CANNOT_SEND_PAYMENTS_KILL_SWITCH" = "A fizetés funkció a Tellomiban a továbbiakban nem elérhető. Továbbra is átviheted egyenlegedet egy átváltó szolgáltatáson, de a továbbiakban már nem tudsz küldeni vagy fogadni fizetéseket, vagy feltölteni az egyenleged.adni fizetéseket vagy feltölteni az egyenleged.";
 
 /* Error message indicating that you cannot transfer into your payments wallet because the feature is not currently available. */
-"SETTINGS_PAYMENTS_CANNOT_TRANSFER_IN_KILL_SWITCH" = "A Fizetések funkció a Signalban a továbbiakban nem elérhető. Átviheted az egyenleged egy átváltó tőzsdére, de a továbbiakban már nem tudsz küldeni vagy fogadni fizetéseket vagy feltölteni az egyenleged.";
+"SETTINGS_PAYMENTS_CANNOT_TRANSFER_IN_KILL_SWITCH" = "A Fizetések funkció a Tellomiban a továbbiakban nem elérhető. Átviheted az egyenleged egy átváltó tőzsdére, de a továbbiakban már nem tudsz küldeni vagy fogadni fizetéseket vagy feltölteni az egyenleged.";
 
 /* Message for the 'currency conversions info' alert. */
 "SETTINGS_PAYMENTS_CURRENCY_CONVERSIONS_INFO_ALERT_MESSAGE" = "A pénznem váltás csak becslés és elképzelhető, hogy nem pontos.";
@@ -9215,10 +9215,10 @@
 "SETTINGS_PAYMENTS_DEACTIVATE_TITLE" = "Fizetések deaktiválása";
 
 /* Explanation of the 'deactivate payments with balance' process in the 'deactivate payments' settings. */
-"SETTINGS_PAYMENTS_DEACTIVATE_WITH_BALANCE_EXPLANATION" = "Azt javasoljuk, hogy a fizetések deaktiválása előtt utald át a pénzösszegeidet egy másik tárca címére. Ha úgy döntesz, hogy most nem utalod át a pénzösszegeket, azok a Signalhoz kapcsolt tárcádban maradnak, ha újraaktiválod a fizetéseket.";
+"SETTINGS_PAYMENTS_DEACTIVATE_WITH_BALANCE_EXPLANATION" = "Azt javasoljuk, hogy a fizetések deaktiválása előtt utald át a pénzösszegeidet egy másik tárca címére. Ha úgy döntesz, hogy most nem utalod át a pénzösszegeket, azok a Tellomihoz kapcsolt tárcádban maradnak, ha újraaktiválod a fizetéseket.";
 
 /* Description for the 'deactivate payments confirmation' UI in the payment settings. */
-"SETTINGS_PAYMENTS_DEACTIVATE_WITHOUT_TRANSFER_CONFIRM_DESCRIPTION" = "Az egyenleged a Signalhoz kapcsolt tárcádban marad, ha úgy döntesz, hogy újraaktiválod a fizetéseket.";
+"SETTINGS_PAYMENTS_DEACTIVATE_WITHOUT_TRANSFER_CONFIRM_DESCRIPTION" = "Az egyenleged a Tellomihoz kapcsolt tárcádban marad, ha úgy döntesz, hogy újraaktiválod a fizetéseket.";
 
 /* Title for the 'deactivate payments confirmation' UI in the payment settings. */
 "SETTINGS_PAYMENTS_DEACTIVATE_WITHOUT_TRANSFER_CONFIRM_TITLE" = "Deaktiválás átutalás nélkül?";
@@ -9245,7 +9245,7 @@
 "SETTINGS_PAYMENTS_HELP_CARD_ABOUT_MOBILECOIN_TITLE" = "A MobileCoin valutáról";
 
 /* Description for the 'Adding to your wallet' help card in the payments settings. */
-"SETTINGS_PAYMENTS_HELP_CARD_ADDING_TO_YOUR_WALLET_DESCRIPTION" = "Alaptőkét úgy adhatsz a Signalhoz, hogy MobileCoint küldesz a pénztárca címedre.";
+"SETTINGS_PAYMENTS_HELP_CARD_ADDING_TO_YOUR_WALLET_DESCRIPTION" = "Alaptőkét úgy adhatsz a Tellomihoz, hogy MobileCoint küldesz a pénztárca címedre.";
 
 /* Title for the 'Adding to your wallet' help card in the payments settings. */
 "SETTINGS_PAYMENTS_HELP_CARD_ADDING_TO_YOUR_WALLET_TITLE" = "Alaptőke hozzáadása";
@@ -9305,7 +9305,7 @@
 "SETTINGS_PAYMENTS_OPT_IN_ACTIVATED_TOAST" = "Fizetések aktiválva.";
 
 /* Message for the 'payments opt-in' view in the app settings. */
-"SETTINGS_PAYMENTS_OPT_IN_MESSAGE" = "A Signalt m'r használhatod MobileCoin - egy új adatvédelmi fókuszú digitális pénznem - küldésére és fogadására is. Aktiváld a kezdéshez.";
+"SETTINGS_PAYMENTS_OPT_IN_MESSAGE" = "A Tellomit m'r használhatod MobileCoin - egy új adatvédelmi fókuszú digitális pénznem - küldésére és fogadására is. Aktiváld a kezdéshez.";
 
 /* Label for 'activate' button in the 'payments opt-in' view in the app settings. */
 "SETTINGS_PAYMENTS_OPT_IN_REACTIVATE_BUTTON" = "Fizetések újraaktiválása";
@@ -9323,7 +9323,7 @@
 "SETTINGS_PAYMENTS_PASSPHRASE_DISCARD_CONFIRMATION_TITLE" = "Folytatás mentés nélkül?";
 
 /* Explanation of the 'payments passphrase' in the 'view payments passphrase' settings. */
-"SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION" = "Az egyenleged automatikusan helyreáll, mikor újratelepíted a Signalt, mikor megadod a Tellomi PIN kódodat. Egyenleged egy helyreállítási kifejezéssel is helyreállíthatod, ami egy 24 szavas, egyedi mondat. Írd le és tárold biztonságos helyen.";
+"SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION" = "Az egyenleged automatikusan helyreáll, mikor újratelepíted a Tellomit, mikor megadod a Tellomi PIN kódodat. Egyenleged egy helyreállítási kifejezéssel is helyreállíthatod, ami egy 24 szavas, egyedi mondat. Írd le és tárold biztonságos helyen.";
 
 /* Explanation of the 'payments passphrase' when there is a balance. */
 "SETTINGS_PAYMENTS_PASSPHRASE_EXPLANATION_FROM_BALANCE" = "Van egyenleged! Itt az ideje, hogy elmentsd a helyreállítási kifejezésed—egy 24 szavas kulcsszót, amellyel helyreállíthatod az egyenleged.";
@@ -9647,7 +9647,7 @@
 "SETTINGS_PHONE_NUMBER_DISCOVERABILITY_DISABLED_TOAST" = "A beállítás módosításához állítsd a „Ki láthatja a telefonszámomat” „Senki” lehetőségre.";
 
 /* The description for a sheet asking for confirmation that the user wants to set their phone number discoverability to 'nobody'. */
-"SETTINGS_PHONE_NUMBER_DISCOVERABILITY_NOBODY_CONFIRMATION_DESCRIPTION" = "A „Ki találhat meg a számom alapján” beállítása „Senki” opcióra nehezebbé teszi az emberek számára, hogy megtaláljanak téged a Signalon.";
+"SETTINGS_PHONE_NUMBER_DISCOVERABILITY_NOBODY_CONFIRMATION_DESCRIPTION" = "A „Ki találhat meg a számom alapján” beállítása „Senki” opcióra nehezebbé teszi az emberek számára, hogy megtaláljanak téged a Tellomin.";
 
 /* The title for a sheet asking for confirmation that the user wants to set their phone number discoverability to 'nobody'. */
 "SETTINGS_PHONE_NUMBER_DISCOVERABILITY_NOBODY_CONFIRMATION_TITLE" = "Biztos vagy benne?";
@@ -9656,7 +9656,7 @@
 "SETTINGS_PHONE_NUMBER_DISCOVERABILITY_TITLE" = "Ki találhat meg a telefonszámom szerint";
 
 /* Description label for Phone Number Privacy */
-"SETTINGS_PHONE_NUMBER_PRIVACY_DESCRIPTION_LABEL" = "Válaszd ki, hogy ki láthatja a telefonszámod, és ki léphet kapcsolatba veled a Signalon keresztül.";
+"SETTINGS_PHONE_NUMBER_PRIVACY_DESCRIPTION_LABEL" = "Válaszd ki, hogy ki láthatja a telefonszámod, és ki léphet kapcsolatba veled a Tellomin keresztül.";
 
 /* The title for phone number privacy settings. */
 "SETTINGS_PHONE_NUMBER_PRIVACY_TITLE" = "Telefonszám";
@@ -9857,13 +9857,13 @@
 "SHARE_EXTENSION_LOADING" = "Betöltés…";
 
 /* Message for an error shown when the user tries to share to Signal but the device is too low on storage space. */
-"SHARE_EXTENSION_LOW_STORAGE_SPACE_MESSAGE" = "Nem oszthatsz meg a Signalban, mert kevés a tárhely az eszközödön. Szabadíts fel helyet a Beállításokban a tárhely kezelésével, majd próbáld újra!";
+"SHARE_EXTENSION_LOW_STORAGE_SPACE_MESSAGE" = "Nem oszthatsz meg a Tellomiban, mert kevés a tárhely az eszközödön. Szabadíts fel helyet a Beállításokban a tárhely kezelésével, majd próbáld újra!";
 
 /* Title for an error shown when the user tries to share to Signal but the device is too low on storage space. */
 "SHARE_EXTENSION_LOW_STORAGE_SPACE_TITLE" = "Kevés a tárhely";
 
 /* Message indicating that the share extension cannot be used until the user has registered in the main app. */
-"SHARE_EXTENSION_NOT_REGISTERED_MESSAGE" = "Indítsd el a Signalt a regisztrálás elvégzéséhez.";
+"SHARE_EXTENSION_NOT_REGISTERED_MESSAGE" = "Indítsd el a Tellomit a regisztrálás elvégzéséhez.";
 
 /* Title indicating that the share extension cannot be used until the user has registered in the main app. */
 "SHARE_EXTENSION_NOT_REGISTERED_TITLE" = "Nincs regisztrálva";
@@ -9896,7 +9896,7 @@
 "SIGNAL_PROXY" = "Tellomi Proxy szerver";
 
 /* body sent to contacts when inviting to Install Signal */
-"SMS_INVITE_BODY" = "Szia, használd te is a Signalt! Innen telepítheted:";
+"SMS_INVITE_BODY" = "Szia, használd te is a Tellomit! Innen telepítheted:";
 
 /* An error message generically indicating that something went wrong. */
 "SOMETHING_WENT_WRONG_ERROR" = "Probléma merült fel!";
@@ -10532,7 +10532,7 @@
 "TRANSFER_COMPLETE_SHEET_TITLE" = "Átvitel kész";
 
 /* Notification prompting the user to relaunch Signal after a device transfer completed. */
-"TRANSFER_RELAUNCH_NOTIFICATION" = "Üzenet küldéséhez nyisd meg a Signalt";
+"TRANSFER_RELAUNCH_NOTIFICATION" = "Üzenet küldéséhez nyisd meg a Tellomit";
 
 /* Label for a button that says 'Try Again'. */
 "TRY_AGAIN_BUTTON_TITLE" = "Újrapróbálkozás";
@@ -10604,7 +10604,7 @@
 "UNLINK_CONFIRMATION_ALERT_TITLE" = "Társítás megszüntetése ezzel: \"%1$@\"?";
 
 /* Label warning the user that they have been unlinked from their primary device. */
-"UNLINKED_WARNING" = "Az eszköz társítása megszűnt. Az üzenetküldés és -fogadás folytatásához társítsd újra a Signalt a telefonoddal.";
+"UNLINKED_WARNING" = "Az eszköz társítása megszűnt. Az üzenetküldés és -fogadás folytatásához társítsd újra a Tellomit a telefonoddal.";
 
 /* If this device has become unlinked from their primary device, they'll see a warning. This is the call to action on that warning. */
 "UNLINKED_WARNING_ACTION_TITLE" = "Eszköz újbóli társítása";
@@ -10631,7 +10631,7 @@
 "UNSUPPORTED_FEATURE_ERROR" = "Készüléked nem támogatja ezt a funkciót.";
 
 /* Description for the unverified safety number change. Embeds {name of contact with identity change} */
-"UNVERIFIED_SAFETY_NUMBER_CHANGE_DESCRIPTION_FORMAT" = "Biztonsági azonosítód %1$@ kontaktoddal megváltozott, valószínűleg újratelepítette a Signalt, vagy új eszközre váltott. Opcionálisan koppinthatsz az új azonosító ellenőrzöttnek jelöléséhez.";
+"UNVERIFIED_SAFETY_NUMBER_CHANGE_DESCRIPTION_FORMAT" = "Biztonsági azonosítód %1$@ kontaktoddal megváltozott, valószínűleg újratelepítette a Tellomit, vagy új eszközre váltott. Opcionálisan koppinthatsz az új azonosító ellenőrzöttnek jelöléséhez.";
 
 /* Action to verify a safety number after it has changed */
 "UNVERIFIED_SAFETY_NUMBER_VERIFY_ACTION" = "Hitelesítés";
@@ -10649,7 +10649,7 @@
 "USE_PROXY_BUTTON" = "Proxy használata";
 
 /* Explanation of when you should use a signal proxy */
-"USE_PROXY_EXPLANATION" = "Csak abban az esetben használj proxy-t, ha nem lehet a Signalhoz csatlakozni se mobilnet, se Wi-Fi használatával.";
+"USE_PROXY_EXPLANATION" = "Csak abban az esetben használj proxy-t, ha nem lehet a Tellomihoz csatlakozni se mobilnet, se Wi-Fi használatával.";
 
 /* Description of username links and QR codes on the username education sheet */
 "USERNAME_EDUCATION_LINK_DESCRIPTION" = "A felhasználónevek egyedi QR-kóddal és hivatkozással rendelkeznek, amelyet megoszthatsz a barátaiddal, hogy gyorsan cseveghess velük.";
@@ -10748,7 +10748,7 @@
 "USERNAME_LOOKUP_NOT_FOUND_TITLE" = "Nincs ilyen felhasználó";
 
 /* Instructions that appear below the username QR code on a sharable exported image. */
-"USERNAME_QR_CODE_EXPORT_INSTRUCTIONS" = "Olvasd be ezt a QR-kódot a telefonoddal és csevegj velem a Signalban.";
+"USERNAME_QR_CODE_EXPORT_INSTRUCTIONS" = "Olvasd be ezt a QR-kódot a telefonoddal és csevegj velem a Tellomiban.";
 
 /* A message in a toast informing the user their username, link, and QR code have successfully been reset. Embeds {{ the user's new username }}. */
 "USERNAME_RESET_SUCCESSFUL_TOAST" = "A QR-kódod és hivatkozásod visszaállításra került, a felhasználóneved pedig %1$@";
@@ -10799,7 +10799,7 @@
 "VERIFICATION_CODE_REQUESTED_HERO_BODY_FIRST" = "Egy megerősítő kód lekérésre került";
 
 /* Second part of body for a hero sheet informing the user a verification code was requested. */
-"VERIFICATION_CODE_REQUESTED_HERO_BODY_SECOND" = "Ne add meg senkinek a megerősítő kódodat. A Tellomi soha nem fog üzenni neked emiatt. Ha üzenetet kaptál valakitől, aki a Signalnak adta ki magát, az átverés.\nHa te magad kérted a kódot, nyugodtan figyelmen kívül hagyhatod ezt az üzenetet.";
+"VERIFICATION_CODE_REQUESTED_HERO_BODY_SECOND" = "Ne add meg senkinek a megerősítő kódodat. A Tellomi soha nem fog üzenni neked emiatt. Ha üzenetet kaptál valakitől, aki a Tellominak adta ki magát, az átverés.\nHa te magad kérted a kódot, nyugodtan figyelmen kívül hagyhatod ezt az üzenetet.";
 
 /* Format for info message indicating that the verification state was unverified on this device. Embeds {{user's name or phone number}}. */
 "VERIFICATION_STATE_CHANGE_FORMAT_NOT_VERIFIED_LOCAL" = "%1$@ ismerősödet Nem Ellenőrzöttnek jelölted.";

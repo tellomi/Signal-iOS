@@ -1,7 +1,7 @@
 NSAppleMusicUsageDescription = "Tellomi muss Apple Music verwenden, um Medienanhänge wiederzugeben.";
 NSCameraUsageDescription = "Tellomi verwendet deine Kamera für Fotoaufnahmen und Videoanrufe.";
 NSContactsUsageDescription = "Tellomi verwendet deine Systemkontakte, um andere Personen zu finden, die du kennst. Deine Kontakte werden nicht auf dem Server gespeichert.";
-NSFaceIDUsageDescription = "Signals Bildschirmsperre verwendet Face ID.";
+NSFaceIDUsageDescription = "Tellomis Bildschirmsperre verwendet Face ID.";
 NSLocationWhenInUseUsageDescription = "Tellomi benötigt Zugriff auf deine Standortdaten, um deinen Standort teilen zu können.";
 NSMicrophoneUsageDescription = "Für Anrufe und zum Aufnehmen von Sprachnachrichten benötigt Tellomi Zugriff auf dein Mikrofon.";
 NSPhotoLibraryAddUsageDescription = "Tellomi speichert Fotos in deiner Fotogalerie.";

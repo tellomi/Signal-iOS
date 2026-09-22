@@ -674,7 +674,7 @@
 "BACKUP_ONBOARDING_INTRO_NOT_NOW_TOAST" = "Du kan aktivere sikkerhetskopiering i innstillingene.";
 
 /* Subtitle for a view introducing Backups during an onboarding flow. */
-"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Sikkerhetskopier meldingene og mediefilene dine med Signals sikre ende-til-ende-krypterte lagringstjeneste. Behold alt innholdet ditt når du må bytte mobil eller installere Tellomi på nytt.";
+"BACKUP_ONBOARDING_INTRO_SUBTITLE" = "Sikkerhetskopier meldingene og mediefilene dine med Tellomis sikre ende-til-ende-krypterte lagringstjeneste. Behold alt innholdet ditt når du må bytte mobil eller installere Tellomi på nytt.";
 
 /* Title for a view introducing Backups during an onboarding flow. */
 "BACKUP_ONBOARDING_INTRO_TITLE" = "Sikre sikkerhetskopier på Tellomi";
@@ -770,7 +770,7 @@
 "BACKUP_SAVE_KEY_SAVE_TO_PW_MGR_BUTTON_TITLE" = "Lagre i passordverktøyet ditt";
 
 /* Message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
-"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "Automatisk sikkerhetskopiering er deaktivert. For å aktivere automatisk sikkerhetskopiering må du endre Signals tillatelser.";
+"BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE" = "Automatisk sikkerhetskopiering er deaktivert. For å aktivere automatisk sikkerhetskopiering må du endre Tellomis tillatelser.";
 
 /* Add-on to a message describing that the Background App Refresh permission is disabled for Signal. \"Background App Refresh\" should be localized the same way it is in iOS Settings app permissions. */
 "BACKUP_SETTINGS_BACKGROUND_APP_REFRESH_DISABLED_MESSAGE_UPDATE_NOW" = "Oppdater nå";
@@ -896,16 +896,16 @@
 "BACKUP_SETTINGS_BACKUP_PLAN_PAID_RENEWAL_FORMAT" = "Fornyes %1$@";
 
 /* Footer for a menu section related to settings for when Backups are disabled. */
-"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Sikkerhetskopiering er slått av, og dataene ble slettet fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLED_SECTION_FOOTER" = "Sikkerhetskopiering er slått av, og dataene ble slettet fra Tellomis sikre lagringstjeneste.";
 
 /* Description for a progress view tracking media being downloaded in service of disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Sikkerhetskopiering er slått av. Alle mediefilene som ikke er lagret på denne enheten, lastes ned nå og slettes så fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_DOWNLOADING_MEDIA_PROGRESS_VIEW_DESCRIPTION" = "Sikkerhetskopiering er slått av. Alle mediefilene som ikke er lagret på denne enheten, lastes ned nå og slettes så fra Tellomis sikre lagringstjeneste.";
 
 /* Message for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_MESSAGE" = "Det har oppstått en feil. Ta kontakt med brukerstøtten vår.";
 
 /* Header for a menu section related to settings for when disabling Backups encountered an unexpected error. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Det oppsto en feil under forsøket på å slette dataene dine fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_SECTION_HEADER" = "Det oppsto en feil under forsøket på å slette dataene dine fra Tellomis sikre lagringstjeneste.";
 
 /* Title for a view indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_BACKUPS_DISABLING_GENERIC_ERROR_TITLE" = "Sikkerhetskopien kunne ikke slettes";
@@ -914,7 +914,7 @@
 "BACKUP_SETTINGS_BACKUPS_DISABLING_PROGRESS_VIEW_DESCRIPTION" = "Sletter sikkerhetskopi …";
 
 /* Header for a menu section related to disabling Backups. */
-"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Sikkerhetskopiering er slått av, og dataene blir slettet fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_BACKUPS_DISABLING_SECTION_HEADER" = "Sikkerhetskopiering er slått av, og dataene blir slettet fra Tellomis sikre lagringstjeneste.";
 
 /* Header for a menu section related to settings for when Backups are enabled. */
 "BACKUP_SETTINGS_BACKUPS_ENABLED_SECTION_HEADER" = "Info om sikkerhetskopiering";
@@ -968,7 +968,7 @@
 "BACKUP_SETTINGS_DISABLING_DOWNLOADS_STARTED_ACTION_SHEET_TITLE" = "Nedlasting av sikkerhetskopi";
 
 /* Message shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
-"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Det oppsto en feil under forsøket på å slette dataene dine fra Signals sikre lagringstjeneste.";
+"BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_MESSAGE" = "Det oppsto en feil under forsøket på å slette dataene dine fra Tellomis sikre lagringstjeneste.";
 
 /* Title shown in an action sheet indicating we failed to delete the user's Backup due to an unexpected error. */
 "BACKUP_SETTINGS_DISABLING_ERROR_GENERIC_ERROR_ACTION_SHEET_TITLE" = "Sikkerhetskopien kunne ikke slettes";
@@ -1067,7 +1067,7 @@
 "BACKUP_SETTINGS_LANDING_SET_UP_BUTTON" = "Velg brukernavn";
 
 /* Description of Signal Secure Backups on the Backups settings landing page. */
-"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automatisk sikkerhetskopiering med Signals sikre, ende-til-ende-krypterte lagringstjeneste.";
+"BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_BODY" = "Automatisk sikkerhetskopiering med Tellomis sikre, ende-til-ende-krypterte lagringstjeneste.";
 
 /* Title for the Signal Secure Backups cell on the Backups settings landing page. */
 "BACKUP_SETTINGS_LANDING_SIGNAL_BACKUPS_TITLE" = "Sikre sikkerhetskopier";
@@ -1082,7 +1082,7 @@
 "BACKUP_SETTINGS_LINKED_DEVICE_MANAGE_ON_PRIMARY_FOOTER_PAID" = "Du kan administrere eller si opp abonnementet ditt på sikkerhetskopiering på hovedenheten din.";
 
 /* Body text on the linked-device Backups screen, shown when Backups aren't set up, explaining the feature and that it can be enabled on the user's primary device. */
-"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automatisk sikkerhetskopiering med Signals sikre, ende-til-ende-krypterte lagringstjeneste. Du kan starte dette på hovedenheten din.";
+"BACKUP_SETTINGS_LINKED_DEVICE_NO_BACKUP_FOOTER" = "Automatisk sikkerhetskopiering med Tellomis sikre, ende-til-ende-krypterte lagringstjeneste. Du kan starte dette på hovedenheten din.";
 
 /* Message on the linked-device Backups screen, shown when the user's paid subscription can't be found, prompting them to renew. */
 "BACKUP_SETTINGS_LINKED_DEVICE_SUBSCRIPTION_NOT_FOUND" = "Abonnementet ble ikke funnet. Forny abonnementet for å fortsette å bruke sikre sikkerhetskopier på Tellomi.";
@@ -8477,7 +8477,7 @@
 "SAFETY_TIPS_SIGNAL_CHATS_BODY" = "Tellomi kommer aldri til å be deg om å sende registreringskoden, PIN-koden eller sikkerhetskoden din. Ikke svar på meldinger fra kontoer som utgir seg for å være Tellomi.";
 
 /* Message body describing the signal chats tip in the 'view more' flow. */
-"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "Tellomi kommer aldri til å be deg om å sende registreringskoden, PIN-koden eller sikkerhetskoden din. Ikke svar på meldinger som tilsynelatende kommer fra Tellomi eller Signals brukerstøtte. Svindlere kan lage falske navn for å hacke kontoen din.";
+"SAFETY_TIPS_SIGNAL_CHATS_BODY_VIEW_MORE" = "Tellomi kommer aldri til å be deg om å sende registreringskoden, PIN-koden eller sikkerhetskoden din. Ikke svar på meldinger som tilsynelatende kommer fra Tellomi eller Tellomis brukerstøtte. Svindlere kan lage falske navn for å hacke kontoen din.";
 
 /* Message title describing the signal chats tip. */
 "SAFETY_TIPS_SIGNAL_CHATS_TITLE" = "Ikke svar på meldinger fra Tellomi";
@@ -9893,7 +9893,7 @@
 "SIGNAL_CALL" = "Tellomi-samtale";
 
 /* Title for the sheet presented when user taps on Signal Proxy link in chat. */
-"SIGNAL_PROXY" = "Signals proxy-server";
+"SIGNAL_PROXY" = "Tellomis proxy-server";
 
 /* body sent to contacts when inviting to Install Signal */
 "SMS_INVITE_BODY" = "Jeg inviterer deg til å installere Tellomi! Her er lenken:";
