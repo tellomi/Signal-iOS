@@ -3,6 +3,8 @@
 
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
 "ABOUT_SECTION_FOOTER" = "Signal Messenger 版權所有\n根據 AGPLv3 授權\nSignal 是一個非營利組織";
+/* Tellomi: copyright + license only; upstream also claimed 501c3 nonprofit status, which is not true of Tellomi. */
+"ABOUT_SECTION_FOOTER_TELLOMI" = "Signal Messenger 版權所有\nTellomi 擁有修改部分版權\n根據 AGPLv3 授權";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "有關 Tellomi";
