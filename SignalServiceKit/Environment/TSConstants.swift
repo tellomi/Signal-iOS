@@ -43,7 +43,9 @@ public class TSConstants {
     private init() {}
 
     public static let legalTermsUrl = URL(string: "https://tellomi.app/legal/")!
-    public static let donateUrl = URL(string: "https://signal.org/donate/")!
+    // 上游指 Signal 的捐赠页——留着就是让我们的用户去给 Signal 捐钱。Android 早就是
+    // values/strings.xml 的 donate_url = https://tellomi.app/，两端取同一个值。
+    public static let donateUrl = URL(string: "https://tellomi.app/")!
     public static let appStoreUrl = URL(string: "https://itunes.apple.com/us/app/signal-private-messenger/id874139669?mt=8")!
 
     public static var mainServiceURL: String { shared.mainServiceURL }
