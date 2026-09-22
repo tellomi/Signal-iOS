@@ -221,13 +221,13 @@
 "APP_EXPIRED_BOTTOM_UPDATE" = "עדכן/י עכשיו";
 
 /* Default message for the 'app launch failed' alert. */
-"APP_LAUNCH_FAILURE_ALERT_MESSAGE" = "Signal אינו יכול להיות מופעל. אנא שלח יומן ניפוי תקלים אל support@signal.org כך שנוכל לפתור סוגייה זו.";
+"APP_LAUNCH_FAILURE_ALERT_MESSAGE" = "Tellomi אינו יכול להיות מופעל. אנא שלח יומן ניפוי תקלים אל support@tellomi.app כך שנוכל לפתור סוגייה זו.";
 
 /* Button to try launching the app even though the last launch failed */
 "APP_LAUNCH_FAILURE_CONTINUE" = "פתח את Tellomi במקום";
 
 /* Message for an error indicating that the app couldn't launch because some unexpected error happened with the user's registration status. */
-"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_MESSAGE" = "מומלץ לשלוח יומן ניפוי באגים ל–support@signal.org כדי שנוכל לטפל בבעיה.";
+"APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_MESSAGE" = "מומלץ לשלוח יומן ניפוי באגים ל–support@tellomi.app כדי שנוכל לטפל בבעיה.";
 
 /* Title for an error indicating that the app couldn't launch because some unexpected error happened with the user's registration status. */
 "APP_LAUNCH_FAILURE_CORRUPT_REGISTRATION_TITLE" = "פתיחת Tellomi נכשלה";
@@ -254,7 +254,7 @@
 "APP_LAUNCH_FAILURE_INVALID_DATABASE_VERSION_TITLE" = "גרסת מסד נתונים בלתי ידועה.";
 
 /* Error indicating that the app crashed during the previous launch. */
-"APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_MESSAGE" = "אל Signal הייתה בעיה בזמן ניסיון לפתוח. אנא שלח יומן ניפוי תקלים אל support@signal.org כדי לעזור לפתור את הסוגייה הזו.";
+"APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_MESSAGE" = "אל Tellomi הייתה בעיה בזמן ניסיון לפתוח. אנא שלח יומן ניפוי תקלים אל support@tellomi.app כדי לעזור לפתור את הסוגייה הזו.";
 
 /* Error indicating that the app crashed during the previous launch. */
 "APP_LAUNCH_FAILURE_LAST_LAUNCH_CRASHED_TITLE" = "לא היה ניתן לפתוח את Tellomi";
@@ -266,7 +266,7 @@
 "APP_LAUNCH_FAILURE_NOT_ENOUGH_STORAGE_SPACE_TITLE" = "אין מספיק מקום אחסון";
 
 /* Error indicating that the app could not restore transferred data. */
-"APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "לא הצלחנו לשחזר את הנתונים שהועברו מהמכשיר הישן שלכם. אנא שלחו יומן ניפוי באגים ל–support@signal.org כדי שנוכל לפתור בעיה זו. אם תתקינו מחדש את Signal, היסטוריית ההודעות שלכם תאבד.";
+"APP_LAUNCH_FAILURE_RESTORE_FAILED_MESSAGE" = "לא הצלחנו לשחזר את הנתונים שהועברו מהמכשיר הישן שלכם. אנא שלחו יומן ניפוי באגים ל–support@tellomi.app כדי שנוכל לפתור בעיה זו. אם תתקינו מחדש את Tellomi, היסטוריית ההודעות שלכם תאבד.";
 
 /* Error indicating that the app could not restore transferred data. */
 "APP_LAUNCH_FAILURE_RESTORE_FAILED_TITLE" = "לא היה ניתן להשלים את ההעברה";
@@ -3740,7 +3740,7 @@
 "EMAIL_INVITE_SUBJECT" = "בוא נחליף אל Tellomi";
 
 /* Description for the fallback support sheet if user cannot send email */
-"EMAIL_SIGNAL_MESSAGE" = "המכשיר שלך אינו מתוצר לשלוח דוא״ל. כדי לשלוח בקשת תמיכה, הגדר דוא״ל במכשיר שלך או שלח דוא״ל אל support@signal.org";
+"EMAIL_SIGNAL_MESSAGE" = "המכשיר שלך אינו מתוצר לשלוח דוא״ל. כדי לשלוח בקשת תמיכה, הגדר דוא״ל במכשיר שלך או שלח דוא״ל אל support@tellomi.app";
 
 /* Title for the fallback support sheet if user cannot send email */
 "EMAIL_SIGNAL_TITLE" = "דוא״ל בלתי זמין";
@@ -3920,7 +3920,7 @@
 "ERROR_NETWORK_FAILURE" = "שגיאת רשת";
 
 /* Format string for an error alert notification message. Embeds {{ error string }} */
-"ERROR_NOTIFICATION_MESSAGE_FORMAT" = "עזור לנו לשפר את Signal ע״י דיווח על שגיאה זו ביחד עם יומני ניפוי תקלים מהמכשיר שלך אל support@signal.org; %1$@";
+"ERROR_NOTIFICATION_MESSAGE_FORMAT" = "עזור לנו לשפר את Tellomi ע״י דיווח על שגיאה זו ביחד עם יומני ניפוי תקלים מהמכשיר שלך אל support@tellomi.app; %1$@";
 
 /* Format string for an error alert notification title. */
 "ERROR_NOTIFICATION_TITLE" = "Tellomi בטא: שגיאה התרחשה";
@@ -10283,7 +10283,7 @@
 "SUPPORT_EMAIL_DEFAULT_DESCRIPTION" = "ספר לנו על הסוגייה: ";
 
 /* Message for alert dialog presented when a support email failed to send */
-"SUPPORT_EMAIL_ERROR_ALERT_DESCRIPTION" = "אנא שלח בדוא״ל את בקשת התמיכה שלך אל support@signal.org";
+"SUPPORT_EMAIL_ERROR_ALERT_DESCRIPTION" = "אנא שלח בדוא״ל את בקשת התמיכה שלך אל support@tellomi.app";
 
 /* Localized label for support request email filter string. Embeds {{filter text}}. */
 "SUPPORT_EMAIL_FILTER_LABEL_FORMAT" = "מסנן: %1$@";
