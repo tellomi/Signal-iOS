@@ -637,7 +637,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 )
 
                 let backupDirectories = contents
-                    .filter { $0.lastPathComponent.hasPrefix(LocalFileBackupManager.FileStructure.backupDirectoryPrefix) }
+                    .filter { LocalFileBackupManager.FileStructure.isBackupDirectoryName($0.lastPathComponent) }
                     .sorted { $0.lastPathComponent > $1.lastPathComponent }
 
                 guard !backupDirectories.isEmpty else {

@@ -20,12 +20,30 @@ public enum LocalFileBackupError: Error {
 /// Actual archiving of the backup is handled by BackupArchiveManager.
 public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
     public enum FileStructure: String {
-        case rootDirectory = "SignalBackups"
+        // Tellomi（#984）：这两个名字**用户看得见**——本地备份就是在用户自己挑的目录下建
+        // TellomiBackups/，里面是 tellomi-backup-2026-09-22-…/；设置里的「文件位置」还会
+        // 把根目录名直接显示出来（LocalFileBackupsSettingsViewController）。
+        //
+        // 现在改是免费的（还没上线，没有真实用户的备份）；上线之后再改会让用户已有的备份找不到。
+        // 写入一律用新名字；**读取新旧都认**（legacy*），自己机器上已有的测试备份不会失联。
+        case rootDirectory = "TellomiBackups"
+        case legacyRootDirectory = "SignalBackups"
         case attachmentDirectory = "files"
         case backupFile = "main"
         case metadataFile = "metadata"
 
-        public static let backupDirectoryPrefix = "signal-backup-"
+        public static let backupDirectoryPrefix = "tellomi-backup-"
+        public static let legacyBackupDirectoryPrefix = "signal-backup-"
+
+        /// 目录名是不是我们的备份根目录（新旧都算）。
+        public static func isRootDirectoryName(_ name: String) -> Bool {
+            return name == rootDirectory.rawValue || name == legacyRootDirectory.rawValue
+        }
+
+        /// 目录名是不是一份快照（新旧前缀都算）。
+        public static func isBackupDirectoryName(_ name: String) -> Bool {
+            return name.hasPrefix(backupDirectoryPrefix) || name.hasPrefix(legacyBackupDirectoryPrefix)
+        }
 
         static let dateFormatter: DateFormatter = {
             let formatter = DateFormatter()
@@ -42,8 +60,9 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
         }
 
         public static func date(fromBackupDirectoryName name: String) -> Date? {
-            guard name.hasPrefix(backupDirectoryPrefix) else { return nil }
-            let dateString = String(name.dropFirst(backupDirectoryPrefix.count))
+            guard isBackupDirectoryName(name) else { return nil }
+            let prefix = name.hasPrefix(backupDirectoryPrefix) ? backupDirectoryPrefix : legacyBackupDirectoryPrefix
+            let dateString = String(name.dropFirst(prefix.count))
             return dateFormatter.date(from: dateString)
         }
     }
@@ -112,8 +131,8 @@ public class LocalFileBackupManager: NSObject, UIDocumentPickerDelegate {
     /*
      ---- DIRECTORY STRUCTURE ----
 
-     SignalBackups/
-     ├─ signal-backup-{year}-{month}-{day}-{hr}-{min}-{sec}/
+     TellomiBackups/
+     ├─ tellomi-backup-{year}-{month}-{day}-{hr}-{min}-{sec}/
           ├─ metadata
           ├─ main
           └─ files

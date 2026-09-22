@@ -382,14 +382,14 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
         do {
             // First, if the user picked the directory above SignalBackups,
             // thats fine, just find it and update the url.
-            if url.lastPathComponent != "SignalBackups" {
+            if !LocalFileBackupManager.FileStructure.isRootDirectoryName(url.lastPathComponent) {
                 contents = try FileManager.default.contentsOfDirectory(
                     at: url,
                     includingPropertiesForKeys: [.isDirectoryKey],
                 )
 
                 let signalBackupsDir = contents
-                    .filter { $0.lastPathComponent == "SignalBackups" }
+                    .filter { LocalFileBackupManager.FileStructure.isRootDirectoryName($0.lastPathComponent) }
 
                 guard !signalBackupsDir.isEmpty else {
                     // Its not SignalBackups, and its not the directory above SignalBackups, show an error.
@@ -410,7 +410,7 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
             return
         }
         let backupDirectories = contents
-            .filter { $0.lastPathComponent.hasPrefix(LocalFileBackupManager.FileStructure.backupDirectoryPrefix) }
+            .filter { LocalFileBackupManager.FileStructure.isBackupDirectoryName($0.lastPathComponent) }
 
         let files = contents
             .filter { $0.lastPathComponent == "files" }
