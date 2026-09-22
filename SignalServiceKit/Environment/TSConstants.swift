@@ -291,7 +291,10 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let sfuTestURL = "https://chat.tellomi.app/callingService"   // 我们只有一套 SFU，没有单独的 test
     public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]
     // There's no separate updates endpoint for staging.
-    public let updatesURL = "https://updates.signal.org"
+    // v1 的更新源也要指我们自己的：emoji **搜索索引**走的是这条（EmojiPickerCollectionView
+    // 取 /dynamic/android/emoji/search/manifest.json 与 /static/android/emoji/search/<v>/<loc>.json），
+    // 而 #1017 当时只改了 updates2URL。镜像上这两条路径都在（实测 200，manifest 67 种语言）。
+    public let updatesURL = "https://updates.tellomi.app"
     // Tellomi：动态资源（emoji 数据与搜索索引 · 故事字体 · 通话 DRED 权重）改从我们自己的
     // 更新源取，上游那 163 项已经镜像到同路径（#1017，deploy/hk/mirror-mobile-resources.sh）。
     // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
