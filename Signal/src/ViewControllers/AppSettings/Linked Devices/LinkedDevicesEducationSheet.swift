@@ -51,9 +51,10 @@ class LinkedDevicesEducationSheet: StackSheetViewController {
         )
         stackView.addArrangedSubview(messagesBulletPoint)
 
-        let iPadDownloadLinkString = "signal.org/install"
-        let iPadDownloadURL = URL(string: "https://signal.org/install/")!
-        let desktopDownloadLinkString = "signal.org/download"
+        // 我们只有一个下载页，iPad 与桌面端都指它（Android 的 install_url 同）。
+        let iPadDownloadLinkString = "tellomi.app/download"
+        let iPadDownloadURL = URL(string: "https://tellomi.app/download/")!
+        let desktopDownloadLinkString = "tellomi.app/download"
         let desktopDownloadURL = URL(string: "https://tellomi.app/download/")!
 
         let downloadsString = String.nonPluralLocalizedStringWithFormat(
