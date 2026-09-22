@@ -98,7 +98,10 @@ public class ProfileBadge:
 
     // MARK: - Assets
 
-    static let remoteAssetPrefix = URL(string: "https://updates2.signal.org/static/badges/")!
+    // Tellomi（#1017）：不再打 Signal 的更新源。我们**不做捐赠徽章**（#912 已隐藏捐赠入口），
+    // 所以 taishi 的镜像里也没有 badges 这一档——这里指向我们自己的源，请求会 404 而不是
+    // 落到 Signal 那边。真出现 404 噪音就把这条取数整个关掉（徽章在我们的产品里没有入口）。
+    static let remoteAssetPrefix = URL(string: "\(TSConstants.updates2URL)/static/badges/")!
     static let localAssetPrefix = URL(fileURLWithPath: "ProfileBadges", isDirectory: true, relativeTo: OWSFileSystem.appSharedDataDirectoryURL())
 
     var remoteAssetUrl: URL {

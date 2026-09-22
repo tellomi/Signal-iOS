@@ -216,7 +216,10 @@ public class TSConstantsProduction: TSConstantsProtocol {
     public let challengeCaptchaURL = "https://signalcaptchas.org/challenge/generate.html"
     public let kUDTrustRoots = ["BXu6QIKVz5MA8gstzfOgRQGqyLqOwNKHL6INkv3IHWMF", "BUkY0I+9+oPgDCn4+Ac6Iu813yvqkDr/ga8DzLxFxuk6"]
     public let updatesURL = "https://updates.signal.org"
-    public let updates2URL = "https://updates2.signal.org"
+    // Tellomi：动态资源（emoji 数据与搜索索引 · 故事字体 · 通话 DRED 权重）改从我们自己的
+    // 更新源取，上游那 163 项已经镜像到同路径（#1017，deploy/hk/mirror-mobile-resources.sh）。
+    // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
+    public let updates2URL = "https://updates.tellomi.app"
 
     public let censorshipFReflectorHost = "reflector-signal.global.ssl.fastly.net"
     public let censorshipGReflectorHost = "reflector-nrgwuv7kwq-uc.a.run.app"
@@ -286,7 +289,10 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]
     // There's no separate updates endpoint for staging.
     public let updatesURL = "https://updates.signal.org"
-    public let updates2URL = "https://updates2.signal.org"
+    // Tellomi：动态资源（emoji 数据与搜索索引 · 故事字体 · 通话 DRED 权重）改从我们自己的
+    // 更新源取，上游那 163 项已经镜像到同路径（#1017，deploy/hk/mirror-mobile-resources.sh）。
+    // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
+    public let updates2URL = "https://updates.tellomi.app"
 
     public let censorshipFReflectorHost = "reflector-staging-signal.global.ssl.fastly.net"
     public let censorshipGReflectorHost = "reflector-nrgwuv7kwq-uc.a.run.app"
