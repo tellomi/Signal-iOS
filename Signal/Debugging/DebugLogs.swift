@@ -412,6 +412,11 @@ final class DebugLogs {
 
 private enum DebugLogUploader {
 
+    /// Tellomi：调试日志传我们自己的端点，不传上游的 debuglogs.org（#931）。
+    /// 协议与上游完全一致（GET 取预签名表单 → POST multipart），服务端见 deploy/hk/debuglogs.py。
+    /// 取表单的地址要带尾斜杠，nginx 的 `location /debuglogs/` 才匹配；结果 URL = base + "/" + key。
+    private static let baseUrlString = "https://chat.tellomi.app/debuglogs"
+
     static func uploadFile(fileUrl: URL, mimeType: String) async throws -> URL {
         do {
             let uploadParameters = try await getUploadParameters(fileUrl: fileUrl)
@@ -430,7 +435,7 @@ private enum DebugLogUploader {
     }
 
     private static func getUploadParameters(fileUrl: URL) async throws -> UploadParameters {
-        let url = URL(string: "https://debuglogs.org/")!
+        let url = URL(string: "\(baseUrlString)/")!
         let response = try await buildOWSURLSession().performRequest(url.absoluteString, method: .get, maxResponseSize: .max, ignoreAppExpiry: true)
         guard let params = response.responseBodyParamParser else {
             throw OWSAssertionError("Invalid response.")
@@ -459,6 +464,14 @@ private enum DebugLogUploader {
         }
         var orderedFieldMap = OrderedDictionary<String, String>()
         for (key, value) in fieldMap {
+            // Tellomi：Content-Type 一律由 uploadFile 自己按真实 mimeType 追加。
+            // 服务端如果也在 fields 里回一个（我们自建的 debuglogs 就回了），
+            // 这里再 append 一次会撞上 OrderedDictionary 的
+            // owsFail("Key already in dictionary: Content-Type") —— 那是 fatalError，
+            // 会让「提交调试日志」直接把 App 打死（#931 实测）。丢掉服务端那一份。
+            if key.caseInsensitiveCompare("Content-Type") == .orderedSame {
+                continue
+            }
             orderedFieldMap.append(key: key, value: value)
         }
         orderedFieldMap.replace(key: "key", value: uploadKey)
@@ -505,7 +518,7 @@ private enum DebugLogUploader {
             throw OWSAssertionError("Invalid status code: \(statusCode)")
         }
 
-        let urlString = "https://debuglogs.org/\(uploadParameters.uploadKey)"
+        let urlString = "\(baseUrlString)/\(uploadParameters.uploadKey)"
         guard let url = URL(string: urlString) else {
             throw OWSAssertionError("Invalid url: \(urlString)")
         }
