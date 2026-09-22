@@ -89,17 +89,28 @@ public enum TellomiLinks {
         return url
     }
 
+    /// 内部形状 `tell.cc/u#u/<username>`（落地页唤起 App 用）。
     private static let plainUsernamePattern = try! NSRegularExpression(
         pattern: "^(?:https|tellomi)://tell\\.cc/u/?#u/([a-zA-Z0-9_.]+)$",
         options: [.caseInsensitive],
     )
+    /// 裸形状 `tell.cc/<username>`（owner 要的、用户会去分享的 t.me 式；与 Android 对齐）。第一段路径不能是命名空间里的保留字。
+    private static let bareUsernamePattern = try! NSRegularExpression(
+        pattern: "^(?:https|tellomi)://tell\\.cc/([a-zA-Z0-9_]+\\.[0-9]+)/?(?:[?#].*)?$",
+        options: [.caseInsensitive],
+    )
 
-    /// `{https,tellomi}://tell.cc/u#u/<username>` 里的明文用户名（如 `ceshi.57`），不是这个形状返回 nil。
+    /// `{https,tellomi}://tell.cc/u#u/<username>` 或 `{https,tellomi}://tell.cc/<username>` 里的明文用户名（如 `ceshi.57`），
+    /// 不是这两种形状返回 nil。裸形状要求用户名带 `.<数字>` 判别位（Signal 用户名的固定形状），所以不会和 `/u` `/g` `/s` `/call` `/i` 撞。
     public static func plainUsername(in url: URL) -> String? {
         let s = url.absoluteString
-        guard let m = plainUsernamePattern.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
-              let r = Range(m.range(at: 1), in: s) else { return nil }
-        return String(s[r])
+        for pattern in [plainUsernamePattern, bareUsernamePattern] {
+            if let m = pattern.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
+               let r = Range(m.range(at: 1), in: s) {
+                return String(s[r])
+            }
+        }
+        return nil
     }
 
     /// captcha 回跳：新旧 scheme 都认（`CaptchaView` 用）。

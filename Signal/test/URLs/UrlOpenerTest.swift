@@ -35,6 +35,8 @@ class UrlOpenerTest: XCTestCase {
             "tellomi://tell.cc/u#p/+16505550100",
             "https://tell.cc/u#u/ceshi.57",
             "tellomi://tell.cc/u#u/ceshi.57",
+            "https://tell.cc/ceshi.57",
+            "tellomi://tell.cc/ceshi.57",
             "https://tell.cc/g#CjQKIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEhAAAAAAAAAAAAAAAAAAAAAA",
             "tellomi://tell.cc/g#CjQKIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEhAAAAAAAAAAAAAAAAAAAAAA",
             "https://tell.cc/s#pack_id=00000000000000000000000000000000&pack_key=0000000000000000000000000000000000000000000000000000000000000000",
@@ -64,6 +66,11 @@ class UrlOpenerTest: XCTestCase {
         }
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#u/ceshi.57")!), "ceshi.57")
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/u/#u/linktest.56")!), "linktest.56")
+        // 裸形状（与 Android 对齐）：tell.cc/<username>，带 `.<数字>` 判别位才算用户名，保留字路径不算
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/ceshi.57")!), "ceshi.57")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/linktest.56/")!), "linktest.56")
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/call#key=abc")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#p/+16505550100")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/g#u/notauser")!))
         // tell.cc/u#p/… 不能被当成群邀请（Android #973 撞过的坑）
