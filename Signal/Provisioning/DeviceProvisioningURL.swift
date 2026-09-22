@@ -67,7 +67,9 @@ public class DeviceProvisioningURL {
     public init?(urlString: String) {
         guard
             let urlComponents = URLComponents(string: urlString),
-            urlComponents.scheme == Constants.sgnlPrefix,
+            // Tellomi: the pairing QR may carry either scheme (Desktop still emits sgnl:// until every
+            // client accepts tellomi://; this is the accept half — see TellomiLinks).
+            urlComponents.scheme == Constants.sgnlPrefix || urlComponents.scheme == TellomiLinks.scheme,
             let host = urlComponents.host,
             let type = LinkType(rawValue: host),
             let queryItems = urlComponents.queryItems
