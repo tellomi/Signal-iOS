@@ -276,17 +276,23 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let textSecureCDN2ServerURL = "https://cdn2.tellomi.app"
     public let textSecureCDN3ServerURL = "https://cdn3.tellomi.app"
     public let storageServiceURL = "https://storage.tellomi.app"
-    public let sfuURL = "https://sfu.staging.voip.signal.org"
+    // 群通话走我们自己的 SFU（docs/signal/BUILD_CALLING.md）：香港那台上 calling_frontend
+    // 听 127.0.0.1:9010，nginx 以 /callingService/ 暴露。Desktop 的 config/production.json
+    // 早就是这个地址，两端不一致的后果是同一个群通话进不到一个房间。
+    public let sfuURL = "https://chat.tellomi.app/callingService"
     public let svr2URL = "wss://svr2.staging.signal.org"
     // 自建服务端：香港 nginx 上的 captcha 页（Cloudflare Turnstile，#930；通过后跳 tellomicaptcha://turnstile.<siteKey>.<action>.<token>，
     // CaptchaView 新旧 scheme 都认）。/captcha/ 那份回旧的 signalcaptcha://，两阶段迁移完成后下线。
     public let registrationCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/registration/generate.html"
     public let challengeCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/challenge/generate.html"
     // There's no separate test SFU for staging.
-    public let sfuTestURL = "https://sfu.test.voip.signal.org"
+    public let sfuTestURL = "https://chat.tellomi.app/callingService"   // 我们只有一套 SFU，没有单独的 test
     public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]
     // There's no separate updates endpoint for staging.
-    public let updatesURL = "https://updates.signal.org"
+    // v1 的更新源也要指我们自己的：emoji **搜索索引**走的是这条（EmojiPickerCollectionView
+    // 取 /dynamic/android/emoji/search/manifest.json 与 /static/android/emoji/search/<v>/<loc>.json），
+    // 而 #1017 当时只改了 updates2URL。镜像上这两条路径都在（实测 200，manifest 67 种语言）。
+    public let updatesURL = "https://updates.tellomi.app"
     // Tellomi：动态资源（emoji 数据与搜索索引 · 故事字体 · 通话 DRED 权重）改从我们自己的
     // 更新源取，上游那 163 项已经镜像到同路径（#1017，deploy/hk/mirror-mobile-resources.sh）。
     // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
