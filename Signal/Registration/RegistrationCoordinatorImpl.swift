@@ -2046,6 +2046,13 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
     }
 
     private func askForUserPINIfNeeded() -> RegistrationStep? {
+        // Tellomi：这套部署没有 SVR enclave，首次注册时 PIN 是自动 opt-out 的
+        // （showPinEntryIfNeeded 里同一个判断），用户手里**根本不存在** PIN。
+        // 重新注册走 registrationRecoveryPassword 这条路时再问一次 PIN，
+        // 唯一的出口藏在「需要协助?」弹窗底部的「跳过 PIN 码」，普通用户会以为账号丢了（#964）。
+        // 返回 nil = 不问 PIN，直接拿磁盘上的恢复密码去注册；服务端不认就照上游落回会话验证码那条路。
+        guard TSConstants.svrEnclaveAvailable else { return nil }
+
         // Don't bother with gathering the PIN if now if we already have an AEP
         // and we're going through a restore path
         guard inMemoryState.askForPinDuringReregistration else { return nil }
