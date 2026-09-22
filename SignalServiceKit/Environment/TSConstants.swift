@@ -61,8 +61,6 @@ public class TSConstants {
     public static var updatesURL: String { shared.updatesURL }
     public static var updates2URL: String { shared.updates2URL }
 
-    public static var censorshipFReflectorHost: String { shared.censorshipFReflectorHost }
-    public static var censorshipGReflectorHost: String { shared.censorshipGReflectorHost }
 
     public static var serviceCensorshipPrefix: String { shared.serviceCensorshipPrefix }
     public static var cdn0CensorshipPrefix: String { shared.cdn0CensorshipPrefix }
@@ -132,8 +130,6 @@ public protocol TSConstantsProtocol: AnyObject {
     var updatesURL: String { get }
     var updates2URL: String { get }
 
-    var censorshipFReflectorHost: String { get }
-    var censorshipGReflectorHost: String { get }
 
     var serviceCensorshipPrefix: String { get }
     var cdn0CensorshipPrefix: String { get }
@@ -221,8 +217,10 @@ public class TSConstantsProduction: TSConstantsProtocol {
     // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
     public let updates2URL = "https://updates.tellomi.app"
 
-    public let censorshipFReflectorHost = "reflector-signal.global.ssl.fastly.net"
-    public let censorshipGReflectorHost = "reflector-nrgwuv7kwq-uc.a.run.app"
+    // Tellomi（#1025）：上游在这里放 censorshipF/GReflectorHost（Signal 自己的 Fastly / Google
+    // reflector），规避模式会把请求连同 Host 头打到那两台机器上。两个档都删了，
+    // 规避模式改成继续用我们自己的端点——改法与去向见 OWSCensorshipConfiguration.swift。
+
 
     public let serviceCensorshipPrefix = "service"
     public let cdn0CensorshipPrefix = "cdn"
@@ -294,8 +292,10 @@ public class TSConstantsStaging: TSConstantsProtocol {
     // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
     public let updates2URL = "https://updates.tellomi.app"
 
-    public let censorshipFReflectorHost = "reflector-staging-signal.global.ssl.fastly.net"
-    public let censorshipGReflectorHost = "reflector-nrgwuv7kwq-uc.a.run.app"
+    // Tellomi（#1025）：上游在这里放 censorshipF/GReflectorHost（Signal 自己的 Fastly / Google
+    // reflector），规避模式会把请求连同 Host 头打到那两台机器上。两个档都删了，
+    // 规避模式改成继续用我们自己的端点——改法与去向见 OWSCensorshipConfiguration.swift。
+
 
     public let serviceCensorshipPrefix = "service-staging"
     public let cdn0CensorshipPrefix = "cdn-staging"
@@ -364,8 +364,6 @@ public class TSConstantsMock: TSConstantsProtocol {
 
     public lazy var updates2URL = defaultValues.updates2URL
 
-    public lazy var censorshipFReflectorHost = defaultValues.censorshipFReflectorHost
-    public lazy var censorshipGReflectorHost = defaultValues.censorshipGReflectorHost
 
     public lazy var serviceCensorshipPrefix = defaultValues.serviceCensorshipPrefix
 

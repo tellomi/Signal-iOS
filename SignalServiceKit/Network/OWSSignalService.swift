@@ -80,114 +80,38 @@ public class OWSSignalService: OWSSignalServiceProtocol {
         }
     }
 
-    private struct CensorshipConfigurationParams: Hashable {
-        enum CountryId: Hashable {
-            case manualCountryCode(String)
-            case localE164(String)
-        }
-
-        // Nil means use default configuration
-        let countryId: CountryId?
-
-        static var `default`: Self {
-            .init(countryId: nil)
-        }
-
-        func build() -> OWSCensorshipConfiguration {
-            switch countryId {
-            case nil:
-                return .defaultConfiguration
-            case .manualCountryCode(let countryCode):
-                return OWSCensorshipConfiguration.censorshipConfiguration(countryCode: countryCode)
-            case .localE164(let localNumber):
-                return OWSCensorshipConfiguration.censorshipConfiguration(e164: localNumber)
-                    ?? .defaultConfiguration
-            }
-        }
-    }
-
-    // Returns nil if CC not active
-    private func censorshipConfigurationParamsWithMaybeSneakyTransaction(
-        censorshipCircumventionSupportedForService: Bool,
-    ) -> CensorshipConfigurationParams? {
-        guard self.isCensorshipCircumventionActive, censorshipCircumventionSupportedForService else {
-            return nil
-        }
-        if self.isCensorshipCircumventionManuallyActivated {
-            guard
-                let countryCode = self.manualCensorshipCircumventionCountryCode,
-                !countryCode.isEmpty
-            else {
-                owsFailDebug("manualCensorshipCircumventionCountryCode was unexpectedly 0")
-                return .default
-            }
-            return CensorshipConfigurationParams(countryId: .manualCountryCode(countryCode))
-        }
-        guard
-            let localNumber = DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.phoneNumber
-        else {
-            return .default
-        }
-        return CensorshipConfigurationParams(countryId: .localE164(localNumber))
-    }
+    // Tellomi（#1025）：上游在这里把「规避模式」翻译成一份域名前置配置
+    // （CensorshipConfigurationParams → OWSCensorshipConfiguration），结果是把请求前置到 Google、
+    // Host 头填 Signal 的 reflector、并钉死 Google 的证书链——也就是一按下设置里那个开关，
+    // 客户端就改去连 Signal 的基础设施。整段连同下面 buildUrlEndpoint 里的前置分支一起删了。
+    //
+    // 现在规避模式**继续用我们自己的端点**，只是 isCensorshipCircumventionActive 这个标记还在，
+    // 依赖它的地方（设置项、OWSChatConnection 的取数策略）行为不变。
+    // 与 Android 的 c0b20cf2 是同一个决定：留标记、不留上游的主机。
 
     public func buildUrlEndpoint(for signalServiceInfo: SignalServiceInfo) -> OWSURLSessionEndpoint {
         return buildUrlEndpoint(
-            censorshipConfigurationParams: self.censorshipConfigurationParamsWithMaybeSneakyTransaction(
-                censorshipCircumventionSupportedForService: signalServiceInfo.censorshipCircumventionSupported,
-            ),
             baseUrl: signalServiceInfo.baseUrl,
-            censorshipCircumventionPathPrefix: signalServiceInfo.censorshipCircumventionPathPrefix,
             shouldUseSignalCertificate: signalServiceInfo.shouldUseSignalCertificate,
         )
     }
 
     private func buildUrlEndpoint(
-        censorshipConfigurationParams: CensorshipConfigurationParams?,
         baseUrl: URL,
-        censorshipCircumventionPathPrefix: String,
         shouldUseSignalCertificate: Bool,
     ) -> OWSURLSessionEndpoint {
-        // If there's an open transaction when this is called, and if censorship
-        // circumvention is enabled, `buildCensorshipConfiguration()` will crash.
-        // Add a database read here so that we crash in both `if` branches.
-        assert({
-            SSKEnvironment.shared.databaseStorageRef.read { _ in }
-            return true
-        }(), "Must not have open transaction.")
-
-        if let censorshipConfigurationParams {
-            let censorshipConfiguration = censorshipConfigurationParams.build()
-            let frontingURLWithoutPathPrefix = censorshipConfiguration.domainFrontBaseUrl
-            let frontingURLWithPathPrefix = frontingURLWithoutPathPrefix.appendingPathComponent(censorshipCircumventionPathPrefix)
-            let frontingInfo = OWSUrlFrontingInfo(
-                frontingURLWithoutPathPrefix: frontingURLWithoutPathPrefix,
-                frontingURLWithPathPrefix: frontingURLWithPathPrefix,
-            )
-            let baseUrl = frontingURLWithPathPrefix
-            let securityPolicy = censorshipConfiguration.domainFrontSecurityPolicy
-            let extraHeaders: HttpHeaders = ["Host": censorshipConfiguration.reflectorHost()]
-            return OWSURLSessionEndpoint(
-                baseUrl: baseUrl,
-                frontingInfo: frontingInfo,
-                securityPolicy: securityPolicy,
-                extraHeaders: extraHeaders,
-            )
+        let securityPolicy: HttpSecurityPolicy
+        if shouldUseSignalCertificate {
+            securityPolicy = OWSURLSession.signalServiceSecurityPolicy
         } else {
-            let baseUrl = baseUrl
-            let securityPolicy: HttpSecurityPolicy
-            if shouldUseSignalCertificate {
-                securityPolicy = OWSURLSession.signalServiceSecurityPolicy
-            } else {
-                securityPolicy = OWSURLSession.defaultSecurityPolicy
-            }
-            return OWSURLSessionEndpoint(
-                baseUrl: baseUrl,
-                frontingInfo: nil,
-                securityPolicy: securityPolicy,
-                extraHeaders: [:],
-            )
+            securityPolicy = OWSURLSession.defaultSecurityPolicy
         }
+        return OWSURLSessionEndpoint(
+            baseUrl: baseUrl,
+            frontingInfo: nil,
+            securityPolicy: securityPolicy,
+            extraHeaders: [:],
+        )
     }
 
     public func buildUrlSession(
@@ -225,9 +149,10 @@ public class OWSSignalService: OWSSignalServiceProtocol {
     // MARK: - CDN
 
     private actor CDNSessionCache {
+        // Tellomi（#1025）：上游这个 key 里还有一个规避配置参数，为的是规避开关/国家变化时
+        // 换一个新会话去重新随机 SNI 头。前置整套删掉之后没有 SNI 头可换，key 只按 CDN 编号即可。
         struct Key: Hashable {
             let cdnNumber: UInt32
-            let ccParams: CensorshipConfigurationParams?
         }
 
         private var cache = [Key: OWSURLSessionProtocol]()
@@ -256,10 +181,7 @@ public class OWSSignalService: OWSSignalServiceProtocol {
     private let cdnSessionCache = CDNSessionCache()
 
     public func sharedUrlSessionForCdn(cdnNumber: UInt32) async -> OWSURLSessionProtocol {
-        let ccParams = self.censorshipConfigurationParamsWithMaybeSneakyTransaction(
-            censorshipCircumventionSupportedForService: true,
-        )
-        let cacheKey = CDNSessionCache.Key(cdnNumber: cdnNumber, ccParams: ccParams)
+        let cacheKey = CDNSessionCache.Key(cdnNumber: cdnNumber)
         return await cdnSessionCache.getOrBuildSession(
             key: cacheKey,
             buildFn: {
@@ -267,29 +189,22 @@ public class OWSSignalService: OWSSignalServiceProtocol {
                 urlSessionConfiguration.timeoutIntervalForRequest = 600
 
                 let baseUrl: URL
-                let censorshipCircumventionPathPrefix: String
                 switch cdnNumber {
                 case 0:
                     baseUrl = URL(string: TSConstants.textSecureCDN0ServerURL)!
-                    censorshipCircumventionPathPrefix = TSConstants.cdn0CensorshipPrefix
                 case 2:
                     baseUrl = URL(string: TSConstants.textSecureCDN2ServerURL)!
-                    censorshipCircumventionPathPrefix = TSConstants.cdn2CensorshipPrefix
                 case 3:
                     baseUrl = URL(string: TSConstants.textSecureCDN3ServerURL)!
-                    censorshipCircumventionPathPrefix = TSConstants.cdn3CensorshipPrefix
                 default:
                     owsFailDebug("Unrecognized CDN number configuration requested: \(cdnNumber)")
                     // Fallback to cdn2
                     baseUrl = URL(string: TSConstants.textSecureCDN2ServerURL)!
-                    censorshipCircumventionPathPrefix = TSConstants.cdn2CensorshipPrefix
                 }
 
                 return self.buildUrlSession(
                     endpoint: self.buildUrlEndpoint(
-                        censorshipConfigurationParams: ccParams,
                         baseUrl: baseUrl,
-                        censorshipCircumventionPathPrefix: censorshipCircumventionPathPrefix,
                         shouldUseSignalCertificate: true,
                     ),
                     configuration: urlSessionConfiguration,
@@ -303,8 +218,9 @@ public class OWSSignalService: OWSSignalServiceProtocol {
                         Task {
                             if error.isNetworkFailure {
                                 // Invalidate the cache on any network failure so
-                                // that next time we create a new session which will
-                                // re-randomize SNI headers.
+                                // that next time we create a new session.
+                                // （Tellomi #1025：上游这里说的是「重新随机 SNI 头」，
+                                //   前置删掉之后没有 SNI 头了，但失败后换新会话本身仍然有意义。）
                                 await self?.cdnSessionCache.invalidate(key: cacheKey)
                             }
                         }

@@ -5,6 +5,12 @@
 
 import Foundation
 
+/// Tellomi（#1025）：上游用这个枚举挑「域名前置」的前置域名（www.google.com / pinterest.com 之类）、
+/// 对应的证书钉扎策略、以及 Host 头要填的 Signal reflector。那三样连同 PinningPolicy 一起删了——
+/// 规避模式现在继续走我们自己的端点，见 OWSSignalService.buildUrlEndpoint()。
+///
+/// 枚举本体留着：OWSCountryMetadata 按国家存了它（~250 行），而且将来自建规避入口时
+/// 「哪些国家要走特殊通道」这份信息还用得上。现在它只是个标记，不再决定连哪台机器。
 enum OWSFrontingHost {
     case fastly
     case googleEgypt
@@ -15,144 +21,27 @@ enum OWSFrontingHost {
     case googleUzbekistan
     case googleVenezuela
     case `default`
-
-    /// When using censorship circumvention, we pin to the fronted domain host.
-    /// Adding a new domain front entails adding a corresponding HttpSecurityPolicy
-    /// and specifying which CAs it can use.
-    ///
-    /// If the security policy requires new certificates, include them in the SSK bundle
-    fileprivate var securityPolicy: HttpSecurityPolicy {
-        switch self {
-        case .googleEgypt, .googleUae, .googleOman, .googlePakistan, .googleQatar, .googleUzbekistan, .googleVenezuela, .default:
-            return PinningPolicy.google.securityPolicy
-        case .fastly:
-            return PinningPolicy.fastly.securityPolicy
-        }
-    }
-
-    fileprivate var host: String {
-        switch self {
-        case .googleEgypt, .googleUae, .googleOman, .googlePakistan, .googleQatar, .googleUzbekistan, .googleVenezuela, .`default`:
-            return TSConstants.censorshipGReflectorHost
-        case .fastly:
-            return TSConstants.censorshipFReflectorHost
-        }
-    }
-
-    private var requiresPathPrefix: Bool {
-        switch self {
-        case .googleEgypt, .googleUae, .googleOman, .googlePakistan, .googleQatar, .googleUzbekistan, .googleVenezuela, .`default`:
-            return true
-        case .fastly:
-            return false
-        }
-    }
-
-    fileprivate func randomSniHeader() -> String {
-        self.sniHeaders.randomElement()!
-    }
-
-    /// None of these can be empty arrays or a crash will occur in `randomSniHeader()` above.
-    private var sniHeaders: [String] {
-        switch self {
-        case .fastly:
-            Self.fastlySniHeaders
-        case .googleEgypt:
-            Self.googleEgyptSniHeaders
-        case .googleUae:
-            Self.googleOmanSniHeaders
-        case .googleOman:
-            Self.googleOmanSniHeaders
-        case .googlePakistan:
-            Self.googlePakistanSniHeaders
-        case .googleQatar:
-            Self.googleQatarSniHeaders
-        case .googleUzbekistan:
-            Self.googleUzbekistanSniHeaders
-        case .googleVenezuela:
-            Self.googleVenezuelaSniHeaders
-        case .default:
-            Self.googleCommonSniHeaders
-        }
-    }
-
-    private static let fastlySniHeaders = ["github.githubassets.com", "pinterest.com", "www.redditstatic.com"]
-    private static let googleCommonSniHeaders = [
-        "www.google.com",
-        "android.clients.google.com",
-        "clients3.google.com",
-        "clients4.google.com",
-        "googlemail.com",
-    ]
-    private static let googleEgyptSniHeaders = googleCommonSniHeaders + ["www.google.com.eg"]
-    private static let googleUaeSniHeaders = googleCommonSniHeaders + ["www.google.ae"]
-    private static let googleOmanSniHeaders = googleCommonSniHeaders + ["www.google.com.om"]
-    private static let googlePakistanSniHeaders = googleCommonSniHeaders + ["www.google.com.pk"]
-    private static let googleQatarSniHeaders = googleCommonSniHeaders + ["www.google.com.qa"]
-    private static let googleUzbekistanSniHeaders = googleCommonSniHeaders + ["www.google.co.uz"]
-    private static let googleVenezuelaSniHeaders = googleCommonSniHeaders + ["www.google.co.ve"]
 }
 
 struct OWSCensorshipConfiguration {
 
-    let domainFrontBaseUrl: URL
-    let domainFrontSecurityPolicy: HttpSecurityPolicy
-    let host: String
-
-    /// Returns a service specific host header.
-    ///
-    /// Callers should use a default host header if there's not a service specific host header.
-    func reflectorHost() -> String {
-        return host
-    }
-
-    /// Returns `nil` if `e164` is not known to be censored.
-    static func censorshipConfiguration(e164: String) -> OWSCensorshipConfiguration? {
-        guard let countryCode = censoredCountryCode(e164: e164) else {
-            return nil
-        }
-
-        return censorshipConfiguration(countryCode: countryCode)
-    }
-
-    /// Returns the best censorship configuration for `countryCode`. Will return a default if one
-    /// hasn't been specifically configured.
-    static func censorshipConfiguration(countryCode: String) -> OWSCensorshipConfiguration {
-        let countryMetadata = OWSCountryMetadata.countryMetadata(countryCode: countryCode)
-        guard let specifiedDomain = countryMetadata?.frontingDomain else {
-            return defaultConfiguration
-        }
-
-        let sniHeader = specifiedDomain.randomSniHeader()
-        guard let baseUrl = URL(string: "https://\(sniHeader)") else {
-            owsFailDebug("baseUrl was unexpectedly nil with specifiedDomain: \(sniHeader)")
-            return defaultConfiguration
-        }
-
-        return OWSCensorshipConfiguration(domainFrontBaseUrl: baseUrl, securityPolicy: specifiedDomain.securityPolicy, host: specifiedDomain.host)
-    }
-
-    static var defaultConfiguration: OWSCensorshipConfiguration {
-        let baseUrl = URL(string: "https://\(OWSFrontingHost.default.randomSniHeader())")!
-        return OWSCensorshipConfiguration(domainFrontBaseUrl: baseUrl, securityPolicy: OWSFrontingHost.default.securityPolicy, host: OWSFrontingHost.default.host)
-
-    }
+    // Tellomi（#1025）：上游这里还有 domainFrontBaseUrl / domainFrontSecurityPolicy / host /
+    // reflectorHost() 和两个 censorshipConfiguration(...) 工厂方法，拼出来的是
+    // 「前置到 Google、Host 头填 Signal 的 reflector、并钉死 Google 的证书链」。全删了。
+    // 保留下面这份国家表与 isCensored()：设置里的开关、OWSChatConnection 的取数策略都依赖它，
+    // 删掉会连带改掉一堆和本条无关的行为（和 Android 的 c0b20cf2 保留 censored 标记同一个理由）。
 
     static func isCensored(e164: String) -> Bool {
         censoredCountryCode(e164: e164) != nil
     }
 
-    private init(domainFrontBaseUrl: URL, securityPolicy: HttpSecurityPolicy, host: String) {
-        self.domainFrontBaseUrl = domainFrontBaseUrl
-        self.domainFrontSecurityPolicy = securityPolicy
-        self.host = host
-    }
-
-    /// The set of countries for which domain fronting should be automatically enabled.
+    /// 这些国家会自动把「审查规避」标记打开。
     ///
-    /// If you want to use a domain front other than the default, specify the domain front
-    /// in OWSCountryMetadata, and ensure we have a Security Policy for that domain in
-    /// `securityPolicyForDomain:`
+    /// Tellomi（#1025）：上游这段原文写的是「想用别的前置域名就在 OWSCountryMetadata 里指定，
+    /// 并确保 securityPolicyForDomain: 里有对应的证书策略」——那套机制已经删掉了，照做会扑空。
+    /// 现在打开这个标记**不会改变连哪台机器**（仍然是我们自己的端点），只影响依赖
+    /// isCensorshipCircumventionActive 的那些行为。注意这张表里**没有中国**：+86 不会自动进这条路，
+    /// 真正会走到的是用户手动去按设置里那个开关。
     private static let censoredCountryCodes: [String: String] = [
         // Egypt
         "+20": "EG",
@@ -182,27 +71,4 @@ struct OWSCensorshipConfiguration {
 
         return nil
     }
-}
-
-private enum PinningPolicy {
-    case fastly
-    case google
-
-    var securityPolicy: HttpSecurityPolicy {
-        switch self {
-        case .fastly:
-            return Self.fastlySecurityPolicy
-        case .google:
-            return Self.googleSecurityPolicy
-        }
-    }
-
-    private static func securityPolicy(certNames: [String]) -> HttpSecurityPolicy {
-        HttpSecurityPolicy(pinnedCertificates: certNames.map { Certificates.load($0, extension: "crt") })
-    }
-
-    private static let fastlySecurityPolicy = HttpSecurityPolicy.systemDefault
-
-    // GIAG2 cert plus root certs from pki.goog
-    private static let googleSecurityPolicy = securityPolicy(certNames: ["GIAG2", "GSR2", "GSR4", "GTSR1", "GTSR2", "GTSR3", "GTSR4"])
 }
