@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ があなたの代わりにTellomiに寄付をしました！プロフィールにTellomiをサポートしていることを表示しましょう。";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Tellomiは、独立した非営利団体としてメッセージと通話のプライバシーを守ることに取り組んでいます。広告なし、トラッキングなし、監視なし。Tellomiのこの取り組みのために、ご支援をお願いします。";
+"DONATION_READ_MORE_SHEET_BODY" = "Signalは、独立した非営利団体としてメッセージと通話のプライバシーを守ることに取り組んでいます。広告なし、トラッキングなし、監視なし。Signalのこの取り組みのために、ご支援をお願いします。";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "寄付をすると、プロフィールにバッジが表示（任意）されます";
@@ -3539,7 +3539,7 @@
 "DONATION_READ_MORE_SHEET_BULLET_2" = "皆さんのプライバシーを守ることが私たちの使命です";
 
 /* Bullet point for a sheet discussing donating to Signal. For non-English languages, skip the word 501c3, and skip the language about US donations being tax deductible. */
-"DONATION_READ_MORE_SHEET_BULLET_3" = "Tellomiは非営利団体です。";
+"DONATION_READ_MORE_SHEET_BULLET_3" = "Signalは非営利団体です。";
 
 /* Section title for donation amount on receipts */
 "DONATION_RECEIPT_AMOUNT" = "寄付額";
@@ -6638,7 +6638,7 @@
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "以前利用していた端末がある場合";
 
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
-"ONBOARDING_SPLASH_NONPROFIT" = "Tellomiは非営利団体です";
+"ONBOARDING_SPLASH_NONPROFIT" = "Signalは非営利団体です";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "アカウントの復元または移行";

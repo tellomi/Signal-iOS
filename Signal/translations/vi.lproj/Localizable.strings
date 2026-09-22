@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ đã gửi khoản ủng hộ cho Tellomi thay cho bạn! Thể hiện sự ủng hộ của bạn cho Tellomi trên hồ sơ của mình.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Là một tổ chức phi lợi nhuận độc lập, Tellomi cam kết cung cấp dịch vụ nhắn tin và cuộc gọi riêng tư. Không quảng cáo, không trình theo dấu, không theo dõi. Ủng hộ ngay hôm nay để hỗ trợ Tellomi.";
+"DONATION_READ_MORE_SHEET_BODY" = "Là một tổ chức phi lợi nhuận độc lập, Signal cam kết cung cấp dịch vụ nhắn tin và cuộc gọi riêng tư. Không quảng cáo, không trình theo dấu, không theo dõi. Ủng hộ ngay hôm nay để hỗ trợ Signal.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "Nhận huy hiệu (không bắt buộc) trên hồ sơ của bạn khi bạn ủng hộ";
@@ -3539,7 +3539,7 @@
 "DONATION_READ_MORE_SHEET_BULLET_2" = "Quyền riêng tư của bạn là sứ mệnh của chúng tôi";
 
 /* Bullet point for a sheet discussing donating to Signal. For non-English languages, skip the word 501c3, and skip the language about US donations being tax deductible. */
-"DONATION_READ_MORE_SHEET_BULLET_3" = "Tellomi là một tổ chức phi lợi nhuận.";
+"DONATION_READ_MORE_SHEET_BULLET_3" = "Signal là một tổ chức phi lợi nhuận.";
 
 /* Section title for donation amount on receipts */
 "DONATION_RECEIPT_AMOUNT" = "Khoản chi";
@@ -6638,7 +6638,7 @@
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "Tôi có điện thoại cũ";
 
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
-"ONBOARDING_SPLASH_NONPROFIT" = "Tellomi là một tổ chức phi lợi nhuận";
+"ONBOARDING_SPLASH_NONPROFIT" = "Signal là một tổ chức phi lợi nhuận";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "Khôi phục hoặc chuyển tài khoản";

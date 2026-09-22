@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ зрабіў(-ла) ахвяраванне для Tellomi ад вашага імя! Прадэманструйце сваю падтрымку Tellomi у вашым профілі.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Як незалежная некамерцыйная арганізацыя, Tellomi захоўвае канфідэнцыйнасць паведамленняў і званкоў. Без рэкламы, без трэкераў, без сачэння. Зрабіце ахвяраванне сёння, каб падтрымаць Tellomi.";
+"DONATION_READ_MORE_SHEET_BODY" = "Як незалежная некамерцыйная арганізацыя, Signal захоўвае канфідэнцыйнасць паведамленняў і званкоў. Без рэкламы, без трэкераў, без сачэння. Зрабіце ахвяраванне сёння, каб падтрымаць Signal.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "Вы атрымаеце дадатковы значок у сваім профілі, калі зробіце ахвяраванне";
@@ -3539,7 +3539,7 @@
 "DONATION_READ_MORE_SHEET_BULLET_2" = "Ваша канфідэнцыйнасць — наша місія";
 
 /* Bullet point for a sheet discussing donating to Signal. For non-English languages, skip the word 501c3, and skip the language about US donations being tax deductible. */
-"DONATION_READ_MORE_SHEET_BULLET_3" = "Tellomi — некамерцыйная арганізацыя";
+"DONATION_READ_MORE_SHEET_BULLET_3" = "Signal — некамерцыйная арганізацыя";
 
 /* Section title for donation amount on receipts */
 "DONATION_RECEIPT_AMOUNT" = "Сума";
@@ -6638,7 +6638,7 @@
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "Я маю стары тэлефон";
 
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
-"ONBOARDING_SPLASH_NONPROFIT" = "Tellomi — некамерцыйная арганізацыя";
+"ONBOARDING_SPLASH_NONPROFIT" = "Signal — некамерцыйная арганізацыя";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "Аднавіць або перанесці ўліковы запіс";

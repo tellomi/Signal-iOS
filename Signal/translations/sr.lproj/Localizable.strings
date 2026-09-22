@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ је дао/ла донацију Tellomi-у у ваше име! Покажите подршку Tellomi-у на свом профилу.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Као независна непрофитна организација, Tellomi гарантује приватност порука и позива. Без огласа, без праћења, без надзора. Донирајте данас да подржите Tellomi.";
+"DONATION_READ_MORE_SHEET_BODY" = "Као независна непрофитна организација, Signal гарантује приватност порука и позива. Без огласа, без праћења, без надзора. Донирајте данас да подржите Signal.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "Донирањем ћете добити значку коју ћете моћи да прикажете на профилу";
@@ -3539,7 +3539,7 @@
 "DONATION_READ_MORE_SHEET_BULLET_2" = "Ваша приватност је наша мисија";
 
 /* Bullet point for a sheet discussing donating to Signal. For non-English languages, skip the word 501c3, and skip the language about US donations being tax deductible. */
-"DONATION_READ_MORE_SHEET_BULLET_3" = "Tellomi је непрофитна организација.";
+"DONATION_READ_MORE_SHEET_BULLET_3" = "Signal је непрофитна организација.";
 
 /* Section title for donation amount on receipts */
 "DONATION_RECEIPT_AMOUNT" = "Износ";
@@ -6638,7 +6638,7 @@
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "Имам свој стари телефон";
 
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
-"ONBOARDING_SPLASH_NONPROFIT" = "Tellomi је непрофитна организација";
+"ONBOARDING_SPLASH_NONPROFIT" = "Signal је непрофитна организација";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "Враћање или пренос налога";

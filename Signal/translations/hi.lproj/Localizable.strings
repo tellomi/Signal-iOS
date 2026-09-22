@@ -2,7 +2,7 @@
 "AB_PERMISSION_MISSING_ACTION_NOT_NOW" = "अभी नहीं";
 
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
-"ABOUT_SECTION_FOOTER" = "कॉपीराइट Tellomi मैसेंजर\nAGPLv3 के तहत लाइसेंस प्राप्त\nTellomi एक गैर-लाभकारी संस्था है";
+"ABOUT_SECTION_FOOTER" = "कॉपीराइट Signal मैसेंजर\nAGPLv3 के तहत लाइसेंस प्राप्त\nSignal एक गैर-लाभकारी संस्था है";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "Tellomi के बारे मे";
@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ ने आपके बदले Tellomi को डोनेट किया है। Tellomi को दिए गए सहयोग के लिए अपनी प्रोफ़ाइल पर बैज दिखाएं।";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "एक स्वतंत्र गैर-लाभकारी संस्था के तौर पर, Tellomi मैसेज और कॉल की जानकारी को गोपनीय बनाए रखने के लिए प्रतिबद्ध है।न कोई विज्ञापन, न कोई ट्रैकर, न ही निगरानी। Tellomi को सहयोग करने के लिए आज ही डोनेट करें।";
+"DONATION_READ_MORE_SHEET_BODY" = "एक स्वतंत्र गैर-लाभकारी संस्था के तौर पर, Signal मैसेज और कॉल की जानकारी को गोपनीय बनाए रखने के लिए प्रतिबद्ध है।न कोई विज्ञापन, न कोई ट्रैकर, न ही निगरानी। Signal को सहयोग करने के लिए आज ही डोनेट करें।";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "डोनेट करने पर आपको अपनी प्रोफ़ाइल में एक बैज जोड़ने का विकल्प मिलेगा";
@@ -3539,7 +3539,7 @@
 "DONATION_READ_MORE_SHEET_BULLET_2" = "आपकी प्राइवेसी सुनिश्चित रखना हमारा मिशन है";
 
 /* Bullet point for a sheet discussing donating to Signal. For non-English languages, skip the word 501c3, and skip the language about US donations being tax deductible. */
-"DONATION_READ_MORE_SHEET_BULLET_3" = "Tellomi एक गैर-लाभकारी संस्था है।";
+"DONATION_READ_MORE_SHEET_BULLET_3" = "Signal एक गैर-लाभकारी संस्था है।";
 
 /* Section title for donation amount on receipts */
 "DONATION_RECEIPT_AMOUNT" = "रकम";
@@ -6638,7 +6638,7 @@
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "मेरे पास अपना पुराना फ़ोन है";
 
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
-"ONBOARDING_SPLASH_NONPROFIT" = "Tellomi एक गैर-लाभकारी संस्था है";
+"ONBOARDING_SPLASH_NONPROFIT" = "Signal एक गैर-लाभकारी संस्था है";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "अकाउंट ट्रांसफ़र या रीस्टोर करें";

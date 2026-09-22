@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ senin adına Tellomi'a bağış yaptı! Tellomi'a desteğini profilinde göster.";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "Kâr amacı gütmeyen, bağımsız bir kuruluş olan Tellomi, özel mesajlaşma ve aramalara önem verir. Reklam yok, takip yok, gözetleme yok. Tellomi'ı desteklemek için bugün bağış yap.";
+"DONATION_READ_MORE_SHEET_BODY" = "Kâr amacı gütmeyen, bağımsız bir kuruluş olan Signal, özel mesajlaşma ve aramalara önem verir. Reklam yok, takip yok, gözetleme yok. Signal'ı desteklemek için bugün bağış yap.";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "Bağış yaptığında profilinde isteğe bağlı bir rozet al";
@@ -3539,7 +3539,7 @@
 "DONATION_READ_MORE_SHEET_BULLET_2" = "Gizliliğin görevimizdir";
 
 /* Bullet point for a sheet discussing donating to Signal. For non-English languages, skip the word 501c3, and skip the language about US donations being tax deductible. */
-"DONATION_READ_MORE_SHEET_BULLET_3" = "Tellomi kâr amacı gütmeyen bir kuruluştur.";
+"DONATION_READ_MORE_SHEET_BULLET_3" = "Signal kâr amacı gütmeyen bir kuruluştur.";
 
 /* Section title for donation amount on receipts */
 "DONATION_RECEIPT_AMOUNT" = "Tutar";
@@ -6638,7 +6638,7 @@
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "Eski telefonum var";
 
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
-"ONBOARDING_SPLASH_NONPROFIT" = "Tellomi kâr amacı gütmeyen bir kuruluştur";
+"ONBOARDING_SPLASH_NONPROFIT" = "Signal kâr amacı gütmeyen bir kuruluştur";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "Hesabı geri yükle veya aktar";

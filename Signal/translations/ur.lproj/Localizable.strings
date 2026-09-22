@@ -2,7 +2,7 @@
 "AB_PERMISSION_MISSING_ACTION_NOT_NOW" = "ابھی نہیں";
 
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
-"ABOUT_SECTION_FOOTER" = "کاپی رائٹ Tellomi میسنجر\nAGPLv3 کے تحت لائسنس شدہ\nTellomi ایک غیر منافع بخش ایپ ہے";
+"ABOUT_SECTION_FOOTER" = "کاپی رائٹ Signal میسنجر\nAGPLv3 کے تحت لائسنس شدہ\nSignal ایک غیر منافع بخش ایپ ہے";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "Tellomi کے بارے میں";
@@ -3530,7 +3530,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_YOU_RECEIVED_A_BADGE_FORMAT" = "%1$@ نے آپ کی جانب سے Tellomi کو عطیہ کیا ہے! اپنی پروفائل پر Tellomi کے لیے سپورٹ ظاہر کریں۔";
 
 /* Body text for a sheet discussing donating to Signal. */
-"DONATION_READ_MORE_SHEET_BODY" = "ایک خود مختار غیر منافع بخش ایپ کے طور پر، Tellomi نجی میسجنگ اور کالز کی فراہمی کے لیے پُرعزم ہے۔ کوئی اشتہارات، کوئی ٹریکرز، کوئی نگرانی نہیں۔ Tellomi کو سپورٹ کرنے کے لیے ابھی عطیہ کریں۔";
+"DONATION_READ_MORE_SHEET_BODY" = "ایک خود مختار غیر منافع بخش ایپ کے طور پر، Signal نجی میسجنگ اور کالز کی فراہمی کے لیے پُرعزم ہے۔ کوئی اشتہارات، کوئی ٹریکرز، کوئی نگرانی نہیں۔ Signal کو سپورٹ کرنے کے لیے ابھی عطیہ کریں۔";
 
 /* Bullet point for a sheet discussing donating to Signal. */
 "DONATION_READ_MORE_SHEET_BULLET_1" = "عطیہ کرنے پر اپنی پروفائل پر ایک اختیاری بیج حاصل کریں";
@@ -3539,7 +3539,7 @@
 "DONATION_READ_MORE_SHEET_BULLET_2" = "آپ کی پرائیویسی ہمارا مشن ہے";
 
 /* Bullet point for a sheet discussing donating to Signal. For non-English languages, skip the word 501c3, and skip the language about US donations being tax deductible. */
-"DONATION_READ_MORE_SHEET_BULLET_3" = "Tellomi ایک غیر منافع بخش ایپ ہے۔";
+"DONATION_READ_MORE_SHEET_BULLET_3" = "Signal ایک غیر منافع بخش ایپ ہے۔";
 
 /* Section title for donation amount on receipts */
 "DONATION_RECEIPT_AMOUNT" = "رقم";
@@ -6638,7 +6638,7 @@
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "میرے پاس اپنا پرانا فون موجود ہے";
 
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
-"ONBOARDING_SPLASH_NONPROFIT" = "Tellomi ایک غیر منافع بخش ایپ ہے";
+"ONBOARDING_SPLASH_NONPROFIT" = "Signal ایک غیر منافع بخش ایپ ہے";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "ری اسٹور کریں یا اکاؤنٹ ٹرانسفر کریں";
