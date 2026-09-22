@@ -4,7 +4,7 @@
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
 "ABOUT_SECTION_FOOTER" = "版权所有 © Signal Messenger\n基于 AGPLv3 许可证授权\nSignal 是一个非营利组织";
 /* Tellomi: copyright + license only; upstream also claimed 501c3 nonprofit status, which is not true of Tellomi. */
-"ABOUT_SECTION_FOOTER_TELLOMI" = "版权所有 © Tellomi\n基于 AGPLv3 许可证授权";
+"ABOUT_SECTION_FOOTER_TELLOMI" = "版权所有 Signal Messenger\n修改部分版权所有 Tellomi\n根据 AGPLv3 授权许可";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "关于 Tellomi";

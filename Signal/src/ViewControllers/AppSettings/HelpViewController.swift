@@ -78,9 +78,15 @@ final class HelpViewController: OWSTableViewController2 {
 
         let aboutSection = OWSTableSection()
         aboutSection.headerTitle = OWSLocalizedString("ABOUT_SECTION_TITLE", comment: "Title for the 'about' help section")
-        // Tellomi：上游这里是「Copyright Signal Messenger / Licensed under the AGPLv3 /
-        // Signal is a 501c3 nonprofit」。版权与许可证要保留（AGPLv3 要求），
-        // 但**非营利资质那一句去掉**——Tellomi 不是非营利组织，换个名字就是假陈述。
+        // Tellomi（#984，owner 2026-09-23 定）：三行并列，和 Android 的 HelpSettingsFragment 一字一句对齐。
+        //   Copyright Signal Messenger        ← 上游署名，AGPL 要求派生作品保留，不能换成我们自己
+        //   Modifications Copyright Tellomi   ← 我们对修改部分的署名
+        //   Licensed under the AGPLv3
+        // 上游还有第四行「Signal is a 501c3 nonprofit」，去掉了：Tellomi 不是非营利组织，
+        // 换个名字就是一句关于自身法律主体的假话。
+        //
+        // 注意这条**之前是错的**：它把上游那行整个换成了「Copyright Tellomi」，
+        // 等于在 AGPL 派生作品里移除原作者署名（而同一段注释却写着「版权与许可证要保留」）。
         aboutSection.footerTitle = OWSLocalizedString(
             "ABOUT_SECTION_FOOTER_TELLOMI",
             comment: "Footer for the 'about' help section: copyright and license only.",
