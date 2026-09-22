@@ -278,14 +278,17 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let textSecureCDN2ServerURL = "https://cdn2.tellomi.app"
     public let textSecureCDN3ServerURL = "https://cdn3.tellomi.app"
     public let storageServiceURL = "https://storage.tellomi.app"
-    public let sfuURL = "https://sfu.staging.voip.signal.org"
+    // 群通话走我们自己的 SFU（docs/signal/BUILD_CALLING.md）：香港那台上 calling_frontend
+    // 听 127.0.0.1:9010，nginx 以 /callingService/ 暴露。Desktop 的 config/production.json
+    // 早就是这个地址，两端要一致，否则同一个群通话两端进不到一个房间。
+    public let sfuURL = "https://chat.tellomi.app/callingService"
     public let svr2URL = "wss://svr2.staging.signal.org"
     // 自建服务端：香港 nginx 上的 captcha 页（Cloudflare Turnstile，#930；通过后跳 tellomicaptcha://turnstile.<siteKey>.<action>.<token>，
     // CaptchaView 新旧 scheme 都认）。/captcha/ 那份回旧的 signalcaptcha://，两阶段迁移完成后下线。
     public let registrationCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/registration/generate.html"
     public let challengeCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/challenge/generate.html"
     // There's no separate test SFU for staging.
-    public let sfuTestURL = "https://sfu.test.voip.signal.org"
+    public let sfuTestURL = "https://chat.tellomi.app/callingService"   // 我们只有一套 SFU，没有单独的 test
     public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]
     // There's no separate updates endpoint for staging.
     public let updatesURL = "https://updates.signal.org"
