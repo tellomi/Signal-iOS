@@ -229,7 +229,7 @@ private struct PreviewView: View {
 }
 
 #Preview("Loaded") {
-    PreviewView(urlDisplayMode: .loaded(URL(string: "https://signal.org")!))
+    PreviewView(urlDisplayMode: .loaded(URL(string: "https://tellomi.app")!))
 }
 
 #Preview("Loading") {

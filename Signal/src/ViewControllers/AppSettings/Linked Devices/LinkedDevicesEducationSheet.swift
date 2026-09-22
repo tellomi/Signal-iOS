@@ -54,7 +54,7 @@ class LinkedDevicesEducationSheet: StackSheetViewController {
         let iPadDownloadLinkString = "signal.org/install"
         let iPadDownloadURL = URL(string: "https://signal.org/install/")!
         let desktopDownloadLinkString = "signal.org/download"
-        let desktopDownloadURL = URL(string: "https://signal.org/download/")!
+        let desktopDownloadURL = URL(string: "https://tellomi.app/download/")!
 
         let downloadsString = String.nonPluralLocalizedStringWithFormat(
             OWSLocalizedString(

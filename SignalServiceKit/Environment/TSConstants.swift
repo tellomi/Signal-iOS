@@ -42,7 +42,7 @@ public class TSConstants {
     // Never instantiate this class.
     private init() {}
 
-    public static let legalTermsUrl = URL(string: "https://signal.org/legal/")!
+    public static let legalTermsUrl = URL(string: "https://tellomi.app/legal/")!
     public static let donateUrl = URL(string: "https://signal.org/donate/")!
     public static let appStoreUrl = URL(string: "https://itunes.apple.com/us/app/signal-private-messenger/id874139669?mt=8")!
 

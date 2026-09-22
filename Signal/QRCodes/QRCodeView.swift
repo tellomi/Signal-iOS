@@ -292,7 +292,7 @@ struct RotatingQRCodeView: View {
 #Preview {
     VStack {
         RotatingQRCodeView(model: .init(
-            urlDisplayMode: .loaded(URL(string: "https://signal.org")!),
+            urlDisplayMode: .loaded(URL(string: "https://tellomi.app")!),
             onRefreshButtonPressed: {},
         ))
 

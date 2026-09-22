@@ -12,7 +12,7 @@ struct BackupPlanTermsAndConditionsView: View {
             "BACKUP_PLAN_TERM_AND_PRIVACY_POLICY_TEXT",
             comment: "Title for a label allowing users to view Signal's Terms & Conditions.",
         )
-        return Text("[\(label)](https://support.signal.org/)")
+        return Text("[\(label)](https://tellomi.app/support/)")
             .font(.subheadline.weight(.bold))
             .environment(\.openURL, OpenURLAction { _ in
                 CurrentAppContext().open(

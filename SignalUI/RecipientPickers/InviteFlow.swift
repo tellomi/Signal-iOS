@@ -33,7 +33,7 @@ public class InviteFlow: NSObject {
     }
 
     private let installUrl = "https://signal.org/install/"
-    private let homepageUrl = "https://signal.org"
+    private let homepageUrl = "https://tellomi.app"
 
     private weak var presentingViewController: UIViewController?
     private weak var modalPresentationViewController: UIViewController?

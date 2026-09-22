@@ -37,7 +37,7 @@ final class LinkedDeviceBackupSettingsViewController: OWSTableViewController2 {
 
     private static let logger = PrefixedLogger(prefix: "[Backups]")
 
-    private static let learnMoreURL = URL(string: "https://support.signal.org/hc/articles/360007059752-Backup-and-Restore-Messages")!
+    private static let learnMoreURL = URL(string: "https://tellomi.app/help/360007059752")!
 
     private enum Strings {
         static var manageOrUpgradeOnPrimaryFooter: String {

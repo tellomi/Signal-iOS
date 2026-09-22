@@ -162,8 +162,8 @@ private struct TutorialStack: View {
 #Preview {
     @Previewable @State var displayMode: RotatingQRCodeView.Model.URLDisplayMode = .loading
 
-    let url1 = URL(string: "https://signal.org")!
-    let url2 = URL(string: "https://support.signal.org")!
+    let url1 = URL(string: "https://tellomi.app")!
+    let url2 = URL(string: "https://tellomi.app/support/")!
     let cycle: () async -> Void = { @MainActor in
         displayMode = .loading
         try? await Task.sleep(nanoseconds: NSEC_PER_SEC / 2)
