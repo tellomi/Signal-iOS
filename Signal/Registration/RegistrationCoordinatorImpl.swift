@@ -1824,22 +1824,29 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 // or proceed to profile setup (if it succeeds) we must wipe this state.
                 return .registrationRecoveryPassword(password: password)
             }
-            if let credential = inMemoryState.svrAuthCredential {
-                // If we have a validated SVR auth credential, try using that
-                // to recover the SVR master key to register.
-                // Once again, to get off this path and fall back to session (if it fails)
-                // or proceed to reg recovery pw (if it succeeds) we must wipe this state.
-                return .svrAuthCredential(credential)
-            }
-            if
-                let svr2AuthCredentialCandidates = inMemoryState.svr2AuthCredentialCandidates,
-                !svr2AuthCredentialCandidates.isEmpty
-            {
-                // If we have un-vetted candidates, try checking those first
-                // and then going to the svrAuthCredential path if one is valid.
-                return .svrAuthCredentialCandidates(
-                    svr2AuthCredentialCandidates,
-                )
+            // Tellomi：没有 SVR enclave 的部署里，下面两条路一步都走不通——它们的终点是
+            // 拿用户的 PIN 去 enclave 里换 master key，而这里根本没有 enclave。
+            // 服务端的 `POST v2/svr/auth/check` 仍然会回 200（它只查凭证，不查 enclave），
+            // 所以客户端会以为「能恢复」，向一个从来没设过 PIN 的用户要 PIN（#964 的第二处）。
+            // 跳过这两条，让它落到会话验证码那条路上——也就是上游 RRP 被拒之后的正常出口。
+            if TSConstants.svrEnclaveAvailable {
+                if let credential = inMemoryState.svrAuthCredential {
+                    // If we have a validated SVR auth credential, try using that
+                    // to recover the SVR master key to register.
+                    // Once again, to get off this path and fall back to session (if it fails)
+                    // or proceed to reg recovery pw (if it succeeds) we must wipe this state.
+                    return .svrAuthCredential(credential)
+                }
+                if
+                    let svr2AuthCredentialCandidates = inMemoryState.svr2AuthCredentialCandidates,
+                    !svr2AuthCredentialCandidates.isEmpty
+                {
+                    // If we have un-vetted candidates, try checking those first
+                    // and then going to the svrAuthCredential path if one is valid.
+                    return .svrAuthCredentialCandidates(
+                        svr2AuthCredentialCandidates,
+                    )
+                }
             }
         }
 
