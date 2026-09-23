@@ -809,27 +809,8 @@ extension UIViewController {
 
 // MARK: - Tellomi：跨境单独告知与同意（tellomi/tellomi#1133）
 
-/// 需求：`docs/product/specs/privacy-compliance-hk-cross-border.md` 第二节（tellomi/tellomi#1134）。
-/// 服务端还在香港的这段时间，手机号、推送令牌、网络信息等会出境，这一页就是出境前的单独告知与单独同意。
-/// **文字是草稿**：9 项正文以 tellomi/tellomi#1132 的法务定稿为准，owner 审定后才能对外发布。
-enum TellomiCrossBorderConsent {
-    /// 告知文本的版本。定稿后与 `docs/legal/manifest.json` 里跨境告知的版本对齐。
-    /// 文本有实质变化就改这里，已经同意过的人会被重新询问。
-    static let noticeVersion = "0.1.0-draft"
-
-    private static let versionKey = "TellomiCrossBorderConsent.version"
-    private static let dateKey = "TellomiCrossBorderConsent.date"
-
-    static var hasAgreed: Bool {
-        UserDefaults.standard.string(forKey: versionKey) == noticeVersion
-    }
-
-    /// 本机记一份（版本 + 时间）。服务端的最小记录点由 taishi 设计（tellomi/tellomi#1133）。
-    static func recordAgreement() {
-        UserDefaults.standard.set(noticeVersion, forKey: versionKey)
-        UserDefaults.standard.set(Date(), forKey: dateKey)
-    }
-}
+// 跨境同意的记录和网络闸在 SignalServiceKit（`AppExpiry.swift` 末尾的 `TellomiCrossBorderConsent`）：
+// 同意之前聊天连接不开、URLSession 请求直接失败，这一页只负责告知和取得同意。
 
 /// 独立一页：标题 + 9 项 + 隐私政策链接 + 两个同样醒目的按钮。不预选、不倒计时、不默认聚焦「同意」。
 /// 「不同意」留在这一页，说明后果；不发送任何信息。
@@ -956,7 +937,12 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
     private func didTapAgree() {
         TellomiCrossBorderConsent.recordAgreement()
         let onAgree = self.onAgree
-        dismiss(animated: true) { onAgree() }
+        // 注册流程里是弹出来的，关掉再回调；已注册用户升级后它是独立窗口的根，没有可关的，直接回调。
+        if presentingViewController != nil {
+            dismiss(animated: true) { onAgree() }
+        } else {
+            onAgree()
+        }
     }
 
     private func didTapDisagree() {
