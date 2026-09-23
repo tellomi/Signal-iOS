@@ -8178,6 +8178,9 @@
 /* Alert shown when submitting a verification code too many times. Embeds {{ duration }}, such as \"5:00\" */
 "REGISTRATION_SUBMIT_CODE_RATE_LIMIT_ALERT_FORMAT" = "You’ve made too many attempts to enter the code. Try again in %1$@";
 
+/* Shown inline under the verification code field when the entered code is wrong. */
+"REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "Incorrect code. Check the SMS and try again.";
+
 /* During registration and re-registration, users may have to enter a code to verify ownership of their phone number. If they enter an invalid code, they will see this error message. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_VERIFICATION_CODE" = "The code you entered is not valid. Please resend the code and try again.";
 
