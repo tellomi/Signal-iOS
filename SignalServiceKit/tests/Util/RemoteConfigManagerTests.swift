@@ -225,3 +225,46 @@ struct TellomiGifRemoteConfigTests {
         #expect(RemoteConfig.isGifAvailable(enableGifSearch: true, provider: ""))
     }
 }
+
+/// Tellomi（#1110，ADR-0064 §4.4）：服务端下发的 `global.gif.proxyUrl` 怎么变成内容代理地址。
+///
+/// 测的是纯函数 `ContentProxy.endpoint(remoteProxyUrl:)`：什么样的下发值会被采用、什么样的会被拒绝
+/// 并回落到编译期常量。和 Android 的 `ContentProxySelectorTest`（tellomi/Signal-Android#12）同口径。
+/// 放在这个文件里而不是新建：新文件要手工登记进 project.pbxproj（BUILD_IOS.md），而这组判据本来就是在解释一个远端配置值。
+struct TellomiContentProxyEndpointTests {
+    @Test
+    func theValueTheServerDeliversTodayIsUsedAsIs() {
+        // deploy/hk/gen-config.py 的缺省值，Desktop / Android 读的也是它。
+        #expect(ContentProxy.endpoint(remoteProxyUrl: "https://contentproxy.tellomi.app:443") == .init(host: "contentproxy.tellomi.app", port: 443))
+    }
+
+    /// 备案之后换域名就是改这一行下发值，不用发版。
+    @Test
+    func aCnHostWithoutAnExplicitPortGets443() {
+        #expect(ContentProxy.endpoint(remoteProxyUrl: "https://contentproxy.tellomi.cn") == .init(host: "contentproxy.tellomi.cn", port: 443))
+    }
+
+    @Test
+    func aNonDefaultPortAndATrailingSlashAreFine() {
+        #expect(ContentProxy.endpoint(remoteProxyUrl: " https://contentproxy.tellomi.app:8443/ ") == .init(host: "contentproxy.tellomi.app", port: 8443))
+    }
+
+    /// 明文 CONNECT 从大陆出发会被 reset；宁可回落到编译期常量（iOS 17+ 外层仍是 TLS）。
+    /// 主机和端口故意和回落值不同：用同一个主机的话「被拒绝回落」和「被采用」结果一样，这条就什么也证明不了
+    /// （第一版就是这么写的，去掉 https 检查它照样绿）。
+    @Test
+    func plaintextHttpIsRefused() {
+        #expect(ContentProxy.endpoint(remoteProxyUrl: "http://contentproxy.tellomi.cn:8080") == ContentProxy.defaultEndpoint)
+    }
+
+    @Test(arguments: [nil, "", "   ", "contentproxy.tellomi.app:443", "https://"] as [String?])
+    func missingOrMalformedValuesFallBack(value: String?) {
+        #expect(ContentProxy.endpoint(remoteProxyUrl: value) == ContentProxy.defaultEndpoint)
+    }
+
+    /// 回落值本身不能再是 Signal 的代理——上游写死的就是 contentproxy.signal.org。
+    @Test
+    func theFallbackIsOurs() {
+        #expect(ContentProxy.defaultEndpoint == .init(host: "contentproxy.tellomi.app", port: 443))
+    }
+}
