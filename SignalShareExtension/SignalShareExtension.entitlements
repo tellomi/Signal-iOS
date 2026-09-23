@@ -6,8 +6,8 @@
 	<string>NSFileProtectionComplete</string>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.$(SIGNAL_BUNDLEID_PREFIX).group</string>
-		<string>group.$(SIGNAL_BUNDLEID_PREFIX).group.staging</string>
+		<string>group.$(SIGNAL_BUNDLEID_PREFIX)</string>
+		<string>group.$(SIGNAL_BUNDLEID_PREFIX).staging</string>
 	</array>
 	<key>keychain-access-groups</key>
 	<array>

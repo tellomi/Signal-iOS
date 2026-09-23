@@ -26,7 +26,7 @@ extension Bundle {
             owsFailDebug("Missing Info.plist entry for OWSBundleIDPrefix")
             // Tellomi：只在 Info.plist 缺键时才会走到（上面已经 owsFailDebug），
             // 但它会参与拼 App Group，兜底值写错等于拿到一个谁都不认的 group。
-            return "app.tellomi"
+            return "app.tellomi.chat"
         }
     }
 
