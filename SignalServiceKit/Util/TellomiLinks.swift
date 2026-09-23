@@ -95,19 +95,33 @@ public enum TellomiLinks {
         options: [.caseInsensitive],
     )
     /// 裸形状 `tell.cc/<username>`（owner 要的、用户会去分享的 t.me 式；与 Android 对齐）。第一段路径不能是命名空间里的保留字。
+    /// 用户名是带后缀的旧形状，或 3–32 位、首字符为字母 / 下划线的裸 nickname（tellomi/tellomi#1106，ADR-0066）。
     private static let bareUsernamePattern = try! NSRegularExpression(
-        pattern: "^(?:https|tellomi)://tell\\.cc/([a-zA-Z0-9_]+\\.[0-9]+)/?(?:[?#].*)?$",
+        pattern: "^(?:https|tellomi)://tell\\.cc/([a-zA-Z0-9_]+\\.[0-9]+|[a-zA-Z_][a-zA-Z0-9_]{2,31})/?(?:[?#].*)?$",
         options: [.caseInsensitive],
     )
 
-    /// `{https,tellomi}://tell.cc/u#u/<username>` 或 `{https,tellomi}://tell.cc/<username>` 里的明文用户名（如 `ceshi.57`），
-    /// 不是这两种形状返回 nil。裸形状要求用户名带 `.<数字>` 判别位（Signal 用户名的固定形状），所以不会和 `/u` `/g` `/s` `/call` `/i` 撞。
+    /// ADR-0066：Tellomi 新建用户名时判别位固定为 `01`，界面只露 nickname。
+    public static let fixedUsernameDiscriminator = "01"
+
+    /// tell.cc 的一级路径与预留路径（ADR-0066 §五：都进了用户名保留词）。1–2 位的已被长度规则挡住，列全是为了和 ADR 一一对得上。
+    private static let reservedFirstLevelPaths: Set<String> = ["u", "g", "s", "call", "i", "m", "e", "a", "app", "b"]
+
+    /// `{https,tellomi}://tell.cc/u#u/<username>` 或 `{https,tellomi}://tell.cc/<username>` 里的用户名，不是这两种形状返回 nil。
+    ///
+    /// **返回的总是协议层的完整用户名**（tellomi/tellomi#1106）：裸 nickname 补 `.01`（`tell.cc/kaixin` → `kaixin.01`），
+    /// 已带后缀的原样（`ceshi.57`），调用方可以直接拿去查。原来靠「必须带 `.<数字>`」挡保留路径，放开裸 nickname 之后改成：
+    /// 1–2 位的 `/u` `/g` `/s` `/i` … 被长度规则挡住；3 位以上的 `call`、`app` 显式排除（大小写不敏感）。
     public static func plainUsername(in url: URL) -> String? {
         let s = url.absoluteString
         for pattern in [plainUsernamePattern, bareUsernamePattern] {
             if let m = pattern.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
                let r = Range(m.range(at: 1), in: s) {
-                return String(s[r])
+                let raw = String(s[r])
+                if !raw.contains("."), reservedFirstLevelPaths.contains(raw.lowercased()) {
+                    return nil
+                }
+                return raw.contains(".") ? raw : "\(raw).\(fixedUsernameDiscriminator)"
             }
         }
         return nil

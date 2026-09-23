@@ -66,11 +66,22 @@ class UrlOpenerTest: XCTestCase {
         }
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#u/ceshi.57")!), "ceshi.57")
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/u/#u/linktest.56")!), "linktest.56")
-        // 裸形状（与 Android 对齐）：tell.cc/<username>，带 `.<数字>` 判别位才算用户名，保留字路径不算
+        // 裸形状（与 Android 对齐）：tell.cc/<username>，保留字路径不算
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/ceshi.57")!), "ceshi.57")
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/linktest.56/")!), "linktest.56")
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/call#key=abc")!))
+        // tellomi/tellomi#1106（ADR-0066）：不带「.数字」的也认，返回补上 `.01` 的完整用户名
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin?from=wechat")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/kaixin/")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/u#u/kaixin")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin.01")!), "kaixin.01")
+        // 3 位以上的保留路径显式挡（大小写不敏感）；两位名、数字开头不是用户名
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/app")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/CALL")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/ab")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/1abc")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#p/+16505550100")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/g#u/notauser")!))
         // tell.cc/u#p/… 不能被当成群邀请（Android #973 撞过的坑）
