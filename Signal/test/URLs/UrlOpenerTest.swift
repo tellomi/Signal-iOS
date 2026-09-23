@@ -99,6 +99,15 @@ class UrlOpenerTest: XCTestCase {
         XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.01"), "kaixin.01")
     }
 
+    /// tellomi/tellomi#1106 第二刀：选用户名页「没改 / 只改大小写」的捷径只认原判别位是 01 的；`.57` 这类旧号同名也要重新预约 `.01`。
+    func testTellomiUsernameShortcutsOnlyForFixedDiscriminator() {
+        let fixed = Usernames.ParsedUsername(rawUsername: "kaixin.01")
+        XCTAssertNotNil(fixed)
+        XCTAssertEqual(UsernameSelectionViewController.existingUsernameForShortcuts(fixed), fixed)
+        XCTAssertNil(UsernameSelectionViewController.existingUsernameForShortcuts(Usernames.ParsedUsername(rawUsername: "kaixin.57")))
+        XCTAssertNil(UsernameSelectionViewController.existingUsernameForShortcuts(nil))
+    }
+
     /// tellomi/tellomi#1106（ADR-0066 §六「显示」）：只有 `.01` 结尾的去掉后缀，别的后缀完整显示（与 Android `TellomiUsernamesTest` 同一组）。
     func testTellomiDisplayUsername() {
         XCTAssertEqual(TellomiLinks.displayUsername("kaixin.01"), "kaixin")
