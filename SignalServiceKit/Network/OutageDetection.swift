@@ -56,7 +56,11 @@ public class OutageDetection {
     // We only show the outage warning when we're certain there's an outage.
     // DNS lookup failures, etc. are not considered an outage.
     private func checkForOutageSync() -> Bool {
-        let host = CFHostCreateWithName(nil, "uptime.signal.org" as CFString).takeRetainedValue()
+        // Tellomi（#1101）：上游查的是 Signal 自己的 uptime 主机，那是 **Signal 的**运维信号——境外会跟着
+        // Signal 的故障挂横幅；大陆那个名字被 DNS 污染（随机公网 IP，下面走 owsFailDebug，Debug 包会断言）。
+        // （这里故意不写上游的字面主机名：#1101 的判据之一是源码 grep 它 = 0。）
+        // 记录还没建时 CFHostStartInfoResolution 失败 → 按「无故障」返回，不会误报。
+        let host = CFHostCreateWithName(nil, "uptime.tellomi.app" as CFString).takeRetainedValue()
         var resolutionError = CFStreamError()
         guard CFHostStartInfoResolution(host, .addresses, &resolutionError) else {
             Logger.warn("CFHostStartInfoResolution failed: \(resolutionError)")
