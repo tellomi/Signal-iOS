@@ -522,7 +522,8 @@ class AppSettingsViewController: OWSTableViewController2 {
             switch localUsernameState {
             case let .available(username, _):
                 addSubtitleLabel(
-                    text: username,
+                    // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：`.01` 结尾的去掉后缀显示，别的后缀完整显示
+                    text: TellomiLinks.displayUsername(username),
                     textColor: Theme.primaryTextColor,
                 )
             case .unset, .usernameAndLinkCorrupted, .linkCorrupted:

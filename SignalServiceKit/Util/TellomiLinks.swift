@@ -115,6 +115,18 @@ public enum TellomiLinks {
         return trimmed.contains(".") ? trimmed : "\(trimmed).\(fixedUsernameDiscriminator)"
     }
 
+    /// 协议层的完整用户名 → 界面上显示的样子（与 Android `TellomiUsernames.toDisplayUsername` 同一套规则，ADR-0066 §六「显示」）：
+    /// **只有 `.01` 结尾的去掉后缀**（`kaixin.01` → `kaixin`，保留原大小写）；别的后缀**完整显示**（`kaixin.57` 原样）——
+    /// §九的反向用例：别人用 `kaixin.57` 注册，官方客户端必须显示 `kaixin.57`，不能显示成 `kaixin`，否则就是冒充。
+    /// 只用在给人看的字符串上；存储、查找、链接、hash 仍用完整用户名。
+    public static func displayUsername(_ username: String) -> String {
+        let suffix = ".\(fixedUsernameDiscriminator)"
+        guard username.hasSuffix(suffix) else {
+            return username
+        }
+        return String(username.dropLast(suffix.count))
+    }
+
     /// tell.cc 的一级路径与预留路径（ADR-0066 §五：都进了用户名保留词）。1–2 位的已被长度规则挡住，列全是为了和 ADR 一一对得上。
     private static let reservedFirstLevelPaths: Set<String> = ["u", "g", "s", "call", "i", "m", "e", "a", "app", "b"]
 
