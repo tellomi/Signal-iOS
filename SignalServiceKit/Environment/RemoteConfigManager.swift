@@ -303,6 +303,41 @@ public class RemoteConfig {
         return isEnabled(.enableGifSearch, defaultValue: true)
     }
 
+    /// Tellomi（#1078，ADR-0064 §4.4）：服务端下发的 GIF provider。
+    ///
+    /// `nil`（没下发）或 `giphy` = 走 GIPHY；`none` = 这个部署不提供 GIF。
+    public var gifProvider: String? {
+        return valueFlags[ValueFlag.gifProvider.rawValue]
+    }
+
+    /// Tellomi（#1078）：服务端下发的 GIPHY API key。无值时调用方回落编译期常量。
+    public var gifApiKey: String? {
+        return valueFlags[ValueFlag.gifApiKeyIos.rawValue]
+    }
+
+    /// Tellomi（#1078）：GIF 功能到底能不能用 = 上游开关 **且** provider 不是 `none`。
+    ///
+    /// 两个条件分开留着：`global.gifSearch` 是上游的（整体开关），`global.gif.provider`
+    /// 是我们的（这个部署有没有 GIF 源）。
+    ///
+    /// **这不只是功能开关**：ADR-0065 第七节「不做 CN 版」定的是「Giphy 在大陆不通，
+    /// CN 档直接关掉 GIF 标签」。关掉之后包里才不会再有指向 `contentproxy.tellomi.app`
+    /// （境外、**未备案**域）的连接——那是上架大陆的备案前置，不是少一个面板。
+    public var isGifAvailable: Bool {
+        return RemoteConfig.isGifAvailable(enableGifSearch: enableGifSearch, provider: gifProvider)
+    }
+
+    /// [isGifAvailable] 的判断本身，抽出来是为了**能被单测直接调**：构造一整个
+    /// `RemoteConfig` 才能测「两个值怎么合成一个结论」不值当，而那一步正是会判错的地方。
+    ///
+    /// `provider == nil` 按可用处理，和 Desktop 的 `FunProvider.isGifsEnabled`（#1065）、
+    /// Android 的 `RemoteConfig.isGifAvailable`（tellomi/Signal-Android#9）同口径。
+    static func isGifAvailable(enableGifSearch: Bool, provider: String?) -> Bool {
+        guard enableGifSearch else { return false }
+        guard let provider else { return true }
+        return provider.lowercased() != "none"
+    }
+
     // MARK: -
 
     public var shouldCheckForServiceExtensionFailures: Bool {
@@ -755,6 +790,11 @@ private enum ValueFlag: String, FlagType {
     case cdsSyncInterval = "cds.syncInterval.seconds"
     case clientExpiration = "ios.clientExpiration"
     case creditAndDebitCardDisabledRegions = "global.donations.ccDisabledRegions"
+    /// Tellomi（#1078，ADR-0064 §4.4）：这个部署的 GIF provider。
+    /// 缺省 / `giphy` = 走 GIPHY；`none` = 整条关掉（大陆发行包用的就是它）。
+    case gifProvider = "global.gif.provider"
+    /// Tellomi（#1078）：服务端下发的 GIPHY API key（iOS 那一份）。
+    case gifApiKeyIos = "global.gif.apiKey.ios"
     case idealEnabledRegions = "global.donations.idealEnabledRegions"
     case maxGroupCallRingSize = "global.calling.maxGroupCallRingSize"
     case maxGroupSizeHardLimit = "global.groupsv2.groupSizeHardLimit"
@@ -833,6 +873,8 @@ private enum ValueFlag: String, FlagType {
         case .ringrtcSvcModeForScreenshare: true
         case .ringrtcVp9DeviceModelDecodeDenylist: true
         case .ringrtcVp9DeviceModelDenylist: true
+        case .gifApiKeyIos: true
+        case .gifProvider: true
         case .sepaEnabledRegions: true
         case .standardMediaQualityLevel: true
         case .videoAttachmentMaxEncryptedBytes: true
