@@ -315,6 +315,13 @@ public class RemoteConfig {
         return valueFlags[ValueFlag.gifApiKeyIos.rawValue]
     }
 
+    /// Tellomi（#1110，ADR-0064 §4.4）：服务端下发的内容代理地址，形如 `https://contentproxy.tellomi.app:443`
+    /// （`deploy/hk/gen-config.py` 的 `gif.proxyUrl`，Desktop / Android 读的是同一个键）。
+    /// 解析与回落在 `ContentProxy.endpoint(remoteProxyUrl:)`：只认 `https://`，没下发或不合法用编译期常量。
+    public var gifProxyUrl: String? {
+        return valueFlags[ValueFlag.gifProxyUrl.rawValue]
+    }
+
     /// Tellomi（#1078）：GIF 功能到底能不能用 = 上游开关 **且** provider 不是 `none`。
     ///
     /// 两个条件分开留着：`global.gifSearch` 是上游的（整体开关），`global.gif.provider`
@@ -795,6 +802,8 @@ private enum ValueFlag: String, FlagType {
     case gifProvider = "global.gif.provider"
     /// Tellomi（#1078）：服务端下发的 GIPHY API key（iOS 那一份）。
     case gifApiKeyIos = "global.gif.apiKey.ios"
+    /// Tellomi（#1110）：服务端下发的内容代理地址（只认 https）。
+    case gifProxyUrl = "global.gif.proxyUrl"
     case idealEnabledRegions = "global.donations.idealEnabledRegions"
     case maxGroupCallRingSize = "global.calling.maxGroupCallRingSize"
     case maxGroupSizeHardLimit = "global.groupsv2.groupSizeHardLimit"
@@ -875,6 +884,8 @@ private enum ValueFlag: String, FlagType {
         case .ringrtcVp9DeviceModelDenylist: true
         case .gifApiKeyIos: true
         case .gifProvider: true
+        // 用内容代理的 URLSession（GiphyAPI / ProxiedContentDownloader）都只在创建时读一次，改了要重启才生效。
+        case .gifProxyUrl: false
         case .sepaEnabledRegions: true
         case .standardMediaQualityLevel: true
         case .videoAttachmentMaxEncryptedBytes: true
