@@ -418,11 +418,12 @@ private extension UsernameSelectionViewController {
     private func updateHeaderViewContent() {
         // If we are able to finalize a username (i.e., have a
         // reservation or deletion primed), we should display it.
+        // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：头部预览只是给人看，`.01` 结尾的去掉后缀，别的后缀完整显示
         let usernameDisplayText: String? = {
             switch self.currentUsernameState {
             case .noChangesToExisting:
                 if let existingUsername = self.existingUsername {
-                    return existingUsername.reassembled
+                    return TellomiLinks.displayUsername(existingUsername.reassembled)
                 }
 
                 return OWSLocalizedString(
@@ -430,9 +431,9 @@ private extension UsernameSelectionViewController {
                     comment: "When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty.",
                 )
             case let .caseOnlyChange(newUsername):
-                return newUsername.reassembled
+                return TellomiLinks.displayUsername(newUsername.reassembled)
             case let .reservationSuccessful(username, _):
-                return username.reassembled
+                return TellomiLinks.displayUsername(username.reassembled)
             case
                 .pending,
                 .reservationRejected,

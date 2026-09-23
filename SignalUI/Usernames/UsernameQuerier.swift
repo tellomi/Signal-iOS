@@ -294,7 +294,8 @@ private extension SheetDisplayableError {
                     "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT",
                     comment: "A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}.",
                 ),
-                username,
+                // Tellomi（tellomi/tellomi#1106 第三刀）：查的是补过 `.01` 的全名，提示里只显示用户看到 / 输入的样子
+                TellomiLinks.displayUsername(username),
             ),
         )
     }
@@ -310,7 +311,7 @@ private extension SheetDisplayableError {
                     "USERNAME_LOOKUP_NOT_FOUND_MESSAGE_FORMAT",
                     comment: "A message indicating that the given username is not associated with a registered Signal account. Embeds {{ a username }}.",
                 ),
-                username,
+                TellomiLinks.displayUsername(username), // Tellomi（tellomi/tellomi#1106 第三刀）
             ),
         )
     }
