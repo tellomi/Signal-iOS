@@ -50,6 +50,7 @@ class WindowManager {
         case returnToCallWindow: true
         case callViewWindow: true
         case clockSkewBlockingWindow: true
+        case crossBorderConsentWindow: true
         case screenBlockingWindow: true
         default: false
         }
@@ -74,9 +75,18 @@ class WindowManager {
         }
     }
 
+    /// Tellomi：已注册但还没同意跨境（升级上来的老用户）时，跨境告知挡在所有界面前面（tellomi/tellomi#1133）。
+    /// 同意之前网络本来就是关着的（`TellomiCrossBorderConsent`），这一层只负责让用户看到并作出选择。
+    var isCrossBorderConsentBlockActive: Bool = false {
+        didSet {
+            AssertIsOnMainThread()
+            ensureWindowState()
+        }
+    }
+
     func updateWindowFrames() {
         let desiredFrame = CurrentAppContext().frame
-        for window in [rootWindow!, callViewWindow, clockSkewBlockingWindow, screenBlockingWindow!] {
+        for window in [rootWindow!, callViewWindow, clockSkewBlockingWindow, crossBorderConsentWindow, screenBlockingWindow!] {
             guard window.frame != desiredFrame else { continue }
             window.frame = desiredFrame
         }
@@ -162,6 +172,22 @@ class WindowManager {
         return window
     }()
 
+    // UIWindow.Level._clockSkewBlocking（两个挡板不会同时出现：没同意跨境就不联网，也就量不出时钟偏差）
+    private lazy var crossBorderConsentWindow: UIWindow = {
+        AssertIsOnMainThread()
+        guard let rootWindow else {
+            owsFail("rootWindow is nil")
+        }
+
+        let window = OWSWindow(frame: rootWindow.bounds)
+        window.windowLevel = ._clockSkewBlocking
+        window.isHidden = true
+        window.isOpaque = true
+        window.backgroundColor = Theme.launchScreenBackgroundColor
+        window.rootViewController = TellomiCrossBorderNoticeViewController(onAgree: {})
+        return window
+    }()
+
     // UIWindow.Level._background if inactive,
     // UIWindow.Level._screenBlocking() if active.
     private var screenBlockingWindow: UIWindow!
@@ -182,12 +208,23 @@ class WindowManager {
             ensureReturnToCallWindowHidden()
             ensureCallViewWindowHidden()
             ensureClockSkewBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
         }
         // Show Call View
         else if shouldShowCallView, callViewController != nil {
             ensureCallViewWindowShown()
             ensureRootWindowHidden()
             ensureReturnToCallWindowHidden()
+            ensureScreenBlockWindowHidden()
+            ensureClockSkewBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
+        }
+        // Tellomi: Show Cross-Border Consent Block (tellomi/tellomi#1133)
+        else if isCrossBorderConsentBlockActive {
+            ensureCrossBorderConsentWindowShown()
+            ensureRootWindowHidden()
+            ensureReturnToCallWindowHidden()
+            ensureCallViewWindowHidden()
             ensureScreenBlockWindowHidden()
             ensureClockSkewBlockWindowHidden()
         }
@@ -198,12 +235,14 @@ class WindowManager {
             ensureReturnToCallWindowHidden()
             ensureCallViewWindowHidden()
             ensureScreenBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
         }
         // Show Root Window
         else {
             ensureRootWindowShown()
             ensureScreenBlockWindowHidden()
             ensureClockSkewBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
 
             // Add "Return to Call" banner
             if callViewController != nil {
@@ -302,6 +341,25 @@ class WindowManager {
 
         Logger.info("hiding clock skew window.")
         clockSkewBlockingWindow.isHidden = true
+    }
+
+    private func ensureCrossBorderConsentWindowShown() {
+        AssertIsOnMainThread()
+
+        if crossBorderConsentWindow.isHidden {
+            Logger.info("showing cross-border consent window.")
+        }
+
+        crossBorderConsentWindow.makeKeyAndVisible()
+    }
+
+    private func ensureCrossBorderConsentWindowHidden() {
+        AssertIsOnMainThread()
+
+        guard !crossBorderConsentWindow.isHidden else { return }
+
+        Logger.info("hiding cross-border consent window.")
+        crossBorderConsentWindow.isHidden = true
     }
 
     private func ensureScreenBlockWindowShown() {
@@ -555,4 +613,43 @@ private func workAroundRotationIssue(_ window: UIWindow) {
     func3(dismissSupport, selector3)
 
     Logger.info("finished scrollView transition")
+}
+
+// MARK: - Tellomi
+
+/// 已注册但还没同意跨境时挡住整个 App（tellomi/tellomi#1133）。未注册的人在注册流程里单独问：
+/// 号码页「下一步」、欢迎页「恢复或转移账户」、iPad 的「关联设备」。
+class TellomiCrossBorderConsentMonitoringManager {
+    private let windowManager: WindowManager
+
+    init(windowManager: WindowManager) {
+        self.windowManager = windowManager
+    }
+
+    func start() {
+        AssertIsOnMainThread()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(update),
+            name: TellomiCrossBorderConsent.didChangeNotification,
+            object: nil,
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(update),
+            name: .registrationStateDidChange,
+            object: nil,
+        )
+
+        update()
+    }
+
+    @objc
+    private func update() {
+        AssertIsOnMainThread()
+
+        let isRegistered = DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered
+        windowManager.isCrossBorderConsentBlockActive = isRegistered && !TellomiCrossBorderConsent.hasAgreed
+    }
 }

@@ -152,6 +152,13 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
 
     private func didTapModeSwitch() {
         Logger.info("")
+        // Tellomi：关联设备要连服务端，同意跨境之前网络是关着的（tellomi/tellomi#1133）。
+        guard TellomiCrossBorderConsent.hasAgreed else {
+            presentTellomiCrossBorderNotice { [weak self] in
+                self?.didTapModeSwitch()
+            }
+            return
+        }
         presenter?.switchToDeviceLinkingMode()
     }
 
@@ -167,6 +174,13 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
 
     private func didTapRestoreOrTransfer() {
         Logger.info("")
+        // Tellomi：恢复 / 转移都要连服务端（扫码恢复、备份），同意跨境之前网络是关着的（tellomi/tellomi#1133）。
+        guard TellomiCrossBorderConsent.hasAgreed else {
+            presentTellomiCrossBorderNotice { [weak self] in
+                self?.didTapRestoreOrTransfer()
+            }
+            return
+        }
         let sheet = RestoreOrTransferPickerController(
             setHasOldDeviceBlock: { [weak self] hasOldDevice in
                 self?.dismiss(animated: true) {
