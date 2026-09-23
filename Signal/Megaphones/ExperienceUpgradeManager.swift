@@ -378,6 +378,11 @@ class ExperienceUpgradeManager {
     private func checkPreconditionsForIntroducingPins(
         tx: DBReadTransaction,
     ) -> Bool {
+        // Tellomi：没有 SVR enclave 就建不了 PIN，「创建你的密码」卡片点进去必然失败（tellomi/tellomi#1209）。
+        guard TSConstants.svrEnclaveAvailable else {
+            return false
+        }
+
         // The PIN setup flow requires an internet connection and you to not already have a PIN
         if
             reachabilityManager.isReachable,
@@ -569,6 +574,11 @@ class ExperienceUpgradeManager {
         experienceUpgrade: ExperienceUpgrade,
         tx: DBReadTransaction,
     ) -> BackupsUpsellResult? {
+        // Tellomi：没有安全备份服务时不引导用户去开备份（tellomi/tellomi#1209）。
+        guard TSConstants.backupServiceAvailable else {
+            return nil
+        }
+
         guard
             tsAccountManager.registrationState(tx: tx).isRegisteredPrimaryDevice
         else {

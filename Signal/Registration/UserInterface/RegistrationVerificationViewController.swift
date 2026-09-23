@@ -317,7 +317,8 @@ class RegistrationVerificationViewController: OWSViewController {
         )
         updateButtonWithTimer(
             button: requestVoiceCodeButton,
-            date: state.nextCallDate,
+            // Tellomi：服务端没开语音时「呼叫我」是死路，直接不显示（tellomi/tellomi#1209）。
+            date: TSConstants.voiceVerificationAvailable ? state.nextCallDate : nil,
             enabledString: OWSLocalizedString(
                 "ONBOARDING_VERIFICATION_CALL_ME_BUTTON",
                 comment: "Label for button to perform verification with a phone call.",
@@ -428,6 +429,18 @@ class RegistrationVerificationViewController: OWSViewController {
             OWSActionSheets.showActionSheet(title: title, message: message)
 
         case .failedInitialTransport(let failedTransport):
+            // Tellomi：服务端没开语音时，上游这里的「改用语音通话接收」是一条死路（tellomi/tellomi#1209）。
+            // 只说清发不出去；服务端只放行中国大陆号码时，别的地区也落在这里。
+            if case .sms = failedTransport, !TSConstants.voiceVerificationAvailable {
+                OWSActionSheets.showActionSheet(
+                    title: nil,
+                    message: OWSLocalizedString(
+                        "REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR",
+                        comment: "Error message when sending a verification code via SMS failed and no other way of sending the code is available.",
+                    ),
+                )
+                return
+            }
             let errorMessage: String
             let alternativeTransportButtonText: String
             let alternativeTransport: Registration.CodeTransport

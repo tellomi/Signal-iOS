@@ -8163,6 +8163,9 @@
 /* Tutorial text describing the second step to scanning the restore/transfer QR code with your old phone: tap the camera icon */
 "REGISTRATION_SCAN_QR_CODE_TUTORIAL_TAP_CAMERA" = "Tap the camera icon";
 
+/* Error message when sending a verification code via SMS failed and no other way of sending the code is available. */
+"REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR" = "We couldn't send a verification code to this number. Registration is currently open to mainland China numbers only. If yours is one, please try again later or contact support@tellomi.app.";
+
 /* Button when sending a verification code via sms failed, but resending via voice call might succeed. */
 "REGISTRATION_SMS_CODE_FAILED_TRY_VOICE_BUTTON" = "Voice Call";
 
