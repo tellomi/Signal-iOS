@@ -197,7 +197,9 @@ class AttachmentFormatPickerView: UIView {
         }
 
         private static func cases(except: [AttachmentType]) -> [AttachmentType] {
-            let showGifSearch = RemoteConfig.current.enableGifSearch
+            // Tellomi（#1078）：用 isGifAvailable 而不是 enableGifSearch——后者只是上游那半，
+            // provider=none 的部署（大陆包）必须连这个入口一起关掉。
+            let showGifSearch = RemoteConfig.current.isGifAvailable
             return allCases.filter { (value: AttachmentType) in
                 if value == .gif, !showGifSearch { return false }
                 return !except.contains(value)

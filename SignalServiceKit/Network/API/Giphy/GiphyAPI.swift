@@ -29,6 +29,19 @@ public enum GiphyAPI {
 
     // This is the Signal iOS API key.
     private static let kGiphyApiKey = "ZsUpUm2L6cVbvei347EQNp7HrROjbOdc"
+
+    /// Tellomi（#1078，ADR-0064 §4.4）：有服务端下发的就用下发的，没有才回落上面那把。
+    ///
+    /// 上面那把是 **Signal 自己的** key，我们一直在拿它请求 GIPHY。
+    /// 每次取值而不是存成 `static let`：`gifApiKey` 是热更的，存成常量的话服务端换了
+    /// key 这个进程也拿不到新值——表现是「后台改了 key，用户还得杀进程重开」。
+    private static var giphyApiKey: String {
+        let remote = RemoteConfig.current.gifApiKey
+        if let remote, !remote.isEmpty {
+            return remote
+        }
+        return kGiphyApiKey
+    }
     private static let kGiphyPageSize = 100
     // Limit response payload to the renditions and fields we actually consume.
     private static let kGiphyFields = [
@@ -54,7 +67,7 @@ public enum GiphyAPI {
         var urlComponents = URLComponents()
         urlComponents.path = urlPath
         let baseQueryItems: [URLQueryItem] = [
-            URLQueryItem(name: "api_key", value: kGiphyApiKey),
+            URLQueryItem(name: "api_key", value: giphyApiKey),
             URLQueryItem(name: "limit", value: "\(kGiphyPageSize)"),
             URLQueryItem(name: "fields", value: kGiphyFields),
         ]
