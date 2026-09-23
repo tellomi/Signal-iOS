@@ -80,6 +80,7 @@ public class TSConstants {
     public static var keyTransparencyAvailable: Bool { shared.keyTransparencyAvailable }
     public static var voiceVerificationAvailable: Bool { shared.voiceVerificationAvailable }
     public static var backupServiceAvailable: Bool { shared.backupServiceAvailable }
+    public static var smsVerificationCallingCodes: Set<String>? { shared.smsVerificationCallingCodes }
 
     /// Tellomi：阶段一**不做捐赠**（owner 2026-09-22 定）。
     ///
@@ -179,6 +180,13 @@ public protocol TSConstantsProtocol: AnyObject {
     /// 否则 7 天后的「开启加密备份」卡片把人带进一条走不通的路（tellomi/tellomi#1209）。
     var backupServiceAvailable: Bool { get }
 
+    /// Tellomi：短信验证码发得到哪些国际区号的号码（不带 `+`）；nil = 不限（上游）。
+    /// 香港的 registration-service 只给 CN 配了发送器（`deploy/hk/enable-aliyun-sms.sh`：`available-only-in-regions: [CN]`）。
+    /// 别的地区要验证码时，它回 `NO_SENDER_AVAILABLE`（mayRetry=false），Signal-Server 把 mayRetry 原样当 permanent 传，
+    /// 于是客户端收到 440 providerUnavailable + **permanentFailure=false**——单看响应分不出「这个地区没开放」
+    /// 还是「短信服务暂时不可用」，只能靠号码的区号来分（tellomi/tellomi#1209）。
+    var smsVerificationCallingCodes: Set<String>? { get }
+
     var serverPublicParams: Data { get }
     var callLinkPublicParams: Data { get }
     var backupServerPublicParams: Data { get }
@@ -213,6 +221,7 @@ public class TSConstantsProduction: TSConstantsProtocol {
     public let keyTransparencyAvailable: Bool = true
     public let voiceVerificationAvailable: Bool = true
     public let backupServiceAvailable: Bool = true
+    public let smsVerificationCallingCodes: Set<String>? = nil
 
     public let mainServiceURL = "https://chat.signal.org"
     public let textSecureCDN0ServerURL = "https://cdn.signal.org"
@@ -286,6 +295,7 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let keyTransparencyAvailable: Bool = false
     public let voiceVerificationAvailable: Bool = false
     public let backupServiceAvailable: Bool = false
+    public let smsVerificationCallingCodes: Set<String>? = ["86"]
 
     public let mainServiceURL = "https://chat.tellomi.app"
     public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
@@ -411,6 +421,7 @@ public class TSConstantsMock: TSConstantsProtocol {
     public lazy var keyTransparencyAvailable: Bool = defaultValues.keyTransparencyAvailable
     public lazy var voiceVerificationAvailable: Bool = defaultValues.voiceVerificationAvailable
     public lazy var backupServiceAvailable: Bool = defaultValues.backupServiceAvailable
+    public lazy var smsVerificationCallingCodes: Set<String>? = defaultValues.smsVerificationCallingCodes
 
     public lazy var serverPublicParams = defaultValues.serverPublicParams
 

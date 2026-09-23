@@ -410,8 +410,9 @@ class RegistrationVerificationViewController: OWSViewController {
         case .providerFailure(let isPermanent):
             let message: String
             if isPermanent {
-                // Tellomi：香港服务端只放行中国大陆号码，其它地区回 440（permanentFailure）。
-                // 上游这里说「请在几小时后重试」，会诱导用户反复重试；改为说清只开放中国大陆 + 客服（tellomi/tellomi#1209）。
+                // Tellomi：服务商判定永久失败时，上游这里说「请在几小时后重试」，会诱导用户反复重试；
+                // 改为说清只开放中国大陆 + 客服（tellomi/tellomi#1209）。大陆以外的号码走不到这里：
+                // 服务端对它们回的是 permanentFailure=false，首次注册时协调器直接把人送回手机号页。
                 message = OWSLocalizedString(
                     "REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR",
                     comment: "Error message when sending a verification code via SMS failed and no other way of sending the code is available.",
