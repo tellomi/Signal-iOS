@@ -10401,6 +10401,21 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "Tap to replace an emoji";
 
+/* Chat list banner shown while system notifications for Tellomi are turned off. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER" = "Notifications are off. You won't be alerted to new messages or calls while Tellomi isn't open.";
+
+/* Button on the chat list banner that opens the system notification settings for Tellomi. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER_ACTION" = "Go to Settings";
+
+/* Body of the one-time notification permission explanation sheet. Explains the purpose and that the system will ask next. */
+"TELLOMI_NOTIFICATION_PRIMER_BODY" = "When Tellomi isn't open, notifications tell you about new messages and calls. After you tap Continue, iOS will ask once. You can change this anytime in Settings.";
+
+/* The only button on the notification permission explanation sheet. Must read 'Continue', never 'Allow'. */
+"TELLOMI_NOTIFICATION_PRIMER_CONTINUE" = "Continue";
+
+/* Title of the one-time sheet shown on the chat list after registration, explaining why Tellomi asks for notification permission. */
+"TELLOMI_NOTIFICATION_PRIMER_TITLE" = "Know when messages arrive";
+
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "Bold";
 

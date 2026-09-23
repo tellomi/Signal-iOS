@@ -10401,6 +10401,21 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "點擊即可替換表情符號";
 
+/* Chat list banner shown while system notifications for Tellomi are turned off. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER" = "通知已關閉。Tellomi 不在前景時，你不會收到新訊息和來電的提醒。";
+
+/* Button on the chat list banner that opens the system notification settings for Tellomi. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER_ACTION" = "前往設定";
+
+/* Body of the one-time notification permission explanation sheet. Explains the purpose and that the system will ask next. */
+"TELLOMI_NOTIFICATION_PRIMER_BODY" = "Tellomi 不在前景時，會用系統通知告訴你有新訊息和來電。點「繼續」後系統會詢問一次，之後隨時可以在「設定」中更改。";
+
+/* The only button on the notification permission explanation sheet. Must read 'Continue', never 'Allow'. */
+"TELLOMI_NOTIFICATION_PRIMER_CONTINUE" = "繼續";
+
+/* Title of the one-time sheet shown on the chat list after registration, explaining why Tellomi asks for notification permission. */
+"TELLOMI_NOTIFICATION_PRIMER_TITLE" = "即時收到新訊息";
+
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "粗體";
 
