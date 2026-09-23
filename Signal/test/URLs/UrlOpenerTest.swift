@@ -87,4 +87,15 @@ class UrlOpenerTest: XCTestCase {
         // tell.cc/u#p/… 不能被当成群邀请（Android #973 撞过的坑）
         XCTAssertNil(PossibleGroupInviteLinkUrl.parseFrom(TellomiLinks.legacyEquivalent(of: URL(string: "https://tell.cc/u#p/+16505550100")!)))
     }
+
+    /// tellomi/tellomi#1106（ADR-0066）：找人页 / 联系人搜索把输入的名字补成协议层的完整用户名（与 Android `TellomiUsernamesTest` 同一组）。
+    func testTellomiProtocolUsername() {
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin"), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.protocolUsername("@kaixin"), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.protocolUsername("  kaixin \n"), "kaixin.01")
+        // 旧账号带随机后缀：原样保留，按全名去查
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.57"), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.protocolUsername(" @kaixin.57 "), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.01"), "kaixin.01")
+    }
 }

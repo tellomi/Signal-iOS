@@ -104,6 +104,17 @@ public enum TellomiLinks {
     /// ADR-0066：Tellomi 新建用户名时判别位固定为 `01`，界面只露 nickname。
     public static let fixedUsernameDiscriminator = "01"
 
+    /// 用户输入 / 链接里的名字 → 协议层的完整用户名（与 Android `TellomiUsernames.toProtocolUsername` 同一套规则）：
+    /// 去掉首尾空白和前导 `@`；**没有 `.` 就补 `.01`**（`kaixin` → `kaixin.01`）；已带后缀的原样保留（`kaixin.57` 这类旧账号按全名找）。
+    /// 不做合法性校验：不合法的交给 `Usernames.HashedUsername` / 服务端去拒。
+    public static func protocolUsername(_ input: String) -> String {
+        var trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("@") {
+            trimmed.removeFirst()
+        }
+        return trimmed.contains(".") ? trimmed : "\(trimmed).\(fixedUsernameDiscriminator)"
+    }
+
     /// tell.cc 的一级路径与预留路径（ADR-0066 §五：都进了用户名保留词）。1–2 位的已被长度规则挡住，列全是为了和 ADR 一一对得上。
     private static let reservedFirstLevelPaths: Set<String> = ["u", "g", "s", "call", "i", "m", "e", "a", "app", "b"]
 
@@ -121,7 +132,7 @@ public enum TellomiLinks {
                 if !raw.contains("."), reservedFirstLevelPaths.contains(raw.lowercased()) {
                     return nil
                 }
-                return raw.contains(".") ? raw : "\(raw).\(fixedUsernameDiscriminator)"
+                return protocolUsername(raw)
             }
         }
         return nil
