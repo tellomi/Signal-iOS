@@ -243,7 +243,9 @@ class AppSettingsViewController: OWSTableViewController2 {
             },
         ))
 
-        if isPrimaryDevice {
+        // Tellomi（tellomi/tellomi#1193）：正式构建里主设备这一行后面只有远端备份（上游的免费 / 付费套餐），阶段一不做，整行不出；
+        // 开发 / beta 构建走有本地备份的落地页，照留。见 TSConstants.remoteBackupsEnabled。
+        if isPrimaryDevice, TSConstants.remoteBackupsEnabled || BuildFlags.LocalFileBackups.settingsUI {
             section2.add(.disclosureItem(
                 icon: .backup,
                 withText: OWSLocalizedString(
@@ -282,7 +284,7 @@ class AppSettingsViewController: OWSTableViewController2 {
                     )
                 },
             ))
-        } else {
+        } else if !isPrimaryDevice {
             section2.add(.disclosureItem(
                 icon: .backup,
                 withText: OWSLocalizedString(

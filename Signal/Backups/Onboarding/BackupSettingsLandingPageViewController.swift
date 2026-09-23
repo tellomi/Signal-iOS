@@ -103,16 +103,22 @@ class BackupSettingsLandingPageViewController: OWSTableViewController2 {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateContents()
-        loadBackupSubscription()
+        // Tellomi（tellomi/tellomi#1193）：远端备份不做，不去服务端取订阅状态
+        if TSConstants.remoteBackupsEnabled {
+            loadBackupSubscription()
+        }
     }
 
     private func updateContents() {
         let contents = OWSTableContents()
 
-        let signalBackupsSection = OWSTableSection()
-        signalBackupsSection.customHeaderView = buildSubtitleHeaderView()
-        signalBackupsSection.add(buildSignalBackupsCardItem())
-        contents.add(signalBackupsSection)
+        // Tellomi（tellomi/tellomi#1193）：「Signal 备份」卡片（远端的免费 / 付费套餐）不出，只留设备上备份
+        if TSConstants.remoteBackupsEnabled {
+            let signalBackupsSection = OWSTableSection()
+            signalBackupsSection.customHeaderView = buildSubtitleHeaderView()
+            signalBackupsSection.add(buildSignalBackupsCardItem())
+            contents.add(signalBackupsSection)
+        }
 
         let onDeviceSection = OWSTableSection()
         onDeviceSection.customHeaderView = buildOtherWaysHeaderView()
