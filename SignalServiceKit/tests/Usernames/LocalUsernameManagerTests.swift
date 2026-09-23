@@ -630,6 +630,20 @@ class LocalUsernameManagerTests: XCTestCase {
             desiredDiscriminator: nil,
         ))
     }
+
+    /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 按 Retry-After 分成改名冷却和普通限流。
+    func testTellomiReservationRateLimitSplitsOffRenameCooldown() {
+        guard case .changeCooldown(let retryAfter) = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: 2_591_999) else {
+            return XCTFail("30 天的 Retry-After 应当是改名冷却")
+        }
+        XCTAssertEqual(retryAfter, 2_591_999)
+
+        for shortOrMissing: TimeInterval? in [9, 3600, nil] {
+            guard case .rateLimited = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: shortOrMissing) else {
+                return XCTFail("\(String(describing: shortOrMissing)) 秒应当是普通限流")
+            }
+        }
+    }
 }
 
 private extension Usernames.RemoteMutationResult<Void> {

@@ -99,6 +99,18 @@ class UrlOpenerTest: XCTestCase {
         XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.01"), "kaixin.01")
     }
 
+    /// tellomi/tellomi#1106 第四刀（ADR-0066 §6.2）：一小时是改名冷却与限流的分界线；天数向上取整、至少 1（与 Android、Desktop 同一组）。
+    func testTellomiRenameCooldown() {
+        XCTAssertFalse(TellomiLinks.isRenameCooldown(retryAfter: 9))
+        XCTAssertFalse(TellomiLinks.isRenameCooldown(retryAfter: 3600))
+        XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 3601))
+        XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 2_591_999))
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 2_591_999), 30)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86400), 1)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86401), 2)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 7200), 1)
+    }
+
     /// tellomi/tellomi#1106 第二刀：选用户名页「没改 / 只改大小写」的捷径只认原判别位是 01 的；`.57` 这类旧号同名也要重新预约 `.01`。
     func testTellomiUsernameShortcutsOnlyForFixedDiscriminator() {
         let fixed = Usernames.ParsedUsername(rawUsername: "kaixin.01")
