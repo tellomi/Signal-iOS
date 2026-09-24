@@ -31,4 +31,9 @@ if [ "${CONFIGURATION}" = "App Store Release" ] || [ "${CONFIGURATION}" = "Testa
 
     _build_timestamp=`date +%s`
     /usr/libexec/PlistBuddy -c "add :BuildDetails:Timestamp integer $_build_timestamp" Signal/Signal-Info.plist
+
+    # Tellomi（tellomi/tellomi#1142，taishi 审查 b17 不阻塞 3）：在构建日志里打印这个包的兜底到期日，
+    # 按构建时间 + 180 天（AppExpiry.defaultExpirationInterval）算，和 Android 发版脚本打印的到期日对得上。
+    _expiry_timestamp=$((_build_timestamp + 180 * 24 * 60 * 60))
+    echo "Tellomi build expires on $(date -u -r "$_expiry_timestamp" '+%Y-%m-%d %H:%M UTC') (build time + 180 days)"
 fi
