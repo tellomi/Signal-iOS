@@ -4081,7 +4081,7 @@
 "GET_STARTED_CARD_CLOSE_A11YLABEL" = "移除建議";
 
 /* 'Get Started' button directing users to find someone by their username */
-"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "搜尋用戶名稱";
+"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "搜尋使用者名稱";
 
 /* 'Get Started' button directing users to invite friends */
 "GET_STARTED_CARD_INVITE_FRIENDS" = "邀請好友";
