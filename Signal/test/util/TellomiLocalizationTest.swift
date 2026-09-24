@@ -86,19 +86,144 @@ final class TellomiLocalizationTest: XCTestCase {
 
     /// 中文三种语言是 Tellomi 的主要用户，每个新键都要有中文，不能靠英文回落。
     func testChineseTablesCoverEveryEnglishKey() throws {
-        func keys(_ localization: String) throws -> Set<String> {
-            let path = try XCTUnwrap(
-                Bundle.main.app.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: localization),
-                "no Localizable.strings for \(localization)",
-            )
-            let table = try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: String], "unreadable table for \(localization)")
-            return Set(table.keys)
-        }
-        let english = try keys("en")
+        let english = try localizableKeys("en")
         XCTAssertGreaterThan(english.count, 1000, "the English table should be the full app table")
         for localization in ["zh_CN", "zh_HK", "zh_TW"] {
-            let missing = english.subtracting(try keys(localization)).sorted()
+            let missing = english.subtracting(try localizableKeys(localization)).sorted()
             XCTAssertEqual(missing, [], "\(localization) lacks \(missing.count) keys")
         }
+    }
+
+    // MARK: - PluralAware.stringsdict
+
+    // 复数文案不在 Localizable.strings 里，上面两条查不到（taishi 审查 b1 不阻塞 2）。一条新条目嵌进上一条的 dict 时
+    // `plutil -lint` 照过，运行时按键查不到、界面显示键名；英文表是同一个错时回落也救不了。
+
+    /// 每种语言的每一条都在顶层：值是带 NSStringLocalizedFormatKey 的 dict，里面其余的 dict 只能是变量说明。
+    func testPluralAwareEntriesAreAllAtTheTopLevel() throws {
+        let localizations = Bundle.main.app.localizations.filter { $0 != "Base" }
+        XCTAssertGreaterThan(localizations.count, 10, "\(localizations)")
+        for localization in localizations {
+            var misplaced = [String]()
+            for (key, value) in try pluralAwareTable(localization) {
+                guard let entry = value as? [String: Any], entry["NSStringLocalizedFormatKey"] is String else {
+                    misplaced.append(key)
+                    continue
+                }
+                for (name, variable) in entry where name != "NSStringLocalizedFormatKey" {
+                    if (variable as? [String: Any])?["NSStringFormatSpecTypeKey"] == nil {
+                        misplaced.append("\(key) → \(name)")
+                    }
+                }
+            }
+            XCTAssertEqual(misplaced.sorted(), [], "\(localization) PluralAware.stringsdict has entries nested in other entries")
+        }
+    }
+
+    /// 源码里 `tableName: "PluralAware"` 取的每个键，英文表顶层都要有；有了它，其它语言缺键才回落得到英文。
+    func testPluralAwareKeysUsedInCodeAreInTheEnglishTable() throws {
+        let scan = try scanSources(
+            withExtensions: ["swift"],
+            excluding: "OWSLocalizedString.swift",
+            keyPattern: #"OWSLocalizedString\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*tableName:\s*"PluralAware""#,
+            usePattern: #"tableName:\s*"PluralAware""#,
+        )
+        XCTAssertEqual(scan.matchedUses, scan.allUses, "some PluralAware lookups are not written as OWSLocalizedString(\"KEY\", tableName: \"PluralAware\", …)")
+        XCTAssertGreaterThan(scan.keys.count, 100)
+        let missing = scan.keys.subtracting(try pluralAwareTable("en").keys).sorted()
+        XCTAssertEqual(missing, [], "used in code but not at the top level of en.lproj/PluralAware.stringsdict")
+    }
+
+    /// 与 Localizable.strings 一样，复数文案中文三种语言也要齐，不能靠英文回落。
+    func testChinesePluralTablesCoverEveryEnglishKey() throws {
+        let english = Set(try pluralAwareTable("en").keys)
+        XCTAssertGreaterThan(english.count, 100)
+        for localization in ["zh_CN", "zh_HK", "zh_TW"] {
+            let missing = english.subtracting(try pluralAwareTable(localization).keys).sorted()
+            XCTAssertEqual(missing, [], "\(localization) lacks \(missing.count) plural keys")
+        }
+    }
+
+    // MARK: - Objective-C
+
+    /// ObjC 的 `OWSLocalizedString` 宏（SignalServiceKit.h）直接调 NSBundle，不走上面的英文回落（taishi 审查 b1 不阻塞 1）。
+    /// 所以从 ObjC 取的键必须每种语言都有；Tellomi 的新键只写四种语言，只能从 Swift 取。
+    func testKeysReadFromObjectiveCExistInEveryLanguage() throws {
+        let scan = try scanSources(
+            withExtensions: ["h", "m", "mm"],
+            excluding: "SignalServiceKit.h",
+            keyPattern: #"OWSLocalizedString\(\s*@"((?:[^"\\]|\\.)*)""#,
+            usePattern: #"OWSLocalizedString\("#,
+        )
+        XCTAssertEqual(scan.matchedUses, scan.allUses, "some Objective-C lookups are not written as OWSLocalizedString(@\"KEY\", …)")
+        XCTAssertGreaterThan(scan.keys.count, 20)
+        let localizations = Bundle.main.app.localizations.filter { $0 != "Base" }
+        XCTAssertGreaterThan(localizations.count, 10, "\(localizations)")
+        for localization in localizations {
+            let missing = scan.keys.subtracting(try localizableKeys(localization)).sorted()
+            XCTAssertEqual(missing, [], "\(localization) lacks keys read from Objective-C, which get no English fallback")
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func localizableKeys(_ localization: String) throws -> Set<String> {
+        let path = try XCTUnwrap(
+            Bundle.main.app.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: localization),
+            "no Localizable.strings for \(localization)",
+        )
+        let table = try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: String], "unreadable table for \(localization)")
+        return Set(table.keys)
+    }
+
+    /// 在 Scripts/translation/auto-genstrings 扫的范围里（五个 target 目录，跳过 test / tests）收集 `keyPattern` 第一组捕获的键。
+    /// `usePattern` 数所有用法：键不是字面量、或者换了写法时 `keyPattern` 会静默漏掉，所以调用方要核两个数对得上。
+    private func scanSources(
+        withExtensions extensions: Set<String>,
+        excluding excludedName: String,
+        keyPattern: String,
+        usePattern: String,
+    ) throws -> (keys: Set<String>, matchedUses: Int, allUses: Int) {
+        // 本文件在 <仓库>/Signal/test/util/ 下
+        let repository = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let keyExpression = try NSRegularExpression(pattern: keyPattern)
+        let useExpression = try NSRegularExpression(pattern: usePattern)
+        var keys = Set<String>()
+        var matchedUses = 0
+        var allUses = 0
+        for target in ["Signal", "SignalServiceKit", "SignalUI", "SignalNSE", "SignalShareExtension"] {
+            let directory = repository.appendingPathComponent(target)
+            let files = try XCTUnwrap(FileManager.default.enumerator(at: directory, includingPropertiesForKeys: [.isDirectoryKey]), directory.path)
+            for case let file as URL in files {
+                if ["test", "tests"].contains(file.lastPathComponent), try file.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true {
+                    files.skipDescendants()
+                    continue
+                }
+                guard extensions.contains(file.pathExtension), file.lastPathComponent != excludedName else {
+                    continue
+                }
+                let source = try String(contentsOf: file, encoding: .utf8)
+                let range = NSRange(source.startIndex..., in: source)
+                allUses += useExpression.numberOfMatches(in: source, range: range)
+                for match in keyExpression.matches(in: source, range: range) {
+                    matchedUses += 1
+                    let key = try XCTUnwrap(Range(match.range(at: 1), in: source))
+                    keys.insert(String(source[key]))
+                }
+            }
+        }
+        return (keys, matchedUses, allUses)
+    }
+
+    private func pluralAwareTable(_ localization: String) throws -> [String: Any] {
+        let path = try XCTUnwrap(
+            Bundle.main.app.path(forResource: "PluralAware", ofType: "stringsdict", inDirectory: nil, forLocalization: localization),
+            "no PluralAware.stringsdict for \(localization)",
+        )
+        return try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: Any], "unreadable PluralAware.stringsdict for \(localization)")
     }
 }
