@@ -12,7 +12,9 @@ extension Notification.Name {
 
 public class OWSSignalService: OWSSignalServiceProtocol {
     private let keyValueStore = KeyValueStore(collection: "kTSStorageManager_OWSSignalService")
-    private let libsignalNet: Net?
+    /// Tellomi（#1056 第三刀）：`Net` 从 provider 现取，不存（切区时换掉的旧实例要放得掉）。
+    private let netProvider: TellomiNetProvider?
+    private var libsignalNet: Net? { netProvider?.current }
 
     @Atomic public private(set) var isCensorshipCircumventionActive: Bool = false {
         didSet {
@@ -232,8 +234,8 @@ public class OWSSignalService: OWSSignalServiceProtocol {
 
     // MARK: - Internal Implementation
 
-    public init(libsignalNet: Net?) {
-        self.libsignalNet = libsignalNet
+    public init(netProvider: TellomiNetProvider?) {
+        self.netProvider = netProvider
         observeNotifications()
     }
 

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import LibSignalClient
 import XCTest
 @testable import SignalServiceKit
 
@@ -231,6 +232,110 @@ class TellomiRegionsTest: XCTestCase {
         // 正对照：区域表文件本身命中十几处，证明扫描确实读到了源码，上面那条「没找到」不是空断言
         let inTable = try endpointLiterals().filter { $0.hasPrefix(Self.regionTableFile + ":") }
         XCTAssertGreaterThanOrEqual(inTable.count, Self.endpointHosts.count)
+    }
+
+    // MARK: - #1056 第三刀：Net 只放在 provider 里
+
+    /// 只建对象、不连：`.invalid` 永远解析不到。
+    private func makeTestNet() -> Net {
+        Net(customServerHostname: "chat.tellomi.invalid", userAgent: "TellomiRegionsTest", buildVariant: .production)
+    }
+
+    func testProviderHandsOutTheCurrentNetAndSwapsItAtomically() {
+        let first = makeTestNet()
+        let provider = TellomiNetProvider(region: global, net: first)
+        XCTAssertTrue(provider.current === first)
+        XCTAssertEqual(provider.activeRegion, global)
+        XCTAssertEqual(provider.generation, 0)
+
+        let second = makeTestNet()
+        let replaced = provider.replace(net: second, region: cn)
+        XCTAssertTrue(replaced === first)
+        XCTAssertTrue(provider.current === second)
+        XCTAssertEqual(provider.activeRegion, cn)
+        XCTAssertEqual(provider.generation, 1)
+    }
+
+    func testHoldersDoNotKeepTheOldNetAlive() {
+        // 切区要换掉 Net：持有方都活着的时候，换下来的旧 Net 也必须放得掉（#1056 判据 2 的单测版本）。
+        // NetworkManager 那个跟进程一样长的网络变化 Task 以前直接捕获 Net，就是最容易漏的一处。
+        weak var weakOld: Net?
+        let provider = TellomiNetProvider(
+            region: global,
+            net: {
+                let net = makeTestNet()
+                weakOld = net
+                return net
+            }(),
+        )
+        let networkManager = NetworkManager(appReadiness: AppReadinessMock(), netProvider: provider)
+        let signalService = OWSSignalService(netProvider: provider)
+        XCTAssertNotNil(weakOld)
+        XCTAssertTrue(networkManager.libsignalNet === provider.current)
+
+        do {
+            let replaced = provider.replace(net: makeTestNet(), region: global)
+            XCTAssertTrue(replaced === weakOld)
+        }
+
+        XCTAssertNil(weakOld, "换下来的 Net 还被持有方留着")
+        XCTAssertTrue(networkManager.libsignalNet === provider.current)
+        withExtendedLifetime((networkManager, signalService)) {}
+    }
+
+    // MARK: - 门禁：除 provider 外不许存 Net
+
+    private static let netProviderFile = "SignalServiceKit/Network/TellomiNetProvider.swift"
+
+    /// 存储型的 `Net` 属性（`let x: Net` / `var x: LibSignalClient.Net?`，没有 `{` 也没有初始值）。计算属性、函数参数不算。
+    private static let storedNetPattern = try! NSRegularExpression(
+        pattern: #"^\s*(?:(?:public|private|fileprivate|internal|open|nonisolated\(unsafe\)|static|final|weak|unowned|lazy)\s+)*(?:let|var)\s+\w+\s*:\s*(?:LibSignalClient\.)?Net\??\s*(?://.*)?$"#,
+    )
+
+    private func storedNetDeclarations() throws -> [String] {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // Util
+            .deletingLastPathComponent() // tests
+            .deletingLastPathComponent() // SignalServiceKit
+            .deletingLastPathComponent() // 仓库根
+            .resolvingSymlinksInPath()
+        var hits = [String]()
+        for target in ["Signal", "SignalServiceKit", "SignalUI", "SignalNSE", "SignalShareExtension"] {
+            guard let enumerator = FileManager.default.enumerator(at: root.appendingPathComponent(target), includingPropertiesForKeys: nil) else {
+                XCTFail("can't read \(target)")
+                continue
+            }
+            for case let url as URL in enumerator {
+                if ["test", "tests", "TestUtils"].contains(url.lastPathComponent) {
+                    enumerator.skipDescendants()
+                    continue
+                }
+                guard url.pathExtension == "swift" else {
+                    continue
+                }
+                let path = url.resolvingSymlinksInPath().path
+                let relativePath = String(path.dropFirst(root.path.count + 1))
+                let text = try String(contentsOf: url, encoding: .utf8)
+                for (index, line) in text.components(separatedBy: "\n").enumerated() {
+                    let range = NSRange(line.startIndex..., in: line)
+                    if Self.storedNetPattern.firstMatch(in: line, range: range) != nil {
+                        hits.append("\(relativePath):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))")
+                    }
+                }
+            }
+        }
+        return hits
+    }
+
+    func testOnlyTheProviderStoresANet() throws {
+        let outside = try storedNetDeclarations().filter { !$0.hasPrefix(Self.netProviderFile + ":") }
+        XCTAssertEqual(outside, [], "Net 只许放在 TellomiNetProvider 里，别处从 provider 现取（不然切区后旧 Net 放不掉）")
+    }
+
+    func testTheStoredNetScanActuallyFindsDeclarations() throws {
+        // 正对照：provider 自己的 State 里存着一个 Net，扫得到才说明上面那条「没有」不是空断言
+        let inProvider = try storedNetDeclarations().filter { $0.hasPrefix(Self.netProviderFile + ":") }
+        XCTAssertGreaterThanOrEqual(inProvider.count, 1)
     }
 }
 
