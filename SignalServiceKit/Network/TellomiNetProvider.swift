@@ -26,6 +26,26 @@ public final class TellomiNetProvider: Sendable {
         self.state = AtomicValue(State(region: region, net: net, generation: 0), lock: .init())
     }
 
+    // MARK: - 本进程装上的那一个
+
+    private static let installedProvider = AtomicValue<TellomiNetProvider?>(nil, lock: .init())
+
+    /// 本进程装上的 provider（`AppSetup` 建好以后装上；主 App、NSE、分享扩展各一份）。还没装上时为 nil。
+    public static var installed: TellomiNetProvider? { installedProvider.get() }
+
+    /// 装成本进程的那一个：之后 `TellomiRegions.active()` 以它的区为准。
+    public func install() {
+        Self.installedProvider.set(self)
+    }
+
+#if TESTABLE_BUILD
+    /// 测试用：换掉本进程装上的 provider，返回原来那个，用完装回去。
+    @discardableResult
+    static func installForTesting(_ provider: TellomiNetProvider?) -> TellomiNetProvider? {
+        installedProvider.swap(provider)
+    }
+#endif
+
     /// 当前的 `Net`。用的时候取，别存下来。
     public var current: Net { state.get().net }
 

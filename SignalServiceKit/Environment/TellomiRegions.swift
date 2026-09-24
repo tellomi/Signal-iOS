@@ -115,6 +115,12 @@ public enum TellomiRegions {
         resolve(storedId: store.storedRegionId())
     }
 
+    /// 本进程生效的区（#1056 第三刀）：provider 装上以后以它为准——它和 libsignal `Net` 在同一个原子状态里，
+    /// REST（`TSConstants`）和 libsignal 两侧在进程内同时切；装上之前（`AppSetup` 建 `Net` 时、启动失败页）回落记住的区。
+    public static func active() -> TellomiRegionProfile {
+        TellomiNetProvider.installed?.activeRegion ?? current()
+    }
+
     /// 记住的区 id → 区。回落规则是纯函数，单测直接测它。
     static func resolve(storedId: String?, profiles: [TellomiRegionProfile] = all) -> TellomiRegionProfile {
         profiles.first { $0.id.rawValue == storedId && $0.enabled } ?? global

@@ -283,6 +283,45 @@ class TellomiRegionsTest: XCTestCase {
         withExtendedLifetime((networkManager, signalService)) {}
     }
 
+    // MARK: - #1056 第三刀：本进程生效区（提交 B）
+
+    func testActiveRegionFollowsTheInstalledProvider() {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: cnOn, net: makeTestNet())
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+
+        // 生效区跟着 provider（和 Net 同一个原子状态），REST 端点、内容代理回落都跟着它
+        XCTAssertEqual(TellomiRegions.active(), cnOn)
+        XCTAssertEqual(TSConstantsStaging().mainServiceURL, cnOn.chat)
+        XCTAssertEqual(TSConstantsStaging().textSecureCDN3ServerURL, cnOn.cdn3)
+        XCTAssertEqual(ContentProxy.defaultEndpoint.host, cnOn.contentProxyHost)
+
+        // 还没装 provider（AppSetup 建 Net 之前）：回落记住的区
+        TellomiNetProvider.installForTesting(nil)
+        XCTAssertEqual(TellomiRegions.active(), TellomiRegions.current())
+    }
+
+    func testCdnSessionsFollowTheActiveRegionAndOldOnesStayCached() async {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: global, net: makeTestNet())
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+        let signalService = OWSSignalService(netProvider: provider)
+
+        let before = await signalService.sharedUrlSessionForCdn(cdnNumber: 3)
+        XCTAssertEqual(before.endpoint.baseUrl?.host, "cdn3.tellomi.app")
+
+        // 切区后：按生效区解析出新地址，拿到新区的会话（不用等哪次网络失败把缓存冲掉）
+        provider.replace(net: makeTestNet(), region: cnOn)
+        let after = await signalService.sharedUrlSessionForCdn(cdnNumber: 3)
+        XCTAssertEqual(after.endpoint.baseUrl?.host, "cdn3.tellomi.cn")
+
+        // 旧区的会话还在缓存里，给钉住旧区的在途上传用：按旧地址取，拿到的是同一个
+        let pinned = await signalService.sharedUrlSessionForCdn(cdnNumber: 3, baseUrl: URL(string: global.cdn3)!)
+        XCTAssertTrue((pinned as AnyObject) === (before as AnyObject))
+    }
+
     // MARK: - 门禁：除 provider 外不许存 Net
 
     private static let netProviderFile = "SignalServiceKit/Network/TellomiNetProvider.swift"

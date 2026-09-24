@@ -153,8 +153,11 @@ public class OWSSignalService: OWSSignalServiceProtocol {
     private actor CDNSessionCache {
         // Tellomi（#1025）：上游这个 key 里还有一个规避配置参数，为的是规避开关/国家变化时
         // 换一个新会话去重新随机 SNI 头。前置整套删掉之后没有 SNI 头可换，key 只按 CDN 编号即可。
+        // Tellomi（#1056 第三刀）：再加上会话的地址。切区后按当前区解析出来的地址变了，自然落到新 key、建新会话；
+        // 旧区的会话留在缓存里，给钉住旧区的在途上传用，所以切区时不用 reset（每个区最多 3 个会话）。
         struct Key: Hashable {
             let cdnNumber: UInt32
+            let baseUrl: String
         }
 
         private var cache = [Key: OWSURLSessionProtocol]()
@@ -183,26 +186,34 @@ public class OWSSignalService: OWSSignalServiceProtocol {
     private let cdnSessionCache = CDNSessionCache()
 
     public func sharedUrlSessionForCdn(cdnNumber: UInt32) async -> OWSURLSessionProtocol {
-        let cacheKey = CDNSessionCache.Key(cdnNumber: cdnNumber)
+        // Tellomi（#1056 第三刀）：用的时候按本进程生效区解析出地址，再按地址查缓存
+        await sharedUrlSessionForCdn(cdnNumber: cdnNumber, baseUrl: Self.cdnBaseUrl(cdnNumber: cdnNumber))
+    }
+
+    /// 生效区里这个 CDN 的地址。
+    static func cdnBaseUrl(cdnNumber: UInt32) -> URL {
+        switch cdnNumber {
+        case 0:
+            return URL(string: TSConstants.textSecureCDN0ServerURL)!
+        case 2:
+            return URL(string: TSConstants.textSecureCDN2ServerURL)!
+        case 3:
+            return URL(string: TSConstants.textSecureCDN3ServerURL)!
+        default:
+            owsFailDebug("Unrecognized CDN number configuration requested: \(cdnNumber)")
+            // Fallback to cdn2
+            return URL(string: TSConstants.textSecureCDN2ServerURL)!
+        }
+    }
+
+    /// 指定地址的 CDN 会话（#1056 第三刀：钉住开始时那个区的在途上传用这一个）。
+    public func sharedUrlSessionForCdn(cdnNumber: UInt32, baseUrl: URL) async -> OWSURLSessionProtocol {
+        let cacheKey = CDNSessionCache.Key(cdnNumber: cdnNumber, baseUrl: baseUrl.absoluteString)
         return await cdnSessionCache.getOrBuildSession(
             key: cacheKey,
             buildFn: {
                 let urlSessionConfiguration = OWSURLSession.defaultConfigurationWithoutCaching
                 urlSessionConfiguration.timeoutIntervalForRequest = 600
-
-                let baseUrl: URL
-                switch cdnNumber {
-                case 0:
-                    baseUrl = URL(string: TSConstants.textSecureCDN0ServerURL)!
-                case 2:
-                    baseUrl = URL(string: TSConstants.textSecureCDN2ServerURL)!
-                case 3:
-                    baseUrl = URL(string: TSConstants.textSecureCDN3ServerURL)!
-                default:
-                    owsFailDebug("Unrecognized CDN number configuration requested: \(cdnNumber)")
-                    // Fallback to cdn2
-                    baseUrl = URL(string: TSConstants.textSecureCDN2ServerURL)!
-                }
 
                 return self.buildUrlSession(
                     endpoint: self.buildUrlEndpoint(

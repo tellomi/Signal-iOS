@@ -239,6 +239,8 @@ extension AppSetup.GlobalsContinuation {
                 )
             }(),
         )
+        // 装上以后，TSConstants 的端点、内容代理、uptime、调试日志都按它的区取（和 Net 同一个原子状态）
+        libsignalNetProvider.install()
 
         let cron = Cron(
             appVersion: appVersion.currentAppVersion4,
