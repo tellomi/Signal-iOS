@@ -55,10 +55,6 @@ class RegistrationProfileViewController: OWSViewController {
         return OWSUserProfile.NameComponent(truncating: givenNameTextField.text ?? "")
     }
 
-    private var familyNameComponent: OWSUserProfile.NameComponent? {
-        return OWSUserProfile.NameComponent(truncating: familyNameTextField.text ?? "")
-    }
-
     private var avatarData: Data? {
         didSet { updateUI() }
     }
@@ -167,73 +163,49 @@ class RegistrationProfileViewController: OWSViewController {
         return result
     }
 
+    // Tellomi（tellomi/tellomi#1215）：只留一个「名字」框，填全名，保存时全进 given name（family name 留空）。
+    // 上游是名 / 姓两个框（中日韩系统下姓在前），中文用户习惯一个框填全名。
+    // 占位符用新键：上游那条英文是「First Name」，这个框填的是全名（taishi 审查 2026-09-24）
     private lazy var givenNameTextField: UITextField = textField(
         placeholder: OWSLocalizedString(
-            "REGISTRATION_PROFILE_SETUP_GIVEN_NAME_FIELD_PLACEHOLDER",
-            comment: "During registration, users set up their profile. Users input a given name. This is the placeholder for that field.",
+            "REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI",
+            value: "Name",
+            comment: "During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field.",
         ),
-        textContentType: .givenName,
+        textContentType: .name,
         accessibilityIdentifierSuffix: "givenName",
     )
 
-    private lazy var familyNameTextField: UITextField = textField(
-        placeholder: OWSLocalizedString(
-            "REGISTRATION_PROFILE_SETUP_FAMILY_NAME_FIELD_PLACEHOLDER",
-            comment: "During registration, users set up their profile. Users input a family name. This is the placeholder for that field.",
-        ),
-        textContentType: .familyName,
-        accessibilityIdentifierSuffix: "familyName",
-    )
-
-    private enum NameOrder {
-        case familyNameFirst
-        case givenNameFirst
-    }
-
-    private var nameOrder: NameOrder { Locale.current.isCJKV ? .familyNameFirst : .givenNameFirst }
-
-    private lazy var firstTextField: UITextField = {
-        switch nameOrder {
-        case .givenNameFirst: return givenNameTextField
-        case .familyNameFirst: return familyNameTextField
-        }
-    }()
-
-    private lazy var secondTextField: UITextField = {
-        switch nameOrder {
-        case .givenNameFirst: return familyNameTextField
-        case .familyNameFirst: return givenNameTextField
-        }
-    }()
-
     private lazy var nameStackView: UIView = {
-        let stackView = UIStackView(arrangedSubviews: [firstTextField, secondTextField])
+        let stackView = UIStackView(arrangedSubviews: [givenNameTextField])
         stackView.axis = .vertical
-        stackView.distribution = .fillEqually
         if #available(iOS 26, *) {
-            // Can't use `addBottomStroke` because trailing edge of the stroke must extend beyond text field's edge.
-            let textField = firstTextField
-            let strokeView = UIView()
-            strokeView.backgroundColor = .Signal.opaqueSeparator
-            stackView.addSubview(strokeView)
-            strokeView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                strokeView.heightAnchor.constraint(equalToConstant: hairlineWidth),
-                strokeView.bottomAnchor.constraint(equalTo: textField.bottomAnchor),
-                strokeView.leadingAnchor.constraint(equalTo: textField.leadingAnchor),
-                strokeView.trailingAnchor.constraint(equalTo: stackView.trailingAnchor),
-            ])
-
             stackView.backgroundColor = .Signal.secondaryBackground
             // Stack view has a background so horizontal margins are necessary.
             stackView.directionalLayoutMargins = .init(top: 0, leading: 16, bottom: 0, trailing: 8)
             stackView.isLayoutMarginsRelativeArrangement = true
             stackView.cornerConfiguration = .uniformCorners(radius: 26)
         } else {
-            firstTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: hairlineWidth)
-            secondTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: hairlineWidth)
+            givenNameTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: hairlineWidth)
         }
         return stackView
+    }()
+
+    // Tellomi（tellomi/tellomi#1215）：「谁可以通过手机号找到我」去掉（没有 CDSI 时不起作用），换成一句实话：
+    // 号码默认不分享（`PhoneNumberSharingMode` 默认就是不显示）。
+    private lazy var phoneNumberNotShownLabel: UILabel = {
+        let label = UILabel()
+        label.text = OWSLocalizedString(
+            "REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI",
+            value: "Your phone number isn't shown to anyone by default.",
+            comment: "During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting.",
+        )
+        label.font = .dynamicTypeSubheadlineClamped
+        label.textColor = .Signal.secondaryLabel
+        label.numberOfLines = 0
+        label.adjustsFontForContentSizeCategory = true
+        label.accessibilityIdentifier = "registration.profile.phoneNumberNotShown"
+        return label
     }()
 
     private lazy var phoneNumberPrivacyButton: PhoneNumberPrivacyButton = {
@@ -285,7 +257,7 @@ class RegistrationProfileViewController: OWSViewController {
                 explanationView,
                 avatarContainerView,
                 nameStackView,
-                phoneNumberPrivacyButton,
+                phoneNumberNotShownLabel,
                 .vStretchingSpacer(),
             ],
             isScrollable: true,
@@ -295,8 +267,7 @@ class RegistrationProfileViewController: OWSViewController {
         stackView.setCustomSpacing(12, after: titleLabel)
         stackView.setCustomSpacing(20, after: nameStackView)
 
-        firstTextField.returnKeyType = .next
-        secondTextField.returnKeyType = .done
+        givenNameTextField.returnKeyType = .done
 
         updateUI()
     }
@@ -308,16 +279,18 @@ class RegistrationProfileViewController: OWSViewController {
         // Check against iPhone SE 1st Gen's screen height as it is the smallest device that supports iOS 15.
         let isTallEnoughScreen = if #available(iOS 16, *) { true } else { view.frame.height > 568 }
         if isTallEnoughScreen {
-            firstTextField.becomeFirstResponder()
+            givenNameTextField.becomeFirstResponder()
         }
     }
 
     private func updateUI() {
         navigationItem.rightBarButtonItem?.isEnabled = givenNameComponent != nil
 
+        // Tellomi（tellomi/tellomi#1215）：没选照片时，默认头像随名字实时变（中文取最后两个字）
         avatarView.image = avatarData?.asImage ?? SSKEnvironment.shared.databaseStorageRef.read { transaction in
             SSKEnvironment.shared.avatarBuilderRef.defaultAvatarImageForLocalUser(
                 diameterPoints: UInt(avatarSize),
+                previewName: givenNameTextField.text ?? "",
                 transaction: transaction,
             )
         }
@@ -362,7 +335,7 @@ class RegistrationProfileViewController: OWSViewController {
 
         presenter?.goToNextStep(
             givenName: givenNameComponent,
-            familyName: familyNameComponent,
+            familyName: nil,
             avatarData: avatarData,
             phoneNumberDiscoverability: state.phoneNumberDiscoverability,
         )
@@ -412,9 +385,7 @@ extension RegistrationProfileViewController: UITextViewDelegate {
 extension RegistrationProfileViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         switch textField {
-        case firstTextField:
-            secondTextField.becomeFirstResponder()
-        case secondTextField:
+        case givenNameTextField:
             goToNextStepIfPossible()
         default:
             owsFailBeta("Got a \"return\" event for an unexpected text field")

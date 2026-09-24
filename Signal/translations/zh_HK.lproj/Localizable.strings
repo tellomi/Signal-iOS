@@ -8136,6 +8136,12 @@
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "關於個人資料隱私";
 
+/* During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field. */
+"REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI" = "名字";
+
+/* During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting. */
+"REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI" = "你的電話號碼預設不會向任何人顯示。";
+
 /* During registration, users set up their profile. This is the subtitle on the screen where this is done. It tells users about the privacy of their profile. A \"learn more\" link will be added to the end of this string. */
 "REGISTRATION_PROFILE_SETUP_SUBTITLE" = "與你通訊的人、聯絡人和群組可以看到你的個人資料。";
 
