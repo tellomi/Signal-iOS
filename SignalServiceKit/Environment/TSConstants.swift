@@ -94,6 +94,14 @@ public class TSConstants {
     /// 「Signal is a 501c3 nonprofit」这类**对 Tellomi 不成立**的资质说法。
     public static let donationsEnabled = false
 
+    /// Tellomi（tellomi/tellomi#1193，#984 的 iOS 半边）：阶段一不做远端备份（上游的「Signal 备份」免费 / 付费套餐）。
+    ///
+    /// 没有备份服务端与 CDN，也没有支付通道；「选择方案」页的页脚还写着「Signal 是一个非营利性平台。
+    /// 付费进行备份可为我们提供支持」——对 Tellomi 不成立。关掉之后：设置里只通向远端备份的「备份」一行不出、
+    /// 各处（megaphone、首屏提示、通知）跳远端备份页的入口都只打开设置首页、选择方案页不再加载。
+    /// 本地备份（开发 / beta 构建里的「设备上备份」）不受影响。与 Android `PAID_BACKUPS_ENABLED`（#984）同一件事。
+    public static let remoteBackupsEnabled = false
+
 
     public static var serverPublicParams: Data { shared.serverPublicParams }
     public static var callLinkPublicParams: Data { shared.callLinkPublicParams }
