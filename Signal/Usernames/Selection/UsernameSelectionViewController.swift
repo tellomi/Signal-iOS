@@ -888,6 +888,8 @@ private extension UsernameSelectionViewController {
                     maxNicknameLength: Constants.maxNicknameCodepointLength,
                     desiredDiscriminator: desiredDiscriminator,
                     enforcingLetterFirst: Usernames.HashedUsername.tellomiEnforcesLetterFirst(
+                        desiredNickname: desiredNickname,
+                        existingUsername: existingUsername,
                         isAttemptingRecovery: isAttemptingRecovery,
                     ),
                 )

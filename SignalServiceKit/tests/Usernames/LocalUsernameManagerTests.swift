@@ -671,9 +671,15 @@ class LocalUsernameManagerTests: XCTestCase {
     func testTellomiLetterFirstOnlyForNewNames() throws {
         typealias HashedUsername = Usernames.HashedUsername
 
-        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(isAttemptingRecovery: false))
+        let legacy = Usernames.ParsedUsername(rawUsername: "_kaixin.57")
+        XCTAssertNotNil(legacy)
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingUsername: nil, isAttemptingRecovery: false))
+        // 旧后缀迁到 .01：同一个昵称（含只差大小写）也是新名字，照拦——「同名就放过」加回来这两条会红（taishi 包 7 审 a4-v4）
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingUsername: legacy, isAttemptingRecovery: false))
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_Kaixin", existingUsername: legacy, isAttemptingRecovery: false))
         // 修复模式整段不收紧，全新的 `_` 名也放过（taishi 审 a4-v2 同意保留）
-        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(isAttemptingRecovery: true))
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingUsername: nil, isAttemptingRecovery: true))
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_other", existingUsername: legacy, isAttemptingRecovery: true))
 
         let kept = try HashedUsername.generateCandidates(
             forNickname: "_kaixin",

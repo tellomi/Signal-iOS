@@ -144,7 +144,14 @@ public extension Usernames.HashedUsername {
     /// - 修复模式 → 整段不拦，**包括全新的 `_` 名**，比 Android / Desktop 宽一档（taishi 审 a4-v2 的取舍，改法 A）：
     ///   修复模式只在本地状态损坏时出现，用户不能主动进入；本地存的旧名不可信（正是它和服务端对不上才进来的，
     ///   选名页拿到的是 `currentUsername: nil`），拿它当判据反而会拦掉服务端上真正的 `_` 开头原名。
-    static func tellomiEnforcesLetterFirst(isAttemptingRecovery: Bool) -> Bool {
+    ///
+    /// 入参带上选名页手里的全部信息（想要的昵称、现有用户名），但**有意只看修复模式**：同名迁到 `.01` 也按新名字判。
+    /// 在这里把「同名就放过」加回来，`testTellomiLetterFirstOnlyForNewNames` 会红（taishi 包 7 审 a4-v4 的不阻塞）。
+    static func tellomiEnforcesLetterFirst(
+        desiredNickname: String,
+        existingUsername: Usernames.ParsedUsername?,
+        isAttemptingRecovery: Bool,
+    ) -> Bool {
         return !isAttemptingRecovery
     }
 }
