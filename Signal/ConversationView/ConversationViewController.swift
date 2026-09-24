@@ -355,9 +355,9 @@ public final class ConversationViewController: OWSViewController {
         self.isViewVisible = true
         self.viewWillAppearForLoad()
 
-        // We should have already requested contact access at this point, so this should be a no-op
-        // unless it ever becomes possible to load this VC without going via the ChatListViewController.
-        SSKEnvironment.shared.contactManagerImplRef.requestSystemContactsOnce()
+        // Tellomi（tellomi/tellomi#1240）：上游这里的前提是「会话列表已经问过通讯录了」；注册不再要通讯录（#1112）之后，
+        // 这里会变成第一次弹框的地方——打开任意聊天就要通讯录。改成只在已经授权时载入通讯录名字，不弹框。
+        SSKEnvironment.shared.contactManagerImplRef.fetchSystemContactsOnceIfAlreadyAuthorized()
 
         self.updateBarButtonItems()
 

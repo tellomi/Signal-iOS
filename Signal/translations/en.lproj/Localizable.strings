@@ -2295,6 +2295,12 @@
 /* Multi-line label explaining why compose-screen contact picker is empty. */
 "COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "You can enable contacts access in the iOS Settings app to see which of your contacts are Tellomi users.";
 
+/* Tellomi: shown at the top of the compose / member picker before the user has been asked for contacts access. Explains what contacts are used for. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_PURPOSE_TELLOMI" = "Allow access to your contacts to show the names you’ve saved for them in Tellomi. Your contacts are not uploaded.";
+
+/* Tellomi: button that asks the system for contacts access, after the purpose has been explained. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_ALLOW_TELLOMI" = "Allow Access";
+
 /* Configure reactions title text */
 "CONFIGURE_REACTIONS" = "Configure Reactions";
 

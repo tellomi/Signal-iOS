@@ -776,6 +776,13 @@ extension RecipientPickerViewController {
     ///
     /// Works closely with `shouldNoContactsModeBeActive`.
     private func contactAccessReminderSection() -> OWSTableSection? {
+        // Tellomi（tellomi/tellomi#1240）：还没决定要不要给通讯录时，先说明用途 +「允许访问」，点了才弹系统框。
+        // 注册流程不再要通讯录（#1112），这里是用户第一次在上下文里看到这件事的地方。
+        let contactsManager = SSKEnvironment.shared.contactManagerImplRef
+        if contactsManager.sharingAuthorization == .notDetermined, contactsManager.syncingAuthorization != .notAllowed {
+            return OWSTableSection(items: [tellomiContactAccessNotDeterminedItem()])
+        }
+
         let tableItem: OWSTableItem
         switch SSKEnvironment.shared.contactManagerImplRef.syncingAuthorization {
         case .denied:
@@ -799,6 +806,35 @@ extension RecipientPickerViewController {
             tableItem = contactAccessNotAllowedReminderItem()
         }
         return OWSTableSection(items: [tableItem])
+    }
+
+    /// Tellomi（tellomi/tellomi#1240）：用途说明 +「允许访问」（隐私政策修订稿 #1239 §6、权限清单 §二十六的同一句用途）。
+    private func tellomiContactAccessNotDeterminedItem() -> OWSTableItem {
+        return OWSTableItem(customCellBlock: { [weak self] in
+            let cell = UITableViewCell()
+            cell.selectionStyle = .none
+            cell.backgroundColor = .clear
+            let reminderView = ReminderView(
+                style: .info,
+                text: OWSLocalizedString(
+                    "COMPOSE_SCREEN_CONTACTS_PERMISSION_PURPOSE_TELLOMI",
+                    comment: "Tellomi: shown at the top of the compose / member picker before the user has been asked for contacts access. Explains what contacts are used for.",
+                ),
+                actionTitle: OWSLocalizedString(
+                    "COMPOSE_SCREEN_CONTACTS_PERMISSION_ALLOW_TELLOMI",
+                    comment: "Tellomi: button that asks the system for contacts access, after the purpose has been explained.",
+                ),
+                tapAction: {
+                    SSKEnvironment.shared.contactManagerImplRef.requestSystemContactsOnce(userInitiated: true) { _ in
+                        self?.reloadContent()
+                    }
+                },
+                renderInCell: true,
+            )
+            cell.contentView.addSubview(reminderView)
+            reminderView.autoPinEdgesToSuperviewEdges()
+            return cell
+        })
     }
 
     private func noContactsTableItem() -> OWSTableItem {

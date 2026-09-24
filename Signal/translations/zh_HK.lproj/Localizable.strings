@@ -2295,6 +2295,12 @@
 /* Multi-line label explaining why compose-screen contact picker is empty. */
 "COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "您可以在設定中允許 Tellomi 存取聯絡人資料來查看在您的聯絡人中有誰是 Tellomi 用戶。";
 
+/* Tellomi: shown at the top of the compose / member picker before the user has been asked for contacts access. Explains what contacts are used for. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_PURPOSE_TELLOMI" = "允許存取通訊錄後，Tellomi 會顯示您為聯絡人儲存的名字。通訊錄不會上傳。";
+
+/* Tellomi: button that asks the system for contacts access, after the purpose has been explained. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_ALLOW_TELLOMI" = "允許存取";
+
 /* Configure reactions title text */
 "CONFIGURE_REACTIONS" = "設定心情回應";
 

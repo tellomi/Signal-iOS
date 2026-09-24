@@ -347,4 +347,13 @@ class OWSContactsManagerTest: SignalBaseTest {
             XCTAssertEqual(actual, expected)
         }
     }
+
+    /// Tellomi（tellomi/tellomi#1240）：还没决定要不要给通讯录时，只有用户在选人页点了「允许访问」才去问系统；
+    /// 打开聊天、新建会话、选人页加载这些自动调用一律不弹框。决定过的照上游。
+    func testTellomiContactsPromptOnlyWhenUserInitiated() {
+        XCTAssertFalse(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .notDetermined))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: true, status: .notDetermined))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .authorized))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .denied))
+    }
 }
