@@ -5,7 +5,9 @@ import argparse
 import re
 import sys
 
-COPYRIGHT_LINE_RE = re.compile(r"^(//| \*) Copyright 2\d\d\d Signal Messenger, LLC\n$")
+# Tellomi（owner 2026-09-24，docs/legal/SOURCE_COPYRIGHT.md）：我们新写的文件写公司全称；上游文件保留 Signal 的版权行。
+# 只认这两种持有人：品牌名「Tellomi」不是法律主体，多一个空格也不行（与 Signal-Desktop 的 lint 同一条规则）。
+COPYRIGHT_LINE_RE = re.compile(r"^(//| \*) Copyright 2\d\d\d (Signal Messenger, LLC|重庆半格智能科技有限公司)\n$")
 SPDX_LINE_RE = re.compile(r"^(//| \*) SPDX-License-Identifier: AGPL-3.0-only\n$")
 
 
