@@ -362,6 +362,31 @@ public class AvatarBuilder {
         )
     }
 
+    /// Tellomi（tellomi/tellomi#1215）：注册资料页的默认头像——颜色与本机用户的默认头像相同，字按正在输入的名字实时生成；
+    /// 名字生成不出字时（空、或上游规则不给缩写）退回原来的默认头像。
+    public func defaultAvatarImageForLocalUser(
+        diameterPoints: UInt,
+        previewName: String,
+        transaction: DBReadTransaction,
+    ) -> UIImage? {
+        var nameComponents = PersonNameComponents()
+        nameComponents.givenName = previewName.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        guard nameComponents.givenName != nil, let initials = Self.contactInitials(for: nameComponents) else {
+            return defaultAvatarImageForLocalUser(diameterPoints: diameterPoints, transaction: transaction)
+        }
+
+        let theme: AvatarTheme = {
+            guard
+                let localIdentifiers = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: transaction),
+                let localRecipient = DependenciesBridge.shared.recipientDatabaseTable.fetchRecipient(serviceId: localIdentifiers.aci, transaction: transaction)
+            else {
+                return .default
+            }
+            return DependenciesBridge.shared.avatarDefaultColorManager.defaultColor(useCase: .contact(recipient: localRecipient), tx: transaction)
+        }()
+        return avatarImage(model: AvatarModel(type: .text(initials), theme: theme), diameterPoints: diameterPoints)
+    }
+
     public func defaultAvatarImageForLocalUser(
         diameterPixels: UInt,
         transaction: DBReadTransaction,
@@ -577,7 +602,13 @@ public class AvatarBuilder {
         return contactInitials(for: nameComponents)
     }
 
-    private static func contactInitials(for nameComponents: PersonNameComponents) -> String? {
+    /// Tellomi：原来是 private，放开到 internal 只为单测。
+    static func contactInitials(for nameComponents: PersonNameComponents) -> String? {
+        // Tellomi（tellomi/tellomi#1215）：中文名取最后两个字（与 Android、注册资料页的预览同一条规则）。
+        // 上游交给系统的缩写；四个字的中文名会因为下面「超过 3 个字符不显示」直接没有字。
+        if let hanAbbreviation = TellomiNames.hanAbbreviation((nameComponents.familyName ?? "") + (nameComponents.givenName ?? "")) {
+            return hanAbbreviation
+        }
         let formattedAbbreviation = OWSFormat.formatNameComponents(nameComponents, style: .abbreviated)
         guard let formattedAbbreviation = formattedAbbreviation.filterForDisplay.nilIfEmpty else {
             Logger.warn("Could not abbreviate name.")
