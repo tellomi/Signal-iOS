@@ -287,9 +287,9 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         currentCountry: PhoneNumberCountry,
         phoneNumberUtil: PhoneNumberUtil,
     ) -> RegistrationPhoneNumber? {
-        // 只留开头的「+」和 ASCII 数字：从通讯录 / 电话复制的号码两头可能带 U+202D / U+202C，
-        // 中间可能有不断行连字符、点、全角「＋」（taishi 审查 b12 疑问 1）。
-        let compact = text.filteredAsE164
+        // 只留开头的「+」和数字：从通讯录 / 电话复制的号码两头可能带 U+202D / U+202C，中间可能有不断行连字符、点（taishi 审查 b12 疑问 1）。
+        // 全角「＋」和全角数字先换成半角：filteredAsE164 只认 ASCII，会把它们丢掉（taishi 审查 b20 不阻塞 1）。
+        let compact = Self.tellomiHalfWidth(text).filteredAsE164
         let international: String
         if compact.hasPrefix("+") {
             international = compact
@@ -320,7 +320,7 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         inField fieldText: String,
         phoneNumberUtil: PhoneNumberUtil,
     ) -> RegistrationPhoneNumber? {
-        let compact = fieldText.filteredAsE164
+        let compact = Self.tellomiHalfWidth(fieldText).filteredAsE164
         guard
             compact.hasPrefix("00"),
             let e164 = E164("+" + compact.dropFirst(2)),
@@ -329,6 +329,23 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
             return nil
         }
         return RegistrationPhoneNumberParser(phoneNumberUtil: phoneNumberUtil).parseE164(e164)
+    }
+
+    /// Tellomi：全角「＋」（U+FF0B）换成「+」，全角数字（U+FF10–FF19）换成 ASCII 数字，别的原样留着。
+    /// 中文输入法打出来的、从网页复制的号码常带全角字符；Android 这边的 isDigit() 本来就认全角数字，两端对齐。
+    static func tellomiHalfWidth(_ text: String) -> String {
+        var scalars = String.UnicodeScalarView()
+        for scalar in text.unicodeScalars {
+            switch scalar.value {
+            case 0xFF0B:
+                scalars.append("+")
+            case 0xFF10...0xFF19:
+                scalars.append(Unicode.Scalar(scalar.value - 0xFF10 + 0x30) ?? scalar)
+            default:
+                scalars.append(scalar)
+            }
+        }
+        return String(scalars)
     }
 
     private func formatNationalNumber(input: String) -> String {

@@ -72,6 +72,22 @@ final class TellomiPhoneNumberInputTest: SignalBaseTest {
         }
     }
 
+    func testFullWidthPlusAndDigitsAreReadAsHalfWidth() throws {
+        // taishi 审查 b20 不阻塞 1：选的是美国，粘「＋86 138 0013 8000」也要拆出中国。以前全角「＋」被 filteredAsE164 丢掉，
+        // 只有当前地区恰好是中国时才靠「以区号开头」那条碰巧拆开（上面那条用例在中国下就是这样绿的）；全角数字则整串被丢。
+        for text in ["＋86 138 0013 8000", "＋８６ １３８ ００１３ ８０００", "００８６ １３８ ００１３ ８０００"] {
+            let parsed = try XCTUnwrap(fullNumber(text, in: unitedStates), text)
+            XCTAssertEqual(parsed.country.countryCode, "CN", text)
+            XCTAssertEqual(parsed.nationalNumber, "13800138000", text)
+        }
+        let wholeField = try XCTUnwrap(RegistrationPhoneNumberInputView.tellomiFullPhoneNumber(
+            inField: "００８６13800138000",
+            phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef,
+        ))
+        XCTAssertEqual(wholeField.country.countryCode, "CN")
+        XCTAssertEqual(RegistrationPhoneNumberInputView.tellomiHalfWidth("＋８６ １３８-０"), "+86 138-0")
+    }
+
     func testTaiwanNumbersWithoutPlusSplitToo() throws {
         // 台湾的本国格式带长途前缀 0（0912 345 678）。以前按「本国格式示例号码的位数」比，「886912345678」判不出来。
         for text in ["886912345678", "+886 912 345 678"] {
