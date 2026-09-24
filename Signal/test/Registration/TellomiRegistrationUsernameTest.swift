@@ -85,6 +85,23 @@ final class TellomiRegistrationUsernameTest: XCTestCase {
         }
     }
 
+    /// taishi 中转包 7（Android 同一刀）：先截到 17 位再去末尾的 `_`；第 17 位是 `_` 的长名，截完末尾不能又是 `_`
+    /// （两个都是词库里的 PREFIX 词）。
+    func testALongNicknameIsCutBeforeItsTrailingUnderscoreIsDropped() throws {
+        for (nickname, base) in [("xitongguanliyuan_ab", "xitongguanliyuan"), ("customer_service_x", "customer_service")] {
+            let pattern = try NSRegularExpression(pattern: "^\(base)[0-9]{2,3}$")
+            for seed in UInt64(0)..<200 {
+                var random = SeededGenerator(state: seed)
+                let candidates = TellomiRegistrationUsername.candidates(for: nickname, using: &random)
+                XCTAssertEqual(candidates.count, 3, nickname)
+                for candidate in candidates {
+                    XCTAssertNotNil(pattern.firstMatch(in: candidate, range: NSRange(candidate.startIndex..., in: candidate)), candidate)
+                    XCTAssertLessThanOrEqual(candidate.count, 20, candidate)
+                }
+            }
+        }
+    }
+
     func testCandidatesStayWithinTwentyCharacters() {
         var random = SeededGenerator(state: 2)
         let candidates = TellomiRegistrationUsername.candidates(for: String(repeating: "a", count: 20), using: &random)
