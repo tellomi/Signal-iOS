@@ -6682,7 +6682,7 @@
 "ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_TITLE" = "舊 iPhone 還在身邊";
 
 /* Tellomi: Explanation of the 'register directly' choice: registering works, but earlier messages won't come to this phone. */
-"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "直接註冊就可以，只是以前的訊息不會跟過來";
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "直接註冊就可以，只是以前的訊息不會跟過來，舊手機上的 Tellomi 也會登出";
 
 /* Tellomi: Title for the choice to register directly (old phone is not at hand, or is an Android phone) after tapping 'New phone?' in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_TITLE" = "舊手機不在身邊，或者是 Android 手機";

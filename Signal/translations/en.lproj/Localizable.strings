@@ -6682,7 +6682,7 @@
 "ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_TITLE" = "My old iPhone is here";
 
 /* Tellomi: Explanation of the 'register directly' choice: registering works, but earlier messages won't come to this phone. */
-"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "Just register. Your earlier messages won't come with you.";
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "Just register. Your earlier messages won't come with you, and Tellomi on your old phone will be logged out.";
 
 /* Tellomi: Title for the choice to register directly (old phone is not at hand, or is an Android phone) after tapping 'New phone?' in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_TITLE" = "My old phone isn't here, or it's an Android phone";
