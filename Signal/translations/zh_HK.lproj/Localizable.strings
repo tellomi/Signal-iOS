@@ -5035,6 +5035,45 @@
 /* alert title */
 "IMAGE_PICKER_FAILED_TO_PROCESS_ATTACHMENTS" = "無法選擇附件。";
 
+/* Toast when trying to select more photos than allowed. Embeds {{ the maximum }}. */
+"IMAGE_PICKER_TELLOMI_AT_MOST_FORMAT" = "一次最多選 %@ 張";
+
+/* Placeholder of the caption field at the bottom of the photo picker. */
+"IMAGE_PICKER_TELLOMI_CAPTION_PLACEHOLDER" = "新增說明…";
+
+/* Banner at the top of the photo picker when the user gave Tellomi access to only some photos. */
+"IMAGE_PICKER_TELLOMI_LIMITED_ACCESS" = "你已限制 Tellomi 存取相片。";
+
+/* Accessibility label for the more-options button in the photo picker. */
+"IMAGE_PICKER_TELLOMI_MORE" = "更多選項";
+
+/* Accessibility label for a photo in the photo picker. */
+"IMAGE_PICKER_TELLOMI_PHOTO" = "相片";
+
+/* Title of the album in the photo picker that shows all recent photos and videos. */
+"IMAGE_PICKER_TELLOMI_RECENTS" = "最近";
+
+/* Accessibility label for the numbered check on a photo in the photo picker. */
+"IMAGE_PICKER_TELLOMI_SELECT" = "選取";
+
+/* Accessibility label of the selected-count pill in the photo picker. Embeds {{ number selected }}. */
+"IMAGE_PICKER_TELLOMI_SELECTED_FORMAT" = "已選 %@ 項";
+
+/* Accessibility value of a selected photo's check in the photo picker. Embeds {{ its place in the selection }}. */
+"IMAGE_PICKER_TELLOMI_SELECTED_NUMBER_FORMAT" = "第 %@ 張";
+
+/* Photo picker more-menu item: send the selection right away in high quality (this time only). */
+"IMAGE_PICKER_TELLOMI_SEND_HIGH_QUALITY" = "以高清畫質傳送";
+
+/* Photo picker more-menu item: send each selected photo as its own message. */
+"IMAGE_PICKER_TELLOMI_SEND_SEPARATELY" = "分開傳送";
+
+/* Photo picker more-menu item: send the selection right away in standard quality (this time only). */
+"IMAGE_PICKER_TELLOMI_SEND_STANDARD_QUALITY" = "以標準畫質傳送";
+
+/* Accessibility label for a video in the photo picker. Embeds {{ duration }}. */
+"IMAGE_PICKER_TELLOMI_VIDEO_FORMAT" = "影片，%@";
+
 /* Call setup status label */
 "IN_CALL_CONNECTING" = "正在連線……";
 
