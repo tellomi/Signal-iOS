@@ -66,13 +66,28 @@ final class AboutTellomiViewControllerTest: XCTestCase {
         XCTAssertEqual(itemsWithMenus.count, 3)
     }
 
-    /// 页脚三行署名（#984）与「帮助」里原来的一字不差：还是那一个键
+    /// 页脚三行署名（#984）：上游署名、我们对修改部分的署名、许可证。
+    /// owner 2026-09-24：修改部分写营业执照上的公司全称（不写品牌名），许可证写正式名称「GNU AGPLv3」，与 Android 同一句。
     func testFooterKeepsTheAttribution() {
         let viewController = makeViewController(RecordingActions())
         XCTAssertEqual(
             viewController.contents.sections.last?.footerTitle,
-            OWSLocalizedString("ABOUT_SECTION_FOOTER_TELLOMI", comment: ""),
+            "Copyright Signal Messenger\nModifications Copyright 重庆半格智能科技有限公司\nLicensed under the GNU AGPLv3",
         )
+    }
+
+    /// 四种语言都一样：公司全称一字不差（繁体界面也不转字，名称以营业执照为准），许可证带 GNU，不再出现品牌名。
+    func testFooterNamesTheCompanyAndTheFullLicenseInEveryLanguage() throws {
+        for language in ["en", "zh_CN", "zh_HK", "zh_TW"] {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: language), language)
+            let table = try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: String], language)
+            let footer = try XCTUnwrap(table["ABOUT_SECTION_FOOTER_TELLOMI"], language)
+            XCTAssertEqual(footer.components(separatedBy: "\n").count, 3, language)
+            XCTAssertTrue(footer.contains("Signal Messenger"), language)
+            XCTAssertTrue(footer.contains("重庆半格智能科技有限公司"), language)
+            XCTAssertTrue(footer.contains("GNU AGPLv3"), language)
+            XCTAssertFalse(footer.contains("Tellomi"), language)
+        }
     }
 
     /// 「开源许可」读的是 App 里的 Settings.bundle/Acknowledgements.plist（系统「设置」App 显示的同一份）

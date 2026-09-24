@@ -176,8 +176,9 @@ final class AboutTellomiViewController: OWSTableViewController2 {
         ))
         // 页脚三行署名从「帮助」原样搬过来（#984，owner 2026-09-23 定），和 Android 一字一句对齐：
         //   Copyright Signal Messenger        ← 上游署名，AGPL 要求派生作品保留，不能换成我们自己
-        //   Modifications Copyright Tellomi   ← 我们对修改部分的署名
-        //   Licensed under the AGPLv3
+        //   Modifications Copyright 重庆半格智能科技有限公司   ← 我们对修改部分的署名：营业执照上的公司全称，不写品牌名
+        //   Licensed under the GNU AGPLv3     ← 许可证的正式名称（LICENSE 第一行），和 Android 上游同一个写法
+        // （owner 2026-09-24，taishi 中转包 7 第〇节；规则见 docs/legal/dev/SOURCE_COPYRIGHT.md）
         // 上游还有第四行「Signal is a 501c3 nonprofit」，去掉了：Tellomi 不是非营利组织，换个名字就是一句关于自身法律主体的假话。
         // （这条之前错过一次：把上游那行整个换成了「Copyright Tellomi」，等于在 AGPL 派生作品里移除原作者署名。）
         openSourceSection.footerTitle = OWSLocalizedString(
