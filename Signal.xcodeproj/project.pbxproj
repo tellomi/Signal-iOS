@@ -450,6 +450,7 @@
 		349439D624360C30001045F7 /* AddGroupMembersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349439D524360C30001045F7 /* AddGroupMembersViewController.swift */; };
 		349439D824360D63001045F7 /* BaseGroupMemberViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349439D724360D63001045F7 /* BaseGroupMemberViewController.swift */; };
 		3494BBE026E66FC30079B11B /* DateUtilTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3494BBDF26E66FC30079B11B /* DateUtilTest.swift */; };
+		0B66985017B9EA973D3FC6DD /* TellomiBrandAssetsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D900E12F30784B398D34ABF7 /* TellomiBrandAssetsTest.swift */; };
 		3495FF0325F908FE00959D6E /* PaymentsViewPassphraseConfirmViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3495FF0225F908FE00959D6E /* PaymentsViewPassphraseConfirmViewController.swift */; };
 		3495FF0525F9091400959D6E /* PaymentsViewPassphraseGridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3495FF0425F9091400959D6E /* PaymentsViewPassphraseGridViewController.swift */; };
 		3495FF0A25F9276E00959D6E /* PaymentsRestoreWalletSplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3495FF0825F9276E00959D6E /* PaymentsRestoreWalletSplashViewController.swift */; };
@@ -4652,6 +4653,7 @@
 		349439D524360C30001045F7 /* AddGroupMembersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddGroupMembersViewController.swift; sourceTree = "<group>"; };
 		349439D724360D63001045F7 /* BaseGroupMemberViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseGroupMemberViewController.swift; sourceTree = "<group>"; };
 		3494BBDF26E66FC30079B11B /* DateUtilTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateUtilTest.swift; sourceTree = "<group>"; };
+		D900E12F30784B398D34ABF7 /* TellomiBrandAssetsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiBrandAssetsTest.swift; sourceTree = "<group>"; };
 		3495BC911F1426B800B478F5 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = translations/ar.lproj/Localizable.strings; sourceTree = "<group>"; };
 		3495FF0225F908FE00959D6E /* PaymentsViewPassphraseConfirmViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentsViewPassphraseConfirmViewController.swift; sourceTree = "<group>"; };
 		3495FF0425F9091400959D6E /* PaymentsViewPassphraseGridViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentsViewPassphraseGridViewController.swift; sourceTree = "<group>"; };
@@ -11929,6 +11931,7 @@
 				34F1072126D045290053EF4D /* BatchUpdateTest.swift */,
 				4C9D347923679C13006A4307 /* ContactStreamTest.swift */,
 				3494BBDF26E66FC30079B11B /* DateUtilTest.swift */,
+				D900E12F30784B398D34ABF7 /* TellomiBrandAssetsTest.swift */,
 				45E7A6A61E71CA7E00D44FB5 /* DisplayableTextFilterTest.swift */,
 				3485434426BC598800FB9C38 /* EmojiTests.swift */,
 				F9952B3029F2D99500EA989E /* ExpirationNagViewTest.swift */,
@@ -19250,6 +19253,7 @@
 				88D6E94325535D49003142D9 /* CVTextTest.swift in Sources */,
 				F93999F628C81F2100E34899 /* DataMessagePaddingTests.swift in Sources */,
 				3494BBE026E66FC30079B11B /* DateUtilTest.swift in Sources */,
+				0B66985017B9EA973D3FC6DD /* TellomiBrandAssetsTest.swift in Sources */,
 				C17A54962D7B3D9E00E1D267 /* DeviceProvisioningURLTest.swift in Sources */,
 				D92812E22FA95C1400667DCF /* DisplayableAccountEntropyPoolTest.swift in Sources */,
 				45E7A6A81E71CA7E00D44FB5 /* DisplayableTextFilterTest.swift in Sources */,
