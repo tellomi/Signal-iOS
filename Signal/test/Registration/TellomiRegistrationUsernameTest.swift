@@ -66,30 +66,29 @@ final class TellomiRegistrationUsernameTest: XCTestCase {
         }
     }
 
-    /// taishi 审查包 4（Android 同一刀）：词库 PREFIX 以非字母数字为边界，`kefu_58` 正是要拦的形状；候选只在原名后面直接接数字，
-    /// 原名末尾的 `_` 也去掉。
-    func testCandidatesOnlyAppendDigitsSoTheyNeverFormAReservedPrefixWithAnUnderscore() throws {
-        let pattern = try NSRegularExpression(pattern: "^[a-z]+[0-9]{2,3}$")
-        for nickname in ["kefu", "tellomi", "admin", "Kaixin", "admin_", "kefu__"] {
-            let base = nickname.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "_"))
+    /// taishi 审查包 4、中转包 8（Android 同一刀）：词库 PREFIX 以非字母数字为边界，`kefu_58`、`tellomi_support27` 都是要拦的形状；
+    /// 候选只留原名里的字母和数字（中间的 `_` 也去掉），后面直接接两位或三位数字。
+    func testCandidatesKeepOnlyLettersAndDigitsOfTheNicknameAndAppendDigits() throws {
+        let pattern = try NSRegularExpression(pattern: "^[a-z][a-z0-9]*[0-9]{2,3}$")
+        for nickname in ["kefu", "tellomi", "admin", "Kaixin", "admin_", "kefu__", "tellomi_support", "kefu_tellomi", "kai_xin"] {
+            let base = nickname.lowercased().replacingOccurrences(of: "_", with: "")
             for seed in UInt64(0)..<200 {
                 var random = SeededGenerator(state: seed)
                 let candidates = TellomiRegistrationUsername.candidates(for: nickname, using: &random)
                 XCTAssertEqual(candidates.count, 3, nickname)
                 for candidate in candidates {
                     XCTAssertTrue(candidate.hasPrefix(base), candidate)
-                    XCTAssertFalse(candidate.hasPrefix(base + "_"), candidate)
+                    XCTAssertFalse(candidate.contains("_"), candidate)
                     XCTAssertNotNil(pattern.firstMatch(in: candidate, range: NSRange(candidate.startIndex..., in: candidate)), candidate)
                 }
             }
         }
     }
 
-    /// taishi 中转包 7（Android 同一刀）：先截到 17 位再去末尾的 `_`；第 17 位是 `_` 的长名，截完末尾不能又是 `_`
-    /// （两个都是词库里的 PREFIX 词）。
-    func testALongNicknameIsCutBeforeItsTrailingUnderscoreIsDropped() throws {
-        for (nickname, base) in [("xitongguanliyuan_ab", "xitongguanliyuan"), ("customer_service_x", "customer_service")] {
-            let pattern = try NSRegularExpression(pattern: "^\(base)[0-9]{2,3}$")
+    /// 超长的原名：去掉 `_` 之后截到 17 位，候选不超 20 位（和 Android 同两组样例）。
+    func testALongNicknameIsCutToSeventeenLettersOrDigits() throws {
+        for (nickname, base) in [("xitongguanliyuan_ab", "xitongguanliyuana"), ("customer_service_x", "customerservicex")] {
+            let pattern = try NSRegularExpression(pattern: "^" + base + "[0-9]{2,3}$")
             for seed in UInt64(0)..<200 {
                 var random = SeededGenerator(state: seed)
                 let candidates = TellomiRegistrationUsername.candidates(for: nickname, using: &random)
