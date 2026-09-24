@@ -11021,6 +11021,9 @@
 /* An error message shown when the user has typed a username that starts with a digit, which is invalid. */
 "USERNAME_SELECTION_CANNOT_START_WITH_DIGIT_ERROR_MESSAGE" = "用戶名稱不得以數字開頭";
 
+/* An error message shown when the user has typed a username that starts with an underscore. Tellomi usernames must start with a letter. */
+"USERNAME_SELECTION_CANNOT_START_WITH_UNDERSCORE_ERROR_MESSAGE_TELLOMI" = "用戶名稱必須以字母開頭";
+
 /* A message explaining the side effects of changing your username. */
 "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE" = "更改用戶名稱將重設你現有的二維碼和連結。你確定嗎？";
 

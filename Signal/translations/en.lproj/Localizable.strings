@@ -10920,6 +10920,9 @@
 /* An error message shown when the user has typed a username that starts with a digit, which is invalid. */
 "USERNAME_SELECTION_CANNOT_START_WITH_DIGIT_ERROR_MESSAGE" = "Username cannot begin with a number";
 
+/* An error message shown when the user has typed a username that starts with an underscore. Tellomi usernames must start with a letter. */
+"USERNAME_SELECTION_CANNOT_START_WITH_UNDERSCORE_ERROR_MESSAGE_TELLOMI" = "Username must begin with a letter";
+
 /* A message explaining the side effects of changing your username. */
 "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE" = "Changing your username will reset your existing QR code and link. Are you sure?";
 
