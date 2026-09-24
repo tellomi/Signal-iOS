@@ -7893,6 +7893,12 @@
 /* Title of alert shown when push tokens sync job succeeds. */
 "PUSH_REGISTER_SUCCESS" = "成功重設通知功能。";
 
+/* Tellomi: body of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. Warns that continuing moves the account to that phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_MESSAGE_TELLOMI" = "新手機正在要求轉走你的帳戶。只有在你自己換手機、正在新手機上註冊時才繼續。如果是別人叫你掃的，請取消——繼續會把你的帳戶轉到對方手機上。";
+
+/* Tellomi: title of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_TITLE_TELLOMI" = "這是轉移帳戶的二維碼";
+
 /* Body for sheet with info about scanning a Quick Restore QR code */
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_BODY" = "使用此裝置來掃描目標裝置上顯示的二維碼";
 
