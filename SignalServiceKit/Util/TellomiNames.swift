@@ -37,9 +37,12 @@ public enum TellomiNames {
 
     /// 中文名（去掉空白和标点后全是汉字）取**最后两个字**：「欧阳娜娜」→「娜娜」、「张三」→「张三」、「李」→「李」、「马克·卡尔」→「卡尔」，
     /// 和国内常见的默认头像一致。不是中文名时返回 nil。
+    ///
+    /// 「全是汉字」按码位判（NSString 的正则走 UTF-16），和 Android 的 `UnicodeScript.of` 同一口径，也不随系统版本变。
+    /// Swift `String.range(of:options:)` 按字素匹配，汉字后面的组合符、异体字选择符会被一起算进汉字，Zalgo 就原样进了头像（taishi 中转包 8）。
     public static func hanAbbreviation(_ fullName: String) -> String? {
         let letters = fullName.replacingOccurrences(of: "[\\s\\p{P}]", with: "", options: .regularExpression)
-        guard !letters.isEmpty, letters.range(of: "^\\p{Han}+$", options: .regularExpression) != nil else {
+        guard !letters.isEmpty, (letters as NSString).range(of: "^\\p{Han}+$", options: .regularExpression).location != NSNotFound else {
             return nil
         }
         return String(letters.suffix(2))
