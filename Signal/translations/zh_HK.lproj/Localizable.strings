@@ -5358,6 +5358,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "此二維碼無效。請確認您所掃描的二維碼顯示於您想連結的裝置上。";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404). %@ is the other app's name (Signal), passed from code so the brand script leaves it alone. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "這個二維碼已過期，或者是 %@ 的二維碼，不是 Tellomi 的。請掃描電腦上 Tellomi 目前顯示的二維碼。";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "裝置連結失敗";
 
@@ -5372,6 +5375,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "重試";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "重新掃描";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "使用此裝置來掃描你想連結的裝置上所顯示的二維碼";
@@ -5504,6 +5510,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "已連結裝置";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "無法連線到伺服器，或者伺服器正忙。請檢查網絡連線，稍後再試。";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "裝置連結失敗";

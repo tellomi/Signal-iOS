@@ -5358,6 +5358,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "This QR code is not valid. Please make sure you are scanning the QR code that is displayed on the device you want to link.";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404). %@ is the other app's name (Signal), passed from code so the brand script leaves it alone. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "This QR code has expired, or it's from %@ rather than Tellomi. Scan the QR code shown right now in Tellomi on your computer.";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "Linking Device Failed";
 
@@ -5372,6 +5375,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "Retry";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "Scan Again";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "Use this device to scan the QR code displayed on the device you want to link";
@@ -5504,6 +5510,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "Linked Devices";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "Couldn't reach the server, or the server is busy. Check your internet connection and try again in a moment.";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "Linking Device Failed";

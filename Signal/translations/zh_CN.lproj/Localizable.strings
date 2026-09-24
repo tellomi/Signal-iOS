@@ -5358,6 +5358,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "此二维码无效，请确认您想要连接的设备所显示的是此二维码。";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404). %@ is the other app's name (Signal), passed from code so the brand script leaves it alone. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "这个二维码已过期，或者是 %@ 的二维码，不是 Tellomi 的。请扫描电脑上 Tellomi 当前显示的二维码。";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "绑定设备失败";
 
@@ -5372,6 +5375,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "重试";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "重新扫码";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "使用此设备扫描要链接的设备上显示的二维码";
@@ -5504,6 +5510,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "已关联设备";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "无法连接服务器，或者服务器正忙。请检查网络连接，稍后再试。";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "绑定设备失败";
