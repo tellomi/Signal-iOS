@@ -415,8 +415,8 @@ private enum DebugLogUploader {
     /// Tellomi：调试日志传我们自己的端点，不传上游的 debuglogs.org（#931）。
     /// 协议与上游完全一致（GET 取预签名表单 → POST multipart），服务端见 deploy/hk/debuglogs.py。
     /// 取表单的地址要带尾斜杠，nginx 的 `location /debuglogs/` 才匹配；结果 URL = base + "/" + key。
-    /// 地址从区域表取（#1056，RegionProfile 契约 v2 的 debugLog 一行）。
-    private static let baseUrlString = TellomiRegions.global.debugLog
+    /// 地址按当前区现取（#1056，RegionProfile 契约 v2 的 debugLog 一行）。
+    private static var baseUrlString: String { TellomiRegions.current().debugLog }
 
     static func uploadFile(fileUrl: URL, mimeType: String) async throws -> URL {
         do {
