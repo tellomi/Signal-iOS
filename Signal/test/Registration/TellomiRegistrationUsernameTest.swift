@@ -7,9 +7,9 @@ import CoreText
 import LibSignalClient
 import XCTest
 
+import SignalUI
 @testable import Signal
 @testable import SignalServiceKit
-import SignalUI
 
 /// Tellomi（tellomi/tellomi#1215 第二刀）：注册资料页上的「用户名（选填）」，与 Android `TellomiUsernameEntryTest` 同一组规则。
 final class TellomiRegistrationUsernameTest: XCTestCase {
