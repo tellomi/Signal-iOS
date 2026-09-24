@@ -45,7 +45,9 @@ public extension Usernames {
             self.entropy = entropy
         }
 
-        public init?(usernameLinkUrl: URL) {
+        public init?(usernameLinkUrl originalUrl: URL) {
+            // Tellomi（tellomi/tellomi#1113、#947）：`tell.cc/u#eu/…`（Desktop 的二维码就是这个）先换算成 `signal.me/#eu/…`
+            let usernameLinkUrl = TellomiLinks.legacyEquivalent(of: originalUrl)
             guard
                 let components = URLComponents(
                     url: usernameLinkUrl,

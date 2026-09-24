@@ -901,4 +901,8 @@ extension ProfileSettingsViewController: UsernameLinkScanDelegate {
     func usernameLinkScanned(_ usernameLink: Usernames.UsernameLink) {
         usernameLinkScanDelegate?.usernameLinkScanned(usernameLink)
     }
+
+    func plainUsernameScanned(_ username: String) {
+        usernameLinkScanDelegate?.plainUsernameScanned(username) // Tellomi（#947）
+    }
 }

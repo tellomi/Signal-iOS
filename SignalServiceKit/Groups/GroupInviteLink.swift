@@ -73,7 +73,10 @@ public struct PossibleGroupInviteLinkUrl {
         self.rawValue = rawValue
     }
 
-    public static func parseFrom(_ url: URL) -> Self? {
+    public static func parseFrom(_ originalUrl: URL) -> Self? {
+        // Tellomi（tellomi/tellomi#1113、#947）：`tell.cc/g#…` 先换算成 `signal.group/#…`；
+        // `rawValue` 存的也是换算后的形状，下游解码器照旧。必须连路径一起判，`tell.cc/u#p/…` 不会被当成群邀请。
+        let url = TellomiLinks.legacyEquivalent(of: originalUrl)
         let possibleHosts: [String]
         if url.scheme == "https" {
             possibleHosts = ["signal.group"]
