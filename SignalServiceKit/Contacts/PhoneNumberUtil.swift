@@ -274,6 +274,15 @@ public class PhoneNumberUtil: NSObject {
         return _parsePhoneNumber(filteredValue: phoneNumber.stringValue)
     }
 
+    /// Tellomi（tellomi/tellomi#1213）：一整串是不是完整的有效号码。比 `parseE164` 里的 `isPossibleNumber` 严：
+    /// 注册页粘贴整串号码时靠它区分「完整号码」和「号码片段」（例如「8613800138」按「可能」算得上 +86 13800138）。
+    public func isValidNumber(_ phoneNumber: E164) -> Bool {
+        guard let nbPhoneNumber = try? parse(phoneNumber.stringValue, defaultRegion: Self.defaultCountryCode()) else {
+            return false
+        }
+        return nbPhoneNumberUtil.isValidNumber(nbPhoneNumber)
+    }
+
     public func parsePhoneNumber(countryCode: String, nationalNumber: String) -> PhoneNumber? {
         return _parsePhoneNumber(
             filteredValue: nationalNumber.filteredAsE164,

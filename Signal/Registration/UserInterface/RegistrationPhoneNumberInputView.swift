@@ -277,14 +277,16 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         return true
     }
 
-    /// Tellomi：把一段文字当完整号码解析——「+86 138 0013 8000」「0086 138…」，或者以当前区号开头、
-    /// 去掉区号后恰好是这个国家本地号码长度的「8613800138000」。都不是就返回 nil，按普通输入处理。
+    /// Tellomi：把一段文字当完整号码解析——「+86 138 0013 8000」「0086 138…」，或者以当前区号开头的「8613800138000」；
+    /// 去掉前缀后必须是有效号码。都不是就返回 nil，按普通输入处理。Android 的 PhoneNumberEntryViewModel.tellomiFullNumberInserted 是同一套规则。
     static func tellomiFullPhoneNumber(
         in text: String,
         currentCountry: PhoneNumberCountry,
         phoneNumberUtil: PhoneNumberUtil,
     ) -> RegistrationPhoneNumber? {
-        let compact = text.filter { !$0.isWhitespace && !"-()".contains($0) }
+        // 只留开头的「+」和 ASCII 数字：从通讯录 / 电话复制的号码两头可能带 U+202D / U+202C，
+        // 中间可能有不断行连字符、点、全角「＋」（taishi 审查 b12 疑问 1）。
+        let compact = text.filteredAsE164
         let international: String
         if compact.hasPrefix("+") {
             international = compact
@@ -292,17 +294,14 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
             international = "+" + compact.dropFirst(2)
         } else {
             let callingCode = String(currentCountry.plusPrefixedCallingCode.dropFirst())
-            guard
-                compact.allSatisfy({ $0.isASCII && $0.isNumber }),
-                compact.hasPrefix(callingCode),
-                let example = phoneNumberUtil.exampleNationalNumber(forCountryCode: currentCountry.countryCode),
-                compact.count - callingCode.count == example.filter({ $0.isASCII && $0.isNumber }).count
-            else {
+            guard compact.hasPrefix(callingCode) else {
                 return nil
             }
             international = "+" + compact
         }
-        guard let e164 = E164(international) else {
+        // 去掉前缀后还得是有效号码，和 Android 同一道闸：「8613800138」「0013 8000 1234」这种片段不当完整号码拆。
+        // 以前比的是「本国格式的示例号码位数」，台湾的本国格式带长途前缀 0（0912 345 678），「886912345678」判不出来。
+        guard let e164 = E164(international), phoneNumberUtil.isValidNumber(e164) else {
             return nil
         }
         return RegistrationPhoneNumberParser(phoneNumberUtil: phoneNumberUtil).parseE164(e164)
