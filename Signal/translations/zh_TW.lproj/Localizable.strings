@@ -8163,6 +8163,9 @@
 /* Tutorial text describing the second step to scanning the restore/transfer QR code with your old phone: tap the camera icon */
 "REGISTRATION_SCAN_QR_CODE_TUTORIAL_TAP_CAMERA" = "輕按相機圖示";
 
+/* Error message when sending a verification code via SMS failed and no other way of sending the code is available. */
+"REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR" = "暫時無法給這個號碼傳送驗證碼。目前只開放中國大陸手機號碼註冊；如果您用的是中國大陸號碼，請稍後再試或聯絡 support@tellomi.app。";
+
 /* Button when sending a verification code via sms failed, but resending via voice call might succeed. */
 "REGISTRATION_SMS_CODE_FAILED_TRY_VOICE_BUTTON" = "語音電話";
 
@@ -8174,6 +8177,9 @@
 
 /* Alert shown when submitting a verification code too many times. Embeds {{ duration }}, such as \"5:00\" */
 "REGISTRATION_SUBMIT_CODE_RATE_LIMIT_ALERT_FORMAT" = "你已多次嘗試輸入驗證碼，請在 %1$@ 後再試";
+
+/* Shown inline under the verification code field when the entered code is wrong. */
+"REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "驗證碼不對，請核對簡訊後重新輸入";
 
 /* During registration and re-registration, users may have to enter a code to verify ownership of their phone number. If they enter an invalid code, they will see this error message. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_VERIFICATION_CODE" = "你輸入的驗證碼無效。請重新傳送驗證碼，然後再試一次。";
@@ -10400,6 +10406,108 @@
 
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "點擊即可替換表情符號";
+
+/* Button in the registration consent dialog: agree to the Terms of Service and Privacy Policy and continue. */
+"TELLOMI_CONSENT_AGREE_AND_CONTINUE" = "同意並繼續";
+
+/* Accessibility label for the consent checkbox during registration. */
+"TELLOMI_CONSENT_CHECKBOX_ACCESSIBILITY_LABEL" = "同意用戶服務協議和隱私政策";
+
+/* Body of the consent dialog during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_DIALOG_BODY_FORMAT" = "請閱讀並同意%1$@和%2$@";
+
+/* Title of the dialog asking the user to agree to the Terms of Service and Privacy Policy before continuing registration. */
+"TELLOMI_CONSENT_DIALOG_TITLE" = "用戶協議及隱私政策";
+
+/* Button in consent dialogs: do not agree. */
+"TELLOMI_CONSENT_DISAGREE" = "不同意";
+
+/* Name of the Privacy Policy document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_PRIVACY_LINK" = "《隱私政策》";
+
+/* Consent sentence next to the checkbox during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_ROW_FORMAT" = "我已年滿 18 週歲，已閱讀並同意%1$@和%2$@";
+
+/* Name of the Terms of Service document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_TERMS_LINK" = "《用戶服務協議》";
+
+/* Shown on the cross-border notice after the user taps 'Disagree'. */
+"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "不同意的話，在中國大陸服務上線之前您將無法使用 Tellomi，我們也不會發送您的任何資訊。您可以退出 App，或者之後回到這一頁再同意。";
+
+/* Introduction of the cross-border data transfer notice. */
+"TELLOMI_CROSS_BORDER_INTRO" = "註冊和使用 Tellomi 時，您的部分個人信息會發送到位於中國大陸境外的伺服器處理。請讀完下面幾項，再決定是否同意。";
+
+/* Cross-border notice item 9 body: this page is the separate consent and can be withdrawn. */
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "點「同意並繼續」即表示您單獨同意上述跨境傳輸。您可以隨時撤回；撤回後，在中國大陸服務上線之前將無法繼續使用 Tellomi。";
+
+/* Cross-border notice item 9 title: separate consent. */
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE" = "單獨同意";
+
+/* Cross-border notice item 3 body: how to contact the personal information protection team. */
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY" = "個人信息保護相關問題，請寄電子郵件至 privacy@tellomi.app。";
+
+/* Cross-border notice item 3 title: contact. */
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_TITLE" = "聯絡方式";
+
+/* Cross-border notice item 6 body: kinds of personal information transferred. */
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY" = "手機號碼；帳號和裝置標識；推送令牌；連線時的 IP 地址等網路資訊；加密後的訊息、附件和資料（密文）；使用 GIF 搜尋時的搜尋詞。";
+
+/* Cross-border notice item 6 title: kinds of personal information. */
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_TITLE" = "涉及的個人信息";
+
+/* Cross-border notice item 5 body: end-to-end encryption and what is processed in plaintext. */
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY" = "訊息正文、個人資料、群組資訊和附件內容都經過端到端加密，伺服器和附件儲存裡只有密文，我們無法讀取。以明文處理的只有註冊用的手機號碼、連線所需的網路資訊等少數幾項。";
+
+/* Cross-border notice item 5 title: how the data is processed. */
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE" = "處理方式";
+
+/* Cross-border notice item 8 body: legal procedure for the transfer (pending legal review). */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY" = "我們會依法完成個人信息出境所需的程序，具體方式待法務確認後在這裡寫明。";
+
+/* Cross-border notice item 8 title: legal procedure for the transfer. */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_TITLE" = "出境的法定程序";
+
+/* Cross-border notice item 4 body: purposes of processing. */
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY" = "註冊和登入；投遞和暫存訊息與附件；推送通知；接通語音和視訊通話；GIF 搜尋。";
+
+/* Cross-border notice item 4 title: purposes of processing. */
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_TITLE" = "處理目的";
+
+/* Cross-border notice item 2 body: who receives the data outside mainland China. */
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY" = "Tellomi 在香港部署的服務，以及為我們提供基礎設施的阿里雲（香港）、Cloudflare, Inc.（附件儲存、通話中繼）、Apple（iOS 推送通知）；使用 GIF 搜尋時，搜尋詞經我們的代理發給 GIPHY。";
+
+/* Cross-border notice item 2 title: overseas recipients. */
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_TITLE" = "境外接收方";
+
+/* Cross-border notice item 7 body: how to exercise personal information rights. */
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY" = "您可以按《隱私政策》第二十六、二十七節的方式查閱、更正、刪除個人信息，註銷帳號，或者撤回本同意；也可以寄電子郵件至 privacy@tellomi.app。";
+
+/* Cross-border notice item 7 title: your rights. */
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_TITLE" = "您的權利";
+
+/* Cross-border notice item 1 body: where servers and storage are located. */
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY" = "是。Tellomi 的伺服器在香港；附件存放在 Cloudflare R2，儲存節點可能不在中國大陸。";
+
+/* Cross-border notice item 1 title: whether data leaves mainland China. */
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_TITLE" = "是否出境";
+
+/* Link at the bottom of the cross-border notice that opens the Privacy Policy sections about storage location and cross-border transfer. */
+"TELLOMI_CROSS_BORDER_PRIVACY_LINK" = "檢視《隱私政策》第二十、二十一節";
+
+/* Title of the cross-border data transfer notice shown before the phone number is sent during registration. */
+"TELLOMI_CROSS_BORDER_TITLE" = "您的資訊將傳輸到中國大陸境外（香港）處理";
+
+/* Button in the first-launch privacy notice: agree. */
+"TELLOMI_FIRST_LAUNCH_AGREE" = "同意";
+
+/* Body of the privacy notice shown the first time the app is opened. Embeds {{Privacy Policy}} as a link. */
+"TELLOMI_FIRST_LAUNCH_BODY_FORMAT" = "我們按%1$@處理您的個人信息：註冊只需要手機號碼；訊息、資料和附件都是端到端加密的，我們讀不到。";
+
+/* Shown in the first-launch privacy notice after the user taps 'Disagree'. */
+"TELLOMI_FIRST_LAUNCH_DISAGREE_HINT" = "需要同意後才能使用 Tellomi；不同意的話，我們不會收集任何資訊。";
+
+/* Title of the privacy notice shown the first time the app is opened. */
+"TELLOMI_FIRST_LAUNCH_TITLE" = "歡迎使用 Tellomi";
 
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "粗體";
