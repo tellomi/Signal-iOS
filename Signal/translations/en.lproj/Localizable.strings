@@ -3993,6 +3993,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "Enter a username followed by a dot and its set of numbers.";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "Enter the person’s username.";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "Username";
 
@@ -10743,6 +10746,9 @@
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@ is not a valid username. Make sure you’ve entered the complete username followed by its set of digits.";
 
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ is not a valid username.";
+
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "Invalid Username";
 
@@ -10769,6 +10775,9 @@
 
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "Usernames are always paired with a set of numbers. %1$@";
+
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "People can find and message you by your username, without knowing your phone number.";
 
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "Choose your username";

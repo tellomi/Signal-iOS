@@ -3993,6 +3993,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "请输入带有一个点和一组匹配数字的用户名。";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "输入对方的用户名。";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "用户名";
 
@@ -10743,6 +10746,9 @@
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@不是一个有效的用户名。请确认您输入了完整的用户名和与之匹配的一组数字。";
 
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ 不是有效的用户名。";
+
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "用户名无效";
 
@@ -10769,6 +10775,9 @@
 
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "用户名始终搭配一组数字。 %1$@";
+
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "别人可以通过用户名找到你、给你发消息，不需要知道你的手机号。";
 
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "选择您的用户名";
