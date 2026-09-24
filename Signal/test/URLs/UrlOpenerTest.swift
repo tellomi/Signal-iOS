@@ -180,6 +180,27 @@ class UrlOpenerTest: XCTestCase {
         XCTAssertNil(UsernameSelectionViewController.existingUsernameForShortcuts(nil))
     }
 
+    /// tellomi/tellomi#1181（ADR-0066 §六）：选名页输入框的上限取「新名字上限」与「现有昵称长度」中较大的，
+    /// 上限改成 20 之前建的 21–32 位用户名才能改大小写、逐个删字。
+    func testTellomiNicknameInputKeepsLongExistingNamesEditable() throws {
+        typealias VC = UsernameSelectionViewController
+        let long = "abcdefghijklmnopqrstuvwxy" // 25 位
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: nil, configuredMax: 20), 20)
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "kaixin.01"), configuredMax: 20), 20)
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "\(long).01"), configuredMax: 20), 25)
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "\(long).57"), configuredMax: 20), 25)
+
+        // 按这个上限，25 位的名字能把首字母改成大写、能删掉一个字；按旧的 20 位上限两样都被拒
+        let limit = VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "\(long).01"), configuredMax: 20)
+        let capitalize = TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 0, length: 1), replacementString: "A", maxUnicodeScalarCount: limit)
+        XCTAssertTrue(capitalize.shouldChange)
+        let deleteOne = TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 24, length: 1), replacementString: "", maxUnicodeScalarCount: limit)
+        XCTAssertTrue(deleteOne.shouldChange)
+        XCTAssertFalse(TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 0, length: 1), replacementString: "A", maxUnicodeScalarCount: 20).shouldChange)
+        // 比现有昵称更长的照旧拦
+        XCTAssertFalse(TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 25, length: 0), replacementString: "z", maxUnicodeScalarCount: limit).shouldChange)
+    }
+
     /// tellomi/tellomi#1106（ADR-0066 §六「显示」）：只有 `.01` 结尾的去掉后缀，别的后缀完整显示（与 Android `TellomiUsernamesTest` 同一组）。
     func testTellomiDisplayUsername() {
         XCTAssertEqual(TellomiLinks.displayUsername("kaixin.01"), "kaixin")

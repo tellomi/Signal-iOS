@@ -834,6 +834,14 @@ extension UsernameSelectionViewController {
         }
         return existingUsername
     }
+
+    /// Tellomi（ADR-0066 §六；#1181）：输入框的长度上限取「新名字的上限」（远程配置 `global.nicknames.max` = 20）与
+    /// 「现有昵称的长度」中较大的。上限改成 20 之前建的 21–32 位用户名，输入框里一开始就超长，而 `TextFieldHelper`
+    /// 对超长的串拒绝任何单字符改动——既改不了大小写，也没法逐个删字，只能整串清掉。只改大小写本来就不预约、不受 20 位
+    /// 限制（caseOnlyChange 捷径）；打出来的新名字超过 20 位，照旧在预约时由 libsignal 报「太长」。
+    static func tellomiMaxNicknameInputLength(existingUsername: ParsedUsername?, configuredMax: UInt32) -> Int {
+        return max(Int(configuredMax), existingUsername?.nickname.unicodeScalars.count ?? 0)
+    }
 }
 
 // MARK: - Text field events
@@ -1077,7 +1085,10 @@ extension UsernameSelectionViewController: UITextFieldDelegate {
             textField,
             shouldChangeCharactersInRange: range,
             replacementString: string,
-            maxUnicodeScalarCount: Int(Constants.maxNicknameCodepointLength),
+            maxUnicodeScalarCount: Self.tellomiMaxNicknameInputLength(
+                existingUsername: existingUsername,
+                configuredMax: Constants.maxNicknameCodepointLength,
+            ),
         )
     }
 
