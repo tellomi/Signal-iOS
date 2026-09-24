@@ -739,6 +739,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             subviews: hOuterStackSubviews,
         )
 
+        configureAlbumCarouselIfNeeded(componentView: componentView)
+
         let swipeToReplyIconView = componentView.swipeToReplyIconView
         swipeToReplyIconView.backgroundEffect = conversationStyle.bubbleBackgroundBlurEffect
         swipeToReplyIconView.alpha = 0
@@ -785,6 +787,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
             hInnerStack.addSubview(reactionsRootView)
             let reactionsVOverlap = self.reactionsVOverlap
+            let reactionsSitBelowAlbumCarousel = self.reactionsSitBelowAlbumCarousel
             let reactionsHInset = self.reactionsHInset
             let isIncoming = self.isIncoming
             // We want the reaction bubbles to stick to the middle of the screen inset from
@@ -797,7 +800,11 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                 }
                 let contentFrame = superview.convert(outerContentView.bounds, from: outerContentView)
                 var reactionsFrame = CGRect(origin: .zero, size: reactionsSize)
-                reactionsFrame.y = contentFrame.maxY - reactionsVOverlap
+                reactionsFrame.y = (
+                    reactionsSitBelowAlbumCarousel
+                        ? contentFrame.maxY + CVComponentBodyMedia.albumCarouselBubbleSpacing
+                        : contentFrame.maxY - reactionsVOverlap,
+                )
                 let leftAlignX = contentFrame.minX + reactionsHInset
                 let rightAlignX = contentFrame.maxX - (reactionsSize.width + reactionsHInset)
                 if isIncoming != CurrentAppContext().isRTL {
@@ -887,6 +894,75 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         }
 
         hOuterStack.applyTransformBlocks()
+    }
+
+    /// Tellomi（tellomi/tellomi#1257）：横滑相册整屏宽，挂在 cell 最外层（hOuterStack，画在气泡上面），
+    /// 竖直位置对齐气泡里的占位（CVComponentBodyMedia 的 rootView）；气泡在占位这一段挖空（上下两块）。
+    private func configureAlbumCarouselIfNeeded(componentView: CVComponentViewMessage) {
+        guard
+            let bodyMedia = bodyMedia as? CVComponentBodyMedia,
+            let bodyMediaView = componentView.subcomponentView(key: .bodyMedia),
+            let carousel = bodyMedia.albumCarouselView(componentView: bodyMediaView),
+            let placeholder = bodyMediaView.rootView as? ManualLayoutView
+        else {
+            return
+        }
+        componentView.isShowingAlbumCarousel = true
+
+        let hOuterStack = componentView.hOuterStack
+        let wrapper = componentView.albumCarouselSwipeToReplyWrapper
+        wrapper.subview = carousel
+        hOuterStack.addSubview(wrapper)
+
+        let insets = bodyMedia.albumCarouselInsets
+        let isIncoming = self.isIncoming
+        let conversationStyle = self.conversationStyle
+        let layoutCarousel = { [weak hOuterStack, weak placeholder, weak wrapper, weak carousel] in
+            guard let hOuterStack, let placeholder, let wrapper, let carousel, placeholder.superview != nil else {
+                return
+            }
+            let placeholderFrame = hOuterStack.convert(placeholder.bounds, from: placeholder)
+            let carouselFrame = CGRect(
+                x: 0,
+                y: placeholderFrame.minY + insets.top,
+                width: hOuterStack.bounds.width,
+                height: max(0, placeholderFrame.height - insets.top - insets.bottom),
+            )
+            ManualLayoutView.setSubviewFrame(subview: wrapper, frame: carouselFrame)
+
+            // C-5：对方的消息对齐对方气泡起点（群聊在头像后），自己的对齐自己气泡列起点（屏宽 − 右边距 − 气泡最大宽）
+            let startInset: CGFloat
+            if isIncoming {
+                startInset = CurrentAppContext().isRTL ? hOuterStack.bounds.width - placeholderFrame.maxX : placeholderFrame.minX
+            } else {
+                startInset = hOuterStack.bounds.width - conversationStyle.fullWidthGutterTrailing - conversationStyle.maxMessageWidth
+            }
+            carousel.setStartInset(max(0, startInset))
+        }
+        // 占位的位置要等它所有祖先都布局完才准：两处都挂（同 selectionLayoutBlock 的做法）
+        hOuterStack.addLayoutBlock { _ in layoutCarousel() }
+        placeholder.addLayoutBlock { _ in layoutCarousel() }
+
+        // 气泡在占位这一段挖空；占位布局完再让气泡重画一次遮罩（气泡比占位先布局，那时占位的位置还是旧的）
+        let bubbleGap: () -> CVBubbleGap? = { [weak placeholder, weak componentView] in
+            guard let placeholder, let componentView else {
+                return nil
+            }
+            let bubbleView: UIView = componentView.wallpaperBlurView?.superview != nil
+                ? componentView.wallpaperBlurView!
+                : componentView.chatColorView
+            guard placeholder.isDescendant(of: bubbleView) else {
+                return nil
+            }
+            let frame = bubbleView.convert(placeholder.bounds, from: placeholder)
+            return CVBubbleGap(top: frame.minY, bottom: frame.maxY)
+        }
+        componentView.chatColorView.bubbleGap = bubbleGap
+        componentView.wallpaperBlurView?.bubbleGap = bubbleGap
+        placeholder.addLayoutBlock { [weak componentView] _ in
+            componentView?.chatColorView.updateAppearance()
+            componentView?.wallpaperBlurView?.applyLayout()
+        }
     }
 
     // The behavior of this method has to align exactly with that of measureContentStack().
@@ -1510,7 +1586,19 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
     // How far the reactions bubble protrudes below the message content.
     private var reactionsVProtrusion: CGFloat {
         let reactionsHeight = CVReactionCountsView.height
+        if reactionsSitBelowAlbumCarousel {
+            return reactionsHeight + CVComponentBodyMedia.albumCarouselBubbleSpacing
+        }
         return max(0, reactionsHeight - reactionsVOverlap)
+    }
+
+    /// Tellomi（tellomi/tellomi#1257）：横滑相册是这条消息的最后一段（下面没有说明）时，回应放在相册下方、不压图——
+    /// 相册整屏宽、画在气泡上面，压着的那一截会被图片盖住。
+    private var reactionsSitBelowAlbumCarousel: Bool {
+        guard let bodyMedia = bodyMedia as? CVComponentBodyMedia, bodyMedia.isAlbumCarousel else {
+            return false
+        }
+        return !bodyMedia.albumCarouselHasContentBelow
     }
 
     /// - Returns: Bubble background color for the current message.
@@ -1982,6 +2070,21 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             return true
         }
 
+        // Tellomi（#1257）：横滑相册在气泡外面（整屏宽），落在相册上的点按交给相册
+        if
+            let bodyMedia = bodyMedia as? CVComponentBodyMedia,
+            let bodyMediaView = componentView.subcomponentView(key: .bodyMedia),
+            let carousel = bodyMedia.albumCarouselView(componentView: bodyMediaView),
+            carousel.containsGestureLocation(sender)
+        {
+            return bodyMedia.handleTap(
+                sender: sender,
+                componentDelegate: componentDelegate,
+                componentView: bodyMediaView,
+                renderItem: renderItem,
+            )
+        }
+
         for subcomponentAndView in findComponentAndViews(sender: sender, componentView: componentView) {
             let subcomponent = subcomponentAndView.component
             let subcomponentView = subcomponentAndView.componentView
@@ -2272,12 +2375,20 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             useSlowOffset: false,
             shouldReset: true,
         )
+        /// Tellomi（#1257）：整屏宽的横滑相册；放得下、不能滑时滑动回复要跟着气泡一起动。
+        fileprivate var albumCarouselSwipeToReplyWrapper = SwipeToReplyWrapper(
+            name: "albumCarouselSwipeToReplyWrapper",
+            useSlowOffset: false,
+            shouldReset: true,
+        )
+        fileprivate var isShowingAlbumCarousel = false
         fileprivate var swipeToReplyWrappers: [SwipeToReplyWrapper] {
             [
                 avatarViewSwipeToReplyWrapper,
                 swipeToReplyIconSwipeToReplyWrapper,
                 contentViewSwipeToReplyWrapper,
                 reactionsSwipeToReplyWrapper,
+                albumCarouselSwipeToReplyWrapper,
             ]
         }
 
@@ -2490,6 +2601,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
             selectionWrapper.reset()
 
+            isShowingAlbumCarousel = false
+
             contentStack.removeFromSuperview()
 
             chatColorView.removeFromSuperview()
@@ -2532,11 +2645,16 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         public func contextMenuContentView() -> UIView? {
             chatColorView.animationsEnabled = true
+            // Tellomi（#1257，C-10）：横滑相册在气泡外面，长按预览要连相册一起（整行）
+            if isShowingAlbumCarousel {
+                return hOuterStack
+            }
             return contentViewSwipeToReplyWrapper
         }
 
         public func contextMenuAuxiliaryContentView() -> UIView? {
-            reactionsSwipeToReplyWrapper
+            // 整行预览里已经带着回应
+            isShowingAlbumCarousel ? nil : reactionsSwipeToReplyWrapper
         }
 
         public func contextMenuPresentationWillBegin() {
@@ -2582,6 +2700,16 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         guard let componentView = componentView as? CVComponentViewMessage else {
             owsFailDebug("Unexpected componentView.")
+            return nil
+        }
+
+        // Tellomi（#1257，C-11）：能滑的相册上，横向拖动只翻图——不滑动回复、不左滑看详情
+        if
+            let bodyMedia = bodyMedia as? CVComponentBodyMedia,
+            let bodyMediaView = componentView.subcomponentView(key: .bodyMedia),
+            let carousel = bodyMedia.albumCarouselView(componentView: bodyMediaView),
+            carousel.claimsHorizontalPan(at: sender.location(in: carousel))
+        {
             return nil
         }
 

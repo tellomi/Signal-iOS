@@ -26,6 +26,53 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
 
     private let footerOverlay: CVComponent?
 
+    /// Tellomi（tellomi/tellomi#1257，C-1）：≥ 2 个附件、而且全部是图片或视频 → 一行横滑（CVAlbumCarouselView）；
+    /// 否则照上游的拼图。1 张、GIF、贴纸、一次性查看、按文件发送的都不走这里。
+    var isAlbumCarousel: Bool {
+        guard !isBorderless, items.count >= 2 else {
+            return false
+        }
+        return items.allSatisfy {
+            switch $0.attachment.contentType {
+            case .image, .video: true
+            case .audio, .file: false
+            }
+        }
+    }
+
+    /// 相册与气泡其它部分（上面的群昵称 / 引用，下面的说明）之间的空隙；那一侧没有东西时不留。
+    static let albumCarouselBubbleSpacing: CGFloat = 4
+
+    var albumCarouselHasContentAbove: Bool {
+        itemViewState.senderNameState != nil || componentState.quotedReply != nil || componentState.linkPreview != nil
+    }
+
+    var albumCarouselHasContentBelow: Bool {
+        componentState.bodyText != nil
+            || (footerOverlay == nil && !itemViewState.shouldHideFooter)
+            || componentState.bottomButtons != nil
+            || componentState.bottomLabel != nil
+    }
+
+    /// 占位里相册上下各空多少（占位高 = 上 + 行高 + 下）。
+    var albumCarouselInsets: (top: CGFloat, bottom: CGFloat) {
+        (
+            albumCarouselHasContentAbove ? Self.albumCarouselBubbleSpacing : 0,
+            albumCarouselHasContentBelow ? Self.albumCarouselBubbleSpacing : 0,
+        )
+    }
+
+    /// C-2：行高 = 屏宽 × 0.6，夹在 [220, 300]；横屏与 iPad 另外不超过屏高 × 0.4。
+    static func albumCarouselRowHeight(conversationStyle: ConversationStyle) -> CGFloat {
+        let screenSize = UIScreen.main.bounds.size
+        let capByScreenHeight = screenSize.width > screenSize.height || UIDevice.current.userInterfaceIdiom == .pad
+        return AlbumCarouselGeometry.rowHeight(
+            screenWidth: conversationStyle.viewWidth,
+            screenHeight: screenSize.height,
+            capByScreenHeight: capByScreenHeight,
+        )
+    }
+
     init(itemModel: CVItemModel, bodyMedia: CVComponentState.BodyMedia, footerOverlay: CVComponent?) {
         self.bodyMedia = bodyMedia
         self.footerOverlay = footerOverlay
@@ -49,6 +96,15 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
         }
 
         let conversationStyle = self.conversationStyle
+
+        if isAlbumCarousel {
+            configureAlbumCarousel(
+                componentView: componentView,
+                cellMeasurement: cellMeasurement,
+                componentDelegate: componentDelegate,
+            )
+            return
+        }
 
         let albumView = componentView.albumView
         albumView.configure(
@@ -144,6 +200,11 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
             stackView.layoutSubviewToFillSuperviewEdges(innerShadowView)
         }
 
+        configureSkippedDownloadsOverlay(overlayHost: stackView, displayedItemCount: albumView.itemViews.count)
+    }
+
+    /// 「下载 N 个项目」与未下载的总大小（C-12）。拼图时盖在拼图上；横滑时盖在相册可视区上（不随图片滚动）。
+    private func configureSkippedDownloadsOverlay(overlayHost stackView: ManualLayoutView, displayedItemCount: Int) {
         if bodyMedia.mediaAlbumHasSkippedAttachment {
             // Media size label and download icon should both use the same color that CVAttachmentProgressView uses.
             let backgroundCircleConfiguration = CVAttachmentProgressView.Configuration.forMediaOverlay()
@@ -152,7 +213,7 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
             let iconView = CVImageView(image: Theme.iconImage(.arrowDown))
             iconView.tintColor = backgroundCircleConfiguration.foregroundColor
 
-            if albumView.itemViews.count > 1 {
+            if displayedItemCount > 1 {
                 // Download icon and number of media displayed over pill-shaped blur background.
 
                 let downloadStackConfig = ManualStackView.Config(
@@ -312,6 +373,104 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
         }
     }
 
+    // MARK: - Album carousel（Tellomi，tellomi/tellomi#1257）
+
+    private static let measurementKey_albumCarouselRowHeight = "CVComponentBodyMedia.measurementKey_albumCarouselRowHeight"
+
+    /// 横滑模式：气泡里只放一段和相册一样高的占位（本组件的 rootView），相册本身由 CVComponentMessage 放在 cell 最外层。
+    private func configureAlbumCarousel(
+        componentView: CVComponentViewBodyMedia,
+        cellMeasurement: CVCellMeasurement,
+        componentDelegate: CVComponentDelegate,
+    ) {
+        let stackView = componentView.stackView
+        stackView.reset()
+        stackView.configure(
+            config: stackConfig,
+            cellMeasurement: cellMeasurement,
+            measurementKey: Self.measurementKey_stackView,
+            subviews: [componentView.albumCarouselPlaceholder],
+        )
+
+        let rowHeight = cellMeasurement.value(key: Self.measurementKey_albumCarouselRowHeight)
+            ?? Self.albumCarouselRowHeight(conversationStyle: conversationStyle)
+        let itemViews = items.map { item in
+            let aspectRatio = AlbumCarouselGeometry.aspectRatio(item.mediaSize)
+            let thumbnailQuality: AttachmentThumbnailQuality = item.mediaSize.isNonEmpty
+                ? CVMediaAlbumView.thumbnailQuality(
+                    mediaSizePoints: item.mediaSize,
+                    viewSizePoints: CGSize(width: rowHeight * aspectRatio, height: rowHeight),
+                )
+                : .medium
+            return CVMediaView(
+                mediaCache: mediaCache,
+                attachment: item.attachment,
+                interaction: interaction,
+                maxMessageWidth: conversationStyle.maxMediaMessageWidth,
+                isBorderless: false,
+                isLoopingVideo: item.renderingFlag == .shouldLoop,
+                isBroken: item.isBroken,
+                thumbnailQuality: thumbnailQuality,
+                conversationStyle: conversationStyle,
+            )
+        }
+
+        let carousel = componentView.ensureAlbumCarouselView()
+        carousel.configure(
+            itemViews: itemViews,
+            aspectRatios: items.map { AlbumCarouselGeometry.aspectRatio($0.mediaSize) },
+            interactionId: interaction.uniqueId,
+            alignEndWhenFits: interaction is TSOutgoingMessage,
+            showsItemStroke: !isDarkThemeEnabled,
+        )
+        componentView.stackView.albumCarouselOverlayView = carousel.overlayView
+
+        // C-7：无说明时时间和勾在相册可视区右下角的半透明深色胶囊里，不随图片滚动
+        if let footerOverlay {
+            let footerView: CVComponentView
+            if let footerOverlayView = componentView.footerOverlayView {
+                footerView = footerOverlayView
+            } else {
+                let footerOverlayView = CVComponentFooter.CVComponentViewFooter()
+                componentView.footerOverlayView = footerOverlayView
+                footerView = footerOverlayView
+            }
+            footerOverlay.configureForRendering(
+                componentView: footerView,
+                cellMeasurement: cellMeasurement,
+                componentDelegate: componentDelegate,
+            )
+            let footerSize = cellMeasurement.size(key: Self.measurementKey_footerSize) ?? .zero
+            let pillInsets = UIEdgeInsets(hMargin: 8, vMargin: 3)
+            let pillSize = CGSize(width: footerSize.width + pillInsets.totalWidth, height: footerSize.height + pillInsets.totalHeight)
+            let pill = ManualLayoutViewWithLayer(name: "albumCarousel.footerPill")
+            pill.backgroundColor = UIColor(white: 0, alpha: 0.45)
+            pill.layer.cornerRadius = pillSize.height / 2
+            pill.clipsToBounds = true
+            let footerRootView = footerView.rootView
+            // 胶囊与页脚都是 ManualLayoutView（关掉了 autoresizing 约束）：位置要在布局块里设，否则下一轮自动布局把它压成 0
+            pill.addSubview(footerRootView) { _ in
+                footerRootView.frame = CGRect(origin: CGPoint(x: pillInsets.left, y: pillInsets.top), size: footerSize)
+            }
+            carousel.overlayView.addSubview(pill)
+            carousel.overlayView.addLayoutBlock { view in
+                let inset: CGFloat = 8
+                let x = CurrentAppContext().isRTL ? inset : view.bounds.width - (pillSize.width + inset)
+                pill.frame = CGRect(origin: CGPoint(x: x, y: view.bounds.height - (pillSize.height + inset)), size: pillSize)
+            }
+        }
+
+        configureSkippedDownloadsOverlay(overlayHost: carousel.overlayView, displayedItemCount: items.count)
+    }
+
+    /// 横滑模式下由 CVComponentMessage 挂到 cell 最外层的相册视图。
+    func albumCarouselView(componentView: CVComponentView) -> CVAlbumCarouselView? {
+        guard isAlbumCarousel, let componentView = componentView as? CVComponentViewBodyMedia else {
+            return nil
+        }
+        return componentView.albumCarouselView
+    }
+
     func bubbleViewPartner(componentView: CVComponentView) -> OWSBubbleViewPartner? {
         guard let componentView = componentView as? CVComponentViewBodyMedia else {
             owsFailDebug("Unexpected componentView.")
@@ -354,6 +513,21 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
             )
             minWidth = min(maxWidth, footerSize.width + conversationStyle.textInsets.totalWidth)
             measurementBuilder.setSize(key: Self.measurementKey_footerSize, size: footerSize)
+        }
+
+        if isAlbumCarousel {
+            // 气泡里只占一段相册的高度；宽度不撑气泡（说明气泡照普通文字消息的宽度，C-8）
+            let rowHeight = Self.albumCarouselRowHeight(conversationStyle: conversationStyle)
+            measurementBuilder.setValue(key: Self.measurementKey_albumCarouselRowHeight, value: rowHeight)
+            let insets = albumCarouselInsets
+            let stackMeasurement = ManualStackView.measure(
+                config: stackConfig,
+                measurementBuilder: measurementBuilder,
+                measurementKey: Self.measurementKey_stackView,
+                subviewInfos: [CGSize(width: 0, height: insets.top + rowHeight + insets.bottom).asManualSubviewInfo],
+                maxWidth: maxWidth,
+            )
+            return stackMeasurement.measuredSize
         }
 
         let maxWidth = min(maxWidth, maxMediaMessageWidth)
@@ -413,13 +587,24 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
         }
 
         let albumView = componentView.albumView
-        let location = sender.location(in: albumView)
-        guard let mediaView = albumView.mediaView(forLocation: location) else {
-            Logger.warn("Missing mediaView.")
-            return false
+        let mediaView: CVMediaView
+        if isAlbumCarousel, let carousel = componentView.albumCarouselView {
+            guard let carouselMediaView = carousel.mediaView(at: sender.location(in: carousel)) else {
+                Logger.warn("Missing mediaView.")
+                return false
+            }
+            mediaView = carouselMediaView
+        } else {
+            let location = sender.location(in: albumView)
+            guard let albumMediaView = albumView.mediaView(forLocation: location) else {
+                Logger.warn("Missing mediaView.")
+                return false
+            }
+            mediaView = albumMediaView
         }
 
         if
+            !isAlbumCarousel,
             albumView.isMoreItemsView(mediaView: mediaView),
             bodyMedia.mediaAlbumHasFailedAttachment
         {
@@ -471,6 +656,21 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
             owsFailDebug("Unexpected componentView.")
             return nil
         }
+        if isAlbumCarousel, let carousel = componentView.albumCarouselView {
+            // C-9：查看器缩回之前先把这一张滚到完整露出
+            guard
+                let index = carousel.itemViews.firstIndex(where: {
+                    $0.attachment.attachment.attachment.id == attachment.attachment.id
+                        && $0.attachment.attachment.reference.hasSameOwner(as: attachment.reference)
+                })
+            else {
+                return nil
+            }
+            carousel.revealItem(index, animated: false)
+            carousel.layoutIfNeeded()
+            return carousel.itemViews[index]
+        }
+
         let albumView = componentView.albumView
         guard
             let albumItemView = (albumView.itemViews.first {
@@ -493,9 +693,13 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
 
         fileprivate var footerOverlayView: CVComponentView?
 
+        /// 横滑模式：时间胶囊等不随图片滚动的一层，打开 / 关闭查看器时跟着隐藏。
+        fileprivate weak var albumCarouselOverlayView: UIView?
+
         override open func reset() {
             bodyMediaGradientView = nil
             footerOverlayView = nil
+            albumCarouselOverlayView = nil
 
             super.reset()
         }
@@ -518,6 +722,19 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
 
         fileprivate var innerShadowView: OWSBubbleShapeView?
 
+        /// 横滑模式（Tellomi #1257）：气泡里的占位与整屏宽的相册。
+        fileprivate let albumCarouselPlaceholder = UIView()
+        fileprivate private(set) var albumCarouselView: CVAlbumCarouselView?
+
+        fileprivate func ensureAlbumCarouselView() -> CVAlbumCarouselView {
+            if let albumCarouselView {
+                return albumCarouselView
+            }
+            let albumCarouselView = CVAlbumCarouselView()
+            self.albumCarouselView = albumCarouselView
+            return albumCarouselView
+        }
+
         var isDedicatedCellView = false
 
         var rootView: UIView {
@@ -539,12 +756,14 @@ class CVComponentBodyMedia: CVComponentBase, CVComponent {
             } else {
                 albumView.unloadMedia()
             }
+            albumCarouselView?.setIsCellVisible(isCellVisible)
         }
 
         func reset() {
             albumView.reset()
             stackView.reset()
             footerOverlayView?.reset()
+            albumCarouselView?.reset()
 
             bodyMediaGradientView?.removeFromSuperview()
             bodyMediaGradientView = nil
@@ -567,6 +786,9 @@ protocol BodyMediaPresentationContext {
 extension CVComponentBodyMedia.CVComponentViewBodyMediaRootView: BodyMediaPresentationContext {
     var mediaOverlayViews: [UIView] {
         var result = [UIView]()
+        if let albumCarouselOverlayView {
+            result.append(albumCarouselOverlayView)
+        }
         if let footerOverlayView {
             result.append(footerOverlayView.rootView)
         }

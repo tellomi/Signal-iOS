@@ -33,6 +33,10 @@ public class CVColorOrGradientView: ManualLayoutViewWithLayer, CVDimmableView {
     public var ensureSubviewsFillBounds = false
     public var animationsEnabled = false
 
+    /// Tellomi（tellomi/tellomi#1257）：横滑相册在气泡里的那一段（本视图坐标）。有值时气泡画成上下两块，
+    /// 中间留给整屏宽的相册（CVAlbumCarouselView）；每次重新布局时取一次。
+    var bubbleGap: (() -> CVBubbleGap?)?
+
     public init() {
         super.init(name: "CVColorOrGradientView")
 
@@ -226,14 +230,16 @@ public class CVColorOrGradientView: ManualLayoutViewWithLayer, CVDimmableView {
 
         // Bubble shape.
         if let bubbleConfig {
+            let gap = bubbleGap?()
+
             // Corners.
-            maskLayer.path = bubbleConfig.bubblePath(for: bounds).cgPath
+            maskLayer.path = bubbleConfig.bubblePath(for: bounds, gap: gap).cgPath
             layer.mask = maskLayer
 
             // Stroke.
             if
                 let stroke = bubbleConfig.stroke,
-                let strokePath = bubbleConfig.strokePath(for: bounds)
+                let strokePath = bubbleConfig.strokePath(for: bounds, gap: gap)
             {
                 strokeLayer.lineWidth = stroke.width
                 strokeLayer.strokeColor = stroke.color.cgColor
@@ -258,6 +264,7 @@ public class CVColorOrGradientView: ManualLayoutViewWithLayer, CVDimmableView {
         value = nil
         backgroundColor = nil
         bubbleConfig = nil
+        bubbleGap = nil
         strokeLayer.removeFromSuperlayer()
         gradientLayer.removeFromSuperlayer()
         dimmerLayer?.removeFromSuperlayer()
@@ -296,4 +303,42 @@ extension CVColorOrGradientView: OWSBubbleViewHost {
     }
 
     public var bubbleReferenceView: UIView { self }
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1257）
+
+/// 气泡里给横滑相册挖空的那一段：气泡自己坐标里的上下边界。
+struct CVBubbleGap: Equatable {
+    let top: CGFloat
+    let bottom: CGFloat
+
+    func offsetBy(dy: CGFloat) -> CVBubbleGap {
+        CVBubbleGap(top: top + dy, bottom: bottom + dy)
+    }
+}
+
+extension BubbleConfiguration {
+    /// 挖掉 `gap` 后剩下的上下两块，各自按本配置的圆角画；两块都没有（只有相册）时是空路径。
+    func bubblePath(for rect: CGRect, gap: CVBubbleGap?) -> UIBezierPath {
+        guard let gap else {
+            return bubblePath(for: rect)
+        }
+        let path = UIBezierPath()
+        let top = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: gap.top - rect.minY)
+        if top.height >= 1 {
+            path.append(bubblePath(for: top))
+        }
+        let bottom = CGRect(x: rect.minX, y: gap.bottom, width: rect.width, height: rect.maxY - gap.bottom)
+        if bottom.height >= 1 {
+            path.append(bubblePath(for: bottom))
+        }
+        return path
+    }
+
+    func strokePath(for rect: CGRect, gap: CVBubbleGap?) -> UIBezierPath? {
+        guard stroke != nil else {
+            return nil
+        }
+        return bubblePath(for: rect, gap: gap)
+    }
 }

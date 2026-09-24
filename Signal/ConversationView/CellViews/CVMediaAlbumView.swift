@@ -557,7 +557,7 @@ class CVMediaAlbumView: ManualStackViewWithLayer {
         return moreItemsView == mediaView
     }
 
-    private static func thumbnailQuality(
+    static func thumbnailQuality(
         mediaSizePoints: CGSize,
         viewSizePoints: CGSize,
     ) -> AttachmentThumbnailQuality {
