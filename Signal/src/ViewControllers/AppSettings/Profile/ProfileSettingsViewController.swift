@@ -551,12 +551,17 @@ class ProfileSettingsViewController: OWSTableViewController2 {
 
     private func offerToDeleteUsername(currentUsername: String) {
         OWSActionSheets.showConfirmationAlert(
-            message: String.nonPluralLocalizedStringWithFormat(
+            // Tellomi（ADR-0066 §6.2）：删掉的名字服务端给原主人保留 30 天，不是上游说的「可供其他人申请」；保留期内再设名也算改名
+            // （与 Desktop#4、Android `ManageProfileFragment__tellomi_delete_username_dialog_body` 同一句）
+            message: String.localizedStringWithFormat(
                 OWSLocalizedString(
-                    "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_FORMAT",
-                    comment: "A message asking the user if they are sure they want to remove their username and explaining what will happen. Embeds {{ the user's current username }}.",
+                    "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d",
+                    tableName: "PluralAware",
+                    comment: "Tellomi: a message asking the user if they are sure they want to remove their username. The server holds the deleted username for them for 30 days, and setting any username during that time starts the rename cooldown. Embeds {{ %d the cooldown length in days (30) }}, {{ %2$@ the user's current username }} and {{ %3$d the hold length in days (30) }}.",
                 ),
+                TellomiLinks.renameCooldownDays,
                 TellomiLinks.displayUsername(currentUsername), // Tellomi（#1106 第三刀）
+                TellomiUsernameHold.holdDays,
             ),
             proceedTitle: OWSLocalizedString(
                 "PROFILE_SETTINGS_USERNAME_DELETION_USERNAME_ACTION_TITLE",

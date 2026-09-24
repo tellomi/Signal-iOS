@@ -689,11 +689,37 @@ private extension UsernameSelectionViewController {
     }
 
     private func confirmNewUsername(reservedUsername: Usernames.HashedUsername) {
-        if existingUsername == nil, !isAttemptingRecovery {
+        // Tellomi（ADR-0066 §6.2）：没有用户名、但保留期内删过一个时，服务端也当改名（开始 30 天冷却），和换名一样先提醒
+        let deletedAt = context.databaseStorage.read { tx in TellomiUsernameHold.deletedAt(tx: tx) }
+        switch TellomiUsernameHold.saveConfirmation(
+            hasExistingUsername: existingUsername != nil || isAttemptingRecovery,
+            deletedAt: deletedAt,
+            now: Date(),
+        ) {
+        case .none:
             self.confirmReservationBehindModalActivityIndicator(
                 reservedUsername: reservedUsername,
             )
-        } else {
+        case .setAfterDelete:
+            // 与 Desktop#4、Android `UsernameEditFragment__tellomi_set_after_delete_confirmation` 同一句
+            OWSActionSheets.showConfirmationAlert(
+                message: String.localizedStringWithFormat(
+                    OWSLocalizedString(
+                        "USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d",
+                        tableName: "PluralAware",
+                        comment: "Tellomi: confirmation before setting a username when the user deleted one less than 30 days ago. The server still holds the deleted username for them, so setting any username counts as a change and starts the rename cooldown. Embeds {{ %d the cooldown length in days (30) }} and {{ %2$d the hold length in days (30) }}.",
+                    ),
+                    TellomiLinks.renameCooldownDays,
+                    TellomiUsernameHold.holdDays,
+                ),
+                proceedTitle: CommonStrings.continueButton,
+                proceedAction: { [weak self] _ in
+                    self?.confirmReservationBehindModalActivityIndicator(
+                        reservedUsername: reservedUsername,
+                    )
+                },
+            )
+        case .change:
             // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：每次换名都会开始 30 天冷却，确认前就说清楚（与 Desktop#2、Android 同一句）
             OWSActionSheets.showConfirmationAlert(
                 message: String.localizedStringWithFormat(
