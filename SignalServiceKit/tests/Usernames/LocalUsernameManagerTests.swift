@@ -731,6 +731,48 @@ class LocalUsernameManagerTests: XCTestCase {
             }
         }
     }
+
+    /// Tellomi（ADR-0066 §6.2）：删掉的用户名保留 30 天；时钟往回拨仍算在保留期内（与 Android `TellomiUsernamesTest.usernameHoldWindow` 同一组）。
+    func testTellomiUsernameHoldWindow() {
+        let deletedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        XCTAssertFalse(TellomiUsernameHold.isWithinHold(deletedAt: nil, now: deletedAt))
+        XCTAssertTrue(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt))
+        XCTAssertTrue(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt + 30 * .day - 1))
+        XCTAssertFalse(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt + 30 * .day))
+        XCTAssertTrue(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt - .day))
+    }
+
+    /// Tellomi（ADR-0066 §6.2）：保存用户名前弹哪种确认框（与 Android `UsernameEditSaveConfirmationTest` 同一组）。
+    func testTellomiSaveConfirmation() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: false, deletedAt: nil, now: now), .none)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: true, deletedAt: nil, now: now), .change)
+        // 有用户名时，删除记录不影响：照旧是换名提醒
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: true, deletedAt: now - .day, now: now), .change)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: false, deletedAt: now - .day, now: now), .setAfterDelete)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: false, deletedAt: now - 31 * .day, now: now), .none)
+    }
+
+    /// Tellomi（ADR-0066 §6.2）：本机删成功才记删除时间；删失败（用户名状态存疑）不记。
+    func testTellomiDeletionRecordsDeletedAt() async throws {
+        mockUsernameApiClient.deleteCurrentUsernameMocks = [{ throw OWSHTTPError.mockNetworkFailure }]
+        _ = setUsername(username: "boba_fett.42")
+
+        let failed = await localUsernameManager.deleteUsername()
+
+        XCTAssertEqual(failed.isNetworkError, true)
+        XCTAssertNil(mockDB.read { tx in TellomiUsernameHold.deletedAt(tx: tx) })
+
+        mockUsernameApiClient.deleteCurrentUsernameMocks = [{}]
+        let before = Date()
+
+        let succeeded = await localUsernameManager.deleteUsername()
+
+        XCTAssertEqual(succeeded.isSuccess, true)
+        let deletedAt = try XCTUnwrap(mockDB.read { tx in TellomiUsernameHold.deletedAt(tx: tx) })
+        XCTAssertGreaterThanOrEqual(deletedAt, before.addingTimeInterval(-1))
+        XCTAssertLessThanOrEqual(deletedAt, Date().addingTimeInterval(1))
+    }
 }
 
 private extension Usernames.RemoteMutationResult<Void> {

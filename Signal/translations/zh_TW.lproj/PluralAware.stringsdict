@@ -1604,5 +1604,33 @@
 			<string>更改用戶名稱將重設你現有的二維碼和連結，之後 %d 天內不能再更改。你確定嗎？</string>
 		</dict>
 	</dict>
+	<key>PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>這將刪除你的用戶名稱及停用你的二維碼和連結。「%2$@」會為你保留 %3$d 天；這期間再設定用戶名稱，之後 %d 天內不能再更改。你確定嗎？</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>你在 %2$d 天內刪除過用戶名稱，現在設定也算一次更改：之後 %d 天內不能再更改。你確定嗎？</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

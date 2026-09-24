@@ -1836,5 +1836,37 @@ Try again in %d hours.</string>
 			<string>Changing your username will reset your existing QR code and link, and you won’t be able to change it again for %d days. Are you sure?</string>
 		</dict>
 	</dict>
+	<key>PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>This will remove your username and disable your QR code and link. “%2$@” stays reserved for you for %3$d days; if you set a username during that time, you won’t be able to change it again for %d day. Are you sure?</string>
+			<key>other</key>
+			<string>This will remove your username and disable your QR code and link. “%2$@” stays reserved for you for %3$d days; if you set a username during that time, you won’t be able to change it again for %d days. Are you sure?</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>You deleted your username less than %2$d days ago, so setting one now counts as a change: you won’t be able to change it again for %d day. Are you sure?</string>
+			<key>other</key>
+			<string>You deleted your username less than %2$d days ago, so setting one now counts as a change: you won’t be able to change it again for %d days. Are you sure?</string>
+		</dict>
+	</dict>
 </dict>
 </plist>
