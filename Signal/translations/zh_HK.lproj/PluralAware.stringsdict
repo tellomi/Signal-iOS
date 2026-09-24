@@ -1601,7 +1601,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>這將刪除你的用戶名稱及停用你的二維碼和連結。「%2$@」會為你保留 %3$d 天；這期間再設定用戶名稱，之後 %d 天內不能再更改。你確定嗎？</string>
+			<string>這將刪除你的用戶名稱及停用你的二維碼和連結。「%2$@」會為你保留 %3$d 天；這期間再設定用戶名稱，之後 %1$d 天內不能再更改。如果你 %1$d 天內改過用戶名稱，刪除後只能改回原來的名稱。你確定嗎？</string>
 		</dict>
 	</dict>
 	<key>USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d</key>

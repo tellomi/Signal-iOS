@@ -1831,9 +1831,9 @@ Try again in %d hours.</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>This will remove your username and disable your QR code and link. “%2$@” stays reserved for you for %3$d days; if you set a username during that time, you won’t be able to change it again for %d day. Are you sure?</string>
+			<string>This will remove your username and disable your QR code and link. “%2$@” stays reserved for you for %3$d days; if you set a username during that time, you won’t be able to change it again for %1$d day. If you changed your username in the last %1$d day, you can only change back to your original username after deleting it. Are you sure?</string>
 			<key>other</key>
-			<string>This will remove your username and disable your QR code and link. “%2$@” stays reserved for you for %3$d days; if you set a username during that time, you won’t be able to change it again for %d days. Are you sure?</string>
+			<string>This will remove your username and disable your QR code and link. “%2$@” stays reserved for you for %3$d days; if you set a username during that time, you won’t be able to change it again for %1$d days. If you changed your username in the last %1$d days, you can only change back to your original username after deleting it. Are you sure?</string>
 		</dict>
 	</dict>
 	<key>USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d</key>
