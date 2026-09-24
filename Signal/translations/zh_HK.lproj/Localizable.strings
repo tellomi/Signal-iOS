@@ -8212,7 +8212,7 @@
 "REGISTRATION_TELLOMI_CODE_NO_LONGER_VALID" = "這個驗證碼已經不能使用：可能已過期，或者輸錯太多次。請重新取得驗證碼。";
 
 /* Tellomi: Alert shown when the registration verification session has expired; the user goes back to the phone number screen to request a new code. */
-"REGISTRATION_TELLOMI_SESSION_EXPIRED" = "這次驗證已經過期，請確認號碼後重新取得驗證碼。";
+"REGISTRATION_TELLOMI_SESSION_EXPIRED" = "這次驗證已失效，請確認號碼後重新取得驗證碼。";
 
 /* Shown inline under the verification code field when the entered code is wrong. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "驗證碼不對，請核對短訊後重新輸入";

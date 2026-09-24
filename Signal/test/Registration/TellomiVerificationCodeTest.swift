@@ -82,6 +82,20 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
         XCTAssertEqual(view.verificationCode, "482913")
     }
 
+    func testPastingANumberLongerThanTheCodeIsNotTakenAsACode() {
+        // taishi 审查 b6：粘进一个手机号，不能取前 6 位自动提交、白白用掉一次机会。
+        let (view, delegate) = makeCodeView()
+        insert("13800138000", into: view)
+        XCTAssertEqual(view.verificationCode, "")
+        XCTAssertFalse(view.isComplete)
+        XCTAssertEqual(delegate.changeCount, 0)
+
+        // 剩下的格子放得下的一小段照常接着填。
+        insert("4", into: view)
+        insert("82913", into: view)
+        XCTAssertEqual(view.verificationCode, "482913")
+    }
+
     // MARK: - "Didn't get the code?" sheet
 
     private func texts(in view: UIView) -> [String] {
@@ -149,6 +163,38 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
         sheet.loadViewIfNeeded()
         XCTAssertNil(button(withIdentifier: "registration.verification.help.changeNumber", in: sheet.view))
         XCTAssertNotNil(button(withIdentifier: "registration.verification.help.contactSupport", in: sheet.view))
+    }
+
+    // MARK: - The verification screen
+
+    private final class Presenter: RegistrationVerificationPresenter {
+        func returnToPhoneNumberEntry() {}
+        func requestSMSCode() {}
+        func requestVoiceCode() {}
+        func submitVerificationCode(_ code: String) {}
+        func exitRegistration() {}
+    }
+
+    func testDidntGetTheCodeIsThereBeforeAnyCodeIsSubmitted() throws {
+        // taishi 审查 b6：收不到短信的人没有码可交，入口不能等提交过 3 次才出现（ADR-0051 §二）。
+        let presenter = Presenter()
+        let viewController = RegistrationVerificationViewController(
+            state: RegistrationVerificationState(
+                e164: E164("+8613800138000")!,
+                nextSMSDate: Date().addingTimeInterval(30),
+                nextCallDate: nil,
+                nextVerificationAttemptDate: nil,
+                canChangeE164: true,
+                showHelpText: false,
+                validationError: nil,
+                exitConfiguration: .noExitAllowed,
+            ),
+            presenter: presenter,
+        )
+        viewController.loadViewIfNeeded()
+
+        let helpButton = try XCTUnwrap(button(withIdentifier: "registration.verification.helpButton", in: viewController.view))
+        XCTAssertFalse(helpButton.isHidden)
     }
 
     func testHongKongDeploymentAllowsThreeCodesPerSession() {

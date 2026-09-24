@@ -280,7 +280,11 @@ extension RegistrationVerificationCodeView: UITextFieldDelegate {
             }
             let digits = newString.filter { $0.isASCII && $0.isNumber }
             if digits.count > 1 {
-                set(verificationCode: String((digitText.prefix(currentDigitIndex) + digits).prefix(digitCount)))
+                // 比剩下的格子还长（比如粘进一个手机号）就不是验证码：整串不收，免得取前几位自动提交、
+                // 白白用掉每个会话 5 次里的一次（taishi 审查 b6）。
+                if digits.count <= digitCount - currentDigitIndex {
+                    set(verificationCode: String(digitText.prefix(currentDigitIndex) + digits))
+                }
                 return false
             }
         }

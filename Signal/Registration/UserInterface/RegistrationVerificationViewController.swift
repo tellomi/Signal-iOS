@@ -348,7 +348,9 @@ class RegistrationVerificationViewController: OWSViewController {
 
         explanationLabel.text = explanationLabelText()
         wrongNumberButton.isHidden = !state.canChangeE164
-        helpButton.isHidden = !state.showHelpText
+        // Tellomi（tellomi/tellomi#1214，ADR-0051 §二，taishi 审查 b6）：一进页面就显示「收不到验证码？」。
+        // 上游要提交过 3 次验证码才出现（showHelpText），收不到短信的人没有码可交，面板里的出路就一直藏着。
+        helpButton.isHidden = !(state.showHelpText || Self.showsTellomiHelp)
 
         verificationCodeView.updateColors()
     }
