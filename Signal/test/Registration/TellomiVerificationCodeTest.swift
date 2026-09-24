@@ -139,6 +139,18 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
         XCTAssertEqual(contactedSupport, 1)
     }
 
+    func testHelpSheetHasNoChangeNumberWhenTheNumberIsFixed() throws {
+        // 重新注册 / 换号流程里 canChangeE164 == false，页面上的「错误的号码？」是隐藏的，面板也不能给改号码的出口。
+        let sheet = RegistrationVerificationHelpSheetViewController(tellomiHelp: .init(
+            phoneNumber: "+86 138 0013 8000",
+            onChangeNumber: nil,
+            onContactSupport: {},
+        ))
+        sheet.loadViewIfNeeded()
+        XCTAssertNil(button(withIdentifier: "registration.verification.help.changeNumber", in: sheet.view))
+        XCTAssertNotNil(button(withIdentifier: "registration.verification.help.contactSupport", in: sheet.view))
+    }
+
     func testHongKongDeploymentAllowsThreeCodesPerSession() {
         // deploy/hk/enable-aliyun-sms.sh：send-sms-verification-code.delays: [30s, 1m, 5m]
         XCTAssertEqual(TSConstants.smsVerificationCodesPerSession, 3)

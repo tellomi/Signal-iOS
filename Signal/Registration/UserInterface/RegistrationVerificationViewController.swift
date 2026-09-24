@@ -551,11 +551,12 @@ class RegistrationVerificationViewController: OWSViewController {
         }
         let sheet = RegistrationVerificationHelpSheetViewController(tellomiHelp: .init(
             phoneNumber: state.e164.stringValue.e164FormattedAsPhoneNumberWithoutBreaks,
-            onChangeNumber: { [weak self] in
+            // 和页面上的「错误的号码？」一样：重新注册 / 换号流程里号码是固定的，不给改号码的出口。
+            onChangeNumber: state.canChangeE164 ? { [weak self] in
                 self?.dismiss(animated: true) {
                     self?.presenter?.returnToPhoneNumberEntry()
                 }
-            },
+            } : nil,
             onContactSupport: { [weak self] in
                 self?.dismiss(animated: true) {
                     self?.composeSupportEmail()
@@ -664,7 +665,8 @@ class RegistrationVerificationHelpSheetViewController: InteractiveSheetViewContr
     /// 没有出口；Tellomi 的用户多在中国大陆，短信常被手机管家的骚扰拦截吞掉，每个注册会话又只有几条短信额度。
     struct TellomiHelp {
         let phoneNumber: String
-        let onChangeNumber: () -> Void
+        /// nil = 这个流程里号码不能改（和 `RegistrationVerificationState.canChangeE164` 一致），不出「改号码」。
+        let onChangeNumber: (() -> Void)?
         let onContactSupport: () -> Void
     }
 
@@ -814,14 +816,18 @@ class RegistrationVerificationHelpSheetViewController: InteractiveSheetViewContr
     }
 
     private func tellomiButtons(_ help: TellomiHelp) -> UIView {
-        let changeNumberButton = UIButton(
-            configuration: .mediumBorderless(title: OWSLocalizedString(
-                "ONBOARDING_VERIFICATION_TELLOMI_HELP_CHANGE_NUMBER",
-                comment: "Tellomi: Button in the 'didn't get the code?' sheet that goes back to the phone number screen.",
-            )),
-            primaryAction: UIAction { _ in help.onChangeNumber() },
-        )
-        changeNumberButton.accessibilityIdentifier = "registration.verification.help.changeNumber"
+        var buttons: [UIButton] = []
+        if let onChangeNumber = help.onChangeNumber {
+            let changeNumberButton = UIButton(
+                configuration: .mediumBorderless(title: OWSLocalizedString(
+                    "ONBOARDING_VERIFICATION_TELLOMI_HELP_CHANGE_NUMBER",
+                    comment: "Tellomi: Button in the 'didn't get the code?' sheet that goes back to the phone number screen.",
+                )),
+                primaryAction: UIAction { _ in onChangeNumber() },
+            )
+            changeNumberButton.accessibilityIdentifier = "registration.verification.help.changeNumber"
+            buttons.append(changeNumberButton)
+        }
         let contactSupportButton = UIButton(
             configuration: .mediumBorderless(title: OWSLocalizedString(
                 "ONBOARDING_VERIFICATION_TELLOMI_HELP_CONTACT_SUPPORT",
@@ -830,7 +836,8 @@ class RegistrationVerificationHelpSheetViewController: InteractiveSheetViewContr
             primaryAction: UIAction { _ in help.onContactSupport() },
         )
         contactSupportButton.accessibilityIdentifier = "registration.verification.help.contactSupport"
-        let row = UIStackView(arrangedSubviews: [changeNumberButton, contactSupportButton])
+        buttons.append(contactSupportButton)
+        let row = UIStackView(arrangedSubviews: buttons)
         row.axis = .horizontal
         row.distribution = .fillEqually
         row.spacing = 12
