@@ -1994,6 +1994,7 @@ extension AppSetup.GlobalsContinuation {
             tsAccountManager: tsAccountManager,
             udManager: udManager,
             libsignalNet: libsignalNet,
+            tsConstants: tsConstants,
         )
         let localUserLeaveGroupJobQueue = LocalUserLeaveGroupJobQueue(
             db: db,
