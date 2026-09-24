@@ -575,7 +575,7 @@ class RegistrationVerificationViewController: OWSViewController {
 // MARK: - Tellomi：行内验证码错误
 
 extension RegistrationVerificationViewController {
-    fileprivate func showInlineCodeError(_ message: String) {
+    private func showInlineCodeError(_ message: String) {
         codeErrorLabel.text = message
         codeErrorLabel.isHidden = false
         verificationCodeView.setHasError(true)
@@ -592,7 +592,7 @@ extension RegistrationVerificationViewController {
         _ = verificationCodeView.becomeFirstResponder()
     }
 
-    fileprivate func hideInlineCodeError() {
+    private func hideInlineCodeError() {
         guard !codeErrorLabel.isHidden else { return }
         codeErrorLabel.isHidden = true
         verificationCodeView.setHasError(false)
