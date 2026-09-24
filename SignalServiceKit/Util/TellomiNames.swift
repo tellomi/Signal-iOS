@@ -1,5 +1,5 @@
 //
-// Copyright 2026 Tellomi
+// Copyright 2026 重庆半格智能科技有限公司
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
@@ -12,6 +12,8 @@ public enum TellomiNames {
     /// - 中文名取最后两个字（见 `hanAbbreviation`）；
     /// - 其它名字按半角空格拆词，每个词去掉开头的非字母 / 数字 / 符号，取第一个词的第一个字素，有第二个词再加第二个词的第一个字素：
     ///   「John Smith」→「JS」、「Kevin 张」→「K张」、「小明 Wang」→「小W」、「娜娜😀」→「娜」；
+    /// - 一个字素超过 16 个码位（Zalgo）换成 U+FFFD，与 Android 同一条线（taishi 审查包 5）。上游 `filterForDisplay` 做的也是这一步，
+    ///   但单框名字这一支绕过了它：资料名走的是未过滤的 `nameComponents`；
     /// - 拆不出词（空串、只有标点）返回 nil，调用方显示默认头像。
     public static func abbreviation(_ name: String) -> String? {
         if let hanAbbreviation = hanAbbreviation(name) {
@@ -22,13 +24,14 @@ public enum TellomiNames {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .map { $0.replacingOccurrences(of: "^[^\\p{L}\\p{Nd}\\p{S}]+", with: "", options: .regularExpression) }
             .compactMap { $0.first }
+            .map { StringSanitizer.isExtremelyLongGraphemeCluster($0) ? "\u{FFFD}" : String($0) }
         switch words.count {
         case 0:
             return nil
         case 1:
-            return String(words[0])
+            return words[0]
         default:
-            return String(words[0]) + String(words[1])
+            return words[0] + words[1]
         }
     }
 
