@@ -2,6 +2,7 @@
 
 import os
 import sys
+import plistlib
 import subprocess
 import argparse
 from typing import Iterable
@@ -196,6 +197,18 @@ def swiftformat(file_paths):
     return proc.returncode == 0
 
 
+def staged_info_plist_has_build_details() -> bool:
+    """
+    Tellomi（tellomi/tellomi#1142）：Scripts/update_plist_info.sh 编 App Store Release / Testable Release 时，
+    把构建时间等 BuildDetails 写进 Signal/Signal-Info.plist，编完这份文件是脏的。仓库里它的 BuildDetails 必须是空的，
+    否则所有包都会带着同一个构建时间（构建兜底过期按它算）。只看暂存区，工作区脏着不管。
+    """
+    proc = subprocess.run(["git", "show", ":Signal/Signal-Info.plist"], capture_output=True)
+    if proc.returncode != 0:
+        return False
+    return bool(plistlib.loads(proc.stdout).get("BuildDetails"))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="lint & format files")
     parser.add_argument("path", nargs="*", help="a path to process")
@@ -218,6 +231,12 @@ if __name__ == "__main__":
     file_paths = sorted(set(filter(should_process_file, file_paths)))
 
     result = True
+
+    print("Checking Signal/Signal-Info.plist...", flush=True)
+    if staged_info_plist_has_build_details():
+        print("Signal/Signal-Info.plist carries BuildDetails written by a release build. Unstage it: git restore --staged Signal/Signal-Info.plist")
+        result = False
+    print("")
 
     print("Checking license headers...", flush=True)
     proc = subprocess.run(["Scripts/lint/lint-license-headers", *file_paths])
