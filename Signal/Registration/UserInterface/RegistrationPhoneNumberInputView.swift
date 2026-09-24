@@ -298,10 +298,12 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         } else {
             // 以区号开头的一串：去掉区号后的位数要等于当前地区示例号码的有效位数（不含长途前缀，台湾是 9 位而不是本国格式的 10 位）。
             // DE / AT / FI 这类号码长度不固定的地区，以区号数字开头的本地号码去掉「区号」后常常也有效，只看有效会被静默改成另一个号码。
+            // libphonenumber 不认的地区（UM / IC / EA / CQ 等）先换成同区号、认得的地区再取示例，和上游 TextFieldFormatting 一样（taishi 审查 b12 不阻塞 5）。
             let callingCode = String(currentCountry.plusPrefixedCallingCode.dropFirst())
+            let regionForParsing = phoneNumberUtil.countryCodeForParsing(fromCountryCode: currentCountry.countryCode)
             guard
                 compact.hasPrefix(callingCode),
-                compact.count - callingCode.count == phoneNumberUtil.tellomiExampleNationalSignificantNumberLength(forCountryCode: currentCountry.countryCode)
+                compact.count - callingCode.count == phoneNumberUtil.tellomiExampleNationalSignificantNumberLength(forCountryCode: regionForParsing)
             else {
                 return nil
             }

@@ -31,6 +31,9 @@ final class TellomiPhoneNumberInputTest: SignalBaseTest {
     private let taiwan = PhoneNumberCountry(countryName: "Taiwan", plusPrefixedCallingCode: "+886", countryCode: "TW")
     private let germany = PhoneNumberCountry(countryName: "Germany", plusPrefixedCallingCode: "+49", countryCode: "DE")
     private let austria = PhoneNumberCountry(countryName: "Austria", plusPrefixedCallingCode: "+43", countryCode: "AT")
+    // libphonenumber 不认的两个地区：区号借用美国 / 西班牙的
+    private let usOutlyingIslands = PhoneNumberCountry(countryName: "U.S. Outlying Islands", plusPrefixedCallingCode: "+1", countryCode: "UM")
+    private let canaryIslands = PhoneNumberCountry(countryName: "Canary Islands", plusPrefixedCallingCode: "+34", countryCode: "IC")
 
     private func fullNumber(_ text: String, in country: PhoneNumberCountry) -> RegistrationPhoneNumber? {
         RegistrationPhoneNumberInputView.tellomiFullPhoneNumber(
@@ -119,6 +122,20 @@ final class TellomiPhoneNumberInputTest: SignalBaseTest {
         // DE / AT：去掉「区号」后也是有效号码，但位数和示例号码不同，不当完整号码拆（taishi 审查 b18 不阻塞 3）。
         XCTAssertNil(fullNumber("4921123456", in: germany))
         XCTAssertNil(fullNumber("4312345678", in: austria))
+    }
+
+    func testRegionsLibPhoneNumberDoesNotKnowBorrowTheirCallingCodesExample() throws {
+        // 手动选了 UM / IC 这类 libphonenumber 不认的地区：示例号码按同区号、认得的地区取（上游 countryCodeForParsing），
+        // 不然取不到示例位数，以区号开头的整串就拆不开（taishi 审查 b12 不阻塞 5）。
+        let splits: [(PhoneNumberCountry, String, String, String)] = [
+            (usOutlyingIslands, "14155550100", "+1", "4155550100"),
+            (canaryIslands, "34612345678", "+34", "612345678"),
+        ]
+        for (country, text, callingCode, national) in splits {
+            let parsed = try XCTUnwrap(fullNumber(text, in: country), text)
+            XCTAssertEqual(parsed.country.plusPrefixedCallingCode, callingCode, text)
+            XCTAssertEqual(parsed.nationalNumber, national, text)
+        }
     }
 
     // MARK: - The view
