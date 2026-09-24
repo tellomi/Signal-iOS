@@ -64,10 +64,12 @@ public struct CallLink: Equatable {
     }
 
     public func url() -> URL {
+        // Tellomi（tellomi/tellomi#1113）：发出 `https://tell.cc/call#key=…`（不带结尾斜杠，`LINKS_AND_SCHEMES.md` 那张表的形状）；
+        // 解析带不带斜杠都认（init 里先换算成 `signal.link/call/#…`）
         var components = URLComponents()
         components.scheme = Constants.scheme
-        components.host = Constants.host
-        components.path = Constants.path
+        components.host = TellomiLinks.host
+        components.path = TellomiLinks.Path.call
         components.queryItems = [
             URLQueryItem(name: Constants.key, value: rootKey.description),
         ]
