@@ -622,4 +622,30 @@ extension AppSettingsViewController: UsernameLinkScanDelegate {
             }
         }
     }
+
+    /// Tellomi（tellomi/tellomi#947）：扫到裸用户名码，与扫到用户名链接同一个结果（打开会话）。
+    func plainUsernameScanned(_ username: String) {
+        guard let presentingViewController else {
+            owsFailDebug("Missing presenting view controller!")
+            return
+        }
+
+        presentingViewController.dismiss(animated: true) {
+            Task {
+                guard
+                    let aci = await UsernameQuerier().queryForUsername(
+                        username: username,
+                        fromViewController: presentingViewController,
+                    )
+                else {
+                    return
+                }
+
+                SignalApp.shared.presentConversationForAddress(
+                    SignalServiceAddress(aci),
+                    animated: true,
+                )
+            }
+        }
+    }
 }

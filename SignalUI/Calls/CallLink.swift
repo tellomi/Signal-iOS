@@ -28,7 +28,11 @@ public struct CallLink: Equatable {
     }
 
     /// Parses a URL of the form: https://signal.link/call/#key=value
-    public init?(url: URL) {
+    ///
+    /// Tellomi（tellomi/tellomi#1113、#947）：`tell.cc/call#key=…`（Desktop 已在发）先换算成上面的旧形状再解析——
+    /// 聊天里点、扫码、链接预览都走这里，一处认全。
+    public init?(url originalUrl: URL) {
+        let url = TellomiLinks.legacyEquivalent(of: originalUrl)
         guard
             var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
             components.scheme == Constants.scheme || components.scheme == "sgnl",

@@ -2798,6 +2798,7 @@
 		D9317FD32A4BAC8300075A92 /* BitmapsImagePixelMergingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9317FD12A4BA7B000075A92 /* BitmapsImagePixelMergingTest.swift */; };
 		D9317FD52A4BB15D00075A92 /* BitmapsImageCenteredDeadzoneTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9317FD42A4BB15D00075A92 /* BitmapsImageCenteredDeadzoneTest.swift */; };
 		D9317FD82A4BC4FC00075A92 /* BitmapsRectTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9317FD62A4BC4F000075A92 /* BitmapsRectTest.swift */; };
+		9DB8E654AA1F188C00A93C26 /* TellomiScannedCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCBC707E341EFB9FE785481D /* TellomiScannedCodeTest.swift */; };
 		D9317FDC2A4CE48D00075A92 /* UsernameLinkQRCodeColorPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9317FDB2A4CE48D00075A92 /* UsernameLinkQRCodeColorPickerViewController.swift */; };
 		D9324F7C2E1492920095D104 /* BackupAttachmentTrackerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9324F7B2E1492820095D104 /* BackupAttachmentTrackerTest.swift */; };
 		D932C0EB2E13AD3F00FEF9C3 /* BackupAttachmentDownloadTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D932C0EA2E13AD3600FEF9C3 /* BackupAttachmentDownloadTracker.swift */; };
@@ -7175,6 +7176,7 @@
 		D9317FD12A4BA7B000075A92 /* BitmapsImagePixelMergingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapsImagePixelMergingTest.swift; sourceTree = "<group>"; };
 		D9317FD42A4BB15D00075A92 /* BitmapsImageCenteredDeadzoneTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapsImageCenteredDeadzoneTest.swift; sourceTree = "<group>"; };
 		D9317FD62A4BC4F000075A92 /* BitmapsRectTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapsRectTest.swift; sourceTree = "<group>"; };
+		DCBC707E341EFB9FE785481D /* TellomiScannedCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiScannedCodeTest.swift; sourceTree = "<group>"; };
 		D9317FDB2A4CE48D00075A92 /* UsernameLinkQRCodeColorPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameLinkQRCodeColorPickerViewController.swift; sourceTree = "<group>"; };
 		D9324F7B2E1492820095D104 /* BackupAttachmentTrackerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupAttachmentTrackerTest.swift; sourceTree = "<group>"; };
 		D932C0EA2E13AD3600FEF9C3 /* BackupAttachmentDownloadTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupAttachmentDownloadTracker.swift; sourceTree = "<group>"; };
@@ -14149,6 +14151,7 @@
 				D99ABC722A3D0BBB0034CD3B /* BitmapsImageParsingTest.swift */,
 				D9317FD12A4BA7B000075A92 /* BitmapsImagePixelMergingTest.swift */,
 				D9317FD62A4BC4F000075A92 /* BitmapsRectTest.swift */,
+				DCBC707E341EFB9FE785481D /* TellomiScannedCodeTest.swift */,
 			);
 			path = QRCodes;
 			sourceTree = "<group>";
@@ -19255,6 +19258,7 @@
 				D99ABC742A3D0BE10034CD3B /* BitmapsImageParsingTest.swift in Sources */,
 				D9317FD32A4BAC8300075A92 /* BitmapsImagePixelMergingTest.swift in Sources */,
 				D9317FD82A4BC4FC00075A92 /* BitmapsRectTest.swift in Sources */,
+				9DB8E654AA1F188C00A93C26 /* TellomiScannedCodeTest.swift in Sources */,
 				D93108152B34B6BE006A034E /* CallRecordLoaderTest.swift in Sources */,
 				D9F02BE72B96556C00E872C2 /* CallsListViewController+ViewModelLoaderTest.swift in Sources */,
 				954AEE6A1DF33E01002E5410 /* ContactsPickerTest.swift in Sources */,
