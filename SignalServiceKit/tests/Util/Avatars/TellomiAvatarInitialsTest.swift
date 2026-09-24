@@ -71,6 +71,9 @@ final class TellomiAvatarInitialsTest: XCTestCase {
             (zalgo + "algo Name", "\u{FFFD}N"),
             (sixteenCodePoints + " Smith", sixteenCodePoints + "S"),
             (seventeenCodePoints + " Smith", "\u{FFFD}S"),
+            // taishi 中转包 8：汉字名后面拖着组合符（Zalgo）、汉字带异体字选择符，都不算「全是汉字」，按首字取
+            ("张三" + marks.joined(), "张"),
+            ("葛\u{E0100}城 太郎", "葛\u{E0100}太"),
         ]
         for (input, expected) in samples {
             // 逐个 Unicode 标量比较：Swift 的 String == 按标准等价，NFD 的 é 和 NFC 的 é 会被当成相等
