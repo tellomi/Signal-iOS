@@ -25,6 +25,10 @@ extension UIWindow.Level {
 
     // In front of the status bar and CallView
     fileprivate static let _screenBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 2)
+
+    // Tellomi（tellomi/tellomi#1139）：「必须更新」在最前面，连应用锁也盖住（需求 3.4：未解锁也能先更新，
+    // 阻断页不显示任何私人内容；Telegram iOS 的 .update 层同样排在 .passcode 之上）。
+    fileprivate static let _updateRequiredBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 3)
 }
 
 class WindowManager {
@@ -51,12 +55,25 @@ class WindowManager {
         case callViewWindow: true
         case clockSkewBlockingWindow: true
         case screenBlockingWindow: true
+        case updateRequiredBlockingWindow: true
         default: false
         }
     }
 
     var captchaWindow: UIWindow {
         return shouldShowCallView ? callViewWindow : rootWindow
+    }
+
+    /// Tellomi（tellomi/tellomi#1139）：非 nil 时用「必须更新」阻断页盖住整个 App（由 `TellomiUpdateRequiredMonitoringManager` 设置）。
+    var updateRequiredBlockReason: TellomiUpdateRequiredAppBlockingViewController.Reason? {
+        didSet {
+            AssertIsOnMainThread()
+            guard updateRequiredBlockReason != oldValue else { return }
+            if let updateRequiredBlockReason {
+                updateRequiredBlockingViewController.reason = updateRequiredBlockReason
+            }
+            ensureWindowState()
+        }
     }
 
     var isScreenBlockActive: Bool = false {
@@ -79,6 +96,10 @@ class WindowManager {
         for window in [rootWindow!, callViewWindow, clockSkewBlockingWindow, screenBlockingWindow!] {
             guard window.frame != desiredFrame else { continue }
             window.frame = desiredFrame
+        }
+        // Tellomi（tellomi/tellomi#1139）
+        if updateRequiredBlockingWindow.frame != desiredFrame {
+            updateRequiredBlockingWindow.frame = desiredFrame
         }
     }
 
@@ -166,6 +187,31 @@ class WindowManager {
     // UIWindow.Level._screenBlocking() if active.
     private var screenBlockingWindow: UIWindow!
 
+    // UIWindow.Level._updateRequiredBlocking（Tellomi，tellomi/tellomi#1139）
+    private lazy var updateRequiredBlockingViewController = TellomiUpdateRequiredAppBlockingViewController(
+        reason: .serverRejected,
+        openUpdatePage: {
+            // Signal-iOS#23（tellomi/tellomi#1046）把它从 Signal 的 App Store 页改成了官网下载页。
+            UIApplication.shared.open(TSConstants.appStoreUrl)
+        },
+    )
+
+    private lazy var updateRequiredBlockingWindow: UIWindow = {
+        AssertIsOnMainThread()
+        guard let rootWindow else {
+            owsFail("rootWindow is nil")
+        }
+
+        let window = OWSWindow(frame: rootWindow.bounds)
+        window.windowLevel = ._updateRequiredBlocking
+        window.isHidden = true
+        window.isOpaque = true
+        window.backgroundColor = Theme.launchScreenBackgroundColor
+        window.rootViewController = updateRequiredBlockingViewController
+
+        return window
+    }()
+
     // MARK: Window State
 
     private func ensureWindowState() {
@@ -214,6 +260,33 @@ class WindowManager {
 
             ensureCallViewWindowHidden()
         }
+
+        // Tellomi（tellomi/tellomi#1139）：「必须更新」窗口层级最高，下面各窗口照常切换；
+        // 放在最后，让它最后一个 makeKeyAndVisible。
+        if updateRequiredBlockReason != nil {
+            ensureUpdateRequiredBlockWindowShown()
+        } else {
+            ensureUpdateRequiredBlockWindowHidden()
+        }
+    }
+
+    private func ensureUpdateRequiredBlockWindowShown() {
+        AssertIsOnMainThread()
+
+        if updateRequiredBlockingWindow.isHidden {
+            Logger.info("showing update required window.")
+        }
+
+        updateRequiredBlockingWindow.makeKeyAndVisible()
+    }
+
+    private func ensureUpdateRequiredBlockWindowHidden() {
+        AssertIsOnMainThread()
+
+        guard !updateRequiredBlockingWindow.isHidden else { return }
+
+        Logger.info("hiding update required window.")
+        updateRequiredBlockingWindow.isHidden = true
     }
 
     private func ensureRootWindowShown() {
