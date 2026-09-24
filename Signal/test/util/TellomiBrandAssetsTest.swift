@@ -26,15 +26,17 @@ final class TellomiBrandAssetsTest: XCTestCase {
         guard let cgImage = image.cgImage else { return nil }
         var bytes = [UInt8](repeating: 0, count: 4)
         let drawn: Bool = bytes.withUnsafeMutableBytes { buffer in
-            guard let context = CGContext(
-                data: buffer.baseAddress,
-                width: 1,
-                height: 1,
-                bitsPerComponent: 8,
-                bytesPerRow: 4,
-                space: CGColorSpaceCreateDeviceRGB(),
-                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
-            ) else {
+            guard
+                let context = CGContext(
+                    data: buffer.baseAddress,
+                    width: 1,
+                    height: 1,
+                    bitsPerComponent: 8,
+                    bytesPerRow: 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+                )
+            else {
                 return false
             }
             // 把要取的那一点对到 1×1 画布的原点（CoreGraphics 的 y 轴朝上）
