@@ -50,14 +50,15 @@ public enum TellomiRegistrationUsername {
     /// 不可用时给的候选：原名后面**直接接数字**（两位、三位、再一个不同的两位），三个互不相同、都过得了 `check`。
     /// 候选本身不预先向服务端查（保留有频率限制），用户点了照常走一遍检查。
     ///
-    /// 不用 `原名_数字`，原名末尾的 `_` 也去掉（taishi 审查包 4，Android 同一刀）：词库的 PREFIX 规则以「非字母数字」为边界，
+    /// 不用 `原名_数字`，截到 17 位之后末尾的 `_` 也去掉（taishi 审查包 4，Android 同一刀；中转包 7：要先截再去，
+    /// 否则第 17 位是 `_` 的长名截完末尾又是 `_`）：词库的 PREFIX 规则以「非字母数字」为边界，
     /// `kefu_58` 正是要拦的形状，而服务端拒绝表只收 EXACT，这种候选能保留成功。紧跟数字不算边界，`kefu27` 不命中。
     static func candidates<R: RandomNumberGenerator>(for nickname: String, count: Int = 3, using random: inout R) -> [String] {
-        var base = String(nickname.lowercased().unicodeScalars.filter { isAsciiLetter($0) || isAsciiDigit($0) || $0 == "_" }.map(Character.init))
+        let usable = String(nickname.lowercased().unicodeScalars.filter { isAsciiLetter($0) || isAsciiDigit($0) || $0 == "_" }.map(Character.init))
+        var base = String(usable.prefix(maxLength - 3))
         while base.hasSuffix("_") {
             base.removeLast()
         }
-        base = String(base.prefix(maxLength - 3))
         guard let first = base.unicodeScalars.first, isAsciiLetter(first) else {
             return []
         }

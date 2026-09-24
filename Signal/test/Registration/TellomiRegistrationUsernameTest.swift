@@ -4,6 +4,7 @@
 //
 
 import CoreText
+import LibSignalClient
 import XCTest
 
 @testable import Signal
@@ -85,6 +86,23 @@ final class TellomiRegistrationUsernameTest: XCTestCase {
         }
     }
 
+    /// taishi 中转包 7（Android 同一刀）：先截到 17 位再去末尾的 `_`；第 17 位是 `_` 的长名，截完末尾不能又是 `_`
+    /// （两个都是词库里的 PREFIX 词）。
+    func testALongNicknameIsCutBeforeItsTrailingUnderscoreIsDropped() throws {
+        for (nickname, base) in [("xitongguanliyuan_ab", "xitongguanliyuan"), ("customer_service_x", "customer_service")] {
+            let pattern = try NSRegularExpression(pattern: "^\(base)[0-9]{2,3}$")
+            for seed in UInt64(0)..<200 {
+                var random = SeededGenerator(state: seed)
+                let candidates = TellomiRegistrationUsername.candidates(for: nickname, using: &random)
+                XCTAssertEqual(candidates.count, 3, nickname)
+                for candidate in candidates {
+                    XCTAssertNotNil(pattern.firstMatch(in: candidate, range: NSRange(candidate.startIndex..., in: candidate)), candidate)
+                    XCTAssertLessThanOrEqual(candidate.count, 20, candidate)
+                }
+            }
+        }
+    }
+
     func testCandidatesStayWithinTwentyCharacters() {
         var random = SeededGenerator(state: 2)
         let candidates = TellomiRegistrationUsername.candidates(for: String(repeating: "a", count: 20), using: &random)
@@ -126,6 +144,79 @@ final class TellomiRegistrationUsernameTest: XCTestCase {
         XCTAssertEqual(TellomiRegistrationUsername.confirmationOutcome(of: .success(.rejected)), .rejected)
         XCTAssertEqual(TellomiRegistrationUsername.confirmationOutcome(of: .success(.rateLimited)), .failed)
         XCTAssertEqual(TellomiRegistrationUsername.confirmationOutcome(of: .failure(.networkError)), .failed)
+    }
+
+    // MARK: 重新注册（tellomi/tellomi#1266）
+
+    private typealias AccountIdentity = RegistrationCoordinatorImpl.AccountIdentity
+
+    private func accountIdentity(isReregistration: Bool? = nil) -> AccountIdentity {
+        return AccountIdentity(
+            aci: .randomForTesting(),
+            pni: .randomForTesting(),
+            e164: E164("+8613800000001")!,
+            hasPreviouslyUsedSVR: false,
+            authPassword: "password",
+            isReregistration: isReregistration,
+        )
+    }
+
+    /// 服务端注册回包（`AccountCreationResponse`：身份字段平铺，外加 `reregistration`）→ 协调器存下的身份。
+    /// 没有这个键（旧服务端）解出来是 nil，照常显示用户名框。
+    func testReregistrationFromTheCreateAccountResponseIsKept() throws {
+        let aci = Aci.randomForTesting()
+        let pni = Pni.randomForTesting()
+        func identity(_ tail: String) throws -> AccountIdentity {
+            let body = #"{"uuid":"\#(aci.rawUUID.uuidString)","pni":"\#(pni.rawUUID.uuidString)","number":"+8613800000001","usernameHash":null,"storageCapable":true\#(tail)}"#
+            let response = RegistrationCoordinatorImpl.Service.handleCreateAccountResponse(
+                authPassword: "password",
+                statusCode: 200,
+                retryAfterHeader: nil,
+                bodyData: Data(body.utf8),
+                logger: PrefixedLogger(prefix: "[Test]"),
+            )
+            guard case .success(let identity) = response else {
+                return try XCTUnwrap(nil as AccountIdentity?, "注册回包没解出身份：\(body)")
+            }
+            XCTAssertEqual(identity.aci, aci)
+            return identity
+        }
+
+        XCTAssertEqual(try identity(#","reregistration":true"#).isReregistration, true)
+        XCTAssertEqual(try identity(#","reregistration":false"#).isReregistration, false)
+        XCTAssertNil(try identity("").isReregistration)
+    }
+
+    /// 注册做到一半的状态存在库里；加字段之前的版本存下的没有这个键，升级后照样解得出来。
+    func testRegistrationStateSavedBeforeTheFlagStillDecodes() throws {
+        func fields(_ identity: AccountIdentity) throws -> [String: Any] {
+            return try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(identity)) as? [String: Any])
+        }
+
+        // 加字段之前存下的样子：只有这五个键
+        var saved = try fields(accountIdentity(isReregistration: true))
+        saved["isReregistration"] = nil
+        XCTAssertEqual(Set(saved.keys), ["aci", "pni", "e164", "hasPreviouslyUsedSVR", "authPassword"])
+        let old = try JSONSerialization.data(withJSONObject: saved)
+        XCTAssertNil(try JSONDecoder().decode(AccountIdentity.self, from: old).isReregistration)
+
+        // 新版本存「不知道」也不写这个键，和旧的一样
+        XCTAssertNil(try fields(accountIdentity(isReregistration: nil))["isReregistration"])
+
+        let reregistered = try JSONEncoder().encode(accountIdentity(isReregistration: true))
+        XCTAssertEqual(try JSONDecoder().decode(AccountIdentity.self, from: reregistered).isReregistration, true)
+    }
+
+    /// 只有服务端明说「这个号码之前有账号」才不显示用户名框；新号、旧状态（nil）照常显示。
+    func testProfilePageHidesTheUsernameFieldOnlyWhenReregistering() {
+        for (isReregistration, showsUsername) in [(true, false), (false, true), (nil, true)] as [(Bool?, Bool)] {
+            let identity = accountIdentity(isReregistration: isReregistration)
+            XCTAssertEqual(
+                RegistrationCoordinatorImpl.profileState(accountIdentity: identity, phoneNumberDiscoverability: .nobody),
+                RegistrationProfileState(e164: identity.e164, phoneNumberDiscoverability: .nobody, showsTellomiUsername: showsUsername),
+                "isReregistration = \(String(describing: isReregistration))",
+            )
+        }
     }
 }
 
@@ -179,6 +270,33 @@ final class TellomiRegistrationProfileUsernameTest: SignalBaseTest {
             return try XCTUnwrap(find(viewController.view))
         }
 
+        func subview(_ suffix: String) throws -> UIView {
+            func find(_ view: UIView) -> UIView? {
+                if view.accessibilityIdentifier == "registration.profile.\(suffix)" {
+                    return view
+                }
+                return view.subviews.lazy.compactMap(find).first
+            }
+            return try XCTUnwrap(find(viewController.view))
+        }
+
+        /// 自己和上面每一层都没藏起来、也挂在窗口上（UIStackView 藏一行只设那一行自己的 isHidden）。
+        func isVisible(_ view: UIView) -> Bool {
+            return hiddenReason(view) == nil
+        }
+
+        /// 看不见的原因，断言失败时打出来
+        func hiddenReason(_ view: UIView) -> String? {
+            var current: UIView? = view
+            while let each = current {
+                if each.isHidden || each.alpha == 0 {
+                    return "\(Swift.type(of: each)) \(each.accessibilityIdentifier ?? "") isHidden=\(each.isHidden) alpha=\(each.alpha)"
+                }
+                current = each.superview
+            }
+            return view.window == nil ? "不在窗口上" : nil
+        }
+
         func type(_ text: String, into suffix: String) throws {
             let field = try textField(suffix)
             field.text = text
@@ -199,17 +317,23 @@ final class TellomiRegistrationProfileUsernameTest: SignalBaseTest {
     }()
 
     @MainActor
-    private func makePage() -> Page {
+    private func makePage(showsTellomiUsername: Bool = true) -> Page {
         _ = Self.registerFonts
         let presenter = FakePresenter()
         let viewController = RegistrationProfileViewController(
-            state: RegistrationProfileState(e164: E164("+8613800000001")!, phoneNumberDiscoverability: .nobody),
+            state: RegistrationProfileState(
+                e164: E164("+8613800000001")!,
+                phoneNumberDiscoverability: .nobody,
+                showsTellomiUsername: showsTellomiUsername,
+            ),
             presenter: presenter,
         )
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         window.rootViewController = OWSNavigationController(rootViewController: viewController)
         window.makeKeyAndVisible()
         viewController.loadViewIfNeeded()
+        // 让导航控制器现在就把页面挂进窗口，不用等下一轮 run loop（判「看得见」要靠它）
+        window.layoutIfNeeded()
         return Page(presenter: presenter, viewController: viewController, window: window)
     }
 
@@ -367,5 +491,33 @@ final class TellomiRegistrationProfileUsernameTest: SignalBaseTest {
         XCTAssertEqual(page.viewController.tellomiUsernameStatus, .notAvailable)
         XCTAssertFalse(page.viewController.isTellomiUsernameConfirmed)
         XCTAssertFalse(page.isNextEnabled)
+    }
+
+    /// tellomi/tellomi#1266：重新注册时没有用户名框和说明行；名字填了就能下一步，名字框回车直接进下一步，不保留任何用户名。
+    @MainActor
+    func testReregistrationHasNoUsernameFieldAndReturnOnTheNameGoesOn() async throws {
+        // 对照：新号的页面上这两样看得见（`isVisible` 本身不是永远说「看不见」）
+        let newAccount = makePage()
+        XCTAssertNil(newAccount.hiddenReason(try newAccount.textField("username")))
+        XCTAssertNil(newAccount.hiddenReason(try newAccount.subview("usernameStatus")))
+        XCTAssertEqual(try newAccount.textField("givenName").returnKeyType, .next)
+        newAccount.close()
+
+        let page = makePage(showsTellomiUsername: false)
+        defer { page.close() }
+        XCTAssertFalse(page.isVisible(try page.textField("username")))
+        XCTAssertFalse(page.isVisible(try page.subview("usernameStatus")))
+        XCTAssertEqual(try page.textField("givenName").returnKeyType, .done)
+
+        try page.type("开心", into: "givenName")
+        XCTAssertTrue(page.isNextEnabled)
+
+        // 改一次「谁能通过手机号找到我」会重建页面状态，这之后也不能把用户名框的判断丢了
+        page.viewController.setPhoneNumberDiscoverability(.nobody)
+        XCTAssertFalse(page.viewController.state.showsTellomiUsername)
+
+        _ = page.viewController.textFieldShouldReturn(try page.textField("givenName"))
+        await waitUntil { !page.presenter.events.isEmpty }
+        XCTAssertEqual(page.presenter.events, ["next:开心"])
     }
 }
