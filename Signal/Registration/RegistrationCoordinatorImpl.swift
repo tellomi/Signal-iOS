@@ -848,6 +848,48 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         return Guarantee.wrapAsync { await self.nextStep() }
     }
 
+    @MainActor
+    public func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome {
+        guard let accountIdentity = persistedState.accountIdentity else {
+            owsFailBeta("Shouldn't be reserving a username prior to registration.")
+            return .failed
+        }
+
+        let usernameCandidates: Usernames.HashedUsername.GeneratedCandidates
+        do {
+            // 不指定判别位 = 只生成 `<nickname>.01`（ADR-0066，#17）
+            usernameCandidates = try Usernames.HashedUsername.generateCandidates(
+                forNickname: nickname,
+                minNicknameLength: UInt32(TellomiRegistrationUsername.minLength),
+                maxNicknameLength: UInt32(TellomiRegistrationUsername.maxLength),
+                desiredDiscriminator: nil,
+            )
+        } catch {
+            logger.warn("Username candidate generation failed: \(error)")
+            return .notAvailable
+        }
+
+        let result = await deps.localUsernameManager.reserveUsername(
+            usernameCandidates: usernameCandidates,
+            chatServiceAuth: accountIdentity.chatServiceAuth,
+        )
+        return TellomiRegistrationUsername.reservationOutcome(of: result)
+    }
+
+    @MainActor
+    public func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome {
+        guard let accountIdentity = persistedState.accountIdentity else {
+            owsFailBeta("Shouldn't be confirming a username prior to registration.")
+            return .failed
+        }
+
+        let result = await deps.localUsernameManager.confirmUsername(
+            reservedUsername: reservedUsername,
+            chatServiceAuth: accountIdentity.chatServiceAuth,
+        )
+        return TellomiRegistrationUsername.confirmationOutcome(of: result)
+    }
+
     public func acknowledgeReglockTimeout() -> AcknowledgeReglockResult {
         logger.info("")
 
