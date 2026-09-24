@@ -1153,6 +1153,7 @@
 		6674807E2E344EE9004DA6E9 /* OWSOutgoingPaymentMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6674807D2E344EE9004DA6E9 /* OWSOutgoingPaymentMessage.swift */; };
 		6675F64F29261C39007A311E /* SyncPushTokensJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6675F64E29261C39007A311E /* SyncPushTokensJob.swift */; };
 		6675F65129261E0C007A311E /* APNSRotationStoreTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6675F65029261E0C007A311E /* APNSRotationStoreTest.swift */; };
+		B6196A7361E8D35DFA908E4C /* TellomiLocalizationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D599BA464A712488390768 /* TellomiLocalizationTest.swift */; };
 		667664362A43BBCD00716B84 /* CombinedFingerprints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667664352A43BBCD00716B84 /* CombinedFingerprints.swift */; };
 		6676A40A2BD1EB3D006B9CC9 /* OwnedAttachmentPointerProto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6676A4092BD1EB3D006B9CC9 /* OwnedAttachmentPointerProto.swift */; };
 		667AF9DA2B48A3F3008AEE5D /* TSInfoMessage+GroupUpdates+PersistableGroupUpdateItemUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667AF9D92B48A3F3008AEE5D /* TSInfoMessage+GroupUpdates+PersistableGroupUpdateItemUpdater.swift */; };
@@ -5516,6 +5517,7 @@
 		6675F64C2925C012007A311E /* APNSRotationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNSRotationStore.swift; sourceTree = "<group>"; };
 		6675F64E29261C39007A311E /* SyncPushTokensJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncPushTokensJob.swift; sourceTree = "<group>"; };
 		6675F65029261E0C007A311E /* APNSRotationStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNSRotationStoreTest.swift; sourceTree = "<group>"; };
+		98D599BA464A712488390768 /* TellomiLocalizationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLocalizationTest.swift; sourceTree = "<group>"; };
 		667664352A43BBCD00716B84 /* CombinedFingerprints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombinedFingerprints.swift; sourceTree = "<group>"; };
 		6676A4092BD1EB3D006B9CC9 /* OwnedAttachmentPointerProto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnedAttachmentPointerProto.swift; sourceTree = "<group>"; };
 		667AF9D92B48A3F3008AEE5D /* TSInfoMessage+GroupUpdates+PersistableGroupUpdateItemUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TSInfoMessage+GroupUpdates+PersistableGroupUpdateItemUpdater.swift"; sourceTree = "<group>"; };
@@ -11925,6 +11927,7 @@
 				505C2ED72997421E00C23FB2 /* DeviceTransfer */,
 				3499997D22EF1E2100654932 /* FTS */,
 				6675F65029261E0C007A311E /* APNSRotationStoreTest.swift */,
+				98D599BA464A712488390768 /* TellomiLocalizationTest.swift */,
 				F9B3A92E293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift */,
 				34F1072126D045290053EF4D /* BatchUpdateTest.swift */,
 				4C9D347923679C13006A4307 /* ContactStreamTest.swift */,
@@ -19226,6 +19229,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6675F65129261E0C007A311E /* APNSRotationStoreTest.swift in Sources */,
+				B6196A7361E8D35DFA908E4C /* TellomiLocalizationTest.swift in Sources */,
 				F9B93CE028E246D900B3F8A0 /* AppDelegateTest.swift in Sources */,
 				F9B3A92F293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift in Sources */,
 				50B6BCB42AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift in Sources */,
