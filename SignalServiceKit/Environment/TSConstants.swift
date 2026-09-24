@@ -83,6 +83,7 @@ public class TSConstants {
     public static var voiceVerificationAvailable: Bool { shared.voiceVerificationAvailable }
     public static var backupServiceAvailable: Bool { shared.backupServiceAvailable }
     public static var smsVerificationCallingCodes: Set<String>? { shared.smsVerificationCallingCodes }
+    public static var smsVerificationCodesPerSession: Int? { shared.smsVerificationCodesPerSession }
 
     /// Tellomi：阶段一**不做捐赠**（owner 2026-09-22 定）。
     ///
@@ -197,6 +198,11 @@ public protocol TSConstantsProtocol: AnyObject {
     /// 还是「短信服务暂时不可用」，只能靠号码的区号来分（tellomi/tellomi#1209）。
     var smsVerificationCallingCodes: Set<String>? { get }
 
+    /// Tellomi：同一个注册会话最多能发几条验证码短信；nil = 不在界面上说（上游）。香港的 registration-service 是 3 条
+    /// （`deploy/hk/enable-aliyun-sms.sh`：`send-sms-verification-code.delays: [30s, 1m, 5m]`，列表长度 = 条数）。
+    /// 「收不到验证码？」面板用它说清额度，免得用户连点重发把额度用光（tellomi/tellomi#1214）。
+    var smsVerificationCodesPerSession: Int? { get }
+
     var serverPublicParams: Data { get }
     var callLinkPublicParams: Data { get }
     var backupServerPublicParams: Data { get }
@@ -232,6 +238,7 @@ public class TSConstantsProduction: TSConstantsProtocol {
     public let voiceVerificationAvailable: Bool = true
     public let backupServiceAvailable: Bool = true
     public let smsVerificationCallingCodes: Set<String>? = nil
+    public let smsVerificationCodesPerSession: Int? = nil
 
     public let mainServiceURL = "https://chat.signal.org"
     public let textSecureCDN0ServerURL = "https://cdn.signal.org"
@@ -306,6 +313,7 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let voiceVerificationAvailable: Bool = false
     public let backupServiceAvailable: Bool = false
     public let smsVerificationCallingCodes: Set<String>? = ["86"]
+    public let smsVerificationCodesPerSession: Int? = 3
 
     public let mainServiceURL = "https://chat.tellomi.app"
     public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
@@ -434,6 +442,7 @@ public class TSConstantsMock: TSConstantsProtocol {
     public lazy var voiceVerificationAvailable: Bool = defaultValues.voiceVerificationAvailable
     public lazy var backupServiceAvailable: Bool = defaultValues.backupServiceAvailable
     public lazy var smsVerificationCallingCodes: Set<String>? = defaultValues.smsVerificationCallingCodes
+    public lazy var smsVerificationCodesPerSession: Int? = defaultValues.smsVerificationCodesPerSession
 
     public lazy var serverPublicParams = defaultValues.serverPublicParams
 
