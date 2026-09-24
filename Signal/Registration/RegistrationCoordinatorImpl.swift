@@ -4411,9 +4411,12 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
     // MARK: - Permissions
 
     private func requiresSystemPermissions() async -> Bool {
-        let needsContactAuthorization = deps.contactsStore.needsContactsAuthorization()
-        let needsNotificationAuthorization = await deps.pushRegistrationManager.needsNotificationAuthorization()
-        return needsContactAuthorization || needsNotificationAuthorization
+        // Tellomi（tellomi/tellomi#1112）：注册流程里一个权限都不要。上游在这里只要通讯录或通知任一没授权，
+        // 就在输手机号之前插一页 `.permissions`（先弹通知、再弹通讯录，只有「继续」）。
+        // - 通知改到注册完成、第一次进首屏时的说明页（#1218 F-01，`ChatListFYISheetCoordinator`）；
+        // - 通讯录等有了按号码找人、在联系人页里说明用途再要（docs/legal/permissions.md §十）。
+        // 拿推送令牌本身不需要用户授权，见 `PushRegistrationManager.requestPushTokens`。
+        return false
     }
 
     // MARK: - Register/Change Number Requests
