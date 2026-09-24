@@ -412,6 +412,120 @@ class TellomiRegionsTest: XCTestCase {
         XCTAssertEqual(try uploadCdnSessionCalls().pinned, 5)
     }
 
+    // MARK: - #1056 第三刀：切区（提交 C）
+
+    private final class RebuildRecorder {
+        var madeFor = [TellomiRegionId]()
+        var configured = [ObjectIdentifier]()
+    }
+
+    private func makeSwitchableProvider(profiles: [TellomiRegionProfile], retireDelay: TimeInterval = 60) -> (TellomiNetProvider, RebuildRecorder) {
+        let recorder = RebuildRecorder()
+        let provider = TellomiNetProvider(region: global, net: makeTestNet(), profiles: profiles, retireDelay: retireDelay)
+        provider.setRebuild(TellomiNetProvider.Rebuild(
+            makeNet: { [unowned self] region in
+                recorder.madeFor.append(region.id)
+                return self.makeTestNet()
+            },
+            configure: { net in
+                recorder.configured.append(ObjectIdentifier(net))
+            },
+        ))
+        return (provider, recorder)
+    }
+
+    func testSwitchingRefusesUnknownAndDisabledRegionsBeforeTouchingTheNetwork() {
+        // 包里的 CN 关着：直接报错
+        let (provider, recorder) = makeSwitchableProvider(profiles: TellomiRegions.all)
+        XCTAssertThrowsError(try provider.switchTo(.cn, store: nil)) { XCTAssertEqual($0 as? TellomiRegionSwitchError, .disabled) }
+        // 不认识的区
+        let (onlyGlobal, onlyGlobalRecorder) = makeSwitchableProvider(profiles: [global])
+        XCTAssertThrowsError(try onlyGlobal.switchTo(.cn, store: nil)) { XCTAssertEqual($0 as? TellomiRegionSwitchError, .unknown) }
+        // 两种都在建 Net 之前就停了：不查 DNS、不建连接（#1056 判据 4 在切换器这一层）
+        XCTAssertEqual(recorder.madeFor, [])
+        XCTAssertEqual(onlyGlobalRecorder.madeFor, [])
+        XCTAssertEqual(provider.generation, 0)
+        // 没接重建（USE_PRODUCTION、AppSetup 之前）
+        XCTAssertThrowsError(try TellomiNetProvider(region: global, net: makeTestNet()).switchTo(.global, store: nil)) {
+            XCTAssertEqual($0 as? TellomiRegionSwitchError, .notApplicable)
+        }
+    }
+
+    func testSwitchingToTheActiveRegionIsANoOp() throws {
+        let (provider, recorder) = makeSwitchableProvider(profiles: [global, TellomiRegionProfile(copying: cn, enabled: true)])
+        XCTAssertFalse(try provider.switchTo(.global, store: nil))
+        XCTAssertEqual(recorder.madeFor, [])
+        XCTAssertEqual(provider.generation, 0)
+    }
+
+    func testSwitchingSwapsTheNetRecordsTheRegionAndNotifiesOnce() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let (provider, recorder) = makeSwitchableProvider(profiles: [global, cnOn])
+        let defaults = TestUtils.userDefaults()
+        let store = TellomiRegionStore(userDefaults: { defaults })
+        let before = provider.current
+        let notifications = AtomicValue<Int>(0, lock: .init())
+        let observer = NotificationCenter.default.addObserver(forName: .tellomiRegionDidChange, object: nil, queue: nil) { _ in
+            notifications.update { $0 += 1 }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+        let switchedAt = Date(timeIntervalSince1970: 1_790_000_000)
+
+        XCTAssertTrue(try provider.switchTo(.cn, store: store, now: switchedAt))
+
+        // 按新区建了一个 Net，先配好再换上，换上以后幂等再配一次
+        XCTAssertEqual(recorder.madeFor, [.cn])
+        XCTAssertFalse(provider.current === before)
+        XCTAssertEqual(recorder.configured, [ObjectIdentifier(provider.current), ObjectIdentifier(provider.current)])
+        XCTAssertEqual(provider.activeRegion, cnOn)
+        XCTAssertEqual(provider.generation, 1)
+        // 主 App 记进 app group（区和切区时间，契约第六节「驻留时间从哪算起」）
+        XCTAssertEqual(store.storedRegionId(), "cn")
+        XCTAssertEqual(store.lastSwitchAt(), switchedAt)
+        // 旧 Net 进了退役区
+        XCTAssertEqual(provider.retiredCount, 1)
+        // 通知在主线程发：让主线程跑一轮再数，只发一次
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        XCTAssertEqual(notifications.get(), 1)
+    }
+
+    func testAdoptingTheStoredRegionRebuildsOnlyWhenItChanged() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let (provider, recorder) = makeSwitchableProvider(profiles: [global, cnOn])
+        let defaults = TestUtils.userDefaults()
+        let store = TellomiRegionStore(userDefaults: { defaults })
+
+        // 没有记录 = global = 生效区：不重建
+        XCTAssertFalse(provider.adoptStoredRegionIfChanged(store: store))
+        // 主 App 记了 CN：NSE 跟着换，但不写 store（切区时间还是主 App 记的那个）
+        let recordedAt = Date(timeIntervalSince1970: 1_790_000_000)
+        store.record(.cn, at: recordedAt)
+        XCTAssertTrue(provider.adoptStoredRegionIfChanged(store: store))
+        XCTAssertEqual(provider.activeRegion, cnOn)
+        XCTAssertEqual(store.lastSwitchAt(), recordedAt)
+        // 没变：不重建
+        XCTAssertFalse(provider.adoptStoredRegionIfChanged(store: store))
+        XCTAssertEqual(recorder.madeFor, [.cn])
+    }
+
+    func testRetiredNetIsReleasedAfterTheDelay() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let (provider, _) = makeSwitchableProvider(profiles: [global, cnOn], retireDelay: 0.2)
+        weak let weakOld = provider.current
+        XCTAssertTrue(try provider.switchTo(.cn, store: nil))
+
+        // 退役期内还留着：旧连接的回调可能还在用它
+        XCTAssertNotNil(weakOld)
+        XCTAssertEqual(provider.retiredCount, 1)
+        // 到期后在专用后台队列上放掉（不在 tokio 线程上、不在主线程上）
+        let deadline = Date().addingTimeInterval(5)
+        while weakOld != nil, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertNil(weakOld)
+        XCTAssertEqual(provider.retiredCount, 0)
+    }
+
     // MARK: - 门禁：除 provider 外不许存 Net
 
     private static let netProviderFile = "SignalServiceKit/Network/TellomiNetProvider.swift"

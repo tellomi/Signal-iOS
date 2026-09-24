@@ -570,6 +570,12 @@ class OWSChatConnectionUsingLibSignal<Connection: ChatConnection & Sendable>: OW
             name: .signalProxyConfigDidChange,
             object: nil,
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(tellomiRegionDidChange),
+            name: .tellomiRegionDidChange,
+            object: nil,
+        )
     }
 
     fileprivate func connectChatService(token: NSObject) async throws -> Connection {
@@ -581,6 +587,13 @@ class OWSChatConnectionUsingLibSignal<Connection: ChatConnection & Sendable>: OW
         // The libsignal connection needs to be recreated whether the proxy is going up,
         // changing, or going down.
         Logger.info("\(logPrefix) signal proxy config changed; cycling socket")
+        cycleSocket()
+    }
+
+    /// Tellomi（#1056 第三刀）：切了区，provider 里的 `Net` 已经换成新区的；断开旧连接、按新 `Net` 重连（同代理变更的做法）。
+    @objc
+    private func tellomiRegionDidChange(_ notification: NSNotification) {
+        Logger.info("\(logPrefix) Tellomi region changed; cycling socket")
         cycleSocket()
     }
 

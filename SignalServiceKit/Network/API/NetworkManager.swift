@@ -81,7 +81,7 @@ public class NetworkManager: NetworkManagerProtocol {
         Self.resetLibsignalNetProxySettings(libsignalNet, appReadiness: appReadiness)
     }
 
-    private static func resetLibsignalNetProxySettings(_ libsignalNet: Net, appReadiness: AppReadiness) {
+    static func resetLibsignalNetProxySettings(_ libsignalNet: Net, appReadiness: AppReadiness) {
         guard !SignalProxy.isEnabled else {
             // Don't stomp on in-app proxy settings, which are managed by SignalProxy.
             return

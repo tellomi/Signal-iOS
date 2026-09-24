@@ -345,6 +345,23 @@ extension AppSetup.GlobalsContinuation {
             sessionStore: sessionStore,
         )
         let signalService = testDependencies.signalService ?? OWSSignalService(netProvider: libsignalNetProvider)
+        // Tellomi（#1056 第三刀）：接上切区时建、配新 Net 的两步。USE_PRODUCTION（上游服务器）不分区，不接。
+        if TSConstants.customServerChatHostname != nil {
+            libsignalNetProvider.setRebuild(TellomiNetProvider.Rebuild(
+                makeNet: { region in
+                    Net(
+                        customServerHostname: region.grpcChatHost,
+                        userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+                        buildVariant: BuildFlags.netBuildVariant,
+                        remoteConfig: remoteConfigProvider.currentConfig().netConfig(),
+                    )
+                },
+                configure: { [weak signalService] net in
+                    SignalProxy.applyProxySettings(to: net, appReadiness: appReadiness)
+                    net.setCensorshipCircumventionEnabled(signalService?.isCensorshipCircumventionActive ?? false)
+                },
+            ))
+        }
         let signalServiceAddressCache = SignalServiceAddressCache()
         let storageServiceManager = testDependencies.storageServiceManager ?? StorageServiceManagerImpl(
             appReadiness: appReadiness,
@@ -2232,6 +2249,11 @@ extension AppSetup.FinalContinuation {
                 return sskEnvironment.remoteConfigManagerRef.warmCaches(tx: tx)
             }
             libsignalNetProvider.current.setRemoteConfig(remoteConfig.netConfig(), buildVariant: BuildFlags.netBuildVariant)
+            // Tellomi（#1056 第三刀）：NSE 跨多条通知存活，每条都走这里。主 App 这期间切了区（记在 app group），就跟着换。
+            // 这时 NSE 没有打开的连接：上一条通知已经 stopAndWaitBeforeSuspending，这一条还没 start。
+            if appContext.isNSE {
+                libsignalNetProvider.adoptStoredRegionIfChanged()
+            }
         }
 
         // Warm (or re-warm) all of the caches. In theory, every cache is
