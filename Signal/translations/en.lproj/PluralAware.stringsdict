@@ -1772,6 +1772,22 @@ Try again in %d hours.</string>
 			<string>This sticker was not transferred from your phone when this device was linked. Media and files older than %d days at the time of device linking cannot be synced.</string>
 		</dict>
 	</dict>
+	<key>USERNAME_SELECTION_TOO_LONG_ERROR_MESSAGE_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>Usernames must have at most %d character.</string>
+			<key>other</key>
+			<string>Usernames must have at most %d characters.</string>
+		</dict>
+	</dict>
 	<key>USERNAME_SELECTION_TOO_SHORT_ERROR_MESSAGE_%d</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
