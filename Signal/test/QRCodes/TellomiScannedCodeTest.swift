@@ -40,8 +40,16 @@ class TellomiScannedCodeTest: XCTestCase {
     }
 
     func testDeviceLinkCodesInBothSchemes() {
-        XCTAssertEqual(TellomiScannedCode(scannedString: "tellomi://linkdevice" + linkDevicePayload), .deviceLink)
-        XCTAssertEqual(TellomiScannedCode(scannedString: "sgnl://linkdevice" + linkDevicePayload), .deviceLink)
+        let tellomi = "tellomi://linkdevice" + linkDevicePayload
+        let legacy = "sgnl://linkdevice" + linkDevicePayload
+        XCTAssertEqual(TellomiScannedCode(scannedString: tellomi), .deviceLink(tellomi))
+        XCTAssertEqual(TellomiScannedCode(scannedString: legacy), .deviceLink(legacy))
+    }
+
+    func testQuickRestoreCodesAreNotShownAsText() {
+        // 新手机快速恢复码：与应用内相机同一个处理，不落到「显示内容」
+        let legacy = "sgnl://rereg" + linkDevicePayload
+        XCTAssertEqual(TellomiScannedCode(scannedString: legacy), .quickRestore(legacy))
     }
 
     func testAnythingElseIsShownNotIgnored() {

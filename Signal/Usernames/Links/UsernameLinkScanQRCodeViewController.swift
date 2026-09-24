@@ -24,8 +24,10 @@ enum TellomiScannedCode: Equatable {
     case plainUsername(String)
     /// `tell.cc/g#…`、旧 `signal.group/#…`；存的是换算后的旧形状
     case groupInvite(URL)
-    /// 设备链接码（`tellomi://linkdevice`、旧 `sgnl://linkdevice`）
-    case deviceLink
+    /// 设备链接码（`tellomi://linkdevice`、旧 `sgnl://linkdevice`）；存扫到的原文，处理时再解析
+    case deviceLink(String)
+    /// 快速恢复码（`tellomi://rereg`、旧 `sgnl://rereg`，新手机上显示的那个）
+    case quickRestore(String)
     /// 其它网址 / 文字：显示内容 +「打开」/「复制」，不再静默忽略
     case other(String)
 
@@ -44,8 +46,13 @@ enum TellomiScannedCode: Equatable {
                 self = .groupInvite(groupInvite.rawValue)
                 return
             }
-            if let provisioningUrl = DeviceProvisioningURL(urlString: trimmed), provisioningUrl.linkType == .linkDevice {
-                self = .deviceLink
+            if let provisioningUrl = DeviceProvisioningURL(urlString: trimmed) {
+                switch provisioningUrl.linkType {
+                case .linkDevice:
+                    self = .deviceLink(trimmed)
+                case .quickRestore:
+                    self = .quickRestore(trimmed)
+                }
                 return
             }
         }
@@ -179,8 +186,18 @@ extension UsernameLinkScanQRCodeViewController: QRCodeScanDelegate {
                 return .continueScanning
             }
             GroupInviteLinksUI.openGroupInviteLink(groupInviteLink, fromViewController: self)
-        case .deviceLink:
-            presentTellomiDeviceLinkPrompt()
+        case .deviceLink(let text):
+            guard let provisioningUrl = DeviceProvisioningURL(urlString: text) else {
+                owsFailDebug("Device link no longer parses")
+                return .continueScanning
+            }
+            handleTellomiDeviceLinkCode(provisioningUrl)
+        case .quickRestore(let text):
+            guard let provisioningUrl = DeviceProvisioningURL(urlString: text) else {
+                owsFailDebug("Quick restore code no longer parses")
+                return .continueScanning
+            }
+            handleTellomiQuickRestoreCode(provisioningUrl)
         case .other(let text):
             presentTellomiScannedContent(text)
         }
@@ -197,8 +214,23 @@ extension UsernameLinkScanQRCodeViewController: QRCodeScanDelegate {
 // MARK: - Tellomi（tellomi/tellomi#947）
 
 private extension UsernameLinkScanQRCodeViewController {
-    /// 设备链接码：主设备上照应用内相机的做法，引导去「已链接设备 → 链接新设备」里扫；不是主设备就说清要在主手机上扫。
-    func presentTellomiDeviceLinkPrompt() {
+    /// 关掉扫码器（以及它所在的整叠弹出页），再做下一步。
+    func dismissToRootThen(_ then: @escaping () -> Void) {
+        guard let rootViewController = view.window?.rootViewController else {
+            owsFailDebug("Missing root view controller")
+            return
+        }
+        if rootViewController.presentedViewController != nil {
+            rootViewController.dismiss(animated: true, completion: then)
+        } else {
+            then()
+        }
+    }
+
+    /// 设备链接码：主设备上直接进「已关联的设备 → 链接新设备」流程——同样先过本机身份校验，再到和扫码后同一个确认框，
+    /// 不用再扫一遍（需求 §3.2；做法取自 Pro 另一个会话的参考分支 `mbp/947-direct-link-reference` a6d7416）。
+    /// 不是主设备就说清要在主手机上扫。
+    func handleTellomiDeviceLinkCode(_ provisioningUrl: DeviceProvisioningURL) {
         let registeredState = try? DependenciesBridge.shared.tsAccountManager.registeredStateWithMaybeSneakyTransaction()
         guard registeredState?.isPrimary == true else {
             let actionSheet = ActionSheetController(message: OWSLocalizedString(
@@ -212,19 +244,24 @@ private extension UsernameLinkScanQRCodeViewController {
             return
         }
 
-        let actionSheet = ActionSheetController(message: OWSLocalizedString(
-            "LINKED_DEVICE_URL_OPENED_ACTION_SHEET_IN_APP_CAMERA_MESSAGE",
-            comment: "Message for an action sheet telling users how to link a device, when trying to open a device-linking URL from the in-app camera.",
-        ))
-        actionSheet.addAction(ActionSheetAction(title: CommonStrings.continueButton) { [weak self] _ in
-            self?.dismiss(animated: true) {
-                SignalApp.shared.showAppSettings(mode: .linkedDevices)
+        dismissToRootThen {
+            SignalApp.shared.showAppSettings(mode: .linkNewDevice(provisioningUrl))
+        }
+    }
+
+    /// 快速恢复码：与应用内相机扫到时同一个处理（`outgoingDeviceRestorePresenter`）。
+    func handleTellomiQuickRestoreCode(_ provisioningUrl: DeviceProvisioningURL) {
+        dismissToRootThen {
+            guard let frontmostViewController = CurrentAppContext().frontmostViewController() else {
+                owsFailDebug("Missing frontmost view controller")
+                return
             }
-        })
-        actionSheet.addAction(ActionSheetAction(title: CommonStrings.cancelButton) { [weak self] _ in
-            self?.scanViewController.tryToStartScanning()
-        })
-        presentActionSheet(actionSheet)
+            AppEnvironment.shared.outgoingDeviceRestorePresenter.present(
+                provisioningURL: provisioningUrl,
+                presentingViewController: frontmostViewController,
+                animated: true,
+            )
+        }
     }
 
     /// 其它网址 / 文字：显示内容，网址可以「打开」，都可以「复制」；取消后接着扫。

@@ -23,8 +23,13 @@ class LinkDeviceViewController: OWSViewController {
 
     private lazy var qrCodeScanViewController = QRCodeScanViewController(appearance: .framed)
 
-    init(skipEducationSheet: Bool) {
-        self.hasShownEducationSheet = skipEducationSheet
+    /// Tellomi（tellomi/tellomi#947）：在「扫一扫」里已经扫到的关联码。有它就不再让用户在这一页重扫，
+    /// 直接进入和扫码后同一个确认流程（本机身份校验在进入这一页之前已经由「已关联的设备」页做过）。
+    private var preScannedUrl: DeviceProvisioningURL?
+
+    init(skipEducationSheet: Bool, preScannedUrl: DeviceProvisioningURL? = nil) {
+        self.hasShownEducationSheet = skipEducationSheet || preScannedUrl != nil
+        self.preScannedUrl = preScannedUrl
         super.init()
     }
 
@@ -56,6 +61,12 @@ class LinkDeviceViewController: OWSViewController {
 
         if !UIDevice.current.isIPad {
             UIDevice.current.ows_setOrientation(.portrait)
+        }
+
+        if let preScannedUrl {
+            self.preScannedUrl = nil
+            confirmProvisioning(deviceProvisioningUrl: preScannedUrl)
+            return
         }
 
         if !hasShownEducationSheet {
