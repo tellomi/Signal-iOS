@@ -225,6 +225,25 @@ class TellomiQrFocusTest: XCTestCase {
         XCTAssertEqual(feed("A", at: center, 1.125), [true])
     }
 
+    func testSlowFramesThatAllSeeTheCenteredCodeStillReleaseIt() {
+        // 处理一帧要 0.375 秒：每帧都对准，中间没有别的帧，不算丢失
+        XCTAssertEqual(feed("A", at: center, 0, 0.375), [false, false])
+        XCTAssertEqual(feed("A", at: center, 0.75), [true])
+    }
+
+    func testFramesJustOverTheGapStillRelease() {
+        XCTAssertEqual(feed("A", at: center, 0, 0.359375), [false, false])
+        XCTAssertEqual(feed("A", at: center, 0.71875), [true])
+    }
+
+    func testASlowFrameAfterAMissStillRestartsTheTimer() {
+        // 中间真的看到过没对准的帧，再按间隔判丢失
+        _ = feed("A", at: center, 0)
+        _ = feed("A", at: CGPoint(x: 0.1, y: 0.5), 0.125)
+        XCTAssertEqual(feed("A", at: center, 0.5, 0.875), [false, false])
+        XCTAssertEqual(feed("A", at: center, 1), [true])
+    }
+
     func testCenterRegionIsTheMiddleFortyPercentOnBothAxes() {
         XCTAssertTrue(TellomiQrFocus.isInCenter(CGPoint(x: 0.3, y: 0.3)))
         XCTAssertTrue(TellomiQrFocus.isInCenter(CGPoint(x: 0.7, y: 0.7)))
