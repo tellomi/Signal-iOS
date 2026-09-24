@@ -211,6 +211,9 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
                 in: replacementString,
                 currentCountry: country,
                 phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef,
+            ) ?? Self.tellomiFullPhoneNumber(
+                inField: ((textField.text ?? "") as NSString).replacingCharacters(in: range, with: replacementString),
+                phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef,
             )
         {
             country = phoneNumber.country
@@ -277,7 +280,7 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         return true
     }
 
-    /// Tellomi：把一段文字当完整号码解析——「+86 138 0013 8000」「0086 138…」，或者以当前区号开头的「8613800138000」；
+    /// Tellomi：把一段文字当完整号码解析——「+86 138 0013 8000」「0086 138…」，或者以当前区号开头、位数对得上的「8613800138000」；
     /// 去掉前缀后必须是有效号码。都不是就返回 nil，按普通输入处理。Android 的 PhoneNumberEntryViewModel.tellomiFullNumberInserted 是同一套规则。
     static func tellomiFullPhoneNumber(
         in text: String,
@@ -293,15 +296,36 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         } else if compact.hasPrefix("00") {
             international = "+" + compact.dropFirst(2)
         } else {
+            // 以区号开头的一串：去掉区号后的位数要等于当前地区示例号码的有效位数（不含长途前缀，台湾是 9 位而不是本国格式的 10 位）。
+            // DE / AT / FI 这类号码长度不固定的地区，以区号数字开头的本地号码去掉「区号」后常常也有效，只看有效会被静默改成另一个号码。
             let callingCode = String(currentCountry.plusPrefixedCallingCode.dropFirst())
-            guard compact.hasPrefix(callingCode) else {
+            guard
+                compact.hasPrefix(callingCode),
+                compact.count - callingCode.count == phoneNumberUtil.tellomiExampleNationalSignificantNumberLength(forCountryCode: currentCountry.countryCode)
+            else {
                 return nil
             }
             international = "+" + compact
         }
         // 去掉前缀后还得是有效号码，和 Android 同一道闸：「8613800138」「0013 8000 1234」这种片段不当完整号码拆。
-        // 以前比的是「本国格式的示例号码位数」，台湾的本国格式带长途前缀 0（0912 345 678），「886912345678」判不出来。
         guard let e164 = E164(international), phoneNumberUtil.isValidNumber(e164) else {
+            return nil
+        }
+        return RegistrationPhoneNumberParser(phoneNumberUtil: phoneNumberUtil).parseE164(e164)
+    }
+
+    /// Tellomi：插进来的那一段本身不算完整号码，但插进去以后整框以「00」开头、去掉 00 是有效号码（例如在已有号码前面补「0086」），
+    /// 也按「+」处理。Android 的 PhoneNumberEntryViewModel.tellomiFullNumberInserted 后半段是同一条。
+    static func tellomiFullPhoneNumber(
+        inField fieldText: String,
+        phoneNumberUtil: PhoneNumberUtil,
+    ) -> RegistrationPhoneNumber? {
+        let compact = fieldText.filteredAsE164
+        guard
+            compact.hasPrefix("00"),
+            let e164 = E164("+" + compact.dropFirst(2)),
+            phoneNumberUtil.isValidNumber(e164)
+        else {
             return nil
         }
         return RegistrationPhoneNumberParser(phoneNumberUtil: phoneNumberUtil).parseE164(e164)

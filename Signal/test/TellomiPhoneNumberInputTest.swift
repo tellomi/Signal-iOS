@@ -27,6 +27,10 @@ final class TellomiPhoneNumberInputTest: SignalBaseTest {
 
     private let china = PhoneNumberCountry(countryName: "China", plusPrefixedCallingCode: "+86", countryCode: "CN")
     private let unitedStates = PhoneNumberCountry(countryName: "United States", plusPrefixedCallingCode: "+1", countryCode: "US")
+    private let hongKong = PhoneNumberCountry(countryName: "Hong Kong", plusPrefixedCallingCode: "+852", countryCode: "HK")
+    private let taiwan = PhoneNumberCountry(countryName: "Taiwan", plusPrefixedCallingCode: "+886", countryCode: "TW")
+    private let germany = PhoneNumberCountry(countryName: "Germany", plusPrefixedCallingCode: "+49", countryCode: "DE")
+    private let austria = PhoneNumberCountry(countryName: "Austria", plusPrefixedCallingCode: "+43", countryCode: "AT")
 
     private func fullNumber(_ text: String, in country: PhoneNumberCountry) -> RegistrationPhoneNumber? {
         RegistrationPhoneNumberInputView.tellomiFullPhoneNumber(
@@ -70,7 +74,6 @@ final class TellomiPhoneNumberInputTest: SignalBaseTest {
 
     func testTaiwanNumbersWithoutPlusSplitToo() throws {
         // 台湾的本国格式带长途前缀 0（0912 345 678）。以前按「本国格式示例号码的位数」比，「886912345678」判不出来。
-        let taiwan = PhoneNumberCountry(countryName: "Taiwan", plusPrefixedCallingCode: "+886", countryCode: "TW")
         for text in ["886912345678", "+886 912 345 678"] {
             let parsed = try XCTUnwrap(fullNumber(text, in: taiwan), text)
             XCTAssertEqual(parsed.country.countryCode, "TW", text)
@@ -82,6 +85,24 @@ final class TellomiPhoneNumberInputTest: SignalBaseTest {
         // 「8613800138」按 isPossibleNumber 算得上 +86 13800138，但不是有效号码；「0013 8000 1234」去掉 00 也不是。和 Android 同一道闸。
         XCTAssertNil(fullNumber("8613800138", in: china))
         XCTAssertNil(fullNumber("0013 8000 1234", in: china))
+    }
+
+    func testNumbersStartingWithTheCallingCodeSplitOnlyWhenAsLongAsTheRegionsExampleNumber() throws {
+        // 两端共用样例，Android 的 TellomiPhoneNumberPasteTest 是同一组：以区号开头、没有 + / 00 的一串。
+        let splits: [(PhoneNumberCountry, String, String)] = [
+            (china, "8613800138000", "13800138000"),
+            (hongKong, "85291234567", "91234567"),
+            (unitedStates, "14155550100", "4155550100"),
+            (taiwan, "886912345678", "912345678"),
+        ]
+        for (country, text, national) in splits {
+            let parsed = try XCTUnwrap(fullNumber(text, in: country), text)
+            XCTAssertEqual(parsed.country.countryCode, country.countryCode, text)
+            XCTAssertEqual(parsed.nationalNumber, national, text)
+        }
+        // DE / AT：去掉「区号」后也是有效号码，但位数和示例号码不同，不当完整号码拆（taishi 审查 b18 不阻塞 3）。
+        XCTAssertNil(fullNumber("4921123456", in: germany))
+        XCTAssertNil(fullNumber("4312345678", in: austria))
     }
 
     // MARK: - The view
@@ -111,6 +132,23 @@ final class TellomiPhoneNumberInputTest: SignalBaseTest {
         XCTAssertEqual(view.nationalNumber, "13900000000")
         XCTAssertEqual(view.country.countryCode, "CN")
         XCTAssertEqual(delegate.changeCount, 1)
+    }
+
+    func testZeroZeroInFrontOfTheWholeFieldSplitsItToo() throws {
+        // 两端共用样例（Android 靠整框的 00 判断，taishi 审查 b18 不阻塞 2）。
+        let view = RegistrationPhoneNumberInputView(initialPhoneNumber: RegistrationPhoneNumber(country: china, nationalNumber: "13800138000"))
+        let field = try XCTUnwrap(textField(in: view))
+
+        // 在已有号码前面补「0086」：插进来的只有「0086」，要看整框。
+        let accepted = view.textField(field, shouldChangeCharactersIn: NSRange(location: 0, length: 0), replacementString: "0086")
+        XCTAssertFalse(accepted)
+        XCTAssertEqual(view.nationalNumber, "13800138000")
+        XCTAssertEqual(view.country.countryCode, "CN")
+
+        // 全选再粘：iOS 拿到的就是整段粘贴的文字，本来就拆。
+        let all = NSRange(location: 0, length: (field.text ?? "").utf16.count)
+        _ = view.textField(field, shouldChangeCharactersIn: all, replacementString: "0086 139 0013 9000")
+        XCTAssertEqual(view.nationalNumber, "13900139000")
     }
 
     func testPastingWithoutPlusSplitsTheCallingCode() throws {
