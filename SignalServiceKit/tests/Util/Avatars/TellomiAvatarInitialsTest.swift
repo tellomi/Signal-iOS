@@ -25,6 +25,34 @@ final class TellomiAvatarInitialsTest: XCTestCase {
         XCTAssertNil(TellomiNames.hanAbbreviation("·"))
     }
 
+    /// 两端同一组样例（Android `TellomiNamesTest`「single field samples shared with ios」逐条相同）。
+    /// 注册资料页只剩一个框，全名都存在 given name 里：以前非汉字名交给系统缩写，「Kevin Zhang」→「K」、「Kevin 张」→ 没有字（taishi 审查 2026-09-24）。
+    func testSingleFieldSamplesSharedWithAndroid() {
+        let samples: [(String, String?)] = [
+            ("欧阳娜娜", "娜娜"),
+            ("张三", "张三"),
+            ("李", "李"),
+            ("陈 志明", "志明"),
+            ("马克·卡尔", "卡尔"),
+            ("张\u{00A0}三", "张三"),
+            ("Kevin Zhang", "KZ"),
+            ("John Smith", "JS"),
+            ("Kevin 张", "K张"),
+            ("小明 Wang", "小W"),
+            ("娜娜😀", "娜"),
+            ("😀", "😀"),
+            ("John", "J"),
+            ("", nil),
+            ("·", nil),
+        ]
+        for (input, expected) in samples {
+            XCTAssertEqual(TellomiNames.abbreviation(input), expected, input)
+            var oneField = PersonNameComponents()
+            oneField.givenName = input
+            XCTAssertEqual(AvatarBuilder.contactInitials(for: oneField), expected, input)
+        }
+    }
+
     func testContactInitialsUseTheChineseRule() {
         // 注册页只有一个框：全名在 givenName 里。上游交给系统缩写，四个字的名字会因为「超过 3 个字符」直接没有字
         var oneField = PersonNameComponents()

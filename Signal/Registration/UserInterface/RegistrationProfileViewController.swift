@@ -165,10 +165,12 @@ class RegistrationProfileViewController: OWSViewController {
 
     // Tellomi（tellomi/tellomi#1215）：只留一个「名字」框，填全名，保存时全进 given name（family name 留空）。
     // 上游是名 / 姓两个框（中日韩系统下姓在前），中文用户习惯一个框填全名。
+    // 占位符用新键：上游那条英文是「First Name」，这个框填的是全名（taishi 审查 2026-09-24）
     private lazy var givenNameTextField: UITextField = textField(
         placeholder: OWSLocalizedString(
-            "REGISTRATION_PROFILE_SETUP_GIVEN_NAME_FIELD_PLACEHOLDER",
-            comment: "During registration, users set up their profile. Users input a given name. This is the placeholder for that field.",
+            "REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI",
+            value: "Name",
+            comment: "During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field.",
         ),
         textContentType: .name,
         accessibilityIdentifierSuffix: "givenName",

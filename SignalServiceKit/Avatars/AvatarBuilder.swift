@@ -609,6 +609,12 @@ public class AvatarBuilder {
         if let hanAbbreviation = TellomiNames.hanAbbreviation((nameComponents.familyName ?? "") + (nameComponents.givenName ?? "")) {
             return hanAbbreviation
         }
+        // Tellomi（tellomi/tellomi#1215）：注册资料页只剩一个框，全名存在 given name 里、family name 为空。
+        // 系统缩写不按空格拆（「Kevin Zhang」→「K」、「Kevin 张」→ 没有字），这时照 Android 取前两个词的首字（「KZ」「K张」）。
+        // 名、姓分开存的（旧资料、系统通讯录）照上游。
+        if (nameComponents.familyName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return TellomiNames.abbreviation(nameComponents.givenName ?? "")
+        }
         let formattedAbbreviation = OWSFormat.formatNameComponents(nameComponents, style: .abbreviated)
         guard let formattedAbbreviation = formattedAbbreviation.filterForDisplay.nilIfEmpty else {
             Logger.warn("Could not abbreviate name.")
