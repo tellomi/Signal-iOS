@@ -176,7 +176,13 @@ public final class AppExpiry {
 
     public func isExpired(now: Date) -> Bool { expirationDate < now }
 
-    public static let defaultExpirationInterval: TimeInterval = 90 * .day
+    /// Tellomi（tellomi/tellomi#1139）：「必须更新」阻断页要分辨「构建本身过了有效期」和「服务端拒绝（499）/
+    /// 远程配置宣布到期」，两种说法不同。过期状态是私有的，这里只暴露构建年龄这一条。
+    public func isBuildTooOld(now: Date) -> Bool { defaultExpirationDate < now }
+
+    // Tellomi（tellomi/tellomi#1142，需求 app-update-and-version-policy 第 3.6 节）：上游 90 天。Tellomi 发版没那么勤，
+    // 90 天不发版所有人会同时停止收发；兜底保留，时长三端统一 180 天（owner 可改）。
+    public static let defaultExpirationInterval: TimeInterval = 180 * .day
 
     private var defaultExpirationDate: Date {
         return buildDate.addingTimeInterval(Self.defaultExpirationInterval)

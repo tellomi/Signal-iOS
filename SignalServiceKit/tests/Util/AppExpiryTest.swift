@@ -14,7 +14,8 @@ final class AppExpiryTest: XCTestCase {
 
     private var appExpiry: AppExpiry!
 
-    private var defaultExpiry: Date { buildDate.addingTimeInterval(90 * .day) }
+    // Tellomi（tellomi/tellomi#1142）：兜底有效期 180 天（上游 90 天）。
+    private var defaultExpiry: Date { buildDate.addingTimeInterval(180 * .day) }
 
     private func loadPersistedExpirationDate() -> Date {
         let newAppExpiry = AppExpiry(appVersion: appVersion, buildDate: buildDate)

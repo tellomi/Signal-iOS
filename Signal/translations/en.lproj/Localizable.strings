@@ -222,6 +222,21 @@
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. This value is a tappable link embedded in a larger sentence. */
 "APP_EXPIRED_BOTTOM_UPDATE" = "Update now";
 
+/* Tellomi: On the 'update required' page, reassurance that updating keeps the chats on this phone. */
+"APP_EXPIRED_TELLOMI_BLOCKING_CHATS_KEPT" = "Updating keeps all the chats on this phone.";
+
+/* Tellomi: On the 'update required' page, why the app must be updated: this version is too old. */
+"APP_EXPIRED_TELLOMI_BLOCKING_REASON_BUILD_TOO_OLD" = "This version is too old. Update to keep sending and receiving messages.";
+
+/* Tellomi: On the 'update required' page, why the app must be updated: the server no longer accepts this version. */
+"APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED" = "This version can no longer communicate with the server. Update to keep sending and receiving messages.";
+
+/* Tellomi: Title of the full-screen page shown when this version of the app can no longer be used and must be updated. */
+"APP_EXPIRED_TELLOMI_BLOCKING_TITLE" = "Update Tellomi to continue";
+
+/* Tellomi: The only button on the 'update required' page. Opens the page where the new version can be installed. */
+"APP_EXPIRED_TELLOMI_BLOCKING_UPDATE_BUTTON" = "Update now";
+
 /* Default message for the 'app launch failed' alert. */
 "APP_LAUNCH_FAILURE_ALERT_MESSAGE" = "Tellomi can't launch. Please send a debug log to support@tellomi.app so that we can troubleshoot this issue.";
 
