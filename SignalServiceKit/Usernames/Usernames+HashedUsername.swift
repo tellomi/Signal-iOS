@@ -137,19 +137,15 @@ public extension Usernames.HashedUsername {
 // MARK: - Tellomi
 
 public extension Usernames.HashedUsername {
-    /// Tellomi（ADR-0066 §六；taishi 审 Android a3 的意见，iOS 同一条）：「字母开头」只对新起的名字收紧。
-    /// - 昵称与已有昵称忽略大小写相同 → 不拦。只改大小写已由选用户名页的捷径处理，这里覆盖旧后缀迁到 `.01`（`_kaixin.57` → `_kaixin.01`）。
+    /// Tellomi（ADR-0066 §六「老数据」；taishi 审 a4-v2 与 Signal-Desktop#4 第三版，2026-09-24）：「字母开头」对新起的名字收紧。
+    /// - 旧后缀迁到 `.01`（`_kaixin.57` 输入同一昵称 → 预约 `_kaixin.01`）换了 hash、服务端也按改名开始冷却，是一个新用户名，
+    ///   照新名字的规则拦（「设置页照普通改名流程」；与 Desktop#4 第三版、Android 同一条）。
+    /// - `.01` 没改 / 只改大小写：选用户名页的捷径处理（`existingUsernameForShortcuts`），hash 不变，不经过这里。
     /// - 修复模式 → 整段不拦，**包括全新的 `_` 名**，比 Android / Desktop 宽一档（taishi 审 a4-v2 的取舍，改法 A）：
     ///   修复模式只在本地状态损坏时出现，用户不能主动进入；本地存的旧名不可信（正是它和服务端对不上才进来的，
     ///   选名页拿到的是 `currentUsername: nil`），拿它当判据反而会拦掉服务端上真正的 `_` 开头原名。
-    static func tellomiEnforcesLetterFirst(desiredNickname: String, existingNickname: String?, isAttemptingRecovery: Bool) -> Bool {
-        if isAttemptingRecovery {
-            return false
-        }
-        if let existingNickname, existingNickname.lowercased() == desiredNickname.lowercased() {
-            return false
-        }
-        return true
+    static func tellomiEnforcesLetterFirst(isAttemptingRecovery: Bool) -> Bool {
+        return !isAttemptingRecovery
     }
 }
 

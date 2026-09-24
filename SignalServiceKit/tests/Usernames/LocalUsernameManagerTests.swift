@@ -666,17 +666,14 @@ class LocalUsernameManagerTests: XCTestCase {
         XCTAssertEqual(try generate("kaixin_").candidateHashes.count, 1)
     }
 
-    /// Tellomi（taishi 审 Android a3 的意见，iOS 同一条）：「字母开头」只对新起的名字收紧；
-    /// 已有昵称（含旧后缀迁到 `.01`）与修复模式（包括修复模式下全新的 `_` 名）不拦，别的规则照旧。
+    /// Tellomi（taishi 审 a4-v2 与 Signal-Desktop#4 第三版）：「字母开头」对新起的名字收紧，旧后缀迁到 `.01` 也算新名字；
+    /// 只有修复模式整段不收紧（包括全新的 `_` 名，比 Android / Desktop 宽一档）。`.01` 只改大小写走选名页的捷径，到不了这里。
     func testTellomiLetterFirstOnlyForNewNames() throws {
         typealias HashedUsername = Usernames.HashedUsername
 
-        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_other", existingNickname: "_kaixin", isAttemptingRecovery: false))
-        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingNickname: nil, isAttemptingRecovery: false))
-        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_KaiXin", existingNickname: "_kaixin", isAttemptingRecovery: false))
-        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingNickname: nil, isAttemptingRecovery: true))
-        // 修复模式整段不收紧，全新的 `_` 名也放过（比 Android / Desktop 宽一档，taishi 审 a4-v2 同意保留）
-        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_other", existingNickname: nil, isAttemptingRecovery: true))
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(isAttemptingRecovery: false))
+        // 修复模式整段不收紧，全新的 `_` 名也放过（taishi 审 a4-v2 同意保留）
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(isAttemptingRecovery: true))
 
         let kept = try HashedUsername.generateCandidates(
             forNickname: "_kaixin",
