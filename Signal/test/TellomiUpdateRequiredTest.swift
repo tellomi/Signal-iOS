@@ -145,6 +145,53 @@ final class TellomiUpdateRequiredTest: SignalBaseTest {
         XCTAssertEqual(opened, 1)
     }
 
+    // MARK: - 最大字号（taishi 审查 b15 不阻塞 4）
+
+    private func subviews<T: UIView>(of type: T.Type, in view: UIView) -> [T] {
+        ((view as? T).map { [$0] } ?? []) + view.subviews.flatMap { subviews(of: type, in: $0) }
+    }
+
+    /// 放进还在支持的最小屏幕之一（iPhone SE 第二、三代，375×667）排好版。
+    private func laidOutPage(at category: UIContentSizeCategory) throws -> (TellomiUpdateRequiredAppBlockingViewController, UIWindow) {
+        guard #available(iOS 17.0, *) else {
+            throw XCTSkip("traitOverrides needs iOS 17")
+        }
+        let viewController = TellomiUpdateRequiredAppBlockingViewController(openUpdatePage: {}, viewChatsOnly: {})
+        viewController.traitOverrides.preferredContentSizeCategory = category
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 667))
+        window.rootViewController = viewController
+        window.isHidden = false
+        viewController.view.layoutIfNeeded()
+        return (viewController, window)
+    }
+
+    func testWithTheLargestTextTheExplanationIsNotCutOffAndThePageScrolls() throws {
+        // 改之前：上游的内容栈不在滚动视图里，两段说明被压到 94pt，「更新不会影响聊天记录」被裁掉。
+        let (viewController, window) = try laidOutPage(at: .accessibilityExtraExtraExtraLarge)
+        defer { window.isHidden = true }
+
+        let explanation = try XCTUnwrap(subviews(of: UILabel.self, in: viewController.view).first { $0.text == TellomiUpdateRequiredAppBlockingViewController.subtitle })
+        let needed = explanation.sizeThatFits(CGSize(width: explanation.bounds.size.width, height: .greatestFiniteMagnitude)).height
+        XCTAssertGreaterThanOrEqual(explanation.bounds.size.height + 1, needed, "the explanation is cut off")
+
+        let scrollView = try XCTUnwrap(subviews(of: UIScrollView.self, in: viewController.view).first)
+        XCTAssertGreaterThan(scrollView.contentSize.height, scrollView.bounds.size.height, "at this size the page has to scroll")
+        let update = viewController.updateButton.convert(viewController.updateButton.bounds, to: scrollView)
+        let exit = viewController.viewChatsOnlyButton.convert(viewController.viewChatsOnlyButton.bounds, to: scrollView)
+        XCTAssertLessThanOrEqual(explanation.convert(explanation.bounds, to: scrollView).maxY, update.minY)
+        XCTAssertLessThanOrEqual(exit.maxY, scrollView.contentSize.height, "the way to the chats can be scrolled to")
+    }
+
+    func testWhenEverythingFitsTheButtonsStayAtTheBottom() throws {
+        let (viewController, window) = try laidOutPage(at: .large)
+        defer { window.isHidden = true }
+
+        let scrollView = try XCTUnwrap(subviews(of: UIScrollView.self, in: viewController.view).first)
+        XCTAssertLessThanOrEqual(scrollView.contentSize.height, scrollView.bounds.size.height + 0.5, "at the default size nothing scrolls")
+        let exit = viewController.viewChatsOnlyButton.convert(viewController.viewChatsOnlyButton.bounds, to: viewController.view)
+        XCTAssertEqual(exit.maxY, viewController.view.bounds.maxY - viewController.view.safeAreaInsets.bottom - 16, accuracy: 0.5)
+    }
+
     func testVoiceOverStaysOnThePage() {
         // 没上锁时下面是会话列表，旁白不能读到、点到它（taishi 审查 b15 要改 2）。
         let viewController = TellomiUpdateRequiredAppBlockingViewController(openUpdatePage: {}, viewChatsOnly: {})

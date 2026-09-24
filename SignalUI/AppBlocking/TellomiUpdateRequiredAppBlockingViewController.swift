@@ -118,21 +118,67 @@ public class TellomiUpdateRequiredAppBlockingViewController: AppBlockingViewCont
         // 下面的窗口（没上锁时的会话列表）不能被旁白读到、点到（taishi 审查 b15 要改 2）。
         view.accessibilityViewIsModal = true
 
-        // 给底部两个按钮让出位置：标、标题、说明在剩下的空间里居中，不会压到按钮。
-        view.directionalLayoutMargins.bottom += 140
+        // 上游 AppBlockingViewController 的标、标题、说明（一个 UIStackView）不在滚动视图里。最大字号下放不下时说明被压扁、
+        // 后面几行直接裁掉（375×667、AX5 实测：两段说明只剩 94pt，「更新不会影响聊天记录」看不到；taishi 审查 b15 不阻塞 4）。
+        // 把它和两个按钮一起挪进滚动视图：放得下时仍是内容在按钮上方的剩余空间里居中、按钮贴底；放不下时整页一起滚。
+        guard let contentStack = view.subviews.first(where: { $0 is UIStackView }) else {
+            owsFailDebug("AppBlockingViewController no longer has its content stack")
+            return
+        }
+        contentStack.removeFromSuperview()
 
-        view.addSubview(updateButton)
-        view.addSubview(viewChatsOnlyButton)
-        updateButton.translatesAutoresizingMaskIntoConstraints = false
-        viewChatsOnlyButton.translatesAutoresizingMaskIntoConstraints = false
+        let scrollView = UIScrollView()
+        scrollView.contentInsetAdjustmentBehavior = .never
+        view.addSubview(scrollView)
+
+        let page = UIView()
+        scrollView.addSubview(page)
+        for subview in [contentStack, updateButton, viewChatsOnlyButton] {
+            page.addSubview(subview)
+        }
+
+        // 内容居中用的区域：页面顶边留 40（同上游的边距），到「立即更新」上方 24。
+        let contentArea = UILayoutGuide()
+        page.addLayoutGuide(contentArea)
+
+        let pageFillsTheScreen = page.heightAnchor.constraint(equalTo: scrollView.frameLayoutGuide.heightAnchor)
+        pageFillsTheScreen.priority = .defaultLow
+        let contentCentered = contentStack.centerYAnchor.constraint(equalTo: contentArea.centerYAnchor)
+        contentCentered.priority = .defaultHigh
+
+        for subview in [scrollView, page, contentStack, updateButton, viewChatsOnlyButton] {
+            subview.translatesAutoresizingMaskIntoConstraints = false
+        }
         NSLayoutConstraint.activate([
-            updateButton.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
-            updateButton.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+
+            page.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            page.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            page.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            page.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            page.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            page.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor),
+            pageFillsTheScreen,
+
+            contentArea.topAnchor.constraint(equalTo: page.topAnchor, constant: 40),
+            contentArea.bottomAnchor.constraint(equalTo: updateButton.topAnchor, constant: -24),
+
+            contentStack.topAnchor.constraint(greaterThanOrEqualTo: contentArea.topAnchor),
+            contentStack.bottomAnchor.constraint(lessThanOrEqualTo: contentArea.bottomAnchor),
+            contentCentered,
+            contentStack.leadingAnchor.constraint(greaterThanOrEqualTo: page.leadingAnchor, constant: 40),
+            contentStack.centerXAnchor.constraint(equalTo: page.centerXAnchor),
+
+            updateButton.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 40),
+            updateButton.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -40),
             updateButton.bottomAnchor.constraint(equalTo: viewChatsOnlyButton.topAnchor, constant: -8),
 
-            viewChatsOnlyButton.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
-            viewChatsOnlyButton.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
-            viewChatsOnlyButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            viewChatsOnlyButton.leadingAnchor.constraint(equalTo: page.leadingAnchor, constant: 40),
+            viewChatsOnlyButton.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -40),
+            viewChatsOnlyButton.bottomAnchor.constraint(equalTo: page.bottomAnchor, constant: -16),
         ])
     }
 }
