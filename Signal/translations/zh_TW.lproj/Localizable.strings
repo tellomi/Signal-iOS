@@ -6612,6 +6612,9 @@
 /* Label indicating that registration has been ratelimited. Embeds {{remaining time string}}. */
 "ONBOARDING_PHONE_NUMBER_RATE_LIMIT_WARNING_FORMAT" = "請等待幾分鐘，然後重試。(%1$@)";
 
+/* Label under the phone number field when verification codes can't be sent to numbers from the entered region. */
+"ONBOARDING_PHONE_NUMBER_UNSUPPORTED_REGION_WARNING" = "暫未開放該地區的手機號碼註冊，目前只支援中國大陸（+86）手機號碼。";
+
 /* Label indicating that the phone number is invalid in the 'onboarding phone number' view. */
 "ONBOARDING_PHONE_NUMBER_VALIDATION_WARNING" = "無效的電話號碼。 請輸入有效的電話號碼進行註冊。";
 
@@ -8163,6 +8166,9 @@
 /* Tutorial text describing the second step to scanning the restore/transfer QR code with your old phone: tap the camera icon */
 "REGISTRATION_SCAN_QR_CODE_TUTORIAL_TAP_CAMERA" = "輕按相機圖示";
 
+/* Error message when sending a verification code via SMS failed and no other way of sending the code is available. */
+"REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR" = "暫時無法給這個號碼傳送驗證碼。目前只開放中國大陸手機號碼註冊；如果您用的是中國大陸號碼，請稍後再試或聯絡 support@tellomi.app。";
+
 /* Button when sending a verification code via sms failed, but resending via voice call might succeed. */
 "REGISTRATION_SMS_CODE_FAILED_TRY_VOICE_BUTTON" = "語音電話";
 
@@ -8174,6 +8180,9 @@
 
 /* Alert shown when submitting a verification code too many times. Embeds {{ duration }}, such as \"5:00\" */
 "REGISTRATION_SUBMIT_CODE_RATE_LIMIT_ALERT_FORMAT" = "你已多次嘗試輸入驗證碼，請在 %1$@ 後再試";
+
+/* Shown inline under the verification code field when the entered code is wrong. */
+"REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "驗證碼不對，請核對簡訊後重新輸入";
 
 /* During registration and re-registration, users may have to enter a code to verify ownership of their phone number. If they enter an invalid code, they will see this error message. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_VERIFICATION_CODE" = "你輸入的驗證碼無效。請重新傳送驗證碼，然後再試一次。";
