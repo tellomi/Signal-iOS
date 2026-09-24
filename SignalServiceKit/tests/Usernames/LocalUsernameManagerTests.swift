@@ -631,6 +631,37 @@ class LocalUsernameManagerTests: XCTestCase {
         ))
     }
 
+    /// Tellomi（ADR-0066 §六 第 73 行 / ADR-0036）：新建 / 修改的用户名必须字母开头。libsignal 放行 `_` 开头，客户端收紧；
+    /// 太短 / 非法字符照旧由 libsignal 先报；`_` 在中间、结尾照旧合法。
+    func testTellomiNicknameMustStartWithLetter() throws {
+        typealias CandidateError = Usernames.HashedUsername.CandidateGenerationError
+
+        func generate(_ nickname: String) throws -> Usernames.HashedUsername.GeneratedCandidates {
+            try Usernames.HashedUsername.generateCandidates(
+                forNickname: nickname,
+                minNicknameLength: 3,
+                maxNicknameLength: 20,
+                desiredDiscriminator: nil,
+            )
+        }
+
+        func assertRejected(_ nickname: String, _ expected: CandidateError, file: StaticString = #filePath, line: UInt = #line) {
+            XCTAssertThrowsError(try generate(nickname), file: file, line: line) { error in
+                XCTAssertEqual(error as? CandidateError, expected, "\(nickname)", file: file, line: line)
+            }
+        }
+
+        assertRejected("_kaixin", .nicknameCannotStartWithUnderscore)
+        assertRejected("___", .nicknameCannotStartWithUnderscore)
+        assertRejected("_1abc", .nicknameCannotStartWithUnderscore)
+        assertRejected("_a", .nicknameTooShort)
+        assertRejected("_ab cd", .nicknameContainsInvalidCharacters)
+        assertRejected("1kaixin", .nicknameCannotStartWithDigit)
+
+        XCTAssertEqual(try generate("kai_xin").candidateHashes.count, 1)
+        XCTAssertEqual(try generate("kaixin_").candidateHashes.count, 1)
+    }
+
     /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 按 Retry-After 分成改名冷却和普通限流。
     func testTellomiReservationRateLimitSplitsOffRenameCooldown() {
         guard case .changeCooldown(let retryAfter) = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: 2_591_999) else {

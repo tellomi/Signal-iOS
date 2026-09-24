@@ -73,6 +73,8 @@ public extension Usernames.HashedUsername {
         case nicknameContainsInvalidCharacters
         case nicknameTooShort
         case nicknameTooLong
+        /// Tellomi（ADR-0066 §六 第 73 行 / ADR-0036）：`_` 开头。libsignal 允许，Tellomi 的规则是字母开头。
+        case nicknameCannotStartWithUnderscore
 
         fileprivate init?(fromSignalError signalError: LibSignalClient.SignalError?) {
             guard let signalError else { return nil }
@@ -110,6 +112,12 @@ public extension Usernames.HashedUsername {
                 discriminator: desiredDiscriminator ?? TellomiLinks.fixedUsernameDiscriminator,
                 withValidLengthWithin: nicknameLengthRange,
             )
+            // Tellomi（ADR-0066 §六 第 73 行 / ADR-0036）：新建 / 修改的用户名必须字母开头。libsignal 只拒数字开头、放行 `_` 开头，
+            // 服务端只见到哈希、拦不了，只能在客户端收紧。放在 libsignal 判过之后：太短 / 非法字符照旧先报。
+            // 只有选用户名页调用这里；找回已有用户名、搜索、链接都不经过，别人已有的 `_` 开头用户名照样能找到。
+            if nickname.hasPrefix("_") {
+                throw CandidateGenerationError.nicknameCannotStartWithUnderscore
+            }
             return .init(candidates: [.init(libSignalUsername: username)])
         } catch let error {
             if
