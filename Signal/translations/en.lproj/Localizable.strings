@@ -225,17 +225,23 @@
 /* Tellomi: On the 'update required' page, reassurance that updating keeps the chats on this phone. */
 "APP_EXPIRED_TELLOMI_BLOCKING_CHATS_KEPT" = "Updating keeps all the chats on this phone.";
 
-/* Tellomi: On the 'update required' page, why the app must be updated: this version is too old. */
-"APP_EXPIRED_TELLOMI_BLOCKING_REASON_BUILD_TOO_OLD" = "This version is too old. Update to keep sending and receiving messages.";
-
 /* Tellomi: On the 'update required' page, why the app must be updated: the server no longer accepts this version. */
 "APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED" = "This version can no longer communicate with the server. Update to keep sending and receiving messages.";
 
 /* Tellomi: Title of the full-screen page shown when this version of the app can no longer be used and must be updated. */
 "APP_EXPIRED_TELLOMI_BLOCKING_TITLE" = "Update Tellomi to continue";
 
-/* Tellomi: The only button on the 'update required' page. Opens the page where the new version can be installed. */
+/* Tellomi: The main button on the 'update required' page. Opens the page where the new version can be installed. */
 "APP_EXPIRED_TELLOMI_BLOCKING_UPDATE_BUTTON" = "Update now";
+
+/* Tellomi: Secondary button on the 'update required' page. Leaves the page without updating; the app then only shows the chat history and can't send or receive. */
+"APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_BUTTON" = "Not now, just view my chats";
+
+/* Tellomi: Button in the confirmation after tapping 'Not now, just view my chats'. Leaves the 'update required' page without updating. */
+"APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_CONFIRM" = "Don't Update";
+
+/* Tellomi: Confirmation shown after tapping 'Not now, just view my chats' on the 'update required' page. */
+"APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_CONFIRM_MESSAGE" = "You can view your chat history, but you won't be able to send or receive messages until you update.";
 
 /* Default message for the 'app launch failed' alert. */
 "APP_LAUNCH_FAILURE_ALERT_MESSAGE" = "Tellomi can't launch. Please send a debug log to support@tellomi.app so that we can troubleshoot this issue.";

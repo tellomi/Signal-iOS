@@ -177,7 +177,7 @@ public final class AppExpiry {
     public func isExpired(now: Date) -> Bool { expirationDate < now }
 
     /// Tellomi（tellomi/tellomi#1139）：「必须更新」阻断页要分辨「构建本身过了有效期」和「服务端拒绝（499）/
-    /// 远程配置宣布到期」，两种说法不同。过期状态是私有的，这里只暴露构建年龄这一条。
+    /// 远程配置宣布到期」：前者只降成只读、不盖阻断页（owner 2026-09-24 规则 2）。过期状态是私有的，这里只暴露构建年龄这一条。
     public func isBuildTooOld(now: Date) -> Bool { defaultExpirationDate < now }
 
     public static let defaultExpirationInterval: TimeInterval = 90 * .day

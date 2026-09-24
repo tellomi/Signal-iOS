@@ -225,17 +225,23 @@
 /* Tellomi: On the 'update required' page, reassurance that updating keeps the chats on this phone. */
 "APP_EXPIRED_TELLOMI_BLOCKING_CHATS_KEPT" = "更新不會影響手機上的聊天紀錄。";
 
-/* Tellomi: On the 'update required' page, why the app must be updated: this version is too old. */
-"APP_EXPIRED_TELLOMI_BLOCKING_REASON_BUILD_TOO_OLD" = "此版本已過舊，更新後才能繼續收發訊息。";
-
 /* Tellomi: On the 'update required' page, why the app must be updated: the server no longer accepts this version. */
 "APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED" = "此版本已無法與伺服器正常通訊，更新後才能繼續收發訊息。";
 
 /* Tellomi: Title of the full-screen page shown when this version of the app can no longer be used and must be updated. */
 "APP_EXPIRED_TELLOMI_BLOCKING_TITLE" = "需要更新 Tellomi";
 
-/* Tellomi: The only button on the 'update required' page. Opens the page where the new version can be installed. */
+/* Tellomi: The main button on the 'update required' page. Opens the page where the new version can be installed. */
 "APP_EXPIRED_TELLOMI_BLOCKING_UPDATE_BUTTON" = "立即更新";
+
+/* Tellomi: Secondary button on the 'update required' page. Leaves the page without updating; the app then only shows the chat history and can't send or receive. */
+"APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_BUTTON" = "暫不更新，只看聊天紀錄";
+
+/* Tellomi: Button in the confirmation after tapping 'Not now, just view my chats'. Leaves the 'update required' page without updating. */
+"APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_CONFIRM" = "不要更新";
+
+/* Tellomi: Confirmation shown after tapping 'Not now, just view my chats' on the 'update required' page. */
+"APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_CONFIRM_MESSAGE" = "你可以瀏覽聊天紀錄，但更新之前無法傳送或接收訊息。";
 
 /* Default message for the 'app launch failed' alert. */
 "APP_LAUNCH_FAILURE_ALERT_MESSAGE" = "Tellomi 無法正常啟動。請將除錯日誌傳送至 support@tellomi.app 以讓我們解決問題。";

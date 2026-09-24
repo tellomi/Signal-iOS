@@ -1,5 +1,5 @@
 //
-// Copyright 2026 Tellomi
+// Copyright 2026 重庆半格智能科技有限公司
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
@@ -9,36 +9,96 @@ import XCTest
 @testable import SignalServiceKit
 @testable import SignalUI
 
-/// Tellomi（tellomi/tellomi#1139）：App 被判定过期（服务端 499 / 构建过期）时整页盖住，只留一个「立即更新」。
+/// Tellomi（tellomi/tellomi#1139）：「必须更新」阻断页，按 owner 2026-09-24 的三条规则盖或不盖。
 @MainActor
 final class TellomiUpdateRequiredTest: SignalBaseTest {
 
     // MARK: - When to block
 
-    private func blockReason(_ appExpiry: AppExpiry, isTellomiDeployment: Bool = true) -> TellomiUpdateRequiredAppBlockingViewController.Reason? {
-        TellomiUpdateRequiredMonitoringManager.blockReason(appExpiry: appExpiry, now: Date(), isTellomiDeployment: isTellomiDeployment)
+    private let ourAppStoreListing = URL(string: "https://apps.apple.com/app/tellomi/id1234567890")!
+
+    private func shouldBlock(
+        _ appExpiry: AppExpiry,
+        isTellomiDeployment: Bool = true,
+        hasUpdateChannel: Bool = true,
+        viewChatsOnlyChosen: Bool = false,
+    ) -> Bool {
+        TellomiUpdateRequiredMonitoringManager.shouldBlock(
+            appExpiry: appExpiry,
+            now: Date(),
+            isTellomiDeployment: isTellomiDeployment,
+            hasUpdateChannel: hasUpdateChannel,
+            viewChatsOnlyChosen: viewChatsOnlyChosen,
+        )
     }
 
-    func testACurrentVersionIsNotBlocked() {
-        XCTAssertNil(blockReason(AppExpiry.forUnitTests(buildDate: Date())))
-    }
-
-    func testABuildPastItsLifespanIsBlockedAsTooOld() {
-        let buildDate = Date().addingTimeInterval(-AppExpiry.defaultExpirationInterval - .day)
-        XCTAssertEqual(blockReason(AppExpiry.forUnitTests(buildDate: buildDate)), .buildTooOld)
-    }
-
-    func testAVersionTheServerTurnedAwayIsBlockedAsServerRejected() async {
+    private func serverRejectedAppExpiry() async -> AppExpiry {
         let appExpiry = AppExpiry.forUnitTests(buildDate: Date())
         // 服务端回 499 时走的就是这一步（AppExpiry.appExpiredStatusCode）。
         await appExpiry.setHasAppExpiredAtCurrentVersion(db: InMemoryDB())
-        XCTAssertEqual(blockReason(appExpiry), .serverRejected)
+        return appExpiry
+    }
+
+    func testACurrentVersionIsNotBlocked() {
+        XCTAssertFalse(shouldBlock(AppExpiry.forUnitTests(buildDate: Date())))
+    }
+
+    func testAVersionTheServerTurnedAwayIsBlocked() async {
+        let appExpiry = await serverRejectedAppExpiry()
+        XCTAssertTrue(shouldBlock(appExpiry))
+    }
+
+    func testABuildPastItsLifespanOnlyBecomesReadOnly() {
+        // 规则 2：本机构建到期不盖，留给上游的只读（会话列表提示 + 输入框换成「更新」）。
+        let buildDate = Date().addingTimeInterval(-AppExpiry.defaultExpirationInterval - .day)
+        let appExpiry = AppExpiry.forUnitTests(buildDate: buildDate)
+        XCTAssertTrue(appExpiry.isExpired(now: Date()))
+        XCTAssertFalse(shouldBlock(appExpiry))
+    }
+
+    func testWithoutAnUpdateChannelTheAppGoesStraightToReadOnly() async {
+        // 规则 3：没有可用的更新渠道时不盖，按钮无处可去。
+        let appExpiry = await serverRejectedAppExpiry()
+        XCTAssertFalse(shouldBlock(appExpiry, hasUpdateChannel: false))
+    }
+
+    func testChoosingToOnlyViewChatsStopsTheBlock() async {
+        // 规则 1。
+        let appExpiry = await serverRejectedAppExpiry()
+        XCTAssertFalse(shouldBlock(appExpiry, viewChatsOnlyChosen: true))
     }
 
     func testTheSignalDeploymentKeepsTheUpstreamBehavior() async {
-        let appExpiry = AppExpiry.forUnitTests(buildDate: Date())
-        await appExpiry.setHasAppExpiredAtCurrentVersion(db: InMemoryDB())
-        XCTAssertNil(blockReason(appExpiry, isTellomiDeployment: false))
+        let appExpiry = await serverRejectedAppExpiry()
+        XCTAssertFalse(shouldBlock(appExpiry, isTellomiDeployment: false))
+    }
+
+    // MARK: - Update channel
+
+    func testOnlyOurOwnAppStoreOrTestFlightListingCountsAsAnUpdateChannel() {
+        // 上游的 Signal 条目、Signal-iOS#23 之后的官网下载页（还没上架）都不算，所以现在 iOS 不会盖。
+        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://itunes.apple.com/us/app/signal-private-messenger/id874139669?mt=8")!))
+        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://apps.apple.com/app/signal-private-messenger/id874139669")!))
+        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://tellomi.app/download/")!))
+
+        XCTAssertTrue(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: ourAppStoreListing))
+        XCTAssertTrue(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://testflight.apple.com/join/AbCdEfGh")!))
+    }
+
+    // MARK: - "Not now, just view my chats"
+
+    func testTheChoiceIsRememberedForThisVersionOnly() {
+        let suiteName = "TellomiUpdateRequiredTest-\(UUID().uuidString)"
+        let userDefaults = UserDefaults(suiteName: suiteName)!
+        defer { userDefaults.removePersistentDomain(forName: suiteName) }
+
+        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.viewChatsOnlyChosen(userDefaults: userDefaults, currentAppVersion: "0.1.2.3"))
+
+        TellomiUpdateRequiredMonitoringManager.recordViewChatsOnly(userDefaults: userDefaults, currentAppVersion: "0.1.2.3")
+
+        XCTAssertTrue(TellomiUpdateRequiredMonitoringManager.viewChatsOnlyChosen(userDefaults: userDefaults, currentAppVersion: "0.1.2.3"))
+        // 装上新版本，这个选择作废。
+        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.viewChatsOnlyChosen(userDefaults: userDefaults, currentAppVersion: "0.1.3.0"))
     }
 
     // MARK: - The page
@@ -65,9 +125,9 @@ final class TellomiUpdateRequiredTest: SignalBaseTest {
         return result
     }
 
-    func testThePageHasOnlyOneButtonAndItOpensTheUpdatePage() {
+    func testThePageOffersUpdatingOrOnlyViewingTheChats() {
         var opened = 0
-        let viewController = TellomiUpdateRequiredAppBlockingViewController(reason: .serverRejected, openUpdatePage: { opened += 1 })
+        let viewController = TellomiUpdateRequiredAppBlockingViewController(openUpdatePage: { opened += 1 }, viewChatsOnly: {})
         viewController.loadViewIfNeeded()
 
         let shown = labelTexts(in: viewController.view).joined(separator: "\n")
@@ -75,21 +135,18 @@ final class TellomiUpdateRequiredTest: SignalBaseTest {
         XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED", comment: "")), shown)
         XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_CHATS_KEPT", comment: "")), shown)
 
-        // 没有关闭、没有「以后再说」。
-        XCTAssertEqual(buttons(in: viewController.view), [viewController.updateButton])
+        // 规则 1：主按钮「立即更新」，另有「暂不更新，只看聊天记录」；没有别的。
+        XCTAssertEqual(buttons(in: viewController.view), [viewController.updateButton, viewController.viewChatsOnlyButton])
+        XCTAssertEqual(viewController.viewChatsOnlyButton.configuration?.title, OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_BUTTON", comment: ""))
 
         viewController.updateButton.sendActions(for: .primaryActionTriggered)
         XCTAssertEqual(opened, 1)
     }
 
-    func testTheReasonFollowsWhyTheVersionWasBlocked() {
-        let viewController = TellomiUpdateRequiredAppBlockingViewController(reason: .serverRejected, openUpdatePage: {})
+    func testVoiceOverStaysOnThePage() {
+        // 没上锁时下面是会话列表，旁白不能读到、点到它（taishi 审查 b15 要改 2）。
+        let viewController = TellomiUpdateRequiredAppBlockingViewController(openUpdatePage: {}, viewChatsOnly: {})
         viewController.loadViewIfNeeded()
-
-        viewController.reason = .buildTooOld
-
-        let shown = labelTexts(in: viewController.view).joined(separator: "\n")
-        XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_REASON_BUILD_TOO_OLD", comment: "")), shown)
-        XCTAssertFalse(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED", comment: "")), shown)
+        XCTAssertTrue(viewController.view.accessibilityViewIsModal)
     }
 }
