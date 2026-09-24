@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import AVFoundation
 import LibSignalClient
 import UIKit
 import XCTest
@@ -485,6 +486,331 @@ final class AlbumCarouselScreenshotTests: XCTestCase {
         }
     }
 
+    // MARK: - 视频查看器（owner 2026-09-25「多个视频点开时完全参考 Telegram 的设计」）
+
+    /// 一条消息里两段现做的视频（6 秒横的：前一半红、后一半蓝；40 秒竖的）：
+    /// - 打开时什么都不显示、照常自动播放；轻点后正中是暂停键（6 秒的没有 ±15），进度胶囊右边是总时长「0:06」且不随播放变；
+    ///   底栏从左到右 转发 · 倍速 · 删除，分享在右上角「···」里；
+    /// - 30 秒以内的放完接着从头放；
+    /// - 拖进度条不暂停，拇指正上方出现那一帧（拖到前面是红、后面是蓝；横的 160×90，底边在胶囊上方 6），左边时间跟着手指，
+    ///   松手才跳过去、预览消失；
+    /// - 齿轮弹出「速度」+ 0.5x / 正常 / 1.5x / 2x，面板在齿轮正上方；选 1.5x 立刻生效、齿轮角标 1.5x、面板收起；滑杆按 0.1 取整；
+    /// - 转发 / 删除先问「这个视频 / 全部 2 个视频」；
+    /// - 翻到 40 秒的那个：沿用 1.5x、两侧有 ±15、右边「0:40」、竖的预览帧 90×160；放完停下并把控件叫出来，正中换成播放键。
+    @MainActor
+    func testVideoViewerTelegramControls() async throws {
+        try requireShots()
+        let width = shotWidths.first ?? 402
+
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let shortVideo = try await makeVideo(size: CGSize(width: 320, height: 180), duration: 6, framesPerSecond: 10)
+        let longVideo = try await makeVideo(size: CGSize(width: 180, height: 320), duration: 40, framesPerSecond: 2)
+        let message = try await insertMediaMessage(
+            thread: thread,
+            incoming: true,
+            media: [(data: shortVideo, mimeType: "video/mp4"), (data: longVideo, mimeType: "video/mp4")],
+            body: nil,
+        )
+        let attachments = try bodyAttachments(of: message)
+
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: attachments[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+
+        // 打开：什么都不显示，照常自动播放
+        let player = try XCTUnwrap(viewer.currentVideoPlayerForTesting)
+        report += "video: opened toolbarsHidden=\(viewer.areToolbarsHiddenForTesting) centerShown=\(viewer.isShowingVideoCenterControlsForTesting) playing=\(player.isPlaying)\n"
+        XCTAssertTrue(viewer.areToolbarsHiddenForTesting, "打开时什么都不显示")
+        XCTAssertFalse(viewer.isShowingVideoCenterControlsForTesting, "打开时正中也没有播放键")
+        XCTAssertTrue(player.isPlaying, "照常自动播放")
+        try save(renderWindow(window), name: "video-1-opened.png", width: width)
+
+        // 轻点：正中暂停键、进度胶囊（右边总时长）、底栏 转发 · 倍速 · 删除
+        viewer.tapMediaForTesting()
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let center = viewer.videoCenterControlsForTesting
+        let panel = viewer.bottomPanelForTesting
+        let progress = try XCTUnwrap(panel.progressViewForTesting)
+        let durationBefore = progress.durationTextForTesting
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        report += "video: tapped centerShown=\(viewer.isShowingVideoCenterControlsForTesting) pause=\(center.isShowingPauseButton) skip=\(center.showsSkipButtonsForTesting) "
+            + "time=\(progress.positionTextForTesting ?? "nil")/\(durationBefore ?? "nil")→\(progress.durationTextForTesting ?? "nil") "
+            + "bottom=\(panel.visibleBottomButtonLabelsForTesting) menu=\(viewer.contextMenuTitlesForTesting)\n"
+        XCTAssertTrue(viewer.isShowingVideoCenterControlsForTesting, "轻点后正中出现播放控件")
+        XCTAssertTrue(center.isShowingPauseButton, "正在播：正中是暂停键")
+        XCTAssertFalse(center.showsSkipButtonsForTesting, "30 秒以内没有 ±15")
+        XCTAssertEqual(durationBefore, "0:06", "右边是总时长")
+        XCTAssertEqual(progress.durationTextForTesting, "0:06", "总时长不随播放变（不是剩余时间）")
+        XCTAssertEqual(panel.visibleBottomButtonLabelsForTesting, ["Forward", "Playback Speed", "Delete"])
+        XCTAssertTrue(viewer.contextMenuTitlesForTesting.contains("Share"), "分享挪进「···」：\(viewer.contextMenuTitlesForTesting)")
+        try save(renderWindow(window), name: "video-2-controls.png", width: width)
+
+        // 30 秒以内：放完接着从头放
+        player.seek(to: CMTime(seconds: 5.3, preferredTimescale: 600))
+        try await Task.sleep(nanoseconds: 1_800_000_000)
+        report += "video: loop time=\(player.currentTimeSeconds) playing=\(player.isPlaying)\n"
+        XCTAssertTrue(player.isPlaying, "30 秒以内的放完接着放")
+        XCTAssertLessThan(player.currentTimeSeconds, 1.8, "从头放")
+
+        // 拖进度条：不暂停，拇指上方是那一帧，松手才跳
+        let preview = panel.scrubPreviewForTesting
+        progress.scrubForTesting(toFraction: 0.25, isMove: false)
+        let redShown = await waitUntil(timeout: 3) { preview.isShowingFrameForTesting && Self.dominantChannel(of: preview.image) == .red }
+        let pillTop = progress.convert(progress.bounds, to: panel).minY
+        let thumbX = progress.thumbCenterX(in: panel)
+        let expectedMidX = min(max(thumbX - 80, 10), panel.bounds.size.width - 10 - 160) + 80
+        report += "video: scrub25 preview=\(preview.frame) pillTop=\(pillTop) thumbX=\(thumbX) position=\(progress.positionTextForTesting ?? "nil") playing=\(player.isPlaying)\n"
+        XCTAssertTrue(redShown, "拖到前面：拇指上方是前面那一帧（红）")
+        XCTAssertEqual(preview.frame.size.width, 160, accuracy: 0.5)
+        XCTAssertEqual(preview.frame.size.height, 90, accuracy: 0.5)
+        XCTAssertEqual(preview.frame.maxY, pillTop - 6, accuracy: 0.5, "底边在胶囊上方 6")
+        XCTAssertEqual(preview.frame.midX, expectedMidX, accuracy: 1, "水平中心对着拇指")
+        XCTAssertEqual(progress.positionTextForTesting, "0:01", "左边时间跟着手指")
+        XCTAssertTrue(player.isPlaying, "拖动时不暂停")
+
+        progress.scrubForTesting(toFraction: 0.75, isMove: true)
+        let blueShown = await waitUntil(timeout: 3) { preview.isShowingFrameForTesting && Self.dominantChannel(of: preview.image) == .blue }
+        report += "video: scrub75 preview=\(preview.frame) position=\(progress.positionTextForTesting ?? "nil") playing=\(player.isPlaying)\n"
+        XCTAssertTrue(blueShown, "拖到后面：换成后面那一帧（蓝）")
+        XCTAssertEqual(progress.positionTextForTesting, "0:04")
+        XCTAssertTrue(player.isPlaying, "拖动时不暂停")
+        try save(renderWindow(window), name: "video-3-scrub-preview.png", width: width)
+
+        progress.endScrubForTesting()
+        try await Task.sleep(nanoseconds: 500_000_000)
+        report += "video: released previewShown=\(preview.isShowingFrameForTesting) time=\(player.currentTimeSeconds)\n"
+        XCTAssertFalse(preview.isShowingFrameForTesting, "松手后预览消失")
+        XCTAssertEqual(player.currentTimeSeconds, 5.0, accuracy: 0.6, "松手才跳到 4.5 秒（再播了半秒）")
+
+        // 倍速：齿轮正上方弹出「速度」+ 四档
+        player.seek(to: CMTime(seconds: 0.5, preferredTimescale: 600))
+        let gear = panel.playbackSpeedButtonForTesting
+        gear.sendActions(for: .primaryActionTriggered)
+        try await Task.sleep(nanoseconds: 500_000_000)
+        let menu = try XCTUnwrap(viewer.playbackSpeedMenuForTesting)
+        let gearFrame = gear.convert(gear.bounds, to: menu)
+        report += "video: speedMenu title=\(menu.titleTextForTesting ?? "nil") value=\(menu.valueTextForTesting ?? "nil") options=\(menu.optionTitlesForTesting) "
+            + "checked=\(menu.checkedOptionTitleForTesting ?? "nil") panel=\(menu.panelFrameForTesting) gear=\(gearFrame)\n"
+        XCTAssertEqual(menu.titleTextForTesting, "Speed")
+        XCTAssertEqual(menu.valueTextForTesting, "1x")
+        XCTAssertEqual(menu.optionTitlesForTesting, ["0.5x", "Normal", "1.5x", "2x"])
+        XCTAssertEqual(menu.checkedOptionTitleForTesting, "Normal")
+        XCTAssertEqual(menu.panelFrameForTesting.maxY, gearFrame.minY - 8, accuracy: 0.5, "面板在齿轮正上方")
+        XCTAssertEqual(menu.panelFrameForTesting.midX, gearFrame.midX, accuracy: 0.5)
+        try save(renderWindow(window), name: "video-4-speed-menu.png", width: width)
+
+        menu.selectOptionForTesting(at: 2)
+        try await Task.sleep(nanoseconds: 600_000_000)
+        report += "video: speed=1.5 rate=\(player.avPlayer.rate) badge=\(panel.playbackSpeedBadgeTextForTesting ?? "nil") menuClosed=\(menu.superview == nil)\n"
+        XCTAssertEqual(player.avPlayer.rate, 1.5, accuracy: 0.01, "选 1.5x 立刻生效")
+        XCTAssertEqual(panel.playbackSpeedBadgeTextForTesting, "1.5x", "齿轮角标")
+        XCTAssertNil(menu.superview, "选一档就收起")
+        try save(renderWindow(window), name: "video-5-speed-badge.png", width: width)
+
+        gear.sendActions(for: .primaryActionTriggered)
+        try await Task.sleep(nanoseconds: 500_000_000)
+        let menu2 = try XCTUnwrap(viewer.playbackSpeedMenuForTesting)
+        XCTAssertEqual(menu2.checkedOptionTitleForTesting, "1.5x")
+        menu2.setSliderValueForTesting(1.23)
+        report += "video: slider=1.23 value=\(menu2.valueTextForTesting ?? "nil") rate=\(player.avPlayer.rate) badge=\(panel.playbackSpeedBadgeTextForTesting ?? "nil")\n"
+        XCTAssertEqual(menu2.valueTextForTesting, "1.2x", "滑杆按 0.1 取整")
+        XCTAssertEqual(player.avPlayer.rate, 1.2, accuracy: 0.01, "拖滑杆即生效")
+        XCTAssertEqual(panel.playbackSpeedBadgeTextForTesting, "1.2x")
+        XCTAssertNil(menu2.checkedOptionTitleForTesting, "1.2x 不是四档之一")
+        menu2.selectOptionForTesting(at: 2)
+        try await Task.sleep(nanoseconds: 500_000_000)
+
+        // 转发 / 删除：先问「这个视频 / 全部 2 个视频」
+        try XCTUnwrap(findButton(labeled: "Forward", in: panel)).sendActions(for: .primaryActionTriggered)
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let forwardSheet = try XCTUnwrap(viewer.presentedViewController as? ActionSheetController)
+        let forwardTitles = labelTexts(in: forwardSheet.view)
+        report += "video: forwardChoices=\(forwardTitles)\n"
+        XCTAssertTrue(forwardTitles.contains("This Video") && forwardTitles.contains("All 2 Videos"), "\(forwardTitles)")
+        try save(renderWindow(window), name: "video-6-forward-choice.png", width: width)
+        forwardSheet.dismiss(animated: false)
+        try await Task.sleep(nanoseconds: 400_000_000)
+
+        try XCTUnwrap(findButton(labeled: "Delete", in: panel)).sendActions(for: .primaryActionTriggered)
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let deleteSheet = try XCTUnwrap(viewer.presentedViewController as? ActionSheetController)
+        let deleteTitles = labelTexts(in: deleteSheet.view)
+        report += "video: deleteChoices=\(deleteTitles)\n"
+        XCTAssertTrue(deleteTitles.contains("This Video") && deleteTitles.contains("All 2 Videos"), "\(deleteTitles)")
+        deleteSheet.dismiss(animated: false)
+        try await Task.sleep(nanoseconds: 400_000_000)
+
+        // 翻到 40 秒的那个（在缩略条上拖过去）：沿用倍速、两侧有 ±15、右边「0:40」
+        let scrubber = viewer.albumScrubberForTesting
+        let stripFrames = scrubber.thumbnailFramesForTesting
+        scrubber.scrubForTesting(through: [
+            CGPoint(x: stripFrames[0].midX, y: stripFrames[0].midY),
+            CGPoint(x: stripFrames[1].midX, y: stripFrames[1].midY),
+        ])
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+        let longPlayer = try XCTUnwrap(viewer.currentVideoPlayerForTesting)
+        report += "video: long current=\(viewer.currentItemForTesting.albumIndex) playing=\(longPlayer.isPlaying) rate=\(longPlayer.avPlayer.rate) "
+            + "skip=\(center.showsSkipButtonsForTesting) duration=\(progress.durationTextForTesting ?? "nil") badge=\(panel.playbackSpeedBadgeTextForTesting ?? "nil")\n"
+        XCTAssertEqual(viewer.currentItemForTesting.albumIndex, 1)
+        XCTAssertFalse(longPlayer === player)
+        XCTAssertTrue(longPlayer.isPlaying, "翻过去照常自动播放")
+        XCTAssertEqual(longPlayer.avPlayer.rate, 1.5, accuracy: 0.01, "翻到下一个视频沿用倍速")
+        XCTAssertEqual(panel.playbackSpeedBadgeTextForTesting, "1.5x")
+        XCTAssertTrue(center.showsSkipButtonsForTesting, "30 秒以上两侧有 ±15")
+        XCTAssertEqual(progress.durationTextForTesting, "0:40")
+        try save(renderWindow(window), name: "video-7-long-video.png", width: width)
+
+        // 竖的视频：预览帧放进 90×160
+        progress.scrubForTesting(toFraction: 0.5, isMove: false)
+        let portraitShown = await waitUntil(timeout: 3) { preview.isShowingFrameForTesting }
+        report += "video: long scrub50 preview=\(preview.frame)\n"
+        XCTAssertTrue(portraitShown)
+        XCTAssertEqual(preview.frame.size.width, 90, accuracy: 0.5)
+        XCTAssertEqual(preview.frame.size.height, 160, accuracy: 0.5)
+        progress.endScrubForTesting()
+        try await Task.sleep(nanoseconds: 400_000_000)
+
+        // 30 秒以上的放完：停下，把控件叫出来，正中换成播放键
+        viewer.tapMediaForTesting()
+        try await Task.sleep(nanoseconds: 500_000_000)
+        XCTAssertTrue(viewer.areToolbarsHiddenForTesting)
+        longPlayer.seek(to: CMTime(seconds: 38.8, preferredTimescale: 600))
+        let chromeBack = await waitUntil(timeout: 4) { !viewer.areToolbarsHiddenForTesting }
+        try await Task.sleep(nanoseconds: 400_000_000)
+        report += "video: long ended chromeBack=\(chromeBack) playing=\(longPlayer.isPlaying) pause=\(center.isShowingPauseButton) centerShown=\(viewer.isShowingVideoCenterControlsForTesting)\n"
+        XCTAssertTrue(chromeBack, "放完把控件叫出来")
+        XCTAssertFalse(longPlayer.isPlaying, "30 秒以上的不循环")
+        XCTAssertFalse(center.isShowingPauseButton, "正中换成播放键")
+        XCTAssertTrue(viewer.isShowingVideoCenterControlsForTesting)
+        try save(renderWindow(window), name: "video-8-ended.png", width: width)
+
+        window.isHidden = true
+        try report.write(to: shotsDirectory(width: width).deletingLastPathComponent().appendingPathComponent("metrics-video.txt"), atomically: true, encoding: .utf8)
+    }
+
+    private enum ColorChannel {
+        case red
+        case green
+        case blue
+    }
+
+    /// 缩成 1 个像素后哪个通道最大。
+    private static func dominantChannel(of image: UIImage?) -> ColorChannel? {
+        guard let cgImage = image?.cgImage else { return nil }
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let drawn: Bool = pixel.withUnsafeMutableBytes { buffer in
+            guard
+                let context = CGContext(
+                    data: buffer.baseAddress,
+                    width: 1,
+                    height: 1,
+                    bitsPerComponent: 8,
+                    bytesPerRow: 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+                )
+            else {
+                return false
+            }
+            context.interpolationQuality = .medium
+            context.draw(cgImage, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+            return true
+        }
+        guard drawn else { return nil }
+        let red = pixel[0]
+        let green = pixel[1]
+        let blue = pixel[2]
+        if red > green, red > blue { return .red }
+        if blue > red, blue > green { return .blue }
+        return .green
+    }
+
+    @MainActor
+    private func waitUntil(timeout: TimeInterval, _ condition: () -> Bool) async -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return true }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+        return condition()
+    }
+
+    private func findButton(labeled label: String, in view: UIView) -> UIButton? {
+        if let button = view as? UIButton, !button.isHidden, button.accessibilityLabel == label {
+            return button
+        }
+        for subview in view.subviews {
+            if let button = findButton(labeled: label, in: subview) {
+                return button
+            }
+        }
+        return nil
+    }
+
+    /// 现做一段 H.264 小视频（每帧都是关键帧）：前一半红、后一半蓝。
+    private func makeVideo(size: CGSize, duration: Double, framesPerSecond: Int32) async throws -> Data {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("tellomi-video-\(UUID().uuidString).mp4")
+        let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey: Int(size.width),
+            AVVideoHeightKey: Int(size.height),
+            AVVideoCompressionPropertiesKey: [AVVideoMaxKeyFrameIntervalKey: 1],
+        ])
+        input.expectsMediaDataInRealTime = false
+        let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+            kCVPixelBufferWidthKey as String: Int(size.width),
+            kCVPixelBufferHeightKey as String: Int(size.height),
+        ])
+        writer.add(input)
+        XCTAssertTrue(writer.startWriting(), "\(String(describing: writer.error))")
+        writer.startSession(atSourceTime: .zero)
+
+        let frameCount = Int(duration * Double(framesPerSecond))
+        for frame in 0..<frameCount {
+            while !input.isReadyForMoreMediaData {
+                try await Task.sleep(nanoseconds: 2_000_000)
+            }
+            // BGRA：红 = (0, 0, 255)，蓝 = (255, 0, 0)
+            let bgra: (UInt8, UInt8, UInt8) = frame < frameCount / 2 ? (0, 0, 255) : (255, 0, 0)
+            let pixelBuffer = try XCTUnwrap(Self.solidPixelBuffer(size: size, pool: adaptor.pixelBufferPool, bgr: bgra))
+            XCTAssertTrue(adaptor.append(pixelBuffer, withPresentationTime: CMTime(value: CMTimeValue(frame), timescale: framesPerSecond)))
+        }
+        input.markAsFinished()
+        writer.endSession(atSourceTime: CMTime(seconds: duration, preferredTimescale: 600))
+        await writer.finishWriting()
+        XCTAssertEqual(writer.status, .completed, "\(String(describing: writer.error))")
+        return try Data(contentsOf: url)
+    }
+
+    private static func solidPixelBuffer(size: CGSize, pool: CVPixelBufferPool?, bgr: (UInt8, UInt8, UInt8)) -> CVPixelBuffer? {
+        var pixelBuffer: CVPixelBuffer?
+        if let pool {
+            CVPixelBufferPoolCreatePixelBuffer(nil, pool, &pixelBuffer)
+        } else {
+            CVPixelBufferCreate(nil, Int(size.width), Int(size.height), kCVPixelFormatType_32BGRA, nil, &pixelBuffer)
+        }
+        guard let pixelBuffer else { return nil }
+        CVPixelBufferLockBaseAddress(pixelBuffer, [])
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, []) }
+        guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else { return nil }
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        for row in 0..<CVPixelBufferGetHeight(pixelBuffer) {
+            let rowPointer = baseAddress.advanced(by: row * bytesPerRow).assumingMemoryBound(to: UInt8.self)
+            for column in 0..<CVPixelBufferGetWidth(pixelBuffer) {
+                rowPointer[column * 4] = bgr.0
+                rowPointer[column * 4 + 1] = bgr.1
+                rowPointer[column * 4 + 2] = bgr.2
+                rowPointer[column * 4 + 3] = 255
+            }
+        }
+        return pixelBuffer
+    }
+
     private func quotedAttachmentId(_ draft: DraftQuotedReplyModel?) -> Attachment.IDType? {
         guard case .attachment(_, _, let attachment, _)? = draft?.content else {
             return nil
@@ -686,6 +1012,18 @@ final class AlbumCarouselScreenshotTests: XCTestCase {
 
     @MainActor
     private func insertAlbum(thread: TSThread, incoming: Bool, sizes: [CGSize], body: String?, author: Aci? = nil) async throws -> TSMessage {
+        let media = sizes.enumerated().map { index, size in (data: jpeg(size: size, number: index + 1), mimeType: "image/jpeg") }
+        return try await insertMediaMessage(thread: thread, incoming: incoming, media: media, body: body, author: author)
+    }
+
+    @MainActor
+    private func insertMediaMessage(
+        thread: TSThread,
+        incoming: Bool,
+        media: [(data: Data, mimeType: String)],
+        body: String?,
+        author: Aci? = nil,
+    ) async throws -> TSMessage {
         let message: TSMessage = write { tx in
             if incoming {
                 let factory = IncomingMessageFactory()
@@ -736,10 +1074,10 @@ final class AlbumCarouselScreenshotTests: XCTestCase {
         }
 
         var pendingAttachments = [PendingAttachment]()
-        for (index, size) in sizes.enumerated() {
+        for item in media {
             pendingAttachments.append(try await DependenciesBridge.shared.attachmentContentValidator.validateDataContents(
-                jpeg(size: size, number: index + 1),
-                mimeType: "image/jpeg",
+                item.data,
+                mimeType: item.mimeType,
                 renderingFlag: .default,
                 sourceFilename: nil,
             ))

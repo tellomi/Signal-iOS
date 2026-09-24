@@ -106,6 +106,21 @@ class MediaPageViewController: UIPageViewController {
         spoilerState: spoilerState,
     )
 
+    // Tellomi（tellomi/tellomi#1257，owner 2026-09-25「多个视频点开时完全参考 Telegram 的设计」）：
+    // 屏幕正中的播放 / 暂停（30 秒以上两侧再有 ±15），跟着四角按钮一起出现、一起收起；翻页拖动时先隐去。
+    private lazy var videoCenterControls = MediaVideoCenterControlsView()
+    private var isPagingBetweenItems = false
+
+    /// Tellomi（#1257，照 Telegram `GalleryController.playbackRate`）：这次查看器里选的倍速，翻到下一个视频沿用；不写任何设置。
+    private var playbackSpeed: Float = 1 {
+        didSet {
+            (viewControllers?.first as? MediaItemViewController)?.videoPlayer?.playbackSpeed = playbackSpeed
+            bottomMediaPanel.playbackSpeed = playbackSpeed
+        }
+    }
+
+    private weak var playbackSpeedMenu: MediaPlaybackSpeedMenuView?
+
     // MARK: UIViewController
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -202,6 +217,15 @@ class MediaPageViewController: UIPageViewController {
             bottomMediaPanel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             bottomMediaPanel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             bottomMediaPanel.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+
+        // Tellomi（#1257）：正中的播放 / 暂停在媒体之上、上下两块面板之下。
+        videoCenterControls.translatesAutoresizingMaskIntoConstraints = false
+        videoCenterControls.isHidden = true
+        view.insertSubview(videoCenterControls, belowSubview: topPanel)
+        NSLayoutConstraint.activate([
+            videoCenterControls.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            videoCenterControls.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
 
         // Load initial page and update all UI to reflect it.
@@ -329,6 +353,14 @@ class MediaPageViewController: UIPageViewController {
             animated: animated,
         )
 
+        // Tellomi（#1257）：倍速沿用到这个视频；正中的播放键换成这个视频的。
+        currentViewController.videoPlayer?.playbackSpeed = playbackSpeed
+        bottomMediaPanel.playbackSpeed = playbackSpeed
+        videoCenterControls.bind(
+            currentViewController.videoPlayer,
+            showsSkipButtons: Self.showsSkipButtons(for: currentViewController.galleryItem),
+        )
+
         updateScreenTitle(using: currentViewController.galleryItem)
         currentViewController.videoPlaybackStatusObserver = bottomMediaPanel
         showOrHideTopAndBottomPanelsAsNecessary(animated: animated)
@@ -353,6 +385,7 @@ class MediaPageViewController: UIPageViewController {
     private func showOrHideTopAndBottomPanelsAsNecessary(animated: Bool) {
         topPanel.setIsHidden(shouldHideToolbars, animated: animated)
         bottomMediaPanel.setIsHidden(shouldHideToolbars || bottomMediaPanel.shouldBeHidden, animated: animated)
+        updateVideoCenterControlsVisibility(animated: animated)
         if #available(iOS 26, *) {
             let targetColor: UIColor = shouldHideToolbars ? .black : .Signal.mediaBackground
             if animated {
@@ -365,6 +398,19 @@ class MediaPageViewController: UIPageViewController {
                 view.backgroundColor = targetColor
             }
         }
+    }
+
+    private func updateVideoCenterControlsVisibility(animated: Bool) {
+        let isPlayableVideo = (viewControllers?.first as? MediaItemViewController)?.videoPlayer != nil
+        videoCenterControls.setIsHidden(shouldHideToolbars || !isPlayableVideo || isPagingBetweenItems, animated: animated)
+    }
+
+    /// 同上游 VideoPlaybackControlView：30 秒以上的视频才有 ±15（Telegram 是 ≥ 30 秒）。
+    private static func showsSkipButtons(for item: MediaGalleryItem) -> Bool {
+        guard item.isVideo, let duration = item.referencedAttachment.asReferencedStream?.attachmentStream.cachedVideoDuration else {
+            return false
+        }
+        return duration > 30
     }
 
     private var shouldHideStatusBar: Bool {
@@ -400,6 +446,19 @@ class MediaPageViewController: UIPageViewController {
                 currentItem.referencedAttachment.asReferencedStream == nil ? .disabled : [],
                 handler: { [weak self] _ in
                     self?.saveCurrentMediaToPhotos()
+                },
+            ),
+            // Tellomi（#1257，照 Telegram）：底栏的分享位让给了删除，分享挪到这里。
+            UIAction(
+                title: OWSLocalizedString(
+                    "MEDIA_VIEWER_TELLOMI_SHARE_ACTION",
+                    comment: "Context menu item in media viewer: share the photo or video on screen to other apps.",
+                ),
+                image: Theme.iconImage(.contextMenuShare),
+                attributes:
+                currentItem.referencedAttachment.asReferencedStream == nil ? .disabled : [],
+                handler: { [weak self] _ in
+                    self?.shareCurrentMedia(fromNavigationBar: false)
                 },
             ),
             UIAction(
@@ -664,6 +723,17 @@ class MediaPageViewController: UIPageViewController {
         presentActionSheet(actionSheet)
     }
 
+    // MARK: - Tellomi（#1257）：倍速面板
+
+    private func presentPlaybackSpeedMenu(from sourceView: UIView) {
+        playbackSpeedMenu?.dismiss(animated: false)
+        let menu = MediaPlaybackSpeedMenuView(speed: playbackSpeed, sourceView: sourceView) { [weak self] speed in
+            self?.playbackSpeed = speed
+        }
+        menu.present(in: view)
+        playbackSpeedMenu = menu
+    }
+
     // MARK: - Tellomi（#1257）：这一张 / 全部、回复这一张
 
     /// 相册（≥ 2 张）里：弹出「这张图片 / 这个视频」与「全部 N 张 / N 个 / N 项」；不是相册直接走「这一张」。
@@ -869,6 +939,11 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
         _ pageViewController: UIPageViewController,
         willTransitionTo pendingViewControllers: [UIViewController],
     ) {
+        // Tellomi（#1257）：翻页拖动时正中的播放键先隐去，停下后按新的一页再决定。
+        isPagingBetweenItems = true
+        updateVideoCenterControlsVisibility(animated: true)
+        playbackSpeedMenu?.dismiss(animated: false)
+
         guard
             let currentPage = pageViewController.viewControllers?.first as? MediaItemViewController,
             let newPage = pendingViewControllers.first as? MediaItemViewController
@@ -888,6 +963,8 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
         previousViewControllers: [UIViewController],
         transitionCompleted: Bool,
     ) {
+        isPagingBetweenItems = false
+
         if let previousPage = previousViewControllers.first as? MediaItemViewController {
             previousPage.zoomOut(animated: false)
             previousPage.stopVideoIfPlaying()
@@ -896,6 +973,8 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
 
         if transitionCompleted {
             didTransitionToNewPage(animated: true, direction: currentPageSwipeDirection)
+        } else {
+            updateVideoCenterControlsVisibility(animated: true)
         }
     }
 }
@@ -1017,6 +1096,13 @@ extension MediaPageViewController: MediaItemViewControllerDelegate {
     func mediaItemViewControllerFullyZoomedOut(_ viewController: MediaItemViewController) {
         setShouldHideToolbars(false, animated: true)
     }
+
+    // Tellomi（#1257，照 Telegram）：不循环的视频放完了，把控件叫出来（正中是播放键）。
+    func mediaItemViewControllerVideoDidPlayToEnd(_ viewController: MediaItemViewController) {
+        guard viewController === viewControllers?.first else { return }
+        videoCenterControls.updatePlayPauseButton()
+        setShouldHideToolbars(false, animated: true)
+    }
 }
 
 extension MediaGalleryItem: GalleryRailItem {
@@ -1040,8 +1126,12 @@ extension MediaPageViewController: MediaControlPanelDelegate {
         forwardCurrentMedia()
     }
 
-    func mediaControlPanelDidRequestShareMedia(_ panel: MediaControlPanelView) {
-        shareCurrentMedia(fromNavigationBar: false)
+    func mediaControlPanelDidRequestDeleteMedia(_ panel: MediaControlPanelView) {
+        deleteCurrentMedia()
+    }
+
+    func mediaControlPanel(_ panel: MediaControlPanelView, didRequestPlaybackSpeedMenuFrom sourceView: UIView) {
+        presentPlaybackSpeedMenu(from: sourceView)
     }
 
     func mediaControlPanel(_ panel: MediaControlPanelView, didSelectAlbumItem item: MediaGalleryItem) {
@@ -1195,6 +1285,27 @@ extension MediaPageViewController {
 
     func requestDeleteForTesting() {
         deleteCurrentMedia()
+    }
+
+    var bottomPanelForTesting: MediaControlPanelView { bottomMediaPanel }
+
+    var videoCenterControlsForTesting: MediaVideoCenterControlsView { videoCenterControls }
+
+    var isShowingVideoCenterControlsForTesting: Bool { !videoCenterControls.isHidden && videoCenterControls.alpha > 0 }
+
+    var currentVideoPlayerForTesting: VideoPlayer? { currentViewController?.videoPlayer }
+
+    var playbackSpeedForTesting: Float { playbackSpeed }
+
+    var playbackSpeedMenuForTesting: MediaPlaybackSpeedMenuView? { playbackSpeedMenu }
+
+    func openPlaybackSpeedMenuForTesting() {
+        presentPlaybackSpeedMenu(from: bottomMediaPanel.playbackSpeedButtonForTesting)
+    }
+
+    /// 右上角「···」里的各项标题（按顺序）。
+    var contextMenuTitlesForTesting: [String] {
+        (navigationItem.rightBarButtonItems?.first?.menu?.children ?? []).compactMap { ($0 as? UIAction)?.title }
     }
 }
 

@@ -12,6 +12,8 @@ protocol MediaItemViewControllerDelegate: AnyObject {
     func mediaItemViewControllerDidTapMedia(_ viewController: MediaItemViewController)
     func mediaItemViewControllerWillBeginZooming(_ viewController: MediaItemViewController)
     func mediaItemViewControllerFullyZoomedOut(_ viewController: MediaItemViewController)
+    /// Tellomi（#1257，照 Telegram）：超过 30 秒、不循环的视频放完了（查看器把控件叫出来，中间是播放键）。
+    func mediaItemViewControllerVideoDidPlayToEnd(_ viewController: MediaItemViewController)
 }
 
 protocol VideoPlaybackStatusProvider: AnyObject {
@@ -51,7 +53,6 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
 
     var videoPlayerView: VideoPlayerView? { mediaView as? VideoPlayerView }
     var videoPlayer: VideoPlayer? { videoPlayerView?.videoPlayer }
-    private var buttonPlayVideo: UIButton?
 
     private var downloadTask: Task<Void, Never>?
 
@@ -59,31 +60,11 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
         scrollView.zoomOut(animated: animated)
     }
 
-    private func configureVideoPlaybackControls() {
-        guard isVideo else {
-            return
-        }
+    // Tellomi（#1257，照 Telegram）：上游每页一个、只在没播时出现的 92 播放键去掉了，
+    // 换成查看器正中跟着四角按钮一起出现的播放 / 暂停（MediaVideoCenterControlsView）。
 
-        if galleryItem.isVideoReadyToPlay {
-            let buttonConfiguration = UIButton.Configuration.roundMedia(
-                image: UIImage(imageLiteralResourceName: "play-fill-48"),
-                size: 92,
-            )
-            let button = UIButton(
-                configuration: buttonConfiguration,
-                primaryAction: UIAction { [weak self] _ in
-                    self?.playVideo()
-                },
-            )
-            button.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(button)
-            NSLayoutConstraint.activate([
-                button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                button.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            ])
-            self.buttonPlayVideo = button
-        }
-    }
+    /// Tellomi（#1257，照 Telegram，同 Android 的 LOOP_MAX_DURATION_MS）：30 秒以内的视频循环播放。
+    static let loopMaxDuration: TimeInterval = 30
 
     // MARK: - Media Views
 
@@ -106,7 +87,6 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
 
         // Video Playback controls
         if isVideo {
-            configureVideoPlaybackControls()
             if shouldAutoPlayVideo, !hasAutoPlayedVideo {
                 playVideo()
                 hasAutoPlayedVideo = true
@@ -279,11 +259,6 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
 
         view.addSubview(scrollView)
         scrollView.autoPinEdgesToSuperviewEdges()
-
-        // Video Playback controls
-        if isVideo {
-            configureVideoPlaybackControls()
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -395,17 +370,24 @@ extension MediaItemViewController: VideoPlayerDelegate {
     func videoPlayerDidPlayToCompletion(_ videoPlayer: VideoPlayer) {
         guard isVideo, let videoPlayerView else { return }
 
+        // Tellomi（#1257）：30 秒以内的循环；更长的停回开头，并让查看器把控件叫出来。
+        if
+            let duration = videoPlayer.avPlayer.currentItem?.asset.duration.seconds,
+            duration.isFinite, duration > 0, duration <= Self.loopMaxDuration
+        {
+            videoPlayer.seek(to: .zero)
+            videoPlayer.play()
+            return
+        }
+
         videoPlayerView.stop()
-        buttonPlayVideo?.isHidden = false
+        delegate?.mediaItemViewControllerVideoDidPlayToEnd(self)
     }
 }
 
 extension MediaItemViewController: VideoPlayerViewDelegate {
 
     func videoPlayerViewStatusDidChange(_ view: VideoPlayerView) {
-        if let buttonPlayVideo, view.isPlaying {
-            buttonPlayVideo.isHidden = true
-        }
         if let videoPlaybackStatusObserver, let videoPlayer = view.videoPlayer {
             videoPlaybackStatusObserver.videoPlayerStatusChanged(videoPlayer)
         }

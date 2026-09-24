@@ -1589,6 +1589,9 @@
 		76A2EB1228B57AEE00A29C24 /* ColorPickerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */; };
 		76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */; };
 		4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */; };
+		06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */; };
+		EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */; };
+		5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */; };
 		76BA0DF02A29B27100751107 /* ChatListViewController+Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BA0DEF2A29B27100751107 /* ChatListViewController+Search.swift */; };
 		76BB06FA29AD84DB00978856 /* MediaItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BB06F929AD84DB00978856 /* MediaItemViewController.swift */; };
 		76BC91EC2F883C0000BE569B /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D8C232F72029100DA82B8 /* CircularProgressView.swift */; };
@@ -5886,6 +5889,9 @@
 		76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerBar.swift; sourceTree = "<group>"; };
 		76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaControlPanelView.swift; sourceTree = "<group>"; };
 		0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAlbumScrubberView.swift; sourceTree = "<group>"; };
+		98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlaybackSpeedMenuView.swift; sourceTree = "<group>"; };
+		C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoCenterControlsView.swift; sourceTree = "<group>"; };
+		1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoScrubPreviewView.swift; sourceTree = "<group>"; };
 		76BA0DEF2A29B27100751107 /* ChatListViewController+Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatListViewController+Search.swift"; sourceTree = "<group>"; };
 		76BB06F929AD84DB00978856 /* MediaItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaItemViewController.swift; sourceTree = "<group>"; };
 		76C87F18181EFCE600C4ACAB /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
@@ -9785,6 +9791,9 @@
 				4CA46F4B219CCC630038ABDE /* MediaCaptionView.swift */,
 				76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */,
 				0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */,
+				98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */,
+				C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */,
+				1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */,
 				452EC6DE205E9E30000E787C /* MediaGallery.swift */,
 				45DDD06629C1365100FD9670 /* MediaGalleryAccessoriesHelper.swift */,
 				7622B3B12A4510D7000E31DA /* MediaGalleryCellItem.swift */,
@@ -18918,6 +18927,9 @@
 				4CA46F4C219CCC630038ABDE /* MediaCaptionView.swift in Sources */,
 				76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */,
 				4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */,
+				06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */,
+				EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */,
+				5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */,
 				76FCCDBC27AB8FBE00BAA7F0 /* MediaControls.swift in Sources */,
 				4CD675BE22E7BE35008010D2 /* MediaDismissAnimationController.swift in Sources */,
 				346C19E125ACE9AE00061D3A /* MediaDownloadSettingsViewController.swift in Sources */,

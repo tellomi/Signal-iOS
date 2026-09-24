@@ -461,6 +461,9 @@ protocol PlayerProgressViewDelegate: AnyObject {
     func playerProgressView(_ playerProgressView: PlayerProgressView, didFinishScrubbingAtTime time: CMTime, shouldResumePlayback: Bool)
 }
 
+/// Tellomi（tellomi/tellomi#1257，owner 2026-09-25「多个视频点开时完全参考 Telegram 的设计」）：左边已播、右边总时长
+/// （Telegram 右边其实是剩余时间，owner 要的是总时长）；按在条上任意位置就能拖，拖动时不暂停、只动左边时间和拇指，
+/// 并通过 `delegate` 报给面板画那一帧的预览，松手才跳过去（同 Telegram）。平时没有拇指，按住才出现 14 的圆点。
 class PlayerProgressView: UIView {
 
     weak var delegate: PlayerProgressViewDelegate?
@@ -516,17 +519,19 @@ class PlayerProgressView: UIView {
     }
 
     private lazy var positionLabel = createLabel()
-    private lazy var remainingLabel = createLabel()
+    private lazy var durationLabel = createLabel()
 
-    private lazy var slider: UISlider = {
+    private lazy var slider: VideoPlaybackSlider = {
         let slider = VideoPlaybackSlider()
         slider.semanticContentAttribute = .playback
         slider.setThumbImage(UIImage(), for: .normal)
         slider.setThumbImage(UIImage(), for: .highlighted)
         slider.minimumTrackTintColor = .Signal.label
         slider.maximumTrackTintColor = .Signal.quaternaryLabel
-        slider.addAction(UIAction { [weak self] _ in self?.handleSliderTouchDown() }, for: .touchDown)
-        slider.addAction(UIAction { [weak self] _ in self?.handleSliderTouchUp() }, for: [.touchUpInside, .touchUpOutside])
+        slider.onScrubBegan = { [weak self] in self?.handleScrubBegan() }
+        slider.onScrubMoved = { [weak self] in self?.handleScrubMoved() }
+        slider.onScrubEnded = { [weak self] in self?.handleScrubEnded() }
+        // 只剩读屏的上下滑调整会发 valueChanged（手指拖动走上面三个回调）。
         slider.addAction(UIAction { [weak self] _ in self?.handleSliderValueChanged() }, for: .valueChanged)
         return slider
     }()
@@ -575,11 +580,11 @@ class PlayerProgressView: UIView {
 
         slider.translatesAutoresizingMaskIntoConstraints = false
         positionLabel.translatesAutoresizingMaskIntoConstraints = false
-        remainingLabel.translatesAutoresizingMaskIntoConstraints = false
+        durationLabel.translatesAutoresizingMaskIntoConstraints = false
 
         selfOrVisualEffectContentView.addSubview(slider)
         selfOrVisualEffectContentView.addSubview(positionLabel)
-        selfOrVisualEffectContentView.addSubview(remainingLabel)
+        selfOrVisualEffectContentView.addSubview(durationLabel)
 
         // |[X:XX] ========================= [X:XX]|
 
@@ -596,11 +601,11 @@ class PlayerProgressView: UIView {
             slider.topAnchor.constraint(equalTo: topAnchor),
             slider.centerYAnchor.constraint(equalTo: centerYAnchor),
             slider.leadingAnchor.constraint(equalTo: positionLabel.trailingAnchor, constant: 12),
-            slider.trailingAnchor.constraint(equalTo: remainingLabel.leadingAnchor, constant: -12),
+            slider.trailingAnchor.constraint(equalTo: durationLabel.leadingAnchor, constant: -12),
 
-            remainingLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
-            remainingLabel.centerYAnchor.constraint(equalTo: positionLabel.centerYAnchor),
-            remainingLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -hMargin),
+            durationLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
+            durationLabel.centerYAnchor.constraint(equalTo: positionLabel.centerYAnchor),
+            durationLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -hMargin),
         ])
 
         // Panning is a no-op. We just absorb pan gesture's originating in the video controls
@@ -629,7 +634,7 @@ class PlayerProgressView: UIView {
     // MARK: Animations
 
     private var viewsForOpacityAnimation: [UIView] {
-        [positionLabel, slider, remainingLabel]
+        [positionLabel, slider, durationLabel]
     }
 
     func prepareToBeAnimatedIn() {
@@ -656,31 +661,52 @@ class PlayerProgressView: UIView {
 
     // MARK: Slider Handling
 
-    private var wasPlayingWhenScrubbingStarted: Bool = false
+    /// 手指正按在条上（拖动中）。
+    private(set) var isScrubbing = false
 
     private func time(slider: UISlider) -> CMTime {
         return CMTime(seconds: Double(slider.value), preferredTimescale: Self.preferredTimeScale)
     }
 
-    private func handleSliderTouchDown() {
-        guard let videoPlayer else {
-            owsFailBeta("player is nil")
-            return
+    /// 拇指中心（按当前滑块值）在 `view` 坐标系里的 x。
+    func thumbCenterX(in view: UIView) -> CGFloat {
+        let trackRect = slider.trackRect(forBounds: slider.bounds)
+        let fraction: CGFloat = if slider.maximumValue > slider.minimumValue {
+            CGFloat((slider.value - slider.minimumValue) / (slider.maximumValue - slider.minimumValue))
+        } else {
+            0
         }
-        wasPlayingWhenScrubbingStarted = videoPlayer.isPlaying
-        videoPlayer.pause()
+        let x = trackRect.minX + fraction * trackRect.width
+        return slider.convert(CGPoint(x: x, y: trackRect.midY), to: view).x
     }
 
-    private func handleSliderTouchUp() {
-        guard let videoPlayer else {
+    private func handleScrubBegan() {
+        guard videoPlayer != nil else {
             owsFailBeta("player is nil")
             return
         }
+        isScrubbing = true
+        slider.setThumbImage(Self.scrubbingThumbImage, for: .normal)
+        slider.setThumbImage(Self.scrubbingThumbImage, for: .highlighted)
+        positionLabel.text = Self.formatPlaybackTime(Double(slider.value))
+        delegate?.playerProgressViewDidStartScrubbing(self)
+        delegate?.playerProgressView(self, scrubbedToTime: time(slider: slider))
+    }
+
+    private func handleScrubMoved() {
+        guard isScrubbing else { return }
+        positionLabel.text = Self.formatPlaybackTime(Double(slider.value))
+        delegate?.playerProgressView(self, scrubbedToTime: time(slider: slider))
+    }
+
+    private func handleScrubEnded() {
+        guard isScrubbing else { return }
+        isScrubbing = false
+        slider.setThumbImage(UIImage(), for: .normal)
+        slider.setThumbImage(UIImage(), for: .highlighted)
         let sliderTime = time(slider: slider)
-        videoPlayer.seek(to: sliderTime)
-        if wasPlayingWhenScrubbingStarted {
-            videoPlayer.play()
-        }
+        videoPlayer?.seek(to: sliderTime)
+        delegate?.playerProgressView(self, didFinishScrubbingAtTime: sliderTime, shouldResumePlayback: false)
     }
 
     private func handleSliderValueChanged() {
@@ -688,19 +714,37 @@ class PlayerProgressView: UIView {
             owsFailBeta("player is nil")
             return
         }
+        guard !isScrubbing else { return }
         let sliderTime = time(slider: slider)
         videoPlayer.seek(to: sliderTime)
+        positionLabel.text = Self.formatPlaybackTime(sliderTime.seconds)
     }
+
+    /// 拖动时才出现的拇指：白色圆点带一点阴影（同系统滑块，深浅背景上都看得见）。
+    private static let scrubbingThumbImage: UIImage = {
+        let diameter: CGFloat = 14
+        let shadowInset: CGFloat = 3
+        let size = CGSize(width: diameter + 2 * shadowInset, height: diameter + 2 * shadowInset)
+        return UIGraphicsImageRenderer(size: size).image { context in
+            context.cgContext.setShadow(offset: CGSize(width: 0, height: 0.5), blur: 2, color: UIColor.black.withAlphaComponent(0.35).cgColor)
+            UIColor.white.setFill()
+            UIBezierPath(ovalIn: CGRect(x: shadowInset, y: shadowInset, width: diameter, height: diameter)).fill()
+        }
+    }()
 
     // MARK: Render cycle
 
-    private static let formatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .positional
-        formatter.allowedUnits = [.minute, .second]
-        formatter.zeroFormattingBehavior = .pad
-        return formatter
-    }()
+    /// m:ss；一小时以上 h:mm:ss（同 Android 的 `formatPlaybackTime`）。
+    static func formatPlaybackTime(_ seconds: Double) -> String {
+        let totalSeconds = seconds.isFinite ? max(0, Int(seconds)) : 0
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let remainder = totalSeconds % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, remainder)
+        }
+        return String(format: "%d:%02d", minutes, remainder)
+    }
 
     private func updateState() {
         guard let avPlayer = videoPlayer?.avPlayer else {
@@ -713,24 +757,63 @@ class PlayerProgressView: UIView {
             return
         }
 
+        let duration = item.asset.duration.seconds
+        durationLabel.text = duration.isFinite && duration > 0 ? Self.formatPlaybackTime(duration) : "-:--"
+
+        // 拖动中：左边时间和拇指跟着手指，不跟播放进度。
+        guard !isScrubbing else { return }
+
         let position = avPlayer.currentTime()
-        positionLabel.text = Self.formatter.string(from: position.seconds)
+        positionLabel.text = Self.formatPlaybackTime(position.seconds)
         slider.setValue(Float(position.seconds), animated: false)
-
-        let timeRangeRemaining = CMTimeRange(start: avPlayer.currentTime(), duration: item.asset.duration)
-        guard timeRangeRemaining.isValid, let remainingString = Self.formatter.string(from: timeRangeRemaining.duration.seconds) else {
-            owsFailDebug("unable to format time remaining")
-            remainingLabel.text = "0:00"
-            return
-        }
-
-        // show remaining time as negative
-        remainingLabel.text = "-\(remainingString)"
     }
 
     // Overriden to allow to set custom track height.
+    // Tellomi（#1257）：条细一些（6，同 Android）；按在条上任意位置就开始拖，拇指跟着手指的位置走（不是只能从拇指上拖）。
     private class VideoPlaybackSlider: UISlider {
-        private static let trackHeight: CGFloat = 10
+        private static let trackHeight: CGFloat = 6
+
+        var onScrubBegan: (() -> Void)?
+        var onScrubMoved: (() -> Void)?
+        var onScrubEnded: (() -> Void)?
+
+        private func setValue(for touch: UITouch) {
+            let trackRect = self.trackRect(forBounds: bounds)
+            guard trackRect.width > 0 else { return }
+            let fraction = min(max((touch.location(in: self).x - trackRect.minX) / trackRect.width, 0), 1)
+            setValue(minimumValue + Float(fraction) * (maximumValue - minimumValue), animated: false)
+        }
+
+        override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+            setValue(for: touch)
+            onScrubBegan?()
+            return true
+        }
+
+        override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+            setValue(for: touch)
+            onScrubMoved?()
+            return true
+        }
+
+        override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
+            if let touch {
+                setValue(for: touch)
+            }
+            onScrubEnded?()
+        }
+
+        override func cancelTracking(with event: UIEvent?) {
+            onScrubEnded?()
+        }
+
+        // 在条上横拖是拖进度：不让外层翻页、下拉关闭的拖动手势抢走。
+        override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            if gestureRecognizer is UIPanGestureRecognizer, gestureRecognizer.view !== self {
+                return false
+            }
+            return super.gestureRecognizerShouldBegin(gestureRecognizer)
+        }
 
         override var intrinsicContentSize: CGSize {
             CGSize(width: UIView.noIntrinsicMetric, height: Self.trackHeight)
@@ -742,5 +825,41 @@ class PlayerProgressView: UIView {
             rect.origin.y = (bounds.height - Self.trackHeight) / 2
             return rect
         }
+
+        // 拇指中心按比例落在条上（不按系统的「两端各缩进半个拇指」），这样和手指、预览帧对得上。
+        override func thumbRect(forBounds bounds: CGRect, trackRect rect: CGRect, value: Float) -> CGRect {
+            let thumbRect = super.thumbRect(forBounds: bounds, trackRect: rect, value: value)
+            let fraction: CGFloat = if maximumValue > minimumValue {
+                CGFloat((value - minimumValue) / (maximumValue - minimumValue))
+            } else {
+                0
+            }
+            let centerX = rect.minX + min(max(fraction, 0), 1) * rect.width
+            return CGRect(x: centerX - thumbRect.width / 2, y: thumbRect.minY, width: thumbRect.width, height: thumbRect.height)
+        }
     }
 }
+
+#if TESTABLE_BUILD
+
+// Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumCarouselScreenshotTests）。
+extension PlayerProgressView {
+    var positionTextForTesting: String? { positionLabel.text }
+    var durationTextForTesting: String? { durationLabel.text }
+
+    /// 手指按在条上 `fraction` 处（0…1）；`isMove` 为 true 时当作按住后挪到这里。
+    func scrubForTesting(toFraction fraction: Float, isMove: Bool) {
+        slider.value = slider.minimumValue + fraction * (slider.maximumValue - slider.minimumValue)
+        if isMove {
+            handleScrubMoved()
+        } else {
+            handleScrubBegan()
+        }
+    }
+
+    func endScrubForTesting() {
+        handleScrubEnded()
+    }
+}
+
+#endif
