@@ -1873,6 +1873,89 @@ public class RegistrationCoordinatorTest {
         )
     }
 
+    /// Tellomi：香港只给中国大陆号码发短信。别的地区要验证码时服务端回 440 providerUnavailable，
+    /// 而且 permanentFailure=false（见 `TSConstants.smsVerificationCallingCodes`）。首次注册时应该回到手机号页、
+    /// 行内说明，而不是先进空的验证码页（tellomi/tellomi#1209）。换号保持上游行为。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_smsUnavailableForRegion(testCase: TestCase) async {
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        switch mode {
+        case .registering, .changingNumber:
+            break
+        case .reRegistering:
+            // no changing the number when reregistering
+            return
+        }
+
+        // Stubs.e164 是 +1，不在 Tellomi 开放短信的区号里。
+        #expect(!RegistrationCoordinatorImpl.canReceiveSmsVerificationCode(Stubs.e164))
+
+        await setUpSessionPath(coordinator: coordinator, mode: mode)
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.serverFailure(.init(
+            session: stubs.session(),
+            isPermanent: false,
+            reason: .providerUnavailable,
+        )))
+
+        let step = await coordinator.submitE164(Stubs.e164).awaitable()
+
+        switch mode {
+        case .registering:
+            #expect(step == .phoneNumberEntry(.registration(.initialRegistration(.init(
+                previouslyEnteredE164: Stubs.e164,
+                validationError: .unsupportedRegion(.init(e164: Stubs.e164)),
+                canExitRegistration: true,
+            )))))
+        case .changingNumber, .reRegistering:
+            #expect(step == .verificationCodeEntry(stubs.verificationCodeEntryState(
+                mode: mode,
+                nextVerificationAttempt: nil,
+                validationError: .providerFailure(isPermanent: false),
+            )))
+        }
+    }
+
+    /// 同一个 440 落在 +86 号码上照旧：那可能真是短信服务暂时不可用，进验证码页、说「稍后再试」。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_smsTransientFailureForMainlandNumber(testCase: TestCase) async {
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+        let mainlandE164 = E164("+8613800138000")!
+
+        switch mode {
+        case .registering, .changingNumber:
+            break
+        case .reRegistering:
+            // no changing the number when reregistering
+            return
+        }
+
+        #expect(RegistrationCoordinatorImpl.canReceiveSmsVerificationCode(mainlandE164))
+
+        await setUpSessionPath(coordinator: coordinator, mode: mode)
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session(e164: mainlandE164)))
+        sessionManager.addRequestCodeResponseMock(.serverFailure(.init(
+            session: stubs.session(e164: mainlandE164),
+            isPermanent: false,
+            reason: .providerUnavailable,
+        )))
+
+        #expect(
+            await coordinator.submitE164(mainlandE164).awaitable() ==
+                .verificationCodeEntry(stubs.verificationCodeEntryState(
+                    mode: mode,
+                    e164: mainlandE164,
+                    nextVerificationAttempt: nil,
+                    validationError: .providerFailure(isPermanent: false),
+                )),
+        )
+    }
+
     @MainActor @Test(arguments: Self.testCases())
     func testSessionPath_rateLimitSessionCreation(testCase: TestCase) async {
         let coordinator = setupTest(testCase)
@@ -3409,6 +3492,8 @@ public class RegistrationCoordinatorTest {
                     )))
                 case .invalidInput:
                     owsFail("Can't happen.")
+                case .unsupportedRegion:
+                    owsFail("Only used when registering.")
                 case .invalidE164(let error):
                     return .changingNumber(.initialEntry(.init(
                         oldE164: changeNumberParams.oldE164,

@@ -78,6 +78,9 @@ public class TSConstants {
     public static var svrEnclaveAvailable: Bool { shared.svrEnclaveAvailable }
     public static var cdsiAvailable: Bool { shared.cdsiAvailable }
     public static var keyTransparencyAvailable: Bool { shared.keyTransparencyAvailable }
+    public static var voiceVerificationAvailable: Bool { shared.voiceVerificationAvailable }
+    public static var backupServiceAvailable: Bool { shared.backupServiceAvailable }
+    public static var smsVerificationCallingCodes: Set<String>? { shared.smsVerificationCallingCodes }
 
     /// Tellomi：阶段一**不做捐赠**（owner 2026-09-22 定）。
     ///
@@ -90,6 +93,14 @@ public class TSConstants {
     /// `example.svg` 徽章，客户端解析不了）。而且这些页面上还写着「Proudly Nonprofit」
     /// 「Signal is a 501c3 nonprofit」这类**对 Tellomi 不成立**的资质说法。
     public static let donationsEnabled = false
+
+    /// Tellomi（tellomi/tellomi#1193，#984 的 iOS 半边）：阶段一不做远端备份（上游的「Signal 备份」免费 / 付费套餐）。
+    ///
+    /// 没有备份服务端与 CDN，也没有支付通道；「选择方案」页的页脚还写着「Signal 是一个非营利性平台。
+    /// 付费进行备份可为我们提供支持」——对 Tellomi 不成立。关掉之后：设置里只通向远端备份的「备份」一行不出、
+    /// 各处（megaphone、首屏提示、通知）跳远端备份页的入口都只打开设置首页、选择方案页不再加载。
+    /// 本地备份（开发 / beta 构建里的「设备上备份」）不受影响。与 Android `PAID_BACKUPS_ENABLED`（#984）同一件事。
+    public static let remoteBackupsEnabled = false
 
 
     public static var serverPublicParams: Data { shared.serverPublicParams }
@@ -169,6 +180,21 @@ public protocol TSConstantsProtocol: AnyObject {
     /// 没有时服务端只能回 500，而客户端把任何非 200 都当错误、几秒一次地重试。
     var keyTransparencyAvailable: Bool { get }
 
+    /// Tellomi：服务端能不能打电话念验证码。香港的 registration-service 对所有地区关着语音
+    /// （`deploy/hk/enable-aliyun-sms.sh` 里 voice = `[ZZ]`），这时验证码页的「呼叫我」点了只会失败（tellomi/tellomi#1209）。
+    var voiceVerificationAvailable: Bool { get }
+
+    /// Tellomi：这套部署有没有 Signal 的安全备份（SVR-B enclave + 备份后端）。没有时不引导用户去开备份，
+    /// 否则 7 天后的「开启加密备份」卡片把人带进一条走不通的路（tellomi/tellomi#1209）。
+    var backupServiceAvailable: Bool { get }
+
+    /// Tellomi：短信验证码发得到哪些国际区号的号码（不带 `+`）；nil = 不限（上游）。
+    /// 香港的 registration-service 只给 CN 配了发送器（`deploy/hk/enable-aliyun-sms.sh`：`available-only-in-regions: [CN]`）。
+    /// 别的地区要验证码时，它回 `NO_SENDER_AVAILABLE`（mayRetry=false），Signal-Server 把 mayRetry 原样当 permanent 传，
+    /// 于是客户端收到 440 providerUnavailable + **permanentFailure=false**——单看响应分不出「这个地区没开放」
+    /// 还是「短信服务暂时不可用」，只能靠号码的区号来分（tellomi/tellomi#1209）。
+    var smsVerificationCallingCodes: Set<String>? { get }
+
     var serverPublicParams: Data { get }
     var callLinkPublicParams: Data { get }
     var backupServerPublicParams: Data { get }
@@ -201,6 +227,9 @@ public class TSConstantsProduction: TSConstantsProtocol {
     public let svrEnclaveAvailable: Bool = true
     public let cdsiAvailable: Bool = true
     public let keyTransparencyAvailable: Bool = true
+    public let voiceVerificationAvailable: Bool = true
+    public let backupServiceAvailable: Bool = true
+    public let smsVerificationCallingCodes: Set<String>? = nil
 
     public let mainServiceURL = "https://chat.signal.org"
     public let textSecureCDN0ServerURL = "https://cdn.signal.org"
@@ -272,6 +301,9 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let svrEnclaveAvailable: Bool = false
     public let cdsiAvailable: Bool = false
     public let keyTransparencyAvailable: Bool = false
+    public let voiceVerificationAvailable: Bool = false
+    public let backupServiceAvailable: Bool = false
+    public let smsVerificationCallingCodes: Set<String>? = ["86"]
 
     public let mainServiceURL = "https://chat.tellomi.app"
     public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
@@ -395,6 +427,9 @@ public class TSConstantsMock: TSConstantsProtocol {
     public lazy var svrEnclaveAvailable: Bool = defaultValues.svrEnclaveAvailable
     public lazy var cdsiAvailable: Bool = defaultValues.cdsiAvailable
     public lazy var keyTransparencyAvailable: Bool = defaultValues.keyTransparencyAvailable
+    public lazy var voiceVerificationAvailable: Bool = defaultValues.voiceVerificationAvailable
+    public lazy var backupServiceAvailable: Bool = defaultValues.backupServiceAvailable
+    public lazy var smsVerificationCallingCodes: Set<String>? = defaultValues.smsVerificationCallingCodes
 
     public lazy var serverPublicParams = defaultValues.serverPublicParams
 

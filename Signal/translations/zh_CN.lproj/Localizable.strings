@@ -2845,7 +2845,7 @@
 "COPIED_TO_CLIPBOARD" = "已复制到剪贴板";
 
 /* No comment provided by engineer. */
-"COUNTRYCODE_SELECT_TITLE" = "选择国家编码";
+"COUNTRYCODE_SELECT_TITLE" = "选择国家和地区";
 
 /* Label for button that enables you to make a new call link. */
 "CREATE_CALL_LINK_LABEL" = "创建通话链接";
@@ -4969,13 +4969,13 @@
 "HOME_VIEW_DRAFT_PREFIX" = "草稿： ";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have 1 Signal contact.  Embeds {{The name of 1 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_1_CONTACT_FORMAT" = "您的一些联系人已经在使用Tellomi了，比如%1$@。";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_1_CONTACT_FORMAT" = "您的一些联系人已经在使用 Tellomi 了，比如%1$@。";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have 2 Signal contacts.  Embeds {{The names of 2 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "您的一些联系人已经在使用Tellomi了，比如%1$@和%2$@。";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "您的一些联系人已经在使用 Tellomi 了，比如%1$@和%2$@。";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have at least 3 Signal contacts.  Embeds {{The names of 3 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_3_CONTACTS_FORMAT" = "您的一些联系人已经在使用Tellomi了，比如%1$@，%2$@，以及%3$@。";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_3_CONTACTS_FORMAT" = "您的一些联系人已经在使用 Tellomi 了，比如%1$@，%2$@，以及%3$@。";
 
 /* A label offering to start a new conversation with your contacts, if you have no Signal contacts. */
 "HOME_VIEW_FIRST_CONVERSATION_OFFER_NO_CONTACTS" = "开启第一次聊天。";
@@ -6612,6 +6612,9 @@
 /* Label indicating that registration has been ratelimited. Embeds {{remaining time string}}. */
 "ONBOARDING_PHONE_NUMBER_RATE_LIMIT_WARNING_FORMAT" = "请稍候几分钟后再试。（%1$@）";
 
+/* Label under the phone number field when verification codes can't be sent to numbers from the entered region. */
+"ONBOARDING_PHONE_NUMBER_UNSUPPORTED_REGION_WARNING" = "暂未开放该地区的手机号注册，目前只支持中国大陆（+86）手机号。";
+
 /* Label indicating that the phone number is invalid in the 'onboarding phone number' view. */
 "ONBOARDING_PHONE_NUMBER_VALIDATION_WARNING" = "此为无效手机号码，请输入有效的手机号码注册。";
 
@@ -6628,10 +6631,10 @@
 "ONBOARDING_PIN_ATTEMPTS_EXHAUSTED_WITH_UNKNOWN_REGLOCK_EXPLANATION" = "您尝试输入密码的次数已超过限定的次数，不过您仍然可以通过验证您的手机号码来登录您的 Tellomi 账户。出于对您的隐私和安全的考虑，您的账户在恢复时将不保留任何保存过的个人资料信息或设置。";
 
 /* Explanation of 'do not have old device' flow for the 'Restore or Transfer' prompt */
-"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_BODY" = "您可以在同一个设备上重新安装 Tellomi";
+"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_BODY" = "或者您在同一台设备上重新安装了 Tellomi";
 
 /* Title for the 'do not have my old device' choice of the 'Restore or Transfer' prompt */
-"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_TITLE" = "我无法用旧手机";
+"ONBOARDING_SPLASH_DO_NOT_HAVE_OLD_DEVICE_TITLE" = "旧手机不在身边";
 
 /* Explanation of 'have old device' flow for the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_BODY" = "从您当前的 Tellomi 账户扫描二维码以快速开始操作";
@@ -7210,13 +7213,13 @@
 "PHONE_NUMBER_DISCOVERABILITY_EVERYBODY" = "所有人";
 
 /* A user friendly description of the 'everybody' phone number discoverability mode. */
-"PHONE_NUMBER_DISCOVERABILITY_EVERYBODY_DESCRIPTION" = "知道您的手机号码的任何人均可以在 Tellomi 上看到您的上线状态，并可以开始跟您聊天。";
+"PHONE_NUMBER_DISCOVERABILITY_EVERYBODY_DESCRIPTION" = "知道您手机号码的任何人都能看到您在使用 Tellomi，并可以和您开始聊天。";
 
 /* A user friendly name for the 'nobody' phone number discoverability mode. */
 "PHONE_NUMBER_DISCOVERABILITY_NOBODY" = "没有人";
 
 /* A user friendly description of the 'nobody' phone number discoverability mode. */
-"PHONE_NUMBER_DISCOVERABILITY_NOBODY_DESCRIPTION" = "没人能在 Tellomi 上看到您的上线状态，除非您给对方发送消息，或与对方有一个现有的聊天窗口。";
+"PHONE_NUMBER_DISCOVERABILITY_NOBODY_DESCRIPTION" = "除非您给对方发过消息或已经有聊天，否则没有人能看到您在使用 Tellomi。";
 
 /* A format for a label showing an example phone number. Embeds {{the example phone number}}. */
 "PHONE_NUMBER_EXAMPLE_FORMAT" = "范例：%1$@";
@@ -8163,6 +8166,9 @@
 /* Tutorial text describing the second step to scanning the restore/transfer QR code with your old phone: tap the camera icon */
 "REGISTRATION_SCAN_QR_CODE_TUTORIAL_TAP_CAMERA" = "点击相机图标";
 
+/* Error message when sending a verification code via SMS failed and no other way of sending the code is available. */
+"REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR" = "暂时无法给这个号码发送验证码。目前只开放中国大陆手机号注册；如果您用的是中国大陆号码，请稍后再试或联系 support@tellomi.app。";
+
 /* Button when sending a verification code via sms failed, but resending via voice call might succeed. */
 "REGISTRATION_SMS_CODE_FAILED_TRY_VOICE_BUTTON" = "语音通话";
 
@@ -8174,6 +8180,9 @@
 
 /* Alert shown when submitting a verification code too many times. Embeds {{ duration }}, such as \"5:00\" */
 "REGISTRATION_SUBMIT_CODE_RATE_LIMIT_ALERT_FORMAT" = "您输入验证码的次数过多。请在 %1$@后再试";
+
+/* Shown inline under the verification code field when the entered code is wrong. */
+"REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "验证码不对，请核对短信后重新输入";
 
 /* During registration and re-registration, users may have to enter a code to verify ownership of their phone number. If they enter an invalid code, they will see this error message. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_VERIFICATION_CODE" = "您输入的验证码无效。请重新发送验证码并重试。";
@@ -8530,7 +8539,7 @@
 "SEARCH_BY_NAME_OR_USERNAME_OR_NUMBER_PLACEHOLDER_TEXT" = "姓名、用户名或手机号码";
 
 /* Placeholder text indicating the user can search for contacts by name or phone number. */
-"SEARCH_BYNAMEORNUMBER_PLACEHOLDER_TEXT" = "搜索姓名或号码";
+"SEARCH_BYNAMEORNUMBER_PLACEHOLDER_TEXT" = "搜索国家、地区或区号";
 
 /* placeholder text in an empty search field */
 "SEARCH_FIELD_PLACE_HOLDER_TEXT" = "搜索";
@@ -9844,7 +9853,7 @@
 "SETTINGS_WHILE_MUTED_REPLIES_FOOTER" = "当有人在静音聊天中回复您的消息时通知您。";
 
 /* action sheet item to open native mail app */
-"SHARE_ACTION_MAIL" = "Email";
+"SHARE_ACTION_MAIL" = "邮件";
 
 /* action sheet item to open native messages app */
 "SHARE_ACTION_MESSAGE" = "短信";
