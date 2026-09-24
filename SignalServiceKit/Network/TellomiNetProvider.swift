@@ -22,8 +22,12 @@ public final class TellomiNetProvider: Sendable {
 
     private let state: AtomicValue<State>
 
-    public init(region: TellomiRegionProfile, net: Net) {
+    /// 这个进程认识的区：默认是编进包里的表（`TellomiRegions.all`）。
+    public let profiles: [TellomiRegionProfile]
+
+    public init(region: TellomiRegionProfile, net: Net, profiles: [TellomiRegionProfile] = TellomiRegions.all) {
         self.state = AtomicValue(State(region: region, net: net, generation: 0), lock: .init())
+        self.profiles = profiles
     }
 
     // MARK: - 本进程装上的那一个

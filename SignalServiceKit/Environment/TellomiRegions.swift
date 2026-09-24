@@ -7,7 +7,7 @@ import Foundation
 
 /// Tellomi：区域 id（RegionProfile 契约 v2 第二节，超级仓库 `docs/signal/REGION_PROFILE.md`；tellomi/tellomi#1056）。
 /// 和 Desktop、Android、ADR-0062 / ADR-0064、policy 引擎的 `Region::{Global, Cn}` 是同一套取值。
-public enum TellomiRegionId: String, CaseIterable {
+public enum TellomiRegionId: String, CaseIterable, Sendable {
     case global
     case cn
 }
@@ -18,7 +18,7 @@ public enum TellomiRegionId: String, CaseIterable {
 ///
 /// 不进区域的：`svr2` / `cdsi`（没有自建，见 `ENCLAVES.md`）、zk 参数、UD 信任根、CA——两个区连的是同一套服务端。
 /// 契约第三节的 staticIps 只有 Android 有；iOS 没有静态 IP 回落。
-public struct TellomiRegionProfile: Equatable {
+public struct TellomiRegionProfile: Equatable, Sendable {
     public let id: TellomiRegionId
     public let enabled: Bool
     /// REST + WebSocket（`TSConstants.mainServiceURL`）。captcha 页、`/callingService`、`/debuglogs` 也挂在这台主机上。
@@ -119,6 +119,11 @@ public enum TellomiRegions {
     /// REST（`TSConstants`）和 libsignal 两侧在进程内同时切；装上之前（`AppSetup` 建 `Net` 时、启动失败页）回落记住的区。
     public static func active() -> TellomiRegionProfile {
         TellomiNetProvider.installed?.activeRegion ?? current()
+    }
+
+    /// 本进程认识的区：装上的 provider 带的表；没装上时是编进包里的表。
+    public static func known() -> [TellomiRegionProfile] {
+        TellomiNetProvider.installed?.profiles ?? all
     }
 
     /// 记住的区 id → 区。回落规则是纯函数，单测直接测它。

@@ -322,6 +322,96 @@ class TellomiRegionsTest: XCTestCase {
         XCTAssertTrue((pinned as AnyObject) === (before as AnyObject))
     }
 
+    // MARK: - #1056 第三刀：在途上传钉住开始时的区（提交 D）
+
+    private func makeForm(regionId: String?) -> Upload.Form {
+        Upload.Form(headers: HttpHeaders(), signedUploadLocation: "https://cdn3.tellomi.app/upload", cdnKey: "key", cdnNumber: 3, tellomiRegionId: regionId)
+    }
+
+    func testUploadFormsAreStampedWithTheActiveRegion() {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: global, net: makeTestNet(), profiles: [global, cnOn])
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+        let remote = UploadForm(cdn: 3, key: "key", headers: [:], signedUploadUrl: URL(string: "https://cdn3.tellomi.app/upload")!)
+
+        XCTAssertEqual(Upload.Form(uploadForm: remote).tellomiRegionId, "global")
+        provider.replace(net: makeTestNet(), region: cnOn)
+        XCTAssertEqual(Upload.Form(uploadForm: remote).tellomiRegionId, "cn")
+    }
+
+    func testPinnedCdnAddressFollowsTheStampNotTheActiveRegion() {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: global, net: makeTestNet(), profiles: [global, cnOn])
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+        let startedInGlobal = makeForm(regionId: "global")
+        let startedInCn = makeForm(regionId: "cn")
+
+        // 切区以后，在途的上传仍连开始时那个区的 cdn3；新开始的上传才用新区
+        provider.replace(net: makeTestNet(), region: cnOn)
+        XCTAssertEqual(startedInGlobal.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.app")
+        XCTAssertEqual(startedInCn.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.cn")
+        provider.replace(net: makeTestNet(), region: global)
+        XCTAssertEqual(startedInCn.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.cn")
+    }
+
+    func testFormsFromBeforeTheStampArePinnedToGlobal() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: cnOn, net: makeTestNet(), profiles: [global, cnOn])
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+
+        // 表单整个以 JSON 存在上传记录里：章跟着存取；第三刀之前存的记录没有这个键，按 global（不是按生效区）
+        let stamped = try JSONDecoder().decode(Upload.Form.self, from: JSONEncoder().encode(makeForm(regionId: "cn")))
+        XCTAssertEqual(stamped.tellomiRegionId, "cn")
+        let legacyJson = try JSONEncoder().encode(makeForm(regionId: nil))
+        XCTAssertFalse(String(decoding: legacyJson, as: UTF8.self).contains("tellomiRegionId"))
+        let legacy = try JSONDecoder().decode(Upload.Form.self, from: legacyJson)
+        XCTAssertNil(legacy.tellomiRegionId)
+        XCTAssertEqual(legacy.tellomiPinnedRegion, global)
+        XCTAssertEqual(legacy.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.app")
+    }
+
+    func testAFormPinnedToATurnedOffRegionIsNotReused() {
+        // 包里的 CN 关着：钉在 CN 的表单不能再用，上传管理器当它过期，重新取表单、从 0 开始、落到当前区
+        XCTAssertNil(makeForm(regionId: "cn").tellomiPinnedRegion)
+        XCTAssertNil(makeForm(regionId: "unknown").tellomiPinnedRegion)
+        XCTAssertEqual(makeForm(regionId: "global").tellomiPinnedRegion, TellomiRegions.global)
+    }
+
+    /// 上传目录里取 CDN 会话，一律按表单钉住的地址取：不带 `baseUrl:` 的取法会按生效区走，切区后续传就换了区。
+    private func uploadCdnSessionCalls() throws -> (unpinned: [String], pinned: Int) {
+        let dir = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // Util
+            .deletingLastPathComponent() // tests
+            .deletingLastPathComponent() // SignalServiceKit
+            .appendingPathComponent("Upload")
+            .resolvingSymlinksInPath()
+        var unpinned = [String]()
+        var pinned = 0
+        for name in try FileManager.default.contentsOfDirectory(atPath: dir.path) where name.hasPrefix("UploadEndpoint") && name.hasSuffix(".swift") {
+            let text = try String(contentsOf: dir.appendingPathComponent(name), encoding: .utf8)
+            for (index, line) in text.components(separatedBy: "\n").enumerated() where line.contains("sharedUrlSessionForCdn(cdnNumber:") {
+                if line.contains("baseUrl: uploadForm.tellomiPinnedCdnBaseUrl") {
+                    pinned += 1
+                } else {
+                    unpinned.append("\(name):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))")
+                }
+            }
+        }
+        return (unpinned, pinned)
+    }
+
+    func testUploadEndpointsOnlyUsePinnedCdnSessions() throws {
+        XCTAssertEqual(try uploadCdnSessionCalls().unpinned, [])
+    }
+
+    func testTheUploadScanActuallyFindsTheCalls() throws {
+        // 正对照：CDN2 三处、CDN3 两处，都扫得到
+        XCTAssertEqual(try uploadCdnSessionCalls().pinned, 5)
+    }
+
     // MARK: - 门禁：除 provider 外不许存 Net
 
     private static let netProviderFile = "SignalServiceKit/Network/TellomiNetProvider.swift"
