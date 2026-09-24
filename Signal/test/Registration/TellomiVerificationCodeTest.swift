@@ -84,16 +84,24 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
 
     func testPastingANumberLongerThanTheCodeIsNotTakenAsACode() {
         // taishi 审查 b6：粘进一个手机号，不能取前 6 位自动提交、白白用掉一次机会。
+        var rejectedFeedbacks = 0
+        let original = RegistrationVerificationCodeView.tellomiRejectedPasteFeedback
+        RegistrationVerificationCodeView.tellomiRejectedPasteFeedback = { rejectedFeedbacks += 1 }
+        defer { RegistrationVerificationCodeView.tellomiRejectedPasteFeedback = original }
+
         let (view, delegate) = makeCodeView()
         insert("13800138000", into: view)
         XCTAssertEqual(view.verificationCode, "")
         XCTAssertFalse(view.isComplete)
         XCTAssertEqual(delegate.changeCount, 0)
+        // taishi 审查 b6 包 4 不阻塞 3：整串不收时给一次触感，粘错的人知道没粘进去
+        XCTAssertEqual(rejectedFeedbacks, 1)
 
-        // 剩下的格子放得下的一小段照常接着填。
+        // 剩下的格子放得下的一小段照常接着填，不震。
         insert("4", into: view)
         insert("82913", into: view)
         XCTAssertEqual(view.verificationCode, "482913")
+        XCTAssertEqual(rejectedFeedbacks, 1)
     }
 
     // MARK: - "Didn't get the code?" sheet

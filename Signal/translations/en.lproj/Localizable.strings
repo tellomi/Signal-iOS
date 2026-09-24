@@ -8211,7 +8211,7 @@
 /* Tellomi: Alert shown when the verification code can no longer be submitted, because it expired or was entered wrong too many times. */
 "REGISTRATION_TELLOMI_CODE_NO_LONGER_VALID" = "This code can no longer be used. It may have expired, or been entered wrong too many times. Please get a new code.";
 
-/* Tellomi: Alert shown when the registration verification session has expired; the user goes back to the phone number screen to request a new code. */
+/* Tellomi: Alert shown when the registration verification session is no longer valid (it expired, or was reset); the user goes back to the phone number screen, where Next requests a new code. */
 "REGISTRATION_TELLOMI_SESSION_EXPIRED" = "This verification is no longer valid. Please check your number and get a new code.";
 
 /* Shown inline under the verification code field when the entered code is wrong. */
