@@ -831,6 +831,24 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         }
     }
 
+    /// Tellomi（tellomi/tellomi#1218 F-02）：首屏「搜索用户名」卡。「新建会话」上面直接叠着「按用户名查找」：
+    /// 找到了照常开会话，返回是「新建会话」。不先要通讯录权限（上游 showNewConversationView 会要）——
+    /// 点的是「搜索用户名」，这时弹通讯录授权会让人摸不着头脑，Tellomi 也不靠通讯录找人。
+    func showFindByUsernameView() {
+        AssertIsOnMainThread()
+
+        Logger.info("")
+
+        // Dismiss any message actions if they're presented
+        conversationSplitViewController?.selectedConversationViewController?.dismissMessageContextMenu(animated: true)
+
+        let viewController = ComposeViewController()
+        let modal = OWSNavigationController(rootViewController: viewController)
+        viewController.loadViewIfNeeded()
+        viewController.recipientPicker.showFindByUsername(animated: false)
+        self.navigationController?.presentFormSheet(modal, animated: true)
+    }
+
     func showNewGroupView() {
         AssertIsOnMainThread()
 
@@ -1370,6 +1388,8 @@ extension ChatListViewController {
         case paymentsTransferIn
         case appearance
         case avatarBuilder
+        /// Tellomi（tellomi/tellomi#1218 F-02）：首屏「我的二维码」卡
+        case tellomiMyQRCode
         case backups(
             page: BackupSettingsPage = BuildFlags.LocalFileBackups.settingsUI ? .landingPage : .remote(),
         )
@@ -1425,6 +1445,14 @@ extension ChatListViewController {
             )
             viewControllers += [profile]
             internalCompletion = { profile.presentAvatarSettingsView() }
+
+        case .tellomiMyQRCode:
+            let profile = ProfileSettingsViewController(
+                usernameChangeDelegate: appSettingsViewController,
+                usernameLinkScanDelegate: appSettingsViewController,
+            )
+            viewControllers += [profile]
+            internalCompletion = { profile.presentTellomiMyQRCode() }
 
         case .backups(let page):
             let backupSettingsVC: UIViewController
@@ -1608,6 +1636,14 @@ extension ChatListViewController: GetStartedBannerViewControllerDelegate {
 
     func getStartedBannerDidTapAvatarBuilder(_ banner: GetStartedBannerViewController) {
         showAppSettings(mode: .avatarBuilder)
+    }
+
+    func getStartedBannerDidTapFindByUsername(_ banner: GetStartedBannerViewController) {
+        showFindByUsernameView()
+    }
+
+    func getStartedBannerDidTapMyQRCode(_ banner: GetStartedBannerViewController) {
+        showAppSettings(mode: .tellomiMyQRCode)
     }
 }
 

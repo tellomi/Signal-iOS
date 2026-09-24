@@ -359,6 +359,7 @@
 		3457794326828A9A00732869 /* ConversationCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3457794226828A9A00732869 /* ConversationCollectionView.swift */; };
 		3457811B23EB56B300CE01C3 /* ConversationViewController+MessageRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3457811A23EB56B300CE01C3 /* ConversationViewController+MessageRequest.swift */; };
 		345AE2B62317048300DB6225 /* GRDBFinderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 345AE2B52317048200DB6225 /* GRDBFinderTest.swift */; };
+		97F85320F6254232A2F31503 /* TellomiGetStartedTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A00F5A7E71AAAD3AE9CAD69 /* TellomiGetStartedTest.swift */; };
 		3461284B1FD0B94000532771 /* SAELoadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3461284A1FD0B93F00532771 /* SAELoadViewController.swift */; };
 		34635330256EA52A003C5428 /* ConversationViewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3463532E256EA525003C5428 /* ConversationViewTest.swift */; };
 		34635332257549F2003C5428 /* CVReactionCountsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34635331257549F1003C5428 /* CVReactionCountsView.swift */; };
@@ -4547,6 +4548,7 @@
 		3457794226828A9A00732869 /* ConversationCollectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConversationCollectionView.swift; sourceTree = "<group>"; };
 		3457811A23EB56B300CE01C3 /* ConversationViewController+MessageRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+MessageRequest.swift"; sourceTree = "<group>"; };
 		345AE2B52317048200DB6225 /* GRDBFinderTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBFinderTest.swift; sourceTree = "<group>"; };
+		8A00F5A7E71AAAD3AE9CAD69 /* TellomiGetStartedTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiGetStartedTest.swift; sourceTree = "<group>"; };
 		345DE95F23ED9AA500A8E6E3 /* GroupsV2ProfileKeyUpdater.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupsV2ProfileKeyUpdater.swift; sourceTree = "<group>"; };
 		3461284A1FD0B93F00532771 /* SAELoadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SAELoadViewController.swift; sourceTree = "<group>"; };
 		346129AE1FD1F5D900532771 /* SystemContactsFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemContactsFetcher.swift; sourceTree = "<group>"; };
@@ -11933,6 +11935,7 @@
 				3485434426BC598800FB9C38 /* EmojiTests.swift */,
 				F9952B3029F2D99500EA989E /* ExpirationNagViewTest.swift */,
 				345AE2B52317048200DB6225 /* GRDBFinderTest.swift */,
+				8A00F5A7E71AAAD3AE9CAD69 /* TellomiGetStartedTest.swift */,
 				F93461BA291ED2B000366682 /* PaymentDetailsValidityTest.swift */,
 				349D21E7268E044700D98870 /* QRCodeParserTest.swift */,
 				F963164A291AE06C00218FB7 /* ScrubbingLogFormatterTest.swift */,
@@ -19259,6 +19262,7 @@
 				3485434526BC598800FB9C38 /* EmojiTests.swift in Sources */,
 				F9952B3129F2D99500EA989E /* ExpirationNagViewTest.swift in Sources */,
 				345AE2B62317048300DB6225 /* GRDBFinderTest.swift in Sources */,
+				97F85320F6254232A2F31503 /* TellomiGetStartedTest.swift in Sources */,
 				3499998222EF1E2100654932 /* GRDBFullTextSearcherTest.swift in Sources */,
 				34BBC861220E883300857249 /* ImageEditorModelTest.swift in Sources */,
 				34BBC862220E883300857249 /* ImageEditorTest.swift in Sources */,
