@@ -325,6 +325,210 @@ final class AlbumCarouselScreenshotTests: XCTestCase {
         try report.write(to: shotsDirectory(width: shotWidths.first ?? 402).deletingLastPathComponent().appendingPathComponent("metrics-caption-group.txt"), atomically: true, encoding: .utf8)
     }
 
+    // MARK: - 查看器（owner 2026-09-25，对照 Telegram）
+
+    /// 打开时什么都不显示，轻点后四角按钮与本组缩略条一起出现（「3 / 5」）；在缩略条上拖，指到哪张查看器就切到哪张；
+    /// 转发、删除都先问「这张 / 全部 5 张」；只有一张时没有缩略条。
+    @MainActor
+    func testViewerHiddenChromeScrubberAndAlbumChoices() async throws {
+        try requireShots()
+        let width = shotWidths.first ?? 402
+
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let album = try await insertAlbum(thread: thread, incoming: true, sizes: sizes(5), body: nil)
+        let single = try await insertAlbum(thread: thread, incoming: true, sizes: [CGSize(width: 1200, height: 1600)], body: nil)
+
+        let third = try bodyAttachments(of: album)[2]
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: third, thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+
+        report += "viewer: opened toolbarsHidden=\(viewer.areToolbarsHiddenForTesting) current=\(viewer.currentItemForTesting.albumIndex)\n"
+        XCTAssertTrue(viewer.areToolbarsHiddenForTesting, "打开时什么都不显示")
+        XCTAssertEqual(viewer.currentItemForTesting.albumIndex, 2)
+        try save(renderWindow(window), name: "viewer-1-opened.png", width: width)
+
+        viewer.tapMediaForTesting()
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let scrubber = viewer.albumScrubberForTesting
+        report += "viewer: afterTap toolbarsHidden=\(viewer.areToolbarsHiddenForTesting) scrubberHidden=\(scrubber.isHidden) counter=\(scrubber.counterTextForTesting ?? "nil")\n"
+        XCTAssertFalse(viewer.areToolbarsHiddenForTesting, "轻点后四角按钮出现")
+        XCTAssertFalse(scrubber.isHidden, "轻点后缩略条出现")
+        XCTAssertEqual(scrubber.counterTextForTesting, "3  /  5")
+        try save(renderWindow(window), name: "viewer-2-tapped.png", width: width)
+
+        // 在缩略条上从第 3 张往右拖到第 5 张
+        let frames = scrubber.thumbnailFramesForTesting
+        let y = frames[2].midY
+        scrubber.scrubForTesting(through: [
+            CGPoint(x: frames[2].midX, y: y),
+            CGPoint(x: frames[3].midX, y: y),
+            CGPoint(x: frames[4].midX, y: y),
+        ])
+        try await Task.sleep(nanoseconds: 800_000_000)
+        report += "viewer: afterScrub current=\(viewer.currentItemForTesting.albumIndex) counter=\(scrubber.counterTextForTesting ?? "nil")\n"
+        XCTAssertEqual(viewer.currentItemForTesting.albumIndex, 4, "拖缩略条能切到后面的图")
+        XCTAssertEqual(scrubber.counterTextForTesting, "5  /  5")
+        try save(renderWindow(window), name: "viewer-3-scrubbed.png", width: width)
+
+        // 转发：先问「这张 / 全部 5 张」
+        viewer.requestForwardForTesting()
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let forwardSheet = try XCTUnwrap(viewer.presentedViewController as? ActionSheetController)
+        let forwardTitles = labelTexts(in: forwardSheet.view)
+        report += "viewer: forwardChoices=\(forwardTitles)\n"
+        XCTAssertTrue(forwardTitles.contains("This Photo") && forwardTitles.contains("All 5 Photos"), "\(forwardTitles)")
+        try save(renderWindow(window), name: "viewer-4-forward-choice.png", width: width)
+        forwardSheet.dismiss(animated: false)
+        try await Task.sleep(nanoseconds: 400_000_000)
+
+        // 删除：同样先问，两项都是红色
+        viewer.requestDeleteForTesting()
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let deleteSheet = try XCTUnwrap(viewer.presentedViewController as? ActionSheetController)
+        let deleteTitles = labelTexts(in: deleteSheet.view)
+        report += "viewer: deleteChoices=\(deleteTitles)\n"
+        XCTAssertTrue(deleteTitles.contains("This Photo") && deleteTitles.contains("All 5 Photos"), "\(deleteTitles)")
+        try save(renderWindow(window), name: "viewer-5-delete-choice.png", width: width)
+        deleteSheet.dismiss(animated: false)
+        window.isHidden = true
+
+        // 只有一张：轻点后也没有缩略条
+        let singleAttachment = try bodyAttachments(of: single)[0]
+        let singleViewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: singleAttachment, thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let singleWindow = UIWindow(frame: UIScreen.main.bounds)
+        singleWindow.rootViewController = singleViewer
+        singleWindow.isHidden = false
+        singleWindow.layoutIfNeeded()
+        try await Task.sleep(nanoseconds: 1_200_000_000)
+        singleViewer.tapMediaForTesting()
+        try await Task.sleep(nanoseconds: 800_000_000)
+        report += "viewer: single scrubberHidden=\(singleViewer.albumScrubberForTesting.isHidden)\n"
+        XCTAssertTrue(singleViewer.albumScrubberForTesting.isHidden, "只有一张时不显示缩略条")
+        try save(renderWindow(singleWindow), name: "viewer-6-single.png", width: width)
+        singleWindow.isHidden = true
+
+        try report.write(to: shotsDirectory(width: width).deletingLastPathComponent().appendingPathComponent("metrics-viewer.txt"), atomically: true, encoding: .utf8)
+    }
+
+    // MARK: - 回复这一张（owner 2026-09-25）
+
+    /// 查看器里「回复」：草稿的引用缩略图是指定的那一张；不指定时照上游取第一张。
+    @MainActor
+    func testReplyDraftQuotesTheChosenAlbumItem() async throws {
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let album = try await insertAlbum(thread: thread, incoming: true, sizes: sizes(3), body: nil)
+        let attachments = try bodyAttachments(of: album)
+        let manager = DependenciesBridge.shared.quotedReplyManager
+
+        let (chosen, defaultDraft) = read { tx in
+            (
+                manager.buildDraftQuotedReply(
+                    originalMessage: album,
+                    preferredAttachmentId: attachments[2].attachment.id,
+                    loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
+                    tx: tx,
+                ),
+                manager.buildDraftQuotedReply(
+                    originalMessage: album,
+                    loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
+                    tx: tx,
+                ),
+            )
+        }
+        XCTAssertEqual(quotedAttachmentId(chosen), attachments[2].attachment.id, "回复的是第 3 张")
+        XCTAssertEqual(quotedAttachmentId(defaultDraft), attachments[0].attachment.id, "不指定时照上游取第一张")
+    }
+
+    /// 对方回复了我发的相册里的某一张：引用缩略图用对方带来的那张（不是本地第一张）；单张照上游用本地原图。
+    @MainActor
+    func testIncomingQuoteOfAnAlbumItemUsesTheSendersThumbnail() async throws {
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let album = try await insertAlbum(thread: thread, incoming: false, sizes: sizes(3), body: nil)
+        let single = try await insertAlbum(thread: thread, incoming: false, sizes: [CGSize(width: 1200, height: 1600)], body: nil)
+        let localAci = try XCTUnwrap(read { tx in DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: tx)?.aci })
+        let manager = DependenciesBridge.shared.quotedReplyManager
+
+        func quoteProto(of message: TSMessage) throws -> SSKProtoDataMessageQuote {
+            let pointer = SSKProtoAttachmentPointer.builder()
+            pointer.setCdnKey("tellomi-album-item")
+            pointer.setCdnNumber(3)
+            pointer.setKey(Randomness.generateRandomBytes(64))
+            pointer.setDigest(Randomness.generateRandomBytes(32))
+            pointer.setSize(2048)
+            pointer.setContentType("image/jpeg")
+            let quoted = SSKProtoDataMessageQuoteQuotedAttachment.builder()
+            quoted.setContentType("image/jpeg")
+            quoted.setThumbnail(pointer.buildInfallibly())
+            let quote = SSKProtoDataMessageQuote.builder(id: message.timestamp)
+            quote.setAuthorAciBinary(localAci.serviceIdBinary)
+            quote.addAttachments(quoted.buildInfallibly())
+            return try quote.build()
+        }
+
+        let albumProto = try quoteProto(of: album)
+        let singleProto = try quoteProto(of: single)
+        let (albumResult, singleResult) = try read { tx in
+            (
+                try manager.validateAndBuildQuotedReply(from: albumProto, threadUniqueId: thread.uniqueId, tx: tx),
+                try manager.validateAndBuildQuotedReply(from: singleProto, threadUniqueId: thread.uniqueId, tx: tx),
+            )
+        }
+        if case .notFoundLocallyAttachment? = albumResult.thumbnailDataSource {} else {
+            XCTFail("相册：应该用对方带来的缩略图，实际 \(String(describing: albumResult.thumbnailDataSource))")
+        }
+        if case .originalAttachment? = singleResult.thumbnailDataSource {} else {
+            XCTFail("单张：应该照上游用本地原图，实际 \(String(describing: singleResult.thumbnailDataSource))")
+        }
+    }
+
+    private func quotedAttachmentId(_ draft: DraftQuotedReplyModel?) -> Attachment.IDType? {
+        guard case .attachment(_, _, let attachment, _)? = draft?.content else {
+            return nil
+        }
+        return attachment.id
+    }
+
+    private func bodyAttachments(of message: TSMessage) throws -> [ReferencedAttachment] {
+        let rowId = try XCTUnwrap(message.sqliteRowId)
+        let attachments = read { tx in
+            DependenciesBridge.shared.attachmentStore.fetchReferencedAttachments(for: .messageBodyAttachment(messageRowId: rowId), tx: tx)
+        }
+        func order(_ attachment: ReferencedAttachment) -> UInt32 {
+            if case .message(.bodyAttachment(let metadata)) = attachment.reference.owner {
+                return metadata.orderInMessage
+            }
+            return .max
+        }
+        return attachments.sorted { order($0) < order($1) }
+    }
+
+    private func labelTexts(in view: UIView) -> [String] {
+        var texts = [String]()
+        if let label = view as? UILabel, let text = label.text {
+            texts.append(text)
+        }
+        if let button = view as? UIButton, let text = button.title(for: .normal) ?? button.configuration?.title {
+            texts.append(text)
+        }
+        for subview in view.subviews {
+            texts += labelTexts(in: subview)
+        }
+        return texts
+    }
+
+    @MainActor
+    private func renderWindow(_ window: UIWindow) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+    }
+
     // MARK: - Hosting
 
     private struct Hosted {

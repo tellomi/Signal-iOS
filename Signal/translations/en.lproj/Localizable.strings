@@ -5683,6 +5683,16 @@
 
 /* Context menu item in media viewer. Refers to saving currently displayed photo/video to the Photos app. */
 "MEDIA_VIEWER_SAVE_MEDIA_ACTION" = "Save";
+"MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT" = "All %@ Items";
+"MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT" = "All %@ Photos";
+"MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT" = "All %@ Videos";
+"MEDIA_VIEWER_TELLOMI_PLAYBACK_SPEED" = "Playback Speed";
+"MEDIA_VIEWER_TELLOMI_REPLY_ACTION" = "Reply";
+"MEDIA_VIEWER_TELLOMI_SHARE_ACTION" = "Share";
+"MEDIA_VIEWER_TELLOMI_SPEED" = "Speed";
+"MEDIA_VIEWER_TELLOMI_SPEED_NORMAL" = "Normal";
+"MEDIA_VIEWER_TELLOMI_THIS_PHOTO" = "This Photo";
+"MEDIA_VIEWER_TELLOMI_THIS_VIDEO" = "This Video";
 
 /* button title to snooze a megaphone */
 "MEGAPHONE_REMIND_LATER" = "Remind Me Later";

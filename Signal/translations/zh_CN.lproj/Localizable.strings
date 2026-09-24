@@ -5683,6 +5683,16 @@
 
 /* Context menu item in media viewer. Refers to saving currently displayed photo/video to the Photos app. */
 "MEDIA_VIEWER_SAVE_MEDIA_ACTION" = "保存";
+"MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT" = "全部 %@ 项";
+"MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT" = "全部 %@ 张图片";
+"MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT" = "全部 %@ 个视频";
+"MEDIA_VIEWER_TELLOMI_PLAYBACK_SPEED" = "播放速度";
+"MEDIA_VIEWER_TELLOMI_REPLY_ACTION" = "回复";
+"MEDIA_VIEWER_TELLOMI_SHARE_ACTION" = "分享";
+"MEDIA_VIEWER_TELLOMI_SPEED" = "速度";
+"MEDIA_VIEWER_TELLOMI_SPEED_NORMAL" = "正常";
+"MEDIA_VIEWER_TELLOMI_THIS_PHOTO" = "这张图片";
+"MEDIA_VIEWER_TELLOMI_THIS_VIDEO" = "这个视频";
 
 /* button title to snooze a megaphone */
 "MEGAPHONE_REMIND_LATER" = "设置提醒事项";

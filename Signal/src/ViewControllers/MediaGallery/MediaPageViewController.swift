@@ -207,6 +207,12 @@ class MediaPageViewController: UIPageViewController {
         // Load initial page and update all UI to reflect it.
         setCurrentItem(initialGalleryItem, direction: .forward, shouldAutoPlayVideo: true, animated: false)
 
+        // Tellomi（#1257，owner 2026-09-25，对照 Telegram）：打开时什么都不显示（四角按钮、缩略条、视频控件），轻点才一起出现；
+        // 开着 VoiceOver 时照常显示，不然找不到转发 / 保存。
+        if !UIAccessibility.isVoiceOverRunning {
+            setShouldHideToolbars(true, animated: false)
+        }
+
         mediaGallery.addDelegate(self)
     }
 
@@ -406,6 +412,7 @@ class MediaPageViewController: UIPageViewController {
                     self?.presentConversationForCurrentMedia()
                 },
             ),
+        ] + replyActionIfAvailable() + [
             UIAction(
                 title: OWSLocalizedString(
                     "MEDIA_VIEWER_DELETE_MEDIA_ACTION",
@@ -471,8 +478,18 @@ class MediaPageViewController: UIPageViewController {
         forwardCurrentMedia()
     }
 
+    /// Tellomi（#1257，owner 2026-09-25，照 Telegram）：相册里的一张先问「这一张 / 全部 N 张」。
     private func forwardCurrentMedia() {
+        presentAlbumChoice(
+            isDestructive: false,
+            onThisItem: { [weak self] in self?.forwardMedia(onlyCurrentItem: true) },
+            onAllItems: { [weak self] in self?.forwardMedia(onlyCurrentItem: false) },
+        )
+    }
+
+    private func forwardMedia(onlyCurrentItem: Bool) {
         let messageForCurrentItem = currentItem.message
+        let currentAttachmentId = currentItem.referencedAttachment.attachment.id
 
         let mediaAttachments: [ReferencedAttachment] = SSKEnvironment.shared.databaseStorageRef.read { transaction in
             guard let rowId = messageForCurrentItem.sqliteRowId else { return [] }
@@ -495,7 +512,7 @@ class MediaPageViewController: UIPageViewController {
             }
 
             return attachmentStream
-        }
+        }.filter { !onlyCurrentItem || $0.attachment.id == currentAttachmentId }
 
         let mediaCount = mediaAttachmentStreams.count
 
@@ -503,6 +520,14 @@ class MediaPageViewController: UIPageViewController {
         case 0:
             owsFail("We should always have at least one attachment stream, for the current item.")
         case 1:
+            ForwardMessageViewController.present(
+                forAttachmentStreams: mediaAttachmentStreams,
+                fromMessage: messageForCurrentItem,
+                from: self,
+                delegate: self,
+            )
+        case _ where !onlyCurrentItem && mediaGallery.album(for: currentItem).items.count > 1:
+            // 已经在「这一张 / 全部」里选了全部，不再二次确认
             ForwardMessageViewController.present(
                 forAttachmentStreams: mediaAttachmentStreams,
                 fromMessage: messageForCurrentItem,
@@ -603,9 +628,29 @@ class MediaPageViewController: UIPageViewController {
         }
     }
 
+    /// Tellomi（#1257，owner 2026-09-25，照 Telegram）：相册里的一张先问「这一张 / 全部 N 张」；
+    /// 「全部」走会话里长按删除的同一个面板（仅自己 / 所有人）。
     private func deleteCurrentMedia() {
         guard let mediaItem = currentItem else { return }
 
+        guard mediaGallery.album(for: mediaItem).items.count > 1 else {
+            confirmDeleteSingleMedia(mediaItem)
+            return
+        }
+        presentAlbumChoice(
+            isDestructive: true,
+            onThisItem: { [weak self] in
+                guard let self else { return }
+                self.mediaGallery.delete(items: [mediaItem], initiatedBy: self)
+            },
+            onAllItems: { [weak self] in
+                guard let self else { return }
+                mediaItem.message.presentDeletionActionSheet(from: self, forceDarkTheme: true)
+            },
+        )
+    }
+
+    private func confirmDeleteSingleMedia(_ mediaItem: MediaGalleryItem) {
         let actionSheet = ActionSheetController(title: nil, message: nil)
         let deleteAction = ActionSheetAction(
             title: CommonStrings.deleteButton,
@@ -617,6 +662,86 @@ class MediaPageViewController: UIPageViewController {
         actionSheet.addAction(deleteAction)
 
         presentActionSheet(actionSheet)
+    }
+
+    // MARK: - Tellomi（#1257）：这一张 / 全部、回复这一张
+
+    /// 相册（≥ 2 张）里：弹出「这张图片 / 这个视频」与「全部 N 张 / N 个 / N 项」；不是相册直接走「这一张」。
+    private func presentAlbumChoice(isDestructive: Bool, onThisItem: @escaping () -> Void, onAllItems: @escaping () -> Void) {
+        let items = mediaGallery.album(for: currentItem).items
+        guard items.count > 1 else {
+            onThisItem()
+            return
+        }
+
+        let thisTitle = currentItem.isVideo
+            ? OWSLocalizedString("MEDIA_VIEWER_TELLOMI_THIS_VIDEO", comment: "Media viewer: action on only the video on screen, when the message has several photos or videos.")
+            : OWSLocalizedString("MEDIA_VIEWER_TELLOMI_THIS_PHOTO", comment: "Media viewer: action on only the photo on screen, when the message has several photos or videos.")
+        let allFormat: String
+        if items.allSatisfy({ $0.isVideo }) {
+            allFormat = OWSLocalizedString("MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT", comment: "Media viewer: action on all videos of the message. Embeds {{ the number of videos }}.")
+        } else if items.allSatisfy({ !$0.isVideo }) {
+            allFormat = OWSLocalizedString("MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT", comment: "Media viewer: action on all photos of the message. Embeds {{ the number of photos }}.")
+        } else {
+            allFormat = OWSLocalizedString("MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT", comment: "Media viewer: action on all photos and videos of the message. Embeds {{ the number of items }}.")
+        }
+        let allTitle = String.nonPluralLocalizedStringWithFormat(allFormat, OWSFormat.formatInt(items.count))
+
+        let actionSheet = ActionSheetController(title: nil, message: nil)
+        let style: ActionSheetAction.Style = isDestructive ? .destructive : .default
+        actionSheet.addAction(ActionSheetAction(title: thisTitle, style: style) { _ in onThisItem() })
+        actionSheet.addAction(ActionSheetAction(title: allTitle, style: style) { _ in onAllItems() })
+        actionSheet.addAction(OWSActionSheets.cancelAction)
+        presentActionSheet(actionSheet)
+    }
+
+    /// 从会话里打开、而且这个会话现在能发消息时，「···」里有「回复」（回复的是正在看的这一张）。
+    private func replyActionIfAvailable() -> [UIAction] {
+        guard let conversationViewController = conversationViewControllerForReply() else {
+            return []
+        }
+        guard conversationViewController.inputToolbar != nil, !conversationViewController.hasPendingMessageRequest else {
+            return []
+        }
+        return [
+            UIAction(
+                title: OWSLocalizedString(
+                    "MEDIA_VIEWER_TELLOMI_REPLY_ACTION",
+                    comment: "Context menu item in media viewer. Replies to the currently displayed photo/video.",
+                ),
+                image: Theme.iconImage(.contextMenuReply),
+                handler: { [weak self] _ in
+                    self?.replyToCurrentMedia()
+                },
+            ),
+        ]
+    }
+
+    private func replyToCurrentMedia() {
+        guard let mediaItem = currentItem, let conversationViewController = conversationViewControllerForReply() else {
+            return
+        }
+        let message = mediaItem.message
+        let attachmentId = mediaItem.referencedAttachment.attachment.id
+        dismissSelf(animated: true) { [weak conversationViewController] in
+            conversationViewController?.populateReply(forAlbumItemOf: message, attachmentId: attachmentId)
+        }
+    }
+
+    /// 打开这个查看器的会话页（同一个会话）；从「全部媒体」等别处打开时没有。
+    private func conversationViewControllerForReply() -> ConversationViewController? {
+        var pending: [UIViewController] = presentingViewController.map { [$0] } ?? []
+        let threadUniqueId = currentItem.message.uniqueThreadId
+        while let candidate = pending.popLast() {
+            if let conversationViewController = candidate as? ConversationViewController {
+                if conversationViewController.thread.uniqueId == threadUniqueId {
+                    return conversationViewController
+                }
+                continue
+            }
+            pending.append(contentsOf: candidate.children)
+        }
+        return nil
     }
 
     // MARK: Dynamic Header
@@ -919,6 +1044,15 @@ extension MediaPageViewController: MediaControlPanelDelegate {
         shareCurrentMedia(fromNavigationBar: false)
     }
 
+    func mediaControlPanel(_ panel: MediaControlPanelView, didSelectAlbumItem item: MediaGalleryItem) {
+        guard item != currentItem else {
+            return
+        }
+        // 拖缩略条时跟手：直接换页，不做翻页动画
+        let direction: UIPageViewController.NavigationDirection = currentItem.albumIndex < item.albumIndex ? .forward : .reverse
+        setCurrentItem(item, direction: direction, animated: false)
+    }
+
     func galleryRailView(_ galleryRailView: GalleryRailView, didTapItem imageRailItem: GalleryRailItem) {
         guard let targetItem = imageRailItem as? MediaGalleryItem else {
             owsFailDebug("unexpected imageRailItem: \(imageRailItem)")
@@ -956,7 +1090,10 @@ extension MediaPageViewController: MediaPresentationContextProvider {
     }
 
     func mediaDidPresent(toContext: MediaPresentationContext) {
-        view.backgroundColor = .Signal.mediaBackground
+        showOrHideTopAndBottomPanelsAsNecessary(animated: false)
+        if #unavailable(iOS 26) {
+            view.backgroundColor = .Signal.mediaBackground
+        }
     }
 
     func mediaWillDismiss(fromContext: MediaPresentationContext) {
@@ -1035,3 +1172,30 @@ extension MediaPageViewController: UINavigationBarDelegate {
         dismissSelf(animated: true)
     }
 }
+
+#if TESTABLE_BUILD
+
+// Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumCarouselScreenshotTests）。
+extension MediaPageViewController {
+    var areToolbarsHiddenForTesting: Bool { shouldHideToolbars }
+
+    var currentItemForTesting: MediaGalleryItem { currentItem }
+
+    var albumScrubberForTesting: MediaAlbumScrubberView { bottomMediaPanel.albumScrubberForTesting }
+
+    func tapMediaForTesting() {
+        if let currentViewController {
+            mediaItemViewControllerDidTapMedia(currentViewController)
+        }
+    }
+
+    func requestForwardForTesting() {
+        forwardCurrentMedia()
+    }
+
+    func requestDeleteForTesting() {
+        deleteCurrentMedia()
+    }
+}
+
+#endif

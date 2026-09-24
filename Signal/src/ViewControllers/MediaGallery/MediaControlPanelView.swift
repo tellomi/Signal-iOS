@@ -9,6 +9,8 @@ import SignalUI
 protocol MediaControlPanelDelegate: GalleryRailViewDelegate {
     func mediaControlPanelDidRequestForwardMedia(_ panel: MediaControlPanelView)
     func mediaControlPanelDidRequestShareMedia(_ panel: MediaControlPanelView)
+    /// Tellomi（#1257）：在本组缩略条上点或拖选中了某一张。
+    func mediaControlPanel(_ panel: MediaControlPanelView, didSelectAlbumItem item: MediaGalleryItem)
 }
 
 /// Bottom panel for full-screen media viewer.
@@ -108,15 +110,21 @@ class MediaControlPanelView: UIView {
 
     // Third from the top area.
     private let thumbnailStripArea = UILayoutGuide()
-    private lazy var thumbnailStrip: GalleryRailView = {
-        let view = GalleryRailView()
-        view.delegate = delegate
-        view.itemSize = 40
-        view.layoutMargins.top = 0
-        view.layoutMargins.bottom = 6
-        view.isScrollEnabled = false
+    // Tellomi（#1257，owner 2026-09-25）：可以拖动切换、每换一张轻震、带「k / N」的本组缩略条（替换只能点的 GalleryRailView）。
+    private lazy var thumbnailStrip: MediaAlbumScrubberView = {
+        let view = MediaAlbumScrubberView()
+        view.onItemSelected = { [weak self] index in
+            self?.didSelectAlbumItem(at: index)
+        }
         return view
     }()
+
+    private func didSelectAlbumItem(at index: Int) {
+        guard let items = currentMediaAlbum?.items, items.indices.contains(index) else {
+            return
+        }
+        delegate?.mediaControlPanel(self, didSelectAlbumItem: items[index])
+    }
 
     // Bottom area.
     // Not visible in landscape (`compact` vertical size class).
@@ -518,34 +526,6 @@ class MediaControlPanelView: UIView {
         animator.startAnimation()
     }
 
-    // MARK: Media Rail
-
-    private static var galleryCellConfiguration: GalleryRailCellConfiguration = {
-        // On iOS 26 selected thumbnail doesn't have a border, but instead
-        // it has some extra space around it. Similar to what Photos app does.
-        let borderColor: UIColor
-        let borderWidth: CGFloat
-        let extraPadding: CGFloat
-        if #available(iOS 26, *) {
-            borderColor = .clear
-            borderWidth = 0
-            extraPadding = 8
-        } else {
-            borderColor = .white
-            borderWidth = 2
-            extraPadding = 0
-        }
-        return GalleryRailCellConfiguration(
-            cornerRadius: 6,
-            itemBorderWidth: 0,
-            itemBorderColor: nil,
-            focusedItemBorderWidth: borderWidth,
-            focusedItemBorderColor: borderColor,
-            focusedItemOverlayColor: nil,
-            focusedItemExtraPadding: extraPadding,
-        )
-    }()
-
     // Thumbnail strip is shown for albums (>1 media in one message):
     // iOS 26: all interface orientations.
     // Pre-iOS 26: portrait orientations only (`regular` vertical size class).
@@ -696,13 +676,10 @@ class MediaControlPanelView: UIView {
         updateCaptionAndVideoControls(using: animator)
 
         // Don't update thumbnail strip if we're going to hide it - for better visual experience.
-        if showThumbnailStrip {
-            thumbnailStrip.configureCellViews(
-                itemProvider: currentMediaAlbum!,
-                focusedItem: item,
-                cellViewBuilder: { _ in
-                    return GalleryRailCellView(configuration: Self.galleryCellConfiguration)
-                },
+        if showThumbnailStrip, let album = currentMediaAlbum {
+            thumbnailStrip.setItems(
+                album.items,
+                selected: album.items.firstIndex(of: item) ?? 0,
                 animated: animated && thumbnailStrip.isHidden == false,
             )
         }
@@ -1101,3 +1078,11 @@ extension MediaControlPanelView: VideoPlaybackControlViewDelegate {
         videoPlayer.restorePlaybackRate()
     }
 }
+
+#if TESTABLE_BUILD
+
+extension MediaControlPanelView {
+    var albumScrubberForTesting: MediaAlbumScrubberView { thumbnailStrip }
+}
+
+#endif
