@@ -8736,6 +8736,72 @@
 /* Title for the set wallpaper settings view. */
 "SET_WALLPAPER_TITLE" = "設定桌布";
 
+/* Tellomi: row in About Tellomi that opens the download page. */
+"SETTINGS_ABOUT_TELLOMI_CHECK_FOR_UPDATES" = "版本更新";
+
+/* Tellomi: row in About Tellomi that opens the complaints and reporting rules page. */
+"SETTINGS_ABOUT_TELLOMI_COMPLAINTS_AND_REPORTS" = "投訴檢舉規則";
+
+/* Tellomi: row in About Tellomi showing the support email address. */
+"SETTINGS_ABOUT_TELLOMI_CONTACT_SUPPORT" = "聯絡客服";
+
+/* Tellomi: shown when the user long-presses an email in About Tellomi but no mail account is set up. */
+"SETTINGS_ABOUT_TELLOMI_EMAIL_UNAVAILABLE_MESSAGE" = "你的裝置尚未設定郵件。地址已複製，可以貼到其他郵件 App。";
+
+/* Tellomi: row in About Tellomi that opens the website. */
+"SETTINGS_ABOUT_TELLOMI_OFFICIAL_WEBSITE" = "官方網站";
+
+/* Tellomi: row in About Tellomi that lists third-party licenses. */
+"SETTINGS_ABOUT_TELLOMI_OPEN_SOURCE_LICENSES" = "開源授權";
+
+/* Tellomi: row in About Tellomi that opens the list of personal information collected. */
+"SETTINGS_ABOUT_TELLOMI_PERSONAL_INFORMATION_COLLECTED" = "個人資料收集清單";
+
+/* Tellomi: row in About Tellomi showing the privacy email address. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_AND_PERSONAL_DATA" = "隱私與個人資料";
+
+/* Tellomi: row in About Tellomi that opens the Privacy Policy page. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_POLICY" = "隱私權政策";
+
+/* Tellomi: row in About Tellomi showing the abuse report email address. */
+"SETTINGS_ABOUT_TELLOMI_REPORT_ABUSE" = "違規舉報";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_CONTACT" = "聯絡我們";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_LEGAL" = "法律與合規";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_OPEN_SOURCE" = "開源";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_UPDATES" = "更新";
+
+/* Tellomi: row in About Tellomi that opens the source code on GitHub. */
+"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE" = "原始碼";
+
+/* Tellomi: row in About Tellomi that opens the list of system permissions the app uses. */
+"SETTINGS_ABOUT_TELLOMI_SYSTEM_PERMISSIONS" = "系統權限調用清單";
+
+/* Tellomi: accessory text on email rows in About Tellomi; tapping the row copies the address. */
+"SETTINGS_ABOUT_TELLOMI_TAP_TO_COPY" = "點擊複製";
+
+/* Tellomi: row in About Tellomi that opens the Terms of Service page. */
+"SETTINGS_ABOUT_TELLOMI_TERMS_OF_SERVICE" = "服務協議";
+
+/* Tellomi: row in About Tellomi that opens the list of third-party sharing and SDKs. */
+"SETTINGS_ABOUT_TELLOMI_THIRD_PARTY_SHARING" = "第三方資料共享及 SDK 清單";
+
+/* Tellomi: title of the About Tellomi page and of its row in settings. */
+"SETTINGS_ABOUT_TELLOMI_TITLE" = "關於 Tellomi";
+
+/* Tellomi: version line at the top of About Tellomi. Embeds {{ version }} and {{ build number }}. */
+"SETTINGS_ABOUT_TELLOMI_VERSION_FORMAT" = "版本 %1$@（建置 %2$@）";
+
+/* Tellomi: context menu action on email rows in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_WRITE_EMAIL" = "寫郵件";
+
 /* Title for the 'account' link in settings. */
 "SETTINGS_ACCOUNT" = "帳號";
 
