@@ -716,6 +716,13 @@ private extension ConversationViewController {
     func chooseFromLibrary() {
         AssertIsOnMainThread()
 
+        // Tellomi（tellomi/tellomi#1261）：换成 Telegram 式的选图网格；没有「照片」权限时照旧用下面的系统选择器。
+        chooseFromLibraryWithTellomiPicker { [weak self] in self?.chooseFromLibraryWithNativePicker() }
+    }
+
+    func chooseFromLibraryWithNativePicker() {
+        AssertIsOnMainThread()
+
         let pickerModal = SendMediaNavigationController.showingNativePicker(
             hasQuotedReplyDraft: inputToolbar?.quotedReplyDraft != nil,
             attachmentLimits: .currentLimits(),
@@ -927,13 +934,15 @@ extension ConversationViewController: SendMediaNavDelegate {
     }
 
     /// Attempts to send attachments. Handles prompting to unblock or un-verify safety numbers, as well as showing failure states.
+    /// Tellomi（#1261）：返回是否发出去了（「单独发送」上一条没发出就停）。
     @MainActor
+    @discardableResult
     func sendAttachments(
         _ approvedAttachments: ApprovedAttachments,
         messageBody: MessageBody?,
         from viewController: UIViewController,
         attachmentLimits: OutgoingAttachmentLimits,
-    ) async {
+    ) async -> Bool {
         let didSend: Bool
         do {
             didSend = try await tryToSendAttachments(
@@ -944,10 +953,10 @@ extension ConversationViewController: SendMediaNavDelegate {
             )
         } catch {
             self.showErrorAlert(attachmentError: error as? SignalAttachmentError)
-            return
+            return false
         }
         guard didSend else {
-            return
+            return false
         }
         if
             approvedAttachments.attachments.count == 1,
@@ -962,6 +971,7 @@ extension ConversationViewController: SendMediaNavDelegate {
         // we want to already be at the bottom when the user returns, rather than have to watch
         // the new message scroll into view.
         scrollToBottomOfConversation(animated: true)
+        return true
     }
 
     func sendMediaNav(
