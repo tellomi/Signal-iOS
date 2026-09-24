@@ -161,6 +161,12 @@ class RegistrationVerificationCodeView: UIView {
         for digitStroke in digitStrokes {
             digitStroke.backgroundColor = strokeColor
         }
+        // Tellomi：错码时数字也标红，让人看清是哪一串错了（tellomi/tellomi#1214）。
+        let digitColor = (hasError ? UIColor.Signal.red : UIColor.Signal.label)
+        for digitLabel in digitLabels {
+            digitLabel.textColor = digitColor
+        }
+        textfield.textColor = digitColor
     }
 
     private func makeCellView(text: String) -> (UIView, UILabel, UIView) {
@@ -243,12 +249,42 @@ class RegistrationVerificationCodeView: UIView {
 
         self.delegate?.codeViewDidChange()
     }
+
+    /// Tellomi：在一段文字（整条短信、剪贴板里的「123-456」）里找一个完整的验证码：恰好 `digitCount` 位数字，
+    /// 中间最多一个空格或连字符，前后不能紧挨着别的数字（手机号那样的长串不算）。
+    static func codeCandidate(in text: String, digitCount: Int) -> String? {
+        let firstHalf = digitCount / 2
+        let pattern = "(?<![0-9])([0-9]{\(firstHalf)})[ -]?([0-9]{\(digitCount - firstHalf)})(?![0-9])"
+        guard
+            let regex = try? NSRegularExpression(pattern: pattern),
+            let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+            let first = Range(match.range(at: 1), in: text),
+            let second = Range(match.range(at: 2), in: text)
+        else {
+            return nil
+        }
+        return String(text[first]) + String(text[second])
+    }
 }
 
 // MARK: -
 
 extension RegistrationVerificationCodeView: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString newString: String) -> Bool {
+        // Tellomi（tellomi/tellomi#1214）：系统「从信息中填写」（.oneTimeCode）和粘贴会一次塞进一整串，
+        // 上游下面只取第一位（`filtered.prefix(1)`），整串填进来只剩一个数字。
+        if newString.count > 1 {
+            if let code = Self.codeCandidate(in: newString, digitCount: digitCount) {
+                set(verificationCode: code)
+                return false
+            }
+            let digits = newString.filter { $0.isASCII && $0.isNumber }
+            if digits.count > 1 {
+                set(verificationCode: String((digitText.prefix(currentDigitIndex) + digits).prefix(digitCount)))
+                return false
+            }
+        }
+
         var oldText = ""
         if let textFieldText = textField.text {
             oldText = textFieldText

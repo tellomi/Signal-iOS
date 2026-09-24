@@ -179,7 +179,7 @@ class RegistrationVerificationViewController: OWSViewController {
 
     private lazy var helpButton: UIButton = {
         let button = UIButton(
-            configuration: .mediumBorderless(title: OWSLocalizedString(
+            configuration: .mediumBorderless(title: Self.showsTellomiHelp ? RegistrationVerificationHelpSheetViewController.tellomiTitle : OWSLocalizedString(
                 "ONBOARDING_VERIFICATION_HELP_LINK",
                 comment: "Label for a button to get help entering a verification code when registering.",
             )),
@@ -399,13 +399,16 @@ class RegistrationVerificationViewController: OWSViewController {
         guard let newError, oldError != newError else { return }
         switch newError {
         case .invalidVerificationCode(let code):
-            if verificationCodeView.verificationCode == code {
-                verificationCodeView.clear()
-            }
             showInlineCodeError(OWSLocalizedString(
                 "REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE",
                 comment: "Shown inline under the verification code field when the entered code is wrong.",
             ))
+            // Tellomi：输错的这串先红着停一下再清空，让人看清错的是哪串（Telegram CodeInputView.animateError 同样是 0.85 秒；
+            // tellomi/tellomi#1214）。这期间用户已经改了就不清。
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) { [weak self] in
+                guard let self, self.verificationCodeView.verificationCode == code else { return }
+                self.verificationCodeView.clear()
+            }
 
         case .providerFailure(let isPermanent):
             let message: String
@@ -542,7 +545,44 @@ class RegistrationVerificationViewController: OWSViewController {
     private func didTapHelpButton() {
         Logger.info("")
 
-        self.present(RegistrationVerificationHelpSheetViewController(), animated: true)
+        guard Self.showsTellomiHelp else {
+            self.present(RegistrationVerificationHelpSheetViewController(), animated: true)
+            return
+        }
+        let sheet = RegistrationVerificationHelpSheetViewController(tellomiHelp: .init(
+            phoneNumber: state.e164.stringValue.e164FormattedAsPhoneNumberWithoutBreaks,
+            onChangeNumber: { [weak self] in
+                self?.dismiss(animated: true) {
+                    self?.presenter?.returnToPhoneNumberEntry()
+                }
+            },
+            onContactSupport: { [weak self] in
+                self?.dismiss(animated: true) {
+                    self?.composeSupportEmail()
+                }
+            },
+        ))
+        self.present(sheet, animated: true)
+    }
+
+    /// Tellomi 的部署（没连 Signal 官方服务）用自己的「收不到验证码？」面板（tellomi/tellomi#1214）。
+    fileprivate static var showsTellomiHelp: Bool { !TSConstants.isUsingProductionService }
+
+    private func composeSupportEmail() {
+        Task { @MainActor in
+            do {
+                try await ComposeSupportEmailOperation.sendEmail(model: SupportEmailModel(
+                    userDescription: nil,
+                    emojiMood: nil,
+                    supportFilter: "Registration - verification code (iOS)",
+                    debugLogPolicy: nil,
+                    hasRecentChallenge: false,
+                    backupPlan: .disabled,
+                ))
+            } catch {
+                OWSActionSheets.showErrorAlert(message: error.userErrorDescription)
+            }
+        }
     }
 
     private func didTapResendSMSCode() {
@@ -575,7 +615,7 @@ class RegistrationVerificationViewController: OWSViewController {
 // MARK: - Tellomi：行内验证码错误
 
 extension RegistrationVerificationViewController {
-    fileprivate func showInlineCodeError(_ message: String) {
+    private func showInlineCodeError(_ message: String) {
         codeErrorLabel.text = message
         codeErrorLabel.isHidden = false
         verificationCodeView.setHasError(true)
@@ -592,7 +632,7 @@ extension RegistrationVerificationViewController {
         _ = verificationCodeView.becomeFirstResponder()
     }
 
-    fileprivate func hideInlineCodeError() {
+    private func hideInlineCodeError() {
         guard !codeErrorLabel.isHidden else { return }
         codeErrorLabel.isHidden = true
         verificationCodeView.setHasError(false)
@@ -618,7 +658,24 @@ extension RegistrationVerificationViewController: RegistrationVerificationCodeVi
 
 // MARK: - RegistrationVerificationHelpSheetViewController
 
-private class RegistrationVerificationHelpSheetViewController: InteractiveSheetViewController {
+class RegistrationVerificationHelpSheetViewController: InteractiveSheetViewController {
+
+    /// Tellomi（tellomi/tellomi#1214）：「收不到验证码？」面板。上游这里是三条通用提示（信号、能不能接电话、号码对不对），
+    /// 没有出口；Tellomi 的用户多在中国大陆，短信常被手机管家的骚扰拦截吞掉，每个注册会话又只有几条短信额度。
+    struct TellomiHelp {
+        let phoneNumber: String
+        let onChangeNumber: () -> Void
+        let onContactSupport: () -> Void
+    }
+
+    static var tellomiTitle: String {
+        OWSLocalizedString(
+            "ONBOARDING_VERIFICATION_TELLOMI_HELP_LINK",
+            comment: "Tellomi: Label for the button (and title of the sheet) that helps people who didn't receive the SMS verification code.",
+        )
+    }
+
+    private let tellomiHelp: TellomiHelp?
 
     private var intrinsicSizeObservation: NSKeyValueObservation?
 
@@ -634,7 +691,7 @@ private class RegistrationVerificationHelpSheetViewController: InteractiveSheetV
         let headerLabel = UILabel()
         headerLabel.textAlignment = .center
         headerLabel.font = UIFont.dynamicTypeTitle2.semibold()
-        headerLabel.text = OWSLocalizedString(
+        headerLabel.text = tellomiHelp != nil ? Self.tellomiTitle : OWSLocalizedString(
             "ONBOARDING_VERIFICATION_HELP_LINK",
             comment: "Label for a button to get help entering a verification code when registering.",
         )
@@ -642,7 +699,12 @@ private class RegistrationVerificationHelpSheetViewController: InteractiveSheetV
         headerLabel.lineBreakMode = .byWordWrapping
 
         let stackView = UIStackView(arrangedSubviews: [headerLabel])
-        stackView.addArrangedSubviews(bulletPoints())
+        if let tellomiHelp {
+            stackView.addArrangedSubviews(tellomiBulletPoints(tellomiHelp))
+            stackView.addArrangedSubview(tellomiButtons(tellomiHelp))
+        } else {
+            stackView.addArrangedSubviews(bulletPoints())
+        }
         stackView.spacing = 12
         stackView.setCustomSpacing(20, after: headerLabel)
         stackView.axis = .vertical
@@ -652,7 +714,8 @@ private class RegistrationVerificationHelpSheetViewController: InteractiveSheetV
         return stackView
     }()
 
-    init() {
+    init(tellomiHelp: TellomiHelp? = nil) {
+        self.tellomiHelp = tellomiHelp
         super.init()
 
         self.allowsExpansion = false
@@ -707,6 +770,71 @@ private class RegistrationVerificationHelpSheetViewController: InteractiveSheetV
         ].map { text in
             return RegistrationVerificationHelpSheetViewController.listPointView(text: text)
         }
+    }
+
+    private func tellomiBulletPoints(_ help: TellomiHelp) -> [UIView] {
+        var texts = [
+            String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString(
+                    "ONBOARDING_VERIFICATION_TELLOMI_HELP_CHECK_NUMBER_FORMAT",
+                    comment: "Tellomi: Bullet in the 'didn't get the code?' sheet. Embeds {{the phone number the code was sent to}}.",
+                ),
+                help.phoneNumber,
+            ),
+            OWSLocalizedString(
+                "ONBOARDING_VERIFICATION_TELLOMI_HELP_SPAM_FILTER",
+                comment: "Tellomi: Bullet in the 'didn't get the code?' sheet: the SMS may have been caught by the phone's built-in spam/harassment filter.",
+            ),
+        ]
+        if let quota = TSConstants.smsVerificationCodesPerSession {
+            texts.append(String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString(
+                    "ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT_WITH_QUOTA_FORMAT",
+                    comment: "Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late, and one registration can only send a few codes. Embeds {{how many verification codes one registration can send}}.",
+                ),
+                String(quota),
+            ))
+        } else {
+            texts.append(OWSLocalizedString(
+                "ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT",
+                comment: "Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late.",
+            ))
+        }
+        if TSConstants.voiceVerificationAvailable {
+            texts.append(OWSLocalizedString(
+                "ONBOARDING_VERIFICATION_TELLOMI_HELP_VOICE",
+                comment: "Tellomi: Bullet in the 'didn't get the code?' sheet, only shown when the server can call and read out the code.",
+            ))
+        }
+        texts.append(OWSLocalizedString(
+            "ONBOARDING_VERIFICATION_TELLOMI_HELP_SUPPORT",
+            comment: "Tellomi: Last bullet in the 'didn't get the code?' sheet: email support.",
+        ))
+        return texts.map { Self.listPointView(text: $0) }
+    }
+
+    private func tellomiButtons(_ help: TellomiHelp) -> UIView {
+        let changeNumberButton = UIButton(
+            configuration: .mediumBorderless(title: OWSLocalizedString(
+                "ONBOARDING_VERIFICATION_TELLOMI_HELP_CHANGE_NUMBER",
+                comment: "Tellomi: Button in the 'didn't get the code?' sheet that goes back to the phone number screen.",
+            )),
+            primaryAction: UIAction { _ in help.onChangeNumber() },
+        )
+        changeNumberButton.accessibilityIdentifier = "registration.verification.help.changeNumber"
+        let contactSupportButton = UIButton(
+            configuration: .mediumBorderless(title: OWSLocalizedString(
+                "ONBOARDING_VERIFICATION_TELLOMI_HELP_CONTACT_SUPPORT",
+                comment: "Tellomi: Button in the 'didn't get the code?' sheet that composes an email to support.",
+            )),
+            primaryAction: UIAction { _ in help.onContactSupport() },
+        )
+        contactSupportButton.accessibilityIdentifier = "registration.verification.help.contactSupport"
+        let row = UIStackView(arrangedSubviews: [changeNumberButton, contactSupportButton])
+        row.axis = .horizontal
+        row.distribution = .fillEqually
+        row.spacing = 12
+        return row
     }
 
     private static func listPointView(text: String) -> UIView {

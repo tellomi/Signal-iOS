@@ -6684,6 +6684,33 @@
 /* Format string for button counting down time until SMS code can be resent. Embeds {{time remaining}}. */
 "ONBOARDING_VERIFICATION_RESEND_CODE_COUNTDOWN_FORMAT" = "在%1$@之後重新傳送代碼";
 
+/* Tellomi: Button in the 'didn't get the code?' sheet that goes back to the phone number screen. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CHANGE_NUMBER" = "更改號碼";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet. Embeds {{the phone number the code was sent to}}. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CHECK_NUMBER_FORMAT" = "確認號碼沒有填錯：%1$@";
+
+/* Tellomi: Button in the 'didn't get the code?' sheet that composes an email to support. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CONTACT_SUPPORT" = "聯絡客服";
+
+/* Tellomi: Label for the button (and title of the sheet) that helps people who didn't receive the SMS verification code. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_LINK" = "收不到驗證碼？";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: the SMS may have been caught by the phone's built-in spam/harassment filter. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_SPAM_FILTER" = "簡訊可能被攔截了：打開手機內建的安全中心或手機管家 App，看看「騷擾攔截」或垃圾訊息裡有沒有。";
+
+/* Tellomi: Last bullet in the 'didn't get the code?' sheet: email support. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_SUPPORT" = "還是收不到？寄電子郵件到 support@tellomi.app，我們幫你看看。";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet, only shown when the server can call and read out the code. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_VOICE" = "也可以改成打電話念出驗證碼。";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT" = "簡訊偶爾會晚一點才到，請先等一等。";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late, and one registration can only send a few codes. Embeds {{how many verification codes one registration can send}}. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT_WITH_QUOTA_FORMAT" = "簡訊偶爾會晚一點才到，請先等一等。每次註冊最多只能傳送 %1$@ 則驗證碼，請不要頻繁重新傳送。";
+
 /* Format for the title of the 'onboarding verification' view. Embeds {{the user's phone number}}. */
 "ONBOARDING_VERIFICATION_TITLE_DEFAULT_FORMAT" = "請輸入我們傳送給 %1$@ 的驗證碼。";
 
@@ -8180,6 +8207,12 @@
 
 /* Alert shown when submitting a verification code too many times. Embeds {{ duration }}, such as \"5:00\" */
 "REGISTRATION_SUBMIT_CODE_RATE_LIMIT_ALERT_FORMAT" = "你已多次嘗試輸入驗證碼，請在 %1$@ 後再試";
+
+/* Tellomi: Alert shown when the verification code can no longer be submitted, because it expired or was entered wrong too many times. */
+"REGISTRATION_TELLOMI_CODE_NO_LONGER_VALID" = "這個驗證碼已經不能使用：可能已過期，或者輸錯太多次。請重新取得驗證碼。";
+
+/* Tellomi: Alert shown when the registration verification session has expired; the user goes back to the phone number screen to request a new code. */
+"REGISTRATION_TELLOMI_SESSION_EXPIRED" = "這次驗證已經過期，請確認號碼後重新取得驗證碼。";
 
 /* Shown inline under the verification code field when the entered code is wrong. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "驗證碼不對，請核對簡訊後重新輸入";
