@@ -3109,7 +3109,7 @@
 "DEREGISTRATION_REREGISTER_PROMPT_TITLE" = "要重新注册此手机号码？";
 
 /* Label warning the user that they have been de-registered. */
-"DEREGISTRATION_WARNING" = "此设备已注销。这可能是因为您使用您的手机号码在其他设备上注册了 Tellomi。";
+"DEREGISTRATION_WARNING" = "此设备已退出登录。这可能是因为您使用您的手机号码在其他设备上注册了 Tellomi。";
 
 /* If the user has been deregistered, they'll see a warning. This is This is the call to action on that warning. */
 "DEREGISTRATION_WARNING_ACTION_TITLE" = "重新注册设备";
@@ -6394,7 +6394,7 @@
 "NOT_LINKED_BOTTOM_RELINK" = "重新关联";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. The embedded value is 'Re-register' (translated via NOT_REGISTERED_BOTTOM_REREGISTER), and it will be formatted as a tappable link. */
-"NOT_REGISTERED_BOTTOM" = "此设备已注销。请%1$@以继续使用 Tellomi。";
+"NOT_REGISTERED_BOTTOM" = "此设备已退出登录。请%1$@以继续使用 Tellomi。";
 
 /* Shown in place of the text input box in a conversation when the user is no longer registered can't send messages. This value is a tappable link embedded in a larger sentence. */
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "重新注册";
