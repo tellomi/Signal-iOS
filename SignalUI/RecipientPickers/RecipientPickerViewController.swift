@@ -1476,7 +1476,8 @@ extension RecipientPickerViewController {
         Task {
             guard
                 let aci = await UsernameQuerier().queryForUsername(
-                    username: username,
+                    // Tellomi（tellomi/tellomi#1106，ADR-0066）：搜索行显示用户输入的原文，查的是补全后的全名（`kaixin` → `kaixin.01`）。
+                    username: TellomiLinks.protocolUsername(username),
                     fromViewController: self,
                 )
             else {

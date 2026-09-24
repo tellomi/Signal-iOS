@@ -135,7 +135,8 @@ public class FindByUsernameViewController: OWSTableViewController2 {
     @objc
     private func textFieldDidChange() {
         do {
-            _ = try Usernames.HashedUsername(forUsername: self.usernameValue)
+            // Tellomi（tellomi/tellomi#1106，ADR-0066）：输 `kaixin` 按 `kaixin.01` 校验——上游要求必须带「.数字」，裸 nickname 连「下一步」都点不了。
+            _ = try Usernames.HashedUsername(forUsername: TellomiLinks.protocolUsername(self.usernameValue))
             navigationItem.rightBarButtonItem?.isEnabled = true
         } catch {
             navigationItem.rightBarButtonItem?.isEnabled = false
@@ -143,7 +144,8 @@ public class FindByUsernameViewController: OWSTableViewController2 {
     }
 
     private func didTapNext() {
-        let usernameValue = self.usernameValue
+        // Tellomi（tellomi/tellomi#1106）：查的是补全后的全名（`kaixin` → `kaixin.01`，带后缀的原样）。
+        let usernameValue = TellomiLinks.protocolUsername(self.usernameValue)
         usernameTextField.resignFirstResponder()
 
         Task {
