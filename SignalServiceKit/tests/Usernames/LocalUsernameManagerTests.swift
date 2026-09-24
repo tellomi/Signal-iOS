@@ -662,6 +662,36 @@ class LocalUsernameManagerTests: XCTestCase {
         XCTAssertEqual(try generate("kaixin_").candidateHashes.count, 1)
     }
 
+    /// Tellomi（taishi 审 Android a3 的意见，iOS 同一条）：「字母开头」只对新起的名字收紧；
+    /// 已有昵称（含旧后缀迁到 `.01`）与修复模式不拦，别的规则照旧。
+    func testTellomiLetterFirstOnlyForNewNames() throws {
+        typealias HashedUsername = Usernames.HashedUsername
+
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_other", existingNickname: "_kaixin", isAttemptingRecovery: false))
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingNickname: nil, isAttemptingRecovery: false))
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_KaiXin", existingNickname: "_kaixin", isAttemptingRecovery: false))
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingNickname: nil, isAttemptingRecovery: true))
+
+        let kept = try HashedUsername.generateCandidates(
+            forNickname: "_kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: false,
+        )
+        XCTAssertEqual(kept.candidate(matchingHash: kept.candidateHashes[0])?.usernameString, "_kaixin.01")
+
+        XCTAssertThrowsError(try HashedUsername.generateCandidates(
+            forNickname: "1kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: false,
+        )) { error in
+            XCTAssertEqual(error as? HashedUsername.CandidateGenerationError, .nicknameCannotStartWithDigit)
+        }
+    }
+
     /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 按 Retry-After 分成改名冷却和普通限流。
     func testTellomiReservationRateLimitSplitsOffRenameCooldown() {
         guard case .changeCooldown(let retryAfter) = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: 2_591_999) else {

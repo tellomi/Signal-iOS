@@ -887,6 +887,11 @@ private extension UsernameSelectionViewController {
                     minNicknameLength: Constants.minNicknameCodepointLength,
                     maxNicknameLength: Constants.maxNicknameCodepointLength,
                     desiredDiscriminator: desiredDiscriminator,
+                    enforcingLetterFirst: Usernames.HashedUsername.tellomiEnforcesLetterFirst(
+                        desiredNickname: desiredNickname,
+                        existingNickname: existingUsername?.nickname,
+                        isAttemptingRecovery: isAttemptingRecovery,
+                    ),
                 )
 
                 attemptReservationAndUpdateValidationState(

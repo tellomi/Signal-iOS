@@ -101,6 +101,7 @@ public extension Usernames.HashedUsername {
         minNicknameLength: UInt32,
         maxNicknameLength: UInt32,
         desiredDiscriminator: String?,
+        enforcingLetterFirst: Bool = true,
     ) throws -> GeneratedCandidates {
         do {
             let nicknameLengthRange = minNicknameLength...maxNicknameLength
@@ -115,7 +116,7 @@ public extension Usernames.HashedUsername {
             // Tellomi（ADR-0066 §六 第 73 行 / ADR-0036）：新建 / 修改的用户名必须字母开头。libsignal 只拒数字开头、放行 `_` 开头，
             // 服务端只见到哈希、拦不了，只能在客户端收紧。放在 libsignal 判过之后：太短 / 非法字符照旧先报。
             // 只有选用户名页调用这里；找回已有用户名、搜索、链接都不经过，别人已有的 `_` 开头用户名照样能找到。
-            if nickname.hasPrefix("_") {
+            if enforcingLetterFirst, nickname.hasPrefix("_") {
                 throw CandidateGenerationError.nicknameCannotStartWithUnderscore
             }
             return .init(candidates: [.init(libSignalUsername: username)])
@@ -129,6 +130,23 @@ public extension Usernames.HashedUsername {
 
             throw error
         }
+    }
+}
+
+// MARK: - Tellomi
+
+public extension Usernames.HashedUsername {
+    /// Tellomi（ADR-0066 §六；taishi 审 Android a3 的意见，iOS 同一条）：「字母开头」只对新起的名字收紧。
+    /// - 昵称与已有昵称忽略大小写相同 → 不拦。只改大小写已由选用户名页的捷径处理，这里覆盖旧后缀迁到 `.01`（`_kaixin.57` → `_kaixin.01`）。
+    /// - 修复模式 → 不拦。iOS 修复时本地用户名已损坏、原名未知（`currentUsername: nil`），拦了的话 `_` 开头的用户认领不回原名。
+    static func tellomiEnforcesLetterFirst(desiredNickname: String, existingNickname: String?, isAttemptingRecovery: Bool) -> Bool {
+        if isAttemptingRecovery {
+            return false
+        }
+        if let existingNickname, existingNickname.lowercased() == desiredNickname.lowercased() {
+            return false
+        }
+        return true
     }
 }
 
