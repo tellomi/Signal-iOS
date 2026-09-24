@@ -371,12 +371,7 @@ class LinkedDevicesHostingController: HostingContainer<LinkedDevicesView> {
 
     private weak var finishLinkingSheet: HeroSheetViewController?
 
-    /// Tellomi（tellomi/tellomi#947）：「扫一扫」扫到的关联码。页面第一次出现时，走和点「链接新设备」一样的
-    /// 本机身份校验，通过后把它交给 LinkDeviceViewController 直接确认，不用再扫一遍。
-    private var pendingProvisioningUrl: DeviceProvisioningURL?
-
-    init(isPreview: Bool = false, pendingProvisioningUrl: DeviceProvisioningURL? = nil) {
-        self.pendingProvisioningUrl = pendingProvisioningUrl
+    init(isPreview: Bool = false) {
         self.viewModel = LinkedDevicesViewModel(isPreview: isPreview)
 
         super.init(wrappedView: LinkedDevicesView(viewModel: viewModel))
@@ -451,12 +446,6 @@ class LinkedDevicesHostingController: HostingContainer<LinkedDevicesView> {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if let pendingProvisioningUrl {
-            self.pendingProvisioningUrl = nil
-            didTapLinkDeviceButton(preScannedUrl: pendingProvisioningUrl)
-            return
-        }
-
         if viewModel.shouldShowFinishLinkingSheet {
             // Only show the sheet once even if viewDidAppear is
             // called multiple times while waiting for the link.
@@ -527,7 +516,7 @@ class LinkedDevicesHostingController: HostingContainer<LinkedDevicesView> {
         presentActionSheet(alert)
     }
 
-    private func showLinkNewDeviceView(skipEducationSheet: Bool = false, preScannedUrl: DeviceProvisioningURL? = nil) {
+    private func showLinkNewDeviceView(skipEducationSheet: Bool = false) {
         AssertIsOnMainThread()
 
         func presentLinkView(_ linkView: LinkDeviceViewController) {
@@ -542,12 +531,11 @@ class LinkedDevicesHostingController: HostingContainer<LinkedDevicesView> {
 
             presentLinkView(LinkDeviceViewController(
                 skipEducationSheet: skipEducationSheet,
-                preScannedUrl: preScannedUrl,
             ))
         }
     }
 
-    private func didTapLinkDeviceButton(preScannedUrl: DeviceProvisioningURL? = nil) {
+    private func didTapLinkDeviceButton() {
         let localDeviceAuth = LocalDeviceAuthentication()
         let localDeviceAuthAttemptToken: LocalDeviceAuthentication.AttemptToken
 
@@ -555,7 +543,7 @@ class LinkedDevicesHostingController: HostingContainer<LinkedDevicesView> {
         case .success(let attemptToken):
             localDeviceAuthAttemptToken = attemptToken
         case .failure(.notRequired):
-            showLinkNewDeviceView(preScannedUrl: preScannedUrl)
+            showLinkNewDeviceView()
             return
         case .failure(.canceled):
             return
@@ -582,7 +570,6 @@ class LinkedDevicesHostingController: HostingContainer<LinkedDevicesView> {
                     await self?.authenticateThenShowLinkNewDeviceView(
                         localDeviceAuth: localDeviceAuth,
                         localDeviceAuthAttemptToken: localDeviceAuthAttemptToken,
-                        preScannedUrl: preScannedUrl,
                     )
                 }
             },
@@ -673,11 +660,10 @@ class LinkedDevicesHostingController: HostingContainer<LinkedDevicesView> {
     private func authenticateThenShowLinkNewDeviceView(
         localDeviceAuth: LocalDeviceAuthentication,
         localDeviceAuthAttemptToken: LocalDeviceAuthentication.AttemptToken,
-        preScannedUrl: DeviceProvisioningURL? = nil,
     ) async {
         switch await localDeviceAuth.attempt(token: localDeviceAuthAttemptToken) {
         case .success, .failure(.notRequired):
-            showLinkNewDeviceView(preScannedUrl: preScannedUrl)
+            showLinkNewDeviceView()
         case .failure(.canceled):
             break
         case .failure(.genericError(let localizedErrorMessage)):

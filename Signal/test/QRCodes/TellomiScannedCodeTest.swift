@@ -32,11 +32,24 @@ class TellomiScannedCodeTest: XCTestCase {
     }
 
     func testGroupInvitesInBothShapes() {
-        let legacy = URL(string: "https://signal.group/#abc")!
-        XCTAssertEqual(TellomiScannedCode(scannedString: "https://tell.cc/g#abc"), .groupInvite(legacy))
-        XCTAssertEqual(TellomiScannedCode(scannedString: "https://signal.group/#abc"), .groupInvite(legacy))
+        // 存的是扫到的原链接（见 testGroupInviteKeepsTheOriginalLink）
+        XCTAssertEqual(TellomiScannedCode(scannedString: "https://tell.cc/g#abc"), .groupInvite(URL(string: "https://tell.cc/g#abc")!))
+        XCTAssertEqual(TellomiScannedCode(scannedString: "https://signal.group/#abc"), .groupInvite(URL(string: "https://signal.group/#abc")!))
         // 手机号名片不能被当成群邀请（Android #973 撞过的坑）
-        XCTAssertNotEqual(TellomiScannedCode(scannedString: "https://tell.cc/u#p/+16505550100"), .groupInvite(legacy))
+        if case .groupInvite = TellomiScannedCode(scannedString: "https://tell.cc/u#p/+16505550100") {
+            XCTFail("tell.cc/u#p/… 被当成了群邀请")
+        }
+    }
+
+    /// `rawValue` 会进发出去的链接预览；三端收消息都要求「预览 URL 出现在正文里」，
+    /// 存换算后的 signal.group 形状，收件人的群卡片会被丢掉（taishi 审查 2026-09-24）。解码只读 fragment，新旧形状相同。
+    func testGroupInviteKeepsTheOriginalLink() throws {
+        for original in ["https://tell.cc/g#abc", "https://tell.cc/g/#abc", "tellomi://tell.cc/g#abc", "https://signal.group/#abc"] {
+            let url = try XCTUnwrap(URL(string: original))
+            let parsed = try XCTUnwrap(PossibleGroupInviteLinkUrl.parseFrom(url), original)
+            XCTAssertEqual(parsed.rawValue, url, original)
+            XCTAssertEqual(parsed.rawValue.fragment, "abc", original)
+        }
     }
 
     func testDeviceLinkCodesInBothSchemes() {
@@ -55,6 +68,43 @@ class TellomiScannedCodeTest: XCTestCase {
     func testAnythingElseIsShownNotIgnored() {
         XCTAssertEqual(TellomiScannedCode(scannedString: "https://example.com/a?b=c"), .other("https://example.com/a?b=c"))
         XCTAssertEqual(TellomiScannedCode(scannedString: "  你好 hello  "), .other("你好 hello"))
+    }
+
+    /// 默认样式不带中心标：和显式传 `.brandedWithoutLogo` 生成的图逐字节相同（默认值改回带标会红）。
+    /// 带标为什么不行，见 `QRCodeGenerator.generateQRCode` 的注释。
+    func testDefaultQRCodeHasNoCenterMark() throws {
+        let url = try XCTUnwrap(URL(string: "https://tell.cc/u#eu/abc"))
+        let byDefault = try XCTUnwrap(QRCodeGenerator().generateQRCode(url: url)?.pngData())
+        let withoutLogo = try XCTUnwrap(QRCodeGenerator().generateQRCode(url: url, stylingMode: .brandedWithoutLogo)?.pngData())
+        XCTAssertEqual(byDefault, withoutLogo)
+    }
+
+    /// 和真实设备关联码长度相近的链接，默认样式生成 30 次，全部要能解出原文（取自已关闭的 Signal-iOS #27，taishi 审查建议并进来）。
+    /// 注意它测不出「带标」：完美的数字图带标也能解，问题出在摄像头 / zbar 上，所以上面单独钉默认值。
+    func testDefaultQRCodeDecodes() throws {
+        let detector = try XCTUnwrap(CIDetector(
+            ofType: CIDetectorTypeQRCode,
+            context: nil,
+            options: [CIDetectorAccuracy: CIDetectorAccuracyHigh],
+        ))
+
+        for _ in 0..<30 {
+            let pubKey = (0..<33).map { _ in String(format: "%02x", UInt8.random(in: 0...255)) }.joined()
+            let url = try XCTUnwrap(URL(string: "sgnl://linkdevice?uuid=\(UUID().uuidString)&pub_key=\(pubKey)"))
+
+            let image = try XCTUnwrap(QRCodeGenerator().generateQRCode(url: url))
+
+            // 生成的码是黑色前景、透明背景；先铺白底再解。
+            let flattened = UIGraphicsImageRenderer(size: image.size).image { context in
+                UIColor.white.setFill()
+                context.fill(CGRect(origin: .zero, size: image.size))
+                image.draw(at: .zero)
+            }
+            let ciImage = try XCTUnwrap(CIImage(image: flattened))
+            let decoded = (detector.features(in: ciImage).first as? CIQRCodeFeature)?.messageString
+
+            XCTAssertEqual(decoded, url.absoluteString)
+        }
     }
 
     func testCallLinkParserAcceptsTellShape() throws {
