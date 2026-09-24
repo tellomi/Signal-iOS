@@ -5319,8 +5319,8 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "這個 QR 碼無效。請確定您正在掃描要連接的裝置上顯示的QR碼。";
 
-/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404). %@ is the other app's name (Signal), passed from code so the brand script leaves it alone. */
-"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "這個 QR 碼已過期，或者是 %@ 的 QR 碼，不是 Tellomi 的。請掃描電腦上 Tellomi 目前顯示的 QR 碼。";
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "這個 QR 碼已過期，或者不是 Tellomi 的 QR 碼。請掃描電腦上 Tellomi 目前顯示的 QR 碼。";
 
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "裝置連結失敗";

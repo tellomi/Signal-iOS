@@ -5319,8 +5319,8 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "此二维码无效，请确认您想要连接的设备所显示的是此二维码。";
 
-/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404). %@ is the other app's name (Signal), passed from code so the brand script leaves it alone. */
-"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "这个二维码已过期，或者是 %@ 的二维码，不是 Tellomi 的。请扫描电脑上 Tellomi 当前显示的二维码。";
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "这个二维码已过期，或者不是 Tellomi 的二维码。请扫描电脑上 Tellomi 当前显示的二维码。";
 
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "绑定设备失败";

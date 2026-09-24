@@ -343,10 +343,6 @@ extension LinkDeviceViewController: QRCodeScanDelegate {
 // MARK: - Tellomi（#1219）
 
 extension LinkDeviceViewController {
-    /// 「这是 Signal 的码」那句里的名字，从代码传进文案的占位符。
-    /// 不直接写进 Localizable.strings：品牌脚本（超级仓库 scripts/brand/rename-strings.py）会把文案里的 Signal 一律换成 Tellomi。
-    static let tellomiSignalName = "Signal"
-
     /// `PUT /v1/provisioning/{address}` 回 404：服务端上这个关联地址当时没有设备在等。
     /// 码过期了，或者是别的服务器的码——Signal Desktop 的码连的是 Signal 的服务器，在我们的服务器上永远是 404。
     /// 服务端分不出这两种，所以是同一型。上游显示的是「服务返回无效响应」加「重试」。
@@ -354,13 +350,11 @@ extension LinkDeviceViewController {
         error.httpStatusCode == 404
     }
 
+    /// 不点名别的 App（taishi 中转包 8：界面上出不出现「Signal」是品牌决定，先不点名）。
     static func tellomiExpiredOrForeignCodeMessage() -> String {
-        String(
-            format: OWSLocalizedString(
-                "LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY",
-                comment: "Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404). Embeds {{ the other app's name, Signal }}.",
-            ),
-            tellomiSignalName,
+        OWSLocalizedString(
+            "LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY",
+            comment: "Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app.",
         )
     }
 

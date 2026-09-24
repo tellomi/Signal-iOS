@@ -59,10 +59,13 @@ class TellomiLinkDeviceFailureTest: XCTestCase {
         XCTAssertFalse(LinkDeviceViewController.tellomiIsExpiredOrForeignCode(OWSHTTPError.networkFailure(.genericTimeout)))
     }
 
-    func testExpiredOrForeignCodeMessageNamesSignalThroughThePlaceholder() {
+    func testExpiredOrForeignCodeMessageDoesNotNameAnotherApp() {
         let message = LinkDeviceViewController.tellomiExpiredOrForeignCodeMessage()
 
-        XCTAssertTrue(message.contains("from Signal rather than Tellomi"), message)
+        // 键在当前语言里真的有（缺键时 iOS 直接返回键名）；en / zh_CN / zh_HK / zh_TW 四份都只提 Tellomi、不点名 Signal
+        XCTAssertNotEqual(message, "LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY")
+        XCTAssertTrue(message.contains("Tellomi"), message)
+        XCTAssertFalse(message.contains("Signal"), message)
         XCTAssertFalse(message.contains("%@"), message)
     }
 
