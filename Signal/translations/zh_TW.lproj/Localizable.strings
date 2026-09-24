@@ -10440,6 +10440,72 @@
 /* Name of the Terms of Service document, shown as a tappable link inside consent sentences. */
 "TELLOMI_CONSENT_TERMS_LINK" = "《用戶服務協議》";
 
+/* Shown on the cross-border notice after the user taps 'Disagree'. */
+"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "不同意的話，在中國大陸服務上線之前您將無法使用 Tellomi，我們也不會發送您的任何資訊。您可以退出 App，或者之後回到這一頁再同意。";
+
+/* Introduction of the cross-border data transfer notice. */
+"TELLOMI_CROSS_BORDER_INTRO" = "註冊和使用 Tellomi 時，您的部分個人信息會發送到位於中國大陸境外的伺服器處理。請讀完下面幾項，再決定是否同意。";
+
+/* Cross-border notice item 9 body: this page is the separate consent and can be withdrawn. */
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "點「同意並繼續」即表示您單獨同意上述跨境傳輸。您可以隨時撤回；撤回後，在中國大陸服務上線之前將無法繼續使用 Tellomi。";
+
+/* Cross-border notice item 9 title: separate consent. */
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE" = "單獨同意";
+
+/* Cross-border notice item 3 body: how to contact the personal information protection team. */
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY" = "個人信息保護相關問題，請寄電子郵件至 privacy@tellomi.app。";
+
+/* Cross-border notice item 3 title: contact. */
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_TITLE" = "聯絡方式";
+
+/* Cross-border notice item 6 body: kinds of personal information transferred. */
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY" = "手機號碼；帳號和裝置標識；推送令牌；連線時的 IP 地址等網路資訊；加密後的訊息、附件和資料（密文）；使用 GIF 搜尋時的搜尋詞。";
+
+/* Cross-border notice item 6 title: kinds of personal information. */
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_TITLE" = "涉及的個人信息";
+
+/* Cross-border notice item 5 body: end-to-end encryption and what is processed in plaintext. */
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY" = "訊息正文、個人資料、群組資訊和附件內容都經過端到端加密，伺服器和附件儲存裡只有密文，我們無法讀取。以明文處理的只有註冊用的手機號碼、連線所需的網路資訊等少數幾項。";
+
+/* Cross-border notice item 5 title: how the data is processed. */
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE" = "處理方式";
+
+/* Cross-border notice item 8 body: legal procedure for the transfer (pending legal review). */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY" = "我們會依法完成個人信息出境所需的程序，具體方式待法務確認後在這裡寫明。";
+
+/* Cross-border notice item 8 title: legal procedure for the transfer. */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_TITLE" = "出境的法定程序";
+
+/* Cross-border notice item 4 body: purposes of processing. */
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY" = "註冊和登入；投遞和暫存訊息與附件；推送通知；接通語音和視訊通話；GIF 搜尋。";
+
+/* Cross-border notice item 4 title: purposes of processing. */
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_TITLE" = "處理目的";
+
+/* Cross-border notice item 2 body: who receives the data outside mainland China. */
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY" = "Tellomi 在香港部署的服務，以及為我們提供基礎設施的阿里雲（香港）、Cloudflare, Inc.（附件儲存、通話中繼）、Apple（iOS 推送通知）；使用 GIF 搜尋時，搜尋詞經我們的代理發給 GIPHY。";
+
+/* Cross-border notice item 2 title: overseas recipients. */
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_TITLE" = "境外接收方";
+
+/* Cross-border notice item 7 body: how to exercise personal information rights. */
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY" = "您可以按《隱私政策》第二十六、二十七節的方式查閱、更正、刪除個人信息，註銷帳號，或者撤回本同意；也可以寄電子郵件至 privacy@tellomi.app。";
+
+/* Cross-border notice item 7 title: your rights. */
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_TITLE" = "您的權利";
+
+/* Cross-border notice item 1 body: where servers and storage are located. */
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY" = "是。Tellomi 的伺服器在香港；附件存放在 Cloudflare R2，儲存節點可能不在中國大陸。";
+
+/* Cross-border notice item 1 title: whether data leaves mainland China. */
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_TITLE" = "是否出境";
+
+/* Link at the bottom of the cross-border notice that opens the Privacy Policy sections about storage location and cross-border transfer. */
+"TELLOMI_CROSS_BORDER_PRIVACY_LINK" = "檢視《隱私政策》第二十、二十一節";
+
+/* Title of the cross-border data transfer notice shown before the phone number is sent during registration. */
+"TELLOMI_CROSS_BORDER_TITLE" = "您的資訊將傳輸到中國大陸境外（香港）處理";
+
 /* Button in the first-launch privacy notice: agree. */
 "TELLOMI_FIRST_LAUNCH_AGREE" = "同意";
 
