@@ -37,12 +37,18 @@ final class TellomiGetStartedTest: SignalBaseTest {
         }
     }
 
-    /// 新建一个横幅，读它这一刻要显示的卡；再同步写一次，等它顺手发出的「收起」异步写完。
+    /// 新建一个横幅，读它这一刻要显示的卡。
     private func shownCards() -> [String] {
         let delegate = NoopDelegate()
-        let identifiers = GetStartedBannerViewController(delegate: delegate).bannerContent.map(\.identifier)
-        SSKEnvironment.shared.databaseStorageRef.write { _ in }
-        return identifiers
+        return GetStartedBannerViewController(delegate: delegate).bannerContent.map(\.identifier)
+    }
+
+    /// 等横幅顺手发出的「收起」写完：asyncWrite 走同一条串行队列（`asyncWriteQueue`），在它后面再排一个、等回调。
+    /// 同步的 write 不走那条队列，等不到它（taishi 中转包 8）。
+    private func waitForPendingAsyncWrites() {
+        let drained = expectation(description: "async writes drained")
+        SSKEnvironment.shared.databaseStorageRef.asyncWrite(block: { _ in }, completion: { drained.fulfill() })
+        wait(for: [drained], timeout: 5)
     }
 
     private func insertVisibleThread(_ thread: TSThread) {
@@ -64,10 +70,16 @@ final class TellomiGetStartedTest: SignalBaseTest {
     }
 
     func testTheFirstRealConversationFoldsThePathsButKeepsAddPhoto() {
-        insertVisibleThread(TSContactThread(contactAddress: SignalServiceAddress(Aci.randomForTesting())))
+        let friend = TSContactThread(contactAddress: SignalServiceAddress(Aci.randomForTesting()))
+        insertVisibleThread(friend)
 
         XCTAssertEqual(shownCards(), ["avatarBuilder"])
-        // 收起写进了库里：再开一个横幅也只剩设头像
+        waitForPendingAsyncWrites()
+
+        // 收起写进了库里：把那个会话删掉再开一个横幅，扫不到真人会话了，前三张也不回来
+        SSKEnvironment.shared.databaseStorageRef.write { tx in
+            friend.anyRemove(transaction: tx)
+        }
         XCTAssertEqual(shownCards(), ["avatarBuilder"])
     }
 }
