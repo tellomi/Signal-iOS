@@ -672,6 +672,7 @@
 		500FE4E2288A373100FA090C /* BadgeGiftingAlreadyRedeemedSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 500FE4E1288A373100FA090C /* BadgeGiftingAlreadyRedeemedSheet.swift */; };
 		50101FB22B083C8100C648E4 /* ChatListSettingsButtonState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50101FB12B083C8100C648E4 /* ChatListSettingsButtonState.swift */; };
 		50101FB42B08447000C648E4 /* ChatListProxyButtonCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50101FB32B08447000C648E4 /* ChatListProxyButtonCreator.swift */; };
+		9EDB47182FD066D7352194E2 /* ChatListConnectionTitle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B81A481B618D2B7F74FAC86 /* ChatListConnectionTitle.swift */; };
 		501050BB2EB959A4005161CA /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501050BA2EB959A4005161CA /* SessionStore.swift */; };
 		501052642BDAEEDC0097DDC5 /* MobileCoinExternal.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 501052632BDAEEDC0097DDC5 /* MobileCoinExternal.pb.swift */; };
 		501052672BDB22940097DDC5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 501052652BDB15B90097DDC5 /* PrivacyInfo.xcprivacy */; };
@@ -3745,6 +3746,7 @@
 		F97823F328CD0AA1005533BF /* PngChunker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F908AA7928CB89CC00472E68 /* PngChunker.swift */; };
 		F97823F428CD0AC7005533BF /* PngChunkerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F908AA7728CB894400472E68 /* PngChunkerTest.swift */; };
 		F97A2EEA282578C000610669 /* BadgeIssueSheetStateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97A2EE828247C1300610669 /* BadgeIssueSheetStateTest.swift */; };
+		BF61BB90117E904CAFF81F86 /* ChatListConnectionTitleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41815269E42B9E12DA5A1452 /* ChatListConnectionTitleTest.swift */; };
 		F97D02112970778E003756C0 /* BadgeGiftingConfirmationViewController+CreditOrDebitCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97D02102970778E003756C0 /* BadgeGiftingConfirmationViewController+CreditOrDebitCard.swift */; };
 		F9844C492867936400B16DD4 /* SignalMeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9844C482867936400B16DD4 /* SignalMeTest.swift */; };
 		F98ED2CE2922F114008483DC /* DonationPaymentDetailsViewController+DonationMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98ED2CD2922F114008483DC /* DonationPaymentDetailsViewController+DonationMode.swift */; };
@@ -5026,6 +5028,7 @@
 		500FE4E1288A373100FA090C /* BadgeGiftingAlreadyRedeemedSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeGiftingAlreadyRedeemedSheet.swift; sourceTree = "<group>"; };
 		50101FB12B083C8100C648E4 /* ChatListSettingsButtonState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListSettingsButtonState.swift; sourceTree = "<group>"; };
 		50101FB32B08447000C648E4 /* ChatListProxyButtonCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListProxyButtonCreator.swift; sourceTree = "<group>"; };
+		2B81A481B618D2B7F74FAC86 /* ChatListConnectionTitle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListConnectionTitle.swift; sourceTree = "<group>"; };
 		501050BA2EB959A4005161CA /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		501052632BDAEEDC0097DDC5 /* MobileCoinExternal.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileCoinExternal.pb.swift; sourceTree = "<group>"; };
 		501052652BDB15B90097DDC5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -8152,6 +8155,7 @@
 		F972180528DE37A200113D9F /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		F97391A228EF0B20002DDE5D /* ProtoParsingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtoParsingTest.swift; sourceTree = "<group>"; };
 		F97A2EE828247C1300610669 /* BadgeIssueSheetStateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeIssueSheetStateTest.swift; sourceTree = "<group>"; };
+		41815269E42B9E12DA5A1452 /* ChatListConnectionTitleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListConnectionTitleTest.swift; sourceTree = "<group>"; };
 		F97D02102970778E003756C0 /* BadgeGiftingConfirmationViewController+CreditOrDebitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BadgeGiftingConfirmationViewController+CreditOrDebitCard.swift"; sourceTree = "<group>"; };
 		F9844C482867936400B16DD4 /* SignalMeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalMeTest.swift; sourceTree = "<group>"; };
 		F98EA264286A469100791EB4 /* SendGiftBadgeJobQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendGiftBadgeJobQueue.swift; sourceTree = "<group>"; };
@@ -9637,6 +9641,7 @@
 				F9A335C9282F0BF700B5F5FA /* BadgeGiftingChooseBadgeViewControllerStateTest.swift */,
 				CC8AF1A5B874D4FC13BE4BCC /* TellomiNotificationPrimerTest.swift */,
 				F97A2EE828247C1300610669 /* BadgeIssueSheetStateTest.swift */,
+				41815269E42B9E12DA5A1452 /* ChatListConnectionTitleTest.swift */,
 				4C6E6C6824241C00009DE948 /* ConversationViewControllerTest.swift */,
 				3463532E256EA525003C5428 /* ConversationViewTest.swift */,
 				88D6E94125535482003142D9 /* CVTextTest.swift */,
@@ -11517,6 +11522,7 @@
 				D91FBCF32E2E9E9E00D0BCDB /* ChatListFYISheetCoordinator.swift */,
 				E5C5F9B376A0C61A853783B1 /* TellomiNotificationPrimer.swift */,
 				05B411242C62845000A1EDBC /* ChatListInboxFilterSection.swift */,
+				2B81A481B618D2B7F74FAC86 /* ChatListConnectionTitle.swift */,
 				50101FB32B08447000C648E4 /* ChatListProxyButtonCreator.swift */,
 				50101FB12B083C8100C648E4 /* ChatListSettingsButtonState.swift */,
 				34E95C26269F6095004807EC /* ChatListViewController+Actions.swift */,
@@ -18583,6 +18589,7 @@
 				D91FBCF42E2E9EA200D0BCDB /* ChatListFYISheetCoordinator.swift in Sources */,
 				268FEB66C9E0A43BF02E0405 /* TellomiNotificationPrimer.swift in Sources */,
 				05B411252C62845000A1EDBC /* ChatListInboxFilterSection.swift in Sources */,
+				9EDB47182FD066D7352194E2 /* ChatListConnectionTitle.swift in Sources */,
 				50101FB42B08447000C648E4 /* ChatListProxyButtonCreator.swift in Sources */,
 				50101FB22B083C8100C648E4 /* ChatListSettingsButtonState.swift in Sources */,
 				34E95C27269F6096004807EC /* ChatListViewController+Actions.swift in Sources */,
@@ -19252,6 +19259,7 @@
 				F9A335CA282F0BF700B5F5FA /* BadgeGiftingChooseBadgeViewControllerStateTest.swift in Sources */,
 				865569088848A1C2ED573991 /* TellomiNotificationPrimerTest.swift in Sources */,
 				F97A2EEA282578C000610669 /* BadgeIssueSheetStateTest.swift in Sources */,
+				BF61BB90117E904CAFF81F86 /* ChatListConnectionTitleTest.swift in Sources */,
 				D979DA132B8D1B65000EEAB8 /* BadgeManagerTest.swift in Sources */,
 				34F1072226D045290053EF4D /* BatchUpdateTest.swift in Sources */,
 				D9317FD52A4BB15D00075A92 /* BitmapsImageCenteredDeadzoneTest.swift in Sources */,

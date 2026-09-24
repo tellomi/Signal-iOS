@@ -25,6 +25,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         viewState.localFileBackupExportProgressView.chatListViewController = self
         viewState.settingsButtonCreator.delegate = self
         viewState.proxyButtonCreator.delegate = self
+        viewState.connectionTitleObserver.delegate = self
         viewState.configure()
     }
 

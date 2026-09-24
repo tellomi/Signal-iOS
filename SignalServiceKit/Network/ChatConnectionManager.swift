@@ -19,6 +19,9 @@ public protocol ChatConnectionManager {
     func waitUntilIdentifiedConnectionShouldBeClosed() async throws(CancellationError)
     @MainActor
     var unidentifiedConnectionState: OWSChatConnectionState { get }
+    /// Tellomi（tellomi/tellomi#1218 F-04）：会话列表标题看的是收消息的那条（已认证）连接。
+    @MainActor
+    var identifiedConnectionState: OWSChatConnectionState { get }
     var hasEmptiedInitialQueue: Bool { get async }
 
     func requestIdentifiedConnection() -> OWSChatConnection.ConnectionToken
@@ -192,6 +195,11 @@ public class ChatConnectionManagerImpl: ChatConnectionManager {
         return connectionUnidentified.currentState
     }
 
+    @MainActor
+    public var identifiedConnectionState: OWSChatConnectionState {
+        return connectionIdentified.currentState
+    }
+
     // MARK: -
 
     public func keyTransparencyClient() async throws -> KeyTransparency.Client {
@@ -260,6 +268,7 @@ public class ChatConnectionManagerMock: ChatConnectionManager {
     }
 
     public var unidentifiedConnectionState: OWSChatConnectionState = .closed
+    public var identifiedConnectionState: OWSChatConnectionState = .closed
 
     public var shouldWaitForSocketToMakeRequestPerType = [OWSChatConnectionType: Bool]()
 
