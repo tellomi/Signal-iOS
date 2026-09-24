@@ -1561,6 +1561,7 @@
 			<key>other</key>
 			<string>用户名须至少以 %1$d 个字符为开头</string>
 		</dict>
+	</dict>
 	<key>USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -1588,7 +1589,6 @@
 			<key>other</key>
 			<string>更改用户名会重置你现有的二维码和链接，而且之后 %d 天内不能再改。确定要更改吗？</string>
 		</dict>
-	</dict>
 	</dict>
 </dict>
 </plist>
