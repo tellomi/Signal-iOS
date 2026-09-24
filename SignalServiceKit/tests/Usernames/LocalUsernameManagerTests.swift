@@ -611,6 +611,7 @@ class LocalUsernameManagerTests: XCTestCase {
             minNicknameLength: 3,
             maxNicknameLength: 20,
             desiredDiscriminator: nil,
+            enforcingLetterFirst: true,
         )
         XCTAssertEqual(generated.candidateHashes.count, 1)
         XCTAssertEqual(generated.candidate(matchingHash: generated.candidateHashes[0])?.usernameString, "kaixin.01")
@@ -620,6 +621,7 @@ class LocalUsernameManagerTests: XCTestCase {
             minNicknameLength: 3,
             maxNicknameLength: 20,
             desiredDiscriminator: "57",
+            enforcingLetterFirst: true,
         )
         XCTAssertEqual(custom.candidate(matchingHash: custom.candidateHashes[0])?.usernameString, "kaixin.57")
 
@@ -628,6 +630,7 @@ class LocalUsernameManagerTests: XCTestCase {
             minNicknameLength: 3,
             maxNicknameLength: 20,
             desiredDiscriminator: nil,
+            enforcingLetterFirst: true,
         ))
     }
 
@@ -642,6 +645,7 @@ class LocalUsernameManagerTests: XCTestCase {
                 minNicknameLength: 3,
                 maxNicknameLength: 20,
                 desiredDiscriminator: nil,
+                enforcingLetterFirst: true,
             )
         }
 
@@ -663,7 +667,7 @@ class LocalUsernameManagerTests: XCTestCase {
     }
 
     /// Tellomi（taishi 审 Android a3 的意见，iOS 同一条）：「字母开头」只对新起的名字收紧；
-    /// 已有昵称（含旧后缀迁到 `.01`）与修复模式不拦，别的规则照旧。
+    /// 已有昵称（含旧后缀迁到 `.01`）与修复模式（包括修复模式下全新的 `_` 名）不拦，别的规则照旧。
     func testTellomiLetterFirstOnlyForNewNames() throws {
         typealias HashedUsername = Usernames.HashedUsername
 
@@ -671,6 +675,8 @@ class LocalUsernameManagerTests: XCTestCase {
         XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingNickname: nil, isAttemptingRecovery: false))
         XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_KaiXin", existingNickname: "_kaixin", isAttemptingRecovery: false))
         XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingNickname: nil, isAttemptingRecovery: true))
+        // 修复模式整段不收紧，全新的 `_` 名也放过（比 Android / Desktop 宽一档，taishi 审 a4-v2 同意保留）
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_other", existingNickname: nil, isAttemptingRecovery: true))
 
         let kept = try HashedUsername.generateCandidates(
             forNickname: "_kaixin",
