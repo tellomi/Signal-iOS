@@ -12,6 +12,8 @@ import SignalUI
 public struct RegistrationProfileState: Equatable {
     let e164: E164
     let phoneNumberDiscoverability: PhoneNumberDiscoverability
+    /// Tellomi（tellomi/tellomi#1266）：重新注册时不显示「用户名（选填）」，交给设置页。
+    var showsTellomiUsername: Bool = true
 }
 
 // MARK: - RegistrationProfilePresenter
@@ -390,8 +392,11 @@ class RegistrationProfileViewController: OWSViewController {
         stackView.setCustomSpacing(16, after: usernameStatusLabel)
         stackView.setCustomSpacing(16, after: usernameCandidatesStackView)
 
-        // Tellomi（tellomi/tellomi#1215 第二刀）：下面还有用户名框，名字框按回车跳过去
-        givenNameTextField.returnKeyType = .next
+        // Tellomi（tellomi/tellomi#1215 第二刀）：下面还有用户名框，名字框按回车跳过去；
+        // 重新注册时没有用户名框（#1266），回车就是下一步
+        usernameStackView.isHidden = !state.showsTellomiUsername
+        usernameStatusLabel.isHidden = !state.showsTellomiUsername
+        givenNameTextField.returnKeyType = state.showsTellomiUsername ? .next : .done
         usernameTextField.addAction(
             UIAction { [weak self] _ in self?.didUsernameTextFieldChange() },
             for: .editingChanged,
@@ -711,7 +716,7 @@ extension RegistrationProfileViewController: UITextFieldDelegate {
         switch textField {
         case givenNameTextField:
             // Tellomi（tellomi/tellomi#1215 第二刀）：下面还有用户名框（已确认、锁住时没有下一项）
-            if usernameTextField.isEnabled {
+            if state.showsTellomiUsername, usernameTextField.isEnabled {
                 usernameTextField.becomeFirstResponder()
             } else {
                 goToNextStepIfPossible()
@@ -736,6 +741,7 @@ extension RegistrationProfileViewController: RegistrationPhoneNumberDiscoverabil
         self.state = RegistrationProfileState(
             e164: self.state.e164,
             phoneNumberDiscoverability: phoneNumberDiscoverability,
+            showsTellomiUsername: self.state.showsTellomiUsername,
         )
         self.presentedViewController?.dismiss(animated: true)
     }
