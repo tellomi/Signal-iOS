@@ -177,17 +177,21 @@ class RegistrationVerificationViewController: OWSViewController {
         return label
     }()
 
+    /// Tellomi（tellomi/tellomi#1214，taishi 审查 b8 不阻塞 4）：ADR-0051 §二 F（`docs/adr/0051-sign-in-ux-redesign.md:108`）——
+    /// 「收不到验证码？」在左、倒计时 /「重新发送」在右，同一行放在底部，样式和重发一样。原来它居中放在验证码下面。
     private lazy var helpButton: UIButton = {
-        let button = UIButton(
-            configuration: .mediumBorderless(title: Self.showsTellomiHelp ? RegistrationVerificationHelpSheetViewController.tellomiTitle : OWSLocalizedString(
-                "ONBOARDING_VERIFICATION_HELP_LINK",
-                comment: "Label for a button to get help entering a verification code when registering.",
-            )),
+        let button = simpleMultilineButton(
+            accessibilityIdentifierSuffix: "helpButton",
             primaryAction: UIAction { [weak self] _ in
                 self?.didTapHelpButton()
             },
         )
-        button.accessibilityIdentifier = "registration.verification.helpButton"
+        button.configuration?.title = Self.showsTellomiHelp ? RegistrationVerificationHelpSheetViewController.tellomiTitle : OWSLocalizedString(
+            "ONBOARDING_VERIFICATION_HELP_LINK",
+            comment: "Label for a button to get help entering a verification code when registering.",
+        )
+        button.configuration?.titleAlignment = .leading
+        button.contentHorizontalAlignment = .leading
         return button
     }()
 
@@ -229,7 +233,9 @@ class RegistrationVerificationViewController: OWSViewController {
         view.backgroundColor = .Signal.background
 
         // Buttons at the bottom
+        // Tellomi：「收不到验证码？」排在最左边（ADR-0051 §二 F）。
         let resendButtonsContainer = UIStackView(arrangedSubviews: [
+            helpButton,
             resendSMSCodeButton,
             requestVoiceCodeButton,
         ])
@@ -247,7 +253,6 @@ class RegistrationVerificationViewController: OWSViewController {
                 wrongNumberButton,
                 verificationCodeView,
                 codeErrorLabel,
-                helpButton,
                 .vStretchingSpacer(),
                 resendButtonsContainer,
             ],
@@ -351,6 +356,9 @@ class RegistrationVerificationViewController: OWSViewController {
         // Tellomi（tellomi/tellomi#1214，ADR-0051 §二，taishi 审查 b6）：一进页面就显示「收不到验证码？」。
         // 上游要提交过 3 次验证码才出现（showHelpText），收不到短信的人没有码可交，面板里的出路就一直藏着。
         helpButton.isHidden = !(state.showHelpText || Self.showsTellomiHelp)
+        // 左边有「收不到验证码？」时重发靠右；没有时照上游居中。
+        resendSMSCodeButton.contentHorizontalAlignment = helpButton.isHidden ? .center : .trailing
+        resendSMSCodeButton.configuration?.titleAlignment = helpButton.isHidden ? .center : .trailing
 
         verificationCodeView.updateColors()
     }
