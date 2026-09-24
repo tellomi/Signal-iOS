@@ -1377,6 +1377,8 @@ extension ChatListViewController {
         case corruptedUsernameLinkResolution
         case donate(donateMode: DonateViewController.DonateMode)
         case linkedDevices
+        /// Tellomi（tellomi/tellomi#947）：「扫一扫」扫到关联码 → 打开「已关联的设备」并直接走关联流程。
+        case linkNewDevice(DeviceProvisioningURL)
         case proxy
         case accountSettings
     }
@@ -1520,6 +1522,9 @@ extension ChatListViewController {
 
         case .linkedDevices:
             viewControllers += [LinkedDevicesHostingController()]
+
+        case .linkNewDevice(let provisioningUrl):
+            viewControllers += [LinkedDevicesHostingController(pendingProvisioningUrl: provisioningUrl)]
 
         case .proxy:
             viewControllers += [PrivacySettingsViewController(), AdvancedPrivacySettingsViewController(), ProxySettingsViewController()]

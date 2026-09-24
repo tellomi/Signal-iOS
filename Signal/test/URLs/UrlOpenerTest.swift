@@ -76,4 +76,56 @@ class UrlOpenerTest: XCTestCase {
         // tell.cc/u#p/… 不能被当成群邀请（Android #973 撞过的坑）
         XCTAssertNil(PossibleGroupInviteLinkUrl.parseFrom(TellomiLinks.legacyEquivalent(of: URL(string: "https://tell.cc/u#p/+16505550100")!)))
     }
+
+    // MARK: - 「扫一扫」统一（tellomi/tellomi#947）
+
+    func testScannedCodeClassification() throws {
+        let usernameLink = try XCTUnwrap(Usernames.UsernameLink(handle: UUID(), entropy: Data(repeating: 7, count: 32)))
+        let legacyUsernameUrl = usernameLink.url.absoluteString
+        let tellomiUsernameUrl = legacyUsernameUrl.replacingOccurrences(of: "https://signal.me/#eu/", with: "https://tell.cc/u#eu/")
+        XCTAssertNotEqual(legacyUsernameUrl, tellomiUsernameUrl)
+        for scanned in [legacyUsernameUrl, tellomiUsernameUrl] {
+            guard case .usernameLink(let parsed) = TellomiScannedCode.classify(scanned) else {
+                return XCTFail("\(scanned) should be a username link")
+            }
+            XCTAssertEqual(parsed, usernameLink)
+        }
+
+        let pubKey = "BQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        for scanned in [
+            "sgnl://linkdevice?uuid=00000000-0000-4000-8000-000000000000&pub_key=\(pubKey)",
+            "tellomi://linkdevice?uuid=00000000-0000-4000-8000-000000000000&pub_key=\(pubKey)",
+        ] {
+            guard case .linkDevice = TellomiScannedCode.classify(scanned) else {
+                return XCTFail("\(scanned) should be a device-linking code")
+            }
+        }
+        for scanned in [
+            "sgnl://rereg?uuid=00000000-0000-4000-8000-000000000000&pub_key=\(pubKey)",
+            "tellomi://rereg?uuid=00000000-0000-4000-8000-000000000000&pub_key=\(pubKey)",
+        ] {
+            guard case .quickRestore = TellomiScannedCode.classify(scanned) else {
+                return XCTFail("\(scanned) should be a quick-restore code")
+            }
+        }
+
+        // 明文用户名、群邀请：和点链接一样交给 UrlOpener
+        for scanned in [
+            "https://tell.cc/ceshi.57",
+            "https://tell.cc/u#u/ceshi.57",
+            "https://tell.cc/g#CjQKIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEhAAAAAAAAAAAAAAAAAAAAAA",
+        ] {
+            guard case .openableUrl = TellomiScannedCode.classify(scanned) else {
+                return XCTFail("\(scanned) should be opened like a tapped link")
+            }
+        }
+
+        // 其它网址 / 文字：显示出来，不静默忽略（也不能走 UrlOpener 的 owsFailDebug）
+        for scanned in ["https://example.com/menu", "WIFI:S:office;T:WPA;P:secret;;", "hello"] {
+            guard case .other(let text) = TellomiScannedCode.classify(scanned) else {
+                return XCTFail("\(scanned) should be shown as plain content")
+            }
+            XCTAssertEqual(text, scanned)
+        }
+    }
 }

@@ -55,13 +55,19 @@ class UrlOpener {
     }
 
     static func parseUrl(_ url: URL) -> ParsedUrl? {
-        guard let openableUrl = parseOpenableUrl(url) else {
+        return parseUrl(url, reportUnrecognized: true)
+    }
+
+    /// Tellomi（tellomi/tellomi#947）：统一扫码器扫到的可能是任意网址或文字，「认不得」是正常情况，
+    /// 不能走下面的 `owsFailDebug`（Debug 构建会崩），所以给扫码器一个不报错的入口。
+    static func parseUrl(_ url: URL, reportUnrecognized: Bool) -> ParsedUrl? {
+        guard let openableUrl = parseOpenableUrl(url, reportUnrecognized: reportUnrecognized) else {
             return nil
         }
         return ParsedUrl(openableUrl: openableUrl)
     }
 
-    private static func parseOpenableUrl(_ originalUrl: URL) -> OpenableUrl? {
+    private static func parseOpenableUrl(_ originalUrl: URL, reportUnrecognized: Bool) -> OpenableUrl? {
         // Tellomi：新形状（tellomi:// · tell.cc/{u,g,s,call}）先换算成旧形状，下面的上游解析器一行不动；
         // 只有 tell.cc/u#u/<username> 上游没有等价物，单独接。
         if let username = TellomiLinks.plainUsername(in: originalUrl) {
@@ -98,7 +104,9 @@ class UrlOpener {
         if let callLink = CallLink(url: url) {
             return .callLink(callLink)
         }
-        owsFailDebug("Couldn't parse URL")
+        if reportUnrecognized {
+            owsFailDebug("Couldn't parse URL")
+        }
         return nil
     }
 

@@ -10401,6 +10401,15 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "点击替换表情符号";
 
+/* Shown when a device-linking QR code is scanned on a device that is not the primary device. */
+"TELLOMI_SCAN_LINK_DEVICE_NOT_PRIMARY" = "这是关联设备用的二维码，请在主手机的「设置 → 已关联设备」里扫描。";
+
+/* Button to open a web link found in a scanned QR code in the browser. */
+"TELLOMI_SCAN_OPEN_LINK" = "打开";
+
+/* Title of the sheet shown when a scanned QR code is not a Tellomi link; its text is shown below. */
+"TELLOMI_SCAN_OTHER_CONTENT_TITLE" = "二维码内容";
+
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "加粗";
 
