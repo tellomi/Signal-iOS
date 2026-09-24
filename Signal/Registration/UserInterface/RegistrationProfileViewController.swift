@@ -16,7 +16,13 @@ public struct RegistrationProfileState: Equatable {
 
 // MARK: - RegistrationProfilePresenter
 
+// Tellomi（tellomi/tellomi#1215 第二刀）：标成 @MainActor——只由页面（主线程）调用、只由导航控制器实现；新加的两个 async 方法要在主线程读协调器状态
+@MainActor
 protocol RegistrationProfilePresenter: AnyObject {
+    // Tellomi（tellomi/tellomi#1215 第二刀）：选填用户名，由注册协调器用注册拿到的凭证显式认证去保留 / 确认
+    func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome
+    func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome
+
     func goToNextStep(
         givenName: OWSUserProfile.NameComponent,
         familyName: OWSUserProfile.NameComponent?,
@@ -57,6 +63,53 @@ class RegistrationProfileViewController: OWSViewController {
 
     private var avatarData: Data? {
         didSet { updateUI() }
+    }
+
+    // MARK: Tellomi（tellomi/tellomi#1215 第二刀）：选填用户名
+
+    enum TellomiUsernameStatus: Equatable {
+        case none
+        case localError(TellomiRegistrationUsername.LocalError)
+        case checking
+        case reserved(Usernames.HashedUsername)
+        case notAvailable
+        case cooldown(days: Int)
+        case tooManyAttempts
+        case checkFailed
+    }
+
+    /// 单测、截图直接读写它；页面上的状态行、候选、「下一步」都从它算。
+    var tellomiUsernameStatus: TellomiUsernameStatus = .none {
+        didSet { updateTellomiUsernameUI() }
+    }
+
+    var tellomiUsernameCandidates: [String] = [] {
+        didSet { updateTellomiUsernameUI() }
+    }
+
+    /// 已经确认成了账号的用户名：之后保存资料失败再点「下一步」时不再确认第二次（再确认就算改名，会开始 30 天冷却）。
+    private(set) var isTellomiUsernameConfirmed = false
+
+    private var isConfirmingTellomiUsername = false
+    private var tellomiUsernameTask: Task<Void, Never>?
+
+    /// 与 Telegram 两端同一个节奏：去掉习惯打的 `@`；格式不对立刻说；格式对了立刻显示「正在检查…」，停顿之后才去服务端。
+    /// 停顿取上游 UsernameSelection 的 0.5 秒（Signal 没有单独的查重接口，查重就是保留，有频率限制）。
+    private static let tellomiUsernameDebounce: UInt64 = 500_000_000
+
+    var tellomiUsernameText: String {
+        return usernameTextField.text ?? ""
+    }
+
+    /// 没填 = 不设用户名，可以进入；填了就要保留成功（或已经确认过）才行。
+    var isTellomiUsernameAcceptable: Bool {
+        if tellomiUsernameText.isEmpty || isTellomiUsernameConfirmed {
+            return true
+        }
+        if case .reserved = tellomiUsernameStatus {
+            return true
+        }
+        return false
     }
 
     // MARK: UI
@@ -191,6 +244,69 @@ class RegistrationProfileViewController: OWSViewController {
         return stackView
     }()
 
+    // Tellomi（tellomi/tellomi#1215 第二刀）：用户名（选填），在名字下面
+    private lazy var usernameTextField: UITextField = {
+        let result = textField(
+            placeholder: OWSLocalizedString(
+                "REGISTRATION_PROFILE_USERNAME_PLACEHOLDER_TELLOMI",
+                comment: "Tellomi: during registration, placeholder of the optional username field below the name field.",
+            ),
+            textContentType: .username,
+            accessibilityIdentifierSuffix: "username",
+        )
+        result.autocapitalizationType = .none
+        result.keyboardType = .asciiCapable
+        result.returnKeyType = .done
+        result.rightViewMode = .always
+        return result
+    }()
+
+    private lazy var usernameStackView: UIView = {
+        let stackView = UIStackView(arrangedSubviews: [usernameTextField])
+        stackView.axis = .vertical
+        if #available(iOS 26, *) {
+            stackView.backgroundColor = .Signal.secondaryBackground
+            stackView.directionalLayoutMargins = .init(top: 0, leading: 16, bottom: 0, trailing: 8)
+            stackView.isLayoutMarginsRelativeArrangement = true
+            stackView.cornerConfiguration = .uniformCorners(radius: 26)
+        } else {
+            usernameTextField.addBottomStroke(color: .Signal.opaqueSeparator, strokeWidth: hairlineWidth)
+        }
+        return stackView
+    }()
+
+    /// 说明行一直占一行：出错、在查、你的链接都在这一行，界面不跳。
+    private lazy var usernameStatusLabel: UILabel = {
+        let label = UILabel()
+        label.font = .dynamicTypeFootnoteClamped
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 1
+        label.lineBreakMode = .byTruncatingTail
+        label.accessibilityIdentifier = "registration.profile.usernameStatus"
+        return label
+    }()
+
+    private lazy var usernameCandidatesStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = 8
+        stackView.alignment = .center
+        stackView.accessibilityIdentifier = "registration.profile.usernameCandidates"
+        return stackView
+    }()
+
+    private lazy var usernameCheckingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
+
+    private lazy var usernameReservedImageView: UIImageView = {
+        let imageView = UIImageView(image: UIImage(systemName: "checkmark.circle.fill"))
+        imageView.tintColor = .Signal.accent
+        return imageView
+    }()
+
     // Tellomi（tellomi/tellomi#1215）：「谁可以通过手机号找到我」去掉（没有 CDSI 时不起作用），换成一句实话：
     // 号码默认不分享（`PhoneNumberSharingMode` 默认就是不显示）。
     private lazy var phoneNumberNotShownLabel: UILabel = {
@@ -257,6 +373,9 @@ class RegistrationProfileViewController: OWSViewController {
                 explanationView,
                 avatarContainerView,
                 nameStackView,
+                usernameStackView,
+                usernameStatusLabel,
+                usernameCandidatesStackView,
                 phoneNumberNotShownLabel,
                 .vStretchingSpacer(),
             ],
@@ -265,9 +384,19 @@ class RegistrationProfileViewController: OWSViewController {
         )
         stackView.spacing = 24
         stackView.setCustomSpacing(12, after: titleLabel)
-        stackView.setCustomSpacing(20, after: nameStackView)
+        stackView.setCustomSpacing(12, after: nameStackView)
+        stackView.setCustomSpacing(6, after: usernameStackView)
+        // 候选行隐藏时，状态行直接接下面那句说明，间距要够
+        stackView.setCustomSpacing(16, after: usernameStatusLabel)
+        stackView.setCustomSpacing(16, after: usernameCandidatesStackView)
 
-        givenNameTextField.returnKeyType = .done
+        // Tellomi（tellomi/tellomi#1215 第二刀）：下面还有用户名框，名字框按回车跳过去
+        givenNameTextField.returnKeyType = .next
+        usernameTextField.addAction(
+            UIAction { [weak self] _ in self?.didUsernameTextFieldChange() },
+            for: .editingChanged,
+        )
+        updateTellomiUsernameUI()
 
         updateUI()
     }
@@ -284,7 +413,7 @@ class RegistrationProfileViewController: OWSViewController {
     }
 
     private func updateUI() {
-        navigationItem.rightBarButtonItem?.isEnabled = givenNameComponent != nil
+        navigationItem.rightBarButtonItem?.isEnabled = givenNameComponent != nil && isTellomiUsernameAcceptable && !isConfirmingTellomiUsername
 
         // Tellomi（tellomi/tellomi#1215）：没选照片时，默认头像随名字实时变（中文取最后两个字）
         avatarView.image = avatarData?.asImage ?? SSKEnvironment.shared.databaseStorageRef.read { transaction in
@@ -333,12 +462,207 @@ class RegistrationProfileViewController: OWSViewController {
             return
         }
 
+        // Tellomi（tellomi/tellomi#1215 第二刀）：填了用户名就先确认、成功才保存资料；确认失败人还在这一页
+        guard isTellomiUsernameAcceptable, !isConfirmingTellomiUsername else {
+            return
+        }
+        if !isTellomiUsernameConfirmed, !tellomiUsernameText.isEmpty, case .reserved(let reservedUsername) = tellomiUsernameStatus {
+            confirmTellomiUsernameThenGoToNextStep(reservedUsername)
+            return
+        }
+
         presenter?.goToNextStep(
             givenName: givenNameComponent,
             familyName: nil,
             avatarData: avatarData,
             phoneNumberDiscoverability: state.phoneNumberDiscoverability,
         )
+    }
+
+    // MARK: Tellomi username
+
+    private func didUsernameTextFieldChange() {
+        if tellomiUsernameText.hasPrefix("@") {
+            usernameTextField.text = String(tellomiUsernameText.drop(while: { $0 == "@" }))
+        }
+        checkTellomiUsername(debounce: true)
+    }
+
+    private func checkTellomiUsername(debounce: Bool) {
+        tellomiUsernameTask?.cancel()
+        tellomiUsernameCandidates = []
+
+        let nickname = tellomiUsernameText
+        if nickname.isEmpty {
+            tellomiUsernameStatus = .none
+            return
+        }
+        if let error = TellomiRegistrationUsername.check(nickname) {
+            tellomiUsernameStatus = .localError(error)
+            return
+        }
+
+        tellomiUsernameStatus = .checking
+        tellomiUsernameTask = Task { @MainActor [weak self] in
+            if debounce {
+                try? await Task.sleep(nanoseconds: Self.tellomiUsernameDebounce)
+            }
+            guard !Task.isCancelled, let self, let presenter = self.presenter else {
+                return
+            }
+            let outcome = await presenter.reserveTellomiUsername(nickname: nickname)
+            // 只认最后一次：回来时框里已经改了，这个结果就丢掉
+            guard !Task.isCancelled, self.tellomiUsernameText == nickname, !self.isTellomiUsernameConfirmed else {
+                return
+            }
+            self.applyTellomiReservationOutcome(outcome, nickname: nickname)
+        }
+    }
+
+    func applyTellomiReservationOutcome(_ outcome: TellomiRegistrationUsername.ReservationOutcome, nickname: String) {
+        switch outcome {
+        case .reserved(let reservedUsername):
+            tellomiUsernameStatus = .reserved(reservedUsername)
+        case .notAvailable:
+            tellomiUsernameStatus = .notAvailable
+            tellomiUsernameCandidates = TellomiRegistrationUsername.candidates(for: nickname)
+        case .cooldown(let days):
+            tellomiUsernameStatus = .cooldown(days: days)
+        case .tooManyAttempts:
+            tellomiUsernameStatus = .tooManyAttempts
+        case .failed:
+            tellomiUsernameStatus = .checkFailed
+        }
+        // 读屏：查的结果出来了念一遍（边打边出的格式错误看得见，不逐字念）
+        UIAccessibility.post(notification: .announcement, argument: tellomiUsernameStatusText)
+    }
+
+    private func didTapTellomiUsernameCandidate(_ candidate: String) {
+        usernameTextField.text = candidate
+        checkTellomiUsername(debounce: false)
+    }
+
+    private func confirmTellomiUsernameThenGoToNextStep(_ reservedUsername: Usernames.HashedUsername) {
+        guard let presenter else {
+            return
+        }
+        isConfirmingTellomiUsername = true
+        updateUI()
+
+        ModalActivityIndicatorViewController.present(fromViewController: self, canCancel: false, asyncBlock: { [weak self] modal in
+            let outcome = await presenter.confirmTellomiUsername(reservedUsername)
+            modal.dismiss {
+                self?.didConfirmTellomiUsername(outcome)
+            }
+        })
+    }
+
+    private func didConfirmTellomiUsername(_ outcome: TellomiRegistrationUsername.ConfirmationOutcome) {
+        isConfirmingTellomiUsername = false
+        switch outcome {
+        case .confirmed:
+            // 确认成功后用户名框锁住：再确认就算改名
+            isTellomiUsernameConfirmed = true
+            usernameTextField.isEnabled = false
+            tellomiUsernameCandidates = []
+            updateUI()
+            goToNextStepIfPossible()
+        case .rejected:
+            // 保留过期或被人抢了：重新保留一次，可用就再点「下一步」，不可用就给候选
+            Logger.warn("Username reservation was rejected at confirmation. Reserving again.")
+            checkTellomiUsername(debounce: false)
+        case .failed:
+            updateUI()
+            OWSActionSheets.showErrorAlert(message: CommonStrings.somethingWentWrongTryAgainLaterError)
+        }
+    }
+
+    var tellomiUsernameStatusText: String {
+        switch tellomiUsernameStatus {
+        case .none:
+            // 占住一行高度，界面不跳
+            return " "
+        case .localError(.tooShort):
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_TOO_SHORT_TELLOMI", comment: "Tellomi: registration username is shorter than 3 characters.")
+        case .localError(.tooLong):
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_TOO_LONG_TELLOMI", comment: "Tellomi: registration username is longer than 20 characters.")
+        case .localError(.invalidCharacters):
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_INVALID_CHARACTERS_TELLOMI", comment: "Tellomi: registration username contains characters other than letters, numbers and underscores.")
+        case .localError(.mustStartWithLetter):
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_START_WITH_LETTER_TELLOMI", comment: "Tellomi: registration username does not start with a letter.")
+        case .checking:
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_CHECKING_TELLOMI", comment: "Tellomi: registration username is being checked with the server.")
+        case .reserved:
+            return String(
+                format: OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_YOUR_LINK_TELLOMI", comment: "Tellomi: registration username is available. Embeds {{ the link, like tell.cc/kaixin }}."),
+                "\(TellomiLinks.host)/\(tellomiUsernameText.lowercased())",
+            )
+        case .notAvailable:
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_NOT_AVAILABLE_TELLOMI", comment: "Tellomi: registration username is taken or reserved.")
+        case .cooldown(let days):
+            return String.localizedStringWithFormat(
+                OWSLocalizedString(
+                    "REGISTRATION_PROFILE_USERNAME_COOLDOWN_TELLOMI_%d",
+                    tableName: "PluralAware",
+                    comment: "Tellomi: a recycled phone number inherited the previous owner's 30-day username change cooldown. Embeds {{ %d the days left }}. Must fit on one line.",
+                ),
+                days,
+            )
+        case .tooManyAttempts:
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_TOO_MANY_ATTEMPTS_TELLOMI", comment: "Tellomi: registration username reservation was rate limited for less than an hour.")
+        case .checkFailed:
+            return OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_CHECK_FAILED_TELLOMI", comment: "Tellomi: registration username could not be checked because of a network or server error.")
+        }
+    }
+
+    private func updateTellomiUsernameUI() {
+        guard isViewLoaded else {
+            return
+        }
+
+        usernameStatusLabel.text = tellomiUsernameStatusText
+        switch tellomiUsernameStatus {
+        case .localError, .notAvailable, .cooldown, .tooManyAttempts, .checkFailed:
+            usernameStatusLabel.textColor = .Signal.red
+        case .none, .checking, .reserved:
+            usernameStatusLabel.textColor = .Signal.secondaryLabel
+        }
+
+        switch tellomiUsernameStatus {
+        case .checking:
+            usernameCheckingIndicator.startAnimating()
+            usernameTextField.rightView = usernameCheckingIndicator
+        case .reserved:
+            usernameCheckingIndicator.stopAnimating()
+            usernameTextField.rightView = usernameReservedImageView
+        default:
+            usernameCheckingIndicator.stopAnimating()
+            usernameTextField.rightView = nil
+        }
+
+        usernameCandidatesStackView.removeAllSubviews()
+        if !tellomiUsernameCandidates.isEmpty {
+            let tryLabel = UILabel()
+            tryLabel.text = OWSLocalizedString("REGISTRATION_PROFILE_USERNAME_TRY_TELLOMI", comment: "Tellomi: label before the suggested usernames when the one typed is not available.")
+            tryLabel.font = .dynamicTypeFootnoteClamped
+            tryLabel.textColor = .Signal.secondaryLabel
+            usernameCandidatesStackView.addArrangedSubview(tryLabel)
+            for candidate in tellomiUsernameCandidates {
+                var configuration = UIButton.Configuration.gray()
+                configuration.title = candidate
+                configuration.cornerStyle = .capsule
+                configuration.buttonSize = .small
+                let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
+                    self?.didTapTellomiUsernameCandidate(candidate)
+                })
+                button.accessibilityIdentifier = "registration.profile.usernameCandidate"
+                usernameCandidatesStackView.addArrangedSubview(button)
+            }
+            usernameCandidatesStackView.addArrangedSubview(.hStretchingSpacer())
+        }
+        usernameCandidatesStackView.isHidden = tellomiUsernameCandidates.isEmpty
+
+        updateUI()
     }
 }
 
@@ -386,6 +710,13 @@ extension RegistrationProfileViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         switch textField {
         case givenNameTextField:
+            // Tellomi（tellomi/tellomi#1215 第二刀）：下面还有用户名框（已确认、锁住时没有下一项）
+            if usernameTextField.isEnabled {
+                usernameTextField.becomeFirstResponder()
+            } else {
+                goToNextStepIfPossible()
+            }
+        case usernameTextField:
             goToNextStepIfPossible()
         default:
             owsFailBeta("Got a \"return\" event for an unexpected text field")

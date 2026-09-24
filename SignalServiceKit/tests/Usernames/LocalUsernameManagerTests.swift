@@ -134,6 +134,29 @@ class LocalUsernameManagerTests: XCTestCase {
         XCTAssertEqual(mockSyncMessageSender.usernameChangeSyncMessageCount, 1)
     }
 
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：注册资料页用注册拿到的凭证显式认证去保留 / 确认（本机注册还没完成，隐式认证取不到凭证）；
+    /// 不传认证时仍是隐式，上游原来的行为不变。
+    func testReserveAndConfirmUseTheGivenAuth() async throws {
+        let explicitAuth = ChatServiceAuth.explicit(aci: Aci.randomForTesting(), deviceId: .primary, password: "registration-password")
+        let candidates = try Usernames.HashedUsername.generateCandidates(forNickname: "kaixin", minNicknameLength: 3, maxNicknameLength: 20, desiredDiscriminator: nil)
+
+        var reserveAuths: [ChatServiceAuth] = []
+        mockUsernameApiClient.reserveUsernameCandidatesMocks = [
+            { _, auth in reserveAuths.append(auth); return .rejected },
+            { _, auth in reserveAuths.append(auth); return .rejected },
+        ]
+        _ = await localUsernameManager.reserveUsername(usernameCandidates: candidates, chatServiceAuth: explicitAuth)
+        _ = await localUsernameManager.reserveUsername(usernameCandidates: candidates)
+        XCTAssertEqual(reserveAuths, [explicitAuth, .implicit()])
+
+        var confirmAuths: [ChatServiceAuth] = []
+        mockUsernameLinkManager.entropyToGenerate = .success(.mockEntropy)
+        mockUsernameApiClient.confirmReservedUsernameMocks = [{ _, _, auth in confirmAuths.append(auth); return .rejected }]
+        _ = await localUsernameManager.confirmUsername(reservedUsername: .mock("kaixin.01"), chatServiceAuth: explicitAuth)
+        XCTAssertEqual(confirmAuths, [explicitAuth])
+        XCTAssertTrue(mockUsernameApiClient.reserveUsernameCandidatesMocks.isEmpty)
+    }
+
     func testConfirmBailsEarlyIfNotReachable() async {
         mockReachabilityManager.isReachable = false
 
