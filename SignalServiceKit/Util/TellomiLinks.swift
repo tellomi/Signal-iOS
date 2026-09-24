@@ -127,6 +127,21 @@ public enum TellomiLinks {
         return String(username.dropLast(suffix.count))
     }
 
+    /// ADR-0066 §6.2：换用户名之后 30 天内不能再换（服务端 `USERNAME_CHANGE_COOLDOWN`，tellomi/Signal-Server#4；首次设置不计）。
+    /// 只用在改名前的提醒；还剩多久永远以服务端 429 的 `Retry-After` 为准。
+    public static let renameCooldownDays = 30
+
+    /// reserve 回 429 时分辨「改名冷却」和普通限流：限流桶（`usernameReserve`，100 次 / 15 分钟）的 `Retry-After` 是秒级，
+    /// 冷却的是天级，**超过一小时就是冷却**。与 Desktop `isRenameCooldown`、Android `TellomiUsernames.isRenameCooldown` 同一条线。
+    public static func isRenameCooldown(retryAfter: TimeInterval) -> Bool {
+        return retryAfter > 3600
+    }
+
+    /// 冷却还剩几天：向上取整、至少 1（刚改完的 `Retry-After` 2591999 秒是 30 天，还剩两小时是 1 天）。三端同一算法。
+    public static func renameCooldownDaysLeft(retryAfter: TimeInterval) -> Int {
+        return max(1, Int((retryAfter / 86400).rounded(.up)))
+    }
+
     /// tell.cc 的一级路径与预留路径（ADR-0066 §五：都进了用户名保留词）。1–2 位的已被长度规则挡住，列全是为了和 ADR 一一对得上。
     private static let reservedFirstLevelPaths: Set<String> = ["u", "g", "s", "call", "i", "m", "e", "a", "app", "b"]
 

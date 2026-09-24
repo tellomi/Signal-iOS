@@ -3999,6 +3999,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "輸入用戶名稱，後面跟著一個點及其配對數字。";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "輸入對方的用戶名稱。";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "用戶名稱";
 
@@ -10867,6 +10870,9 @@
 
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@ 不是有效的用戶名稱。請確保你已輸入完整的用戶名稱，以及隨後的一組數字。";
+
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ 不是有效的用戶名稱。";
 
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "用戶名稱無效";

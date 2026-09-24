@@ -77,9 +77,10 @@ public class FindByUsernameViewController: OWSTableViewController2 {
             items: [
                 .textFieldItem(textField),
             ],
+            // Tellomi（tellomi/tellomi#1106 第四刀）：上游写「输入用户名，后跟一个点和一组数字」，数字已经隐藏，输 `kaixin` 就能找到（第一刀）
             footerTitle: OWSLocalizedString(
-                "FIND_BY_USERNAME_FOOTER",
-                comment: "A footer below the username text field describing what should be entered",
+                "FIND_BY_USERNAME_FOOTER_TELLOMI",
+                comment: "Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one.",
             ),
         ))
 
