@@ -314,7 +314,9 @@ public class TSConstantsStaging: TSConstantsProtocol {
     // 听 127.0.0.1:9010，nginx 以 /callingService/ 暴露。Desktop 的 config/production.json
     // 早就是这个地址，两端不一致的后果是同一个群通话进不到一个房间。
     public let sfuURL = "https://chat.tellomi.app/callingService"
-    public let svr2URL = "wss://svr2.staging.signal.org"
+    // Tellomi：没有 SVR。原来这里是 Signal 自己的 svr2.staging.signal.org——一旦有入口漏出去，
+    // 用户的手机就会去连 Signal 的服务器。.invalid 保证解析不到（tellomi/tellomi#1234）。
+    public let svr2URL = "wss://svr2.tellomi.invalid"
     // 自建服务端：香港 nginx 上的 captcha 页（Cloudflare Turnstile，#930；通过后跳 tellomicaptcha://turnstile.<siteKey>.<action>.<token>，
     // CaptchaView 新旧 scheme 都认）。/captcha/ 那份回旧的 signalcaptcha://，两阶段迁移完成后下线。
     public let registrationCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/registration/generate.html"
