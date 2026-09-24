@@ -126,18 +126,20 @@ final class TellomiUpdateRequiredTest: SignalBaseTest {
     }
 
     func testThePageOffersUpdatingOrOnlyViewingTheChats() {
+        // 期望文案带上和页面代码一样的 value:。不带的话，模拟器语言不是四种之一时，期望值会变成键名，
+        // 而页面显示的是英文，用例假红（taishi 审查 b15 包 8 不阻塞 5）。
         var opened = 0
         let viewController = TellomiUpdateRequiredAppBlockingViewController(openUpdatePage: { opened += 1 }, viewChatsOnly: {})
         viewController.loadViewIfNeeded()
 
         let shown = labelTexts(in: viewController.view).joined(separator: "\n")
-        XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_TITLE", comment: "")), shown)
-        XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED", comment: "")), shown)
-        XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_CHATS_KEPT", comment: "")), shown)
+        XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_TITLE", value: "Update Tellomi to continue", comment: "")), shown)
+        XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED", value: "This version can no longer communicate with the server. Update to keep sending and receiving messages.", comment: "")), shown)
+        XCTAssertTrue(shown.contains(OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_CHATS_KEPT", value: "Updating keeps all the chats on this phone.", comment: "")), shown)
 
         // 规则 1：主按钮「立即更新」，另有「暂不更新，只看聊天记录」；没有别的。
         XCTAssertEqual(buttons(in: viewController.view), [viewController.updateButton, viewController.viewChatsOnlyButton])
-        XCTAssertEqual(viewController.viewChatsOnlyButton.configuration?.title, OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_BUTTON", comment: ""))
+        XCTAssertEqual(viewController.viewChatsOnlyButton.configuration?.title, OWSLocalizedString("APP_EXPIRED_TELLOMI_BLOCKING_VIEW_CHATS_ONLY_BUTTON", value: "Not now, just view my chats", comment: ""))
 
         viewController.updateButton.sendActions(for: .primaryActionTriggered)
         XCTAssertEqual(opened, 1)
@@ -148,5 +150,28 @@ final class TellomiUpdateRequiredTest: SignalBaseTest {
         let viewController = TellomiUpdateRequiredAppBlockingViewController(openUpdatePage: {}, viewChatsOnly: {})
         viewController.loadViewIfNeeded()
         XCTAssertTrue(viewController.view.accessibilityViewIsModal)
+    }
+
+    // MARK: - 只读模式的说法（#1143 需求 3.4，taishi 审查包 11）
+
+    /// 服务端判定（499）时并没有过期：会话列表横幅说「需要更新才能继续收发消息」，不说「已过期」。
+    func testReadOnlyBannerSaysAnUpdateIsNeededInsteadOfExpired() {
+        let text = ExpirationNagView.ExpirationMessage.appExpired.text
+        XCTAssertEqual(text, OWSLocalizedString("EXPIRATION_ERROR_TELLOMI", value: "Update Tellomi to keep sending and receiving messages.", comment: ""))
+        XCTAssertFalse(text.localizedCaseInsensitiveContains("expired"), text)
+    }
+
+    /// 会话输入框同理：「此版本需要更新才能收发消息。立即更新」，「立即更新」照旧是可点的链接。
+    func testReadOnlyInputSaysAnUpdateIsNeededAndKeepsTheUpdateLink() {
+        let text = ConversationViewController.appExpiredErrorText()
+        let updateNow = OWSLocalizedString("APP_EXPIRED_BOTTOM_UPDATE", comment: "")
+        XCTAssertFalse(text.string.localizedCaseInsensitiveContains("expired"), text.string)
+        XCTAssertTrue(text.string.hasSuffix(updateNow), text.string)
+
+        let linkRange = (text.string as NSString).range(of: updateNow)
+        // UIColor.Signal.link 每次取都是新的动态颜色对象，要按同一种外观解析后再比
+        let light = UITraitCollection(userInterfaceStyle: .light)
+        let color = text.attribute(.foregroundColor, at: linkRange.location, effectiveRange: nil) as? UIColor
+        XCTAssertEqual(color?.resolvedColor(with: light), UIColor.Signal.link.resolvedColor(with: light))
     }
 }

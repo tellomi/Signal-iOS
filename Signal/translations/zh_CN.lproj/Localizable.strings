@@ -219,6 +219,9 @@
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. The embedded value is 'Update now' (translated via APP_EXPIRED_BOTTOM_UPDATE), and it will be formatted as a tappable link. */
 "APP_EXPIRED_BOTTOM" = "此 Tellomi 版本已过期。请%1$@以发送和接收消息。";
 
+/* Tellomi: Shown in place of the text input box in a conversation when this version can no longer send or receive (the server rejects it, or the build expired). The embedded value is 'Update now' (APP_EXPIRED_BOTTOM_UPDATE), formatted as a tappable link. */
+"APP_EXPIRED_BOTTOM_TELLOMI" = "此版本需要更新才能收发消息。%1$@";
+
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. This value is a tappable link embedded in a larger sentence. */
 "APP_EXPIRED_BOTTOM_UPDATE" = "立即更新";
 
@@ -3968,6 +3971,9 @@
 
 /* Label notifying the user that the app has expired. */
 "EXPIRATION_ERROR" = "此 Tellomi 版本已过期，请升级到更新版本以继续收发消息。";
+
+/* Tellomi: Conversation list banner when this version can no longer send or receive (the server rejects it, or the build expired). Says an update is needed rather than 'expired', since a server-side block is not an expiry. */
+"EXPIRATION_ERROR_TELLOMI" = "需要更新才能继续收发消息。";
 
 /* If the user's app is too old, they'll be shown a warning asking them to upgrade. This is the text on the warning, and tapping it will open the App Store page for Signal. */
 "EXPIRATION_WARNING_ACTION_TITLE" = "立即升级";

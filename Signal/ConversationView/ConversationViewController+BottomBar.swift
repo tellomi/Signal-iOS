@@ -186,7 +186,7 @@ public extension ConversationViewController {
             bottomView = announcementOnlyView
         case .appExpired:
             let appExpiredView = BlockingErrorBottomPanelView(
-                text: appExpiredErrorText(),
+                text: Self.appExpiredErrorText(),
                 onTap: { [weak self] in self?.didTapShowUpgradeAppUI() },
             )
             requestView = appExpiredView
@@ -274,10 +274,13 @@ public extension ConversationViewController {
         return attributedString
     }
 
-    private func appExpiredErrorText() -> NSAttributedString {
+    internal static func appExpiredErrorText() -> NSAttributedString {
+        // Tellomi（#1143 需求 3.4，taishi 审查包 11）：服务端判定（499）时并没有过期，输入框不说「已过期」，
+        // 改说「此版本需要更新才能收发消息」，两种情况都成立。「立即更新」链接照旧。
         let format = OWSLocalizedString(
-            "APP_EXPIRED_BOTTOM",
-            comment: "Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. The embedded value is 'Update now' (translated via APP_EXPIRED_BOTTOM_UPDATE), and it will be formatted as a tappable link.",
+            "APP_EXPIRED_BOTTOM_TELLOMI",
+            value: "This version needs an update to send and receive messages. %1$@",
+            comment: "Tellomi: Shown in place of the text input box in a conversation when this version can no longer send or receive (the server rejects it, or the build expired). The embedded value is 'Update now' (APP_EXPIRED_BOTTOM_UPDATE), formatted as a tappable link.",
         )
         let updateNowText = OWSLocalizedString(
             "APP_EXPIRED_BOTTOM_UPDATE",
