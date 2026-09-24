@@ -129,6 +129,10 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
 
         // Content view.
         let stackView = addStaticContentStackView(arrangedSubviews: [], isScrollable: true)
+        if !TSConstants.backupServiceAvailable {
+            addTellomiViews(to: stackView)
+            return
+        }
         switch self.restorePath {
         case .quickRestore(let tier, let platform) where platform == .android:
             switch tier {
@@ -305,6 +309,120 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
         ])
     }
 
+    // MARK: Tellomi
+
+    /// Tellomi：这套部署没有备份服务（`TSConstants.backupServiceAvailable == false`），上游这一页的
+    /// 「恢复 Tellomi 安全备份」要输恢复密钥、最后落在一个不存在的服务上；旧手机是 Android 时还教用户
+    /// 「在旧设备上开启 Tellomi 备份」。这里只留真能走通的：iPhone 到 iPhone 直连传输（Debug 包另有本地文件备份），
+    /// 其余一律是「直接注册」，并说清以前的聊天记录不会跟过来（tellomi/tellomi#1216）。
+    private func addTellomiViews(to stackView: UIStackView) {
+        switch restorePath {
+        case .quickRestore(_, let platform) where platform == .android:
+            addTellomiNoTransferFromAndroidViews(to: stackView)
+            return
+        case .quickRestore, .unspecified:
+            // `.unspecified`：服务端回 409（号码以前注册过、原来的主设备支持直连传输，也就是 iPhone）。
+            addTellomiTitle(to: stackView)
+            stackView.addArrangedSubviews([
+                prominentTransferButton(),
+                tellomiRegisterDirectlyButton(),
+            ])
+        case .manualRestore:
+            // Tellomi 的欢迎页不再进这条路（「直接注册」直接走正常注册），只有旧版本留在磁盘上的状态会走到这里。
+            addDefaultTitle(to: stackView)
+            stackView.addArrangedSubview(tellomiRegisterDirectlyButton())
+        }
+        if BuildFlags.LocalFileBackups.restore {
+            stackView.addArrangedSubview(localFileBackupRestoreButton())
+        }
+        stackView.addArrangedSubview(.vStretchingSpacer())
+        if case .manualRestore = restorePath {
+            let cancelButton = UIButton(
+                configuration: .mediumSecondary(title: CommonStrings.cancelButton),
+                primaryAction: UIAction { [weak self] _ in
+                    self?.didTapCancel()
+                },
+            )
+            stackView.addArrangedSubview(cancelButton.enclosedInVerticalStackView(isFullWidthButton: false))
+        }
+    }
+
+    private func addTellomiTitle(to stackView: UIStackView) {
+        let titleLabel = UILabel.titleLabelForRegistration(
+            text: OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_TITLE",
+                comment: "Tellomi: Title of the registration screen that asks whether to transfer messages from the old iPhone.",
+            ),
+        )
+        let explanationLabel = UILabel.explanationLabelForRegistration(
+            text: OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_DESCRIPTION",
+                comment: "Tellomi: Description on the registration screen that asks whether to transfer messages from the old iPhone.",
+            ),
+        )
+        stackView.addArrangedSubviews([
+            titleLabel,
+            explanationLabel,
+        ])
+        stackView.setCustomSpacing(24, after: explanationLabel)
+    }
+
+    private func tellomiRegisterDirectlyButton() -> UIButton {
+        return UIButton.registrationChoiceButton(
+            title: OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_TITLE",
+                comment: "Tellomi: Title of the choice to register without transferring messages.",
+            ),
+            subtitle: OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_BODY",
+                comment: "Tellomi: Explanation of the choice to register without transferring messages.",
+            ),
+            iconName: "continue-48",
+            primaryAction: UIAction { [weak self] _ in
+                self?.didSkipRestore()
+            },
+        )
+    }
+
+    /// 旧手机是 Android：Android 到 iPhone 没有直连传输，上游唯一的办法是「在旧设备上开启备份」，Tellomi 没有这项服务。
+    /// 所以不再教三步开备份，直接说清楚，给「直接注册」和「返回」两个出口。
+    private func addTellomiNoTransferFromAndroidViews(to stackView: UIStackView) {
+        let title = UILabel.titleLabelForRegistration(
+            text: OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_TITLE",
+                comment: "Tellomi: Title shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone.",
+            ),
+        )
+        let body = UILabel.explanationLabelForRegistration(
+            text: OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_BODY",
+                comment: "Tellomi: Body shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone.",
+            ),
+        )
+        let registerButton = UIButton(
+            configuration: .largePrimary(title: OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_TITLE",
+                comment: "Tellomi: Title of the choice to register without transferring messages.",
+            )),
+            primaryAction: UIAction { [weak self] _ in
+                // 这一页本身已经说清了后果，不再弹二次确认。
+                self?.presenter?.didChooseRestoreMethod(method: .declined)
+            },
+        )
+        let backButton = UIButton(
+            configuration: .largeSecondary(title: CommonStrings.backButton),
+            primaryAction: UIAction { [weak self] _ in
+                self?.didTapCancel()
+            },
+        )
+        stackView.addArrangedSubviews([
+            title,
+            body,
+            .vStretchingSpacer(),
+            [registerButton, backButton].enclosedInVerticalStackView(isFullWidthButtons: true),
+        ])
+    }
+
     // MARK: Events
 
     private func didSelectRestoreFromBackup() {
@@ -318,18 +436,35 @@ class RegistrationChooseRestoreMethodViewController: OWSViewController, UIDocume
     private func didSkipRestore() {
         // Add a bit of friction by having the user confirm they want to skip restoring.
         var actions = [ActionSheetAction]()
-        let title = OWSLocalizedString(
+        var title = OWSLocalizedString(
             "ONBOARDING_CHOOSE_RESTORE_METHOD_CONFIRM_SKIP_RESTORE_TITLE",
             comment: "Title for a sheet warning users about skipping restore.",
         )
-        let message = OWSLocalizedString(
+        var message = OWSLocalizedString(
             "ONBOARDING_CHOOSE_RESTORE_METHOD_CONFIRM_SKIP_RESTORE_BODY",
             comment: "Body for a sheet warning users about skipping restore.",
         )
-        let actionTitle = OWSLocalizedString(
+        var actionTitle = OWSLocalizedString(
             "REGISTRATION_BACKUP_RESTORE_ERROR_SKIP_RESTORE_ACTION",
             comment: "Skip restore action label for backup restore error recovery.",
         )
+        if !TSConstants.backupServiceAvailable {
+            // Tellomi：上游这句「以后将无法进行恢复。如果您在此设备上重启备份，您当前的备份将会被…取代」讲的是备份，
+            // 这套部署没有备份服务。真实的后果是：旧手机上的 Tellomi 会退出登录，以前的聊天记录不会出现在这台手机上，
+            // 以后也没法再从旧手机传过来（tellomi/tellomi#1216）。
+            title = OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_TITLE",
+                comment: "Tellomi: Title of the confirmation sheet shown before registering without transferring messages.",
+            )
+            message = OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_BODY",
+                comment: "Tellomi: Body of the confirmation sheet shown before registering without transferring messages.",
+            )
+            actionTitle = OWSLocalizedString(
+                "ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_TITLE",
+                comment: "Tellomi: Title of the choice to register without transferring messages.",
+            )
+        }
         actions.append(ActionSheetAction(title: actionTitle) { [weak self] _ in
             self?.presenter?.didChooseRestoreMethod(method: .declined)
         })
