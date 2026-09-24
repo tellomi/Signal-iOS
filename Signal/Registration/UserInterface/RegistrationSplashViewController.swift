@@ -111,10 +111,13 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
             },
         )
 
+        // Tellomi：上游「恢复或转移账户」和「继续」一样大，而 Tellomi 能走通的只有一条路（iPhone 到 iPhone 直连传输），
+        // 大多数人是第一次注册。降成主按钮下面一行文字链，和 Telegram 欢迎页把次要动作放在主按钮下方一行文字里一样
+        // （tellomi/tellomi#1216）。以后有了云备份，入口还在这里，只是里面多几条路。
         let restoreOrTransferButton = UIButton(
-            configuration: .largeSecondary(title: OWSLocalizedString(
-                "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE",
-                comment: "Button for restoring or transferring account in the 'onboarding splash' view.",
+            configuration: .mediumBorderless(title: OWSLocalizedString(
+                "ONBOARDING_SPLASH_NEW_PHONE_LINK_TITLE",
+                comment: "Tellomi: One-line text link under the 'Continue' button in the 'onboarding splash' view, for people moving to a new phone.",
             )),
             primaryAction: UIAction { [weak self] _ in
                 self?.didTapRestoreOrTransfer()
@@ -163,6 +166,11 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
                     self?.presenter?.setHasOldDevice(hasOldDevice)
                 }
             },
+            registerDirectlyBlock: { [weak self] in
+                self?.dismiss(animated: true) {
+                    self?.presenter?.continueFromSplash()
+                }
+            },
         )
         self.present(sheet, animated: true)
     }
@@ -173,8 +181,10 @@ private class RestoreOrTransferPickerController: StackSheetViewController {
     override var placeOnGlassIfAvailable: Bool { false }
 
     private let setHasOldDeviceBlock: (Bool) -> Void
-    init(setHasOldDeviceBlock: @escaping (Bool) -> Void) {
+    private let registerDirectlyBlock: () -> Void
+    init(setHasOldDeviceBlock: @escaping (Bool) -> Void, registerDirectlyBlock: @escaping () -> Void) {
         self.setHasOldDeviceBlock = setHasOldDeviceBlock
+        self.registerDirectlyBlock = registerDirectlyBlock
         super.init()
     }
 
@@ -183,6 +193,11 @@ private class RestoreOrTransferPickerController: StackSheetViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         stackView.spacing = 16
+
+        if !TSConstants.backupServiceAvailable {
+            addTellomiChoices()
+            return
+        }
 
         let hasDeviceButton = UIButton.registrationChoiceButton(
             title: OWSLocalizedString(
@@ -215,6 +230,41 @@ private class RestoreOrTransferPickerController: StackSheetViewController {
             },
         )
         stackView.addArrangedSubview(noDeviceButton)
+    }
+
+    /// Tellomi：没有备份服务时，上游「旧手机不在身边」后面只剩走不通的路——「恢复 Tellomi 安全备份」要输恢复密钥，
+    /// 而这套部署根本没有备份服务；本地文件备份恢复只在 Debug 包里有（`BuildFlags.LocalFileBackups.restore`）。
+    /// 所以这里只列两条真能走通的：旧 iPhone 在身边就扫码直连传输；否则直接注册，并说清以前的聊天记录不会跟过来
+    /// （tellomi/tellomi#1216）。
+    private func addTellomiChoices() {
+        stackView.addArrangedSubview(UIButton.registrationChoiceButton(
+            title: OWSLocalizedString(
+                "ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_TITLE",
+                comment: "Tellomi: Title for the 'my old iPhone is here' choice after tapping 'New phone?' in the 'onboarding splash' view.",
+            ),
+            subtitle: OWSLocalizedString(
+                "ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_BODY",
+                comment: "Tellomi: Explanation of the 'my old iPhone is here' choice: scan a QR code with the old iPhone to transfer the account and messages directly.",
+            ),
+            iconName: "qr-code-48",
+            primaryAction: UIAction { [weak self] _ in
+                self?.setHasOldDeviceBlock(true)
+            },
+        ))
+        stackView.addArrangedSubview(UIButton.registrationChoiceButton(
+            title: OWSLocalizedString(
+                "ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_TITLE",
+                comment: "Tellomi: Title for the choice to register directly (old phone is not at hand, or is an Android phone) after tapping 'New phone?' in the 'onboarding splash' view.",
+            ),
+            subtitle: OWSLocalizedString(
+                "ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY",
+                comment: "Tellomi: Explanation of the 'register directly' choice: registering works, but earlier messages won't come to this phone.",
+            ),
+            iconName: "continue-48",
+            primaryAction: UIAction { [weak self] _ in
+                self?.registerDirectlyBlock()
+            },
+        ))
     }
 }
 
