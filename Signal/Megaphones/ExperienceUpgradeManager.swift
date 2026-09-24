@@ -569,6 +569,11 @@ class ExperienceUpgradeManager {
         experienceUpgrade: ExperienceUpgrade,
         tx: DBReadTransaction,
     ) -> BackupsUpsellResult? {
+        // Tellomi（tellomi/tellomi#1193）：不做远端备份就不推「开启加密备份」——点「开启」只会落到没有「备份」行的设置首页
+        guard TSConstants.remoteBackupsEnabled else {
+            return nil
+        }
+
         guard
             tsAccountManager.registrationState(tx: tx).isRegisteredPrimaryDevice
         else {

@@ -284,7 +284,8 @@ class AppSettingsViewController: OWSTableViewController2 {
                     )
                 },
             ))
-        } else if !isPrimaryDevice {
+        } else if !isPrimaryDevice, TSConstants.remoteBackupsEnabled {
+            // Tellomi（tellomi/tellomi#1193）：关联设备这页写着「您可以在您的主设备上开始备份」，可主设备没有这个入口，一起不出
             section2.add(.disclosureItem(
                 icon: .backup,
                 withText: OWSLocalizedString(
