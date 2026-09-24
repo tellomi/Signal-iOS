@@ -261,7 +261,9 @@ private extension UsernameLinkScanQRCodeViewController {
             comment: "Message for an action sheet telling users how to link a device, when trying to open a device-linking URL from the in-app camera.",
         ))
         actionSheet.addAction(ActionSheetAction(title: CommonStrings.continueButton) { [weak self] _ in
-            self?.dismiss(animated: true) {
+            // 收起整叠弹出页再开「已关联设备」：扫码页常压在设置页 / 新建聊天页上，只关自己的话，
+            // 接着的 showAppSettings 会被 UIKit 静默拒掉（聊天列表还弹着别的页），用户停在原处（taishi 审查包 5）
+            self?.dismissToRootThen {
                 SignalApp.shared.showAppSettings(mode: .linkedDevices)
             }
         })
