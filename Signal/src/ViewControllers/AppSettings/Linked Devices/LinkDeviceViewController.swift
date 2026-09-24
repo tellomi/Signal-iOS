@@ -21,7 +21,8 @@ class LinkDeviceViewController: OWSViewController {
     private var hasShownEducationSheet: Bool
     private weak var educationSheet: HeroSheetViewController?
 
-    private lazy var qrCodeScanViewController = QRCodeScanViewController(appearance: .framed)
+    // Tellomi（#1219）：只认对准画面中心、连续对准 0.5 秒的码，免得扫到旁边别人屏幕上的关联码（见 TellomiQrFocus）
+    private lazy var qrCodeScanViewController = QRCodeScanViewController(appearance: .framed, tellomiRequiresCenteredStableCode: true)
 
     init(skipEducationSheet: Bool) {
         self.hasShownEducationSheet = skipEducationSheet
