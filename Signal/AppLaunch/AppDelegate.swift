@@ -690,6 +690,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             DependenciesBridge.shared.orphanedAttachmentCleaner.beginObserving()
         }
 
+#if TESTABLE_BUILD
+        // Tellomi（#1056 第三刀）：判据 2 的切区演练，只在带 TELLOMI_REGION_DRILL 启动时跑
+        appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
+            TellomiRegionDrill.startIfRequested()
+        }
+#endif
+
         appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
             AttachmentDownloadRetryRunner.shared.beginObserving()
         }

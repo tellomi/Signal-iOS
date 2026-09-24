@@ -109,10 +109,20 @@ public enum TellomiRegions {
         return all
     }()
 
+    /// 本进程用的区域表：provider 的 `profiles` 和 `current()` 都按它。一般就是 `all`；
+    /// 测试构建里带 `TELLOMI_TEST_REGION_DOMAIN` 启动时，CN 档换成一个开着的测试区（`testRegionProfiles`）。
+    public static let processProfiles: [TellomiRegionProfile] = {
+#if TESTABLE_BUILD
+        return testRegionProfiles(environment: ProcessInfo.processInfo.environment)
+#else
+        return all
+#endif
+    }()
+
     /// 当前区（契约第六节 `currentRegion()`）。记在 app group 的 UserDefaults 里，主 App 和 NSE 读同一份。
     /// 没有记录、不认识、那个区关着、读不出来，一律回落 global，绝不抛（契约第五节第 8 条）。
     public static func current(store: TellomiRegionStore = .appGroup) -> TellomiRegionProfile {
-        resolve(storedId: store.storedRegionId())
+        resolve(storedId: store.storedRegionId(), profiles: processProfiles)
     }
 
     /// 本进程生效的区（#1056 第三刀）：provider 装上以后以它为准——它和 libsignal `Net` 在同一个原子状态里，
@@ -121,9 +131,9 @@ public enum TellomiRegions {
         TellomiNetProvider.installed?.activeRegion ?? current()
     }
 
-    /// 本进程认识的区：装上的 provider 带的表；没装上时是编进包里的表。
+    /// 本进程认识的区：装上的 provider 带的表；没装上时是本进程的表。
     public static func known() -> [TellomiRegionProfile] {
-        TellomiNetProvider.installed?.profiles ?? all
+        TellomiNetProvider.installed?.profiles ?? processProfiles
     }
 
     /// 记住的区 id → 区。回落规则是纯函数，单测直接测它。
@@ -133,24 +143,26 @@ public enum TellomiRegions {
 
     /// 契约第四节：同名标签挂到 `tellomi.cn`。scheme、端口、路径都不变，只把主机名里的 `.tellomi.app` 换成 `.tellomi.cn`。
     /// 这样 CN 档的每一个主机都在 `tellomi.cn` 下（App 备案要填运行时连接的全部域名，漏一条就是漏报）。
-    static func cnOf(_ global: TellomiRegionProfile) -> TellomiRegionProfile {
-        TellomiRegionProfile(
+    /// `domain` / `enabled` 只有测试区会改（`testRegionProfiles`）。
+    static func cnOf(_ global: TellomiRegionProfile, domain: String = cnDomain, enabled: Bool = false) -> TellomiRegionProfile {
+        let rehost = { toCnHost($0, domain: domain) }
+        return TellomiRegionProfile(
             id: .cn,
-            enabled: false,
-            chat: toCnHost(global.chat),
-            grpcChatHost: toCnHost(global.grpcChatHost),
-            storage: toCnHost(global.storage),
-            cdn0: toCnHost(global.cdn0),
-            cdn2: toCnHost(global.cdn2),
-            cdn3: toCnHost(global.cdn3),
-            updates: toCnHost(global.updates),
-            contentProxyHost: toCnHost(global.contentProxyHost),
+            enabled: enabled,
+            chat: rehost(global.chat),
+            grpcChatHost: rehost(global.grpcChatHost),
+            storage: rehost(global.storage),
+            cdn0: rehost(global.cdn0),
+            cdn2: rehost(global.cdn2),
+            cdn3: rehost(global.cdn3),
+            updates: rehost(global.updates),
+            contentProxyHost: rehost(global.contentProxyHost),
             contentProxyPort: global.contentProxyPort,
-            captchaRegistration: toCnHost(global.captchaRegistration),
-            captchaChallenge: toCnHost(global.captchaChallenge),
-            sfu: toCnHost(global.sfu),
-            uptimeHost: toCnHost(global.uptimeHost),
-            debugLog: toCnHost(global.debugLog),
+            captchaRegistration: rehost(global.captchaRegistration),
+            captchaChallenge: rehost(global.captchaChallenge),
+            sfu: rehost(global.sfu),
+            uptimeHost: rehost(global.uptimeHost),
+            debugLog: rehost(global.debugLog),
         )
     }
 
@@ -167,12 +179,12 @@ public enum TellomiRegions {
     }
 
     /// 只换主机部分；主机不在 `tellomi.app` 下的原样返回，由 `problems` 挑出来。
-    static func toCnHost(_ urlOrHost: String) -> String {
+    static func toCnHost(_ urlOrHost: String, domain: String = cnDomain) -> String {
         let host = hostOf(urlOrHost)
         guard host.hasSuffix(globalDomain), let range = urlOrHost.range(of: host) else {
             return urlOrHost
         }
-        let cnHost = String(host.dropLast(globalDomain.count)) + cnDomain
+        let cnHost = String(host.dropLast(globalDomain.count)) + domain
         return urlOrHost.replacingCharacters(in: range, with: cnHost)
     }
 
@@ -205,6 +217,35 @@ public enum TellomiRegions {
 
         return problems
     }
+
+#if TESTABLE_BUILD
+
+    // MARK: - 测试区（只在测试构建里；#1056 第三刀提交 E）
+
+    /// 启动环境变量，值是一个域名，例如 `tellomi.test`。
+    static let testRegionDomainKey = "TELLOMI_TEST_REGION_DOMAIN"
+
+    /// 带 `TELLOMI_TEST_REGION_DOMAIN` 启动时，CN 档换成一个**开着的**测试区：同名标签挂到那个域下
+    /// （`chat.<域>`、`grpc.chat.<域>`、`cdn3.<域>`…，路径和端口不变）。用来在 CN 保持关闭、`tellomi.cn` 下
+    /// 没有任何 DNS 记录的前提下验切区（#1056 判据 1、2）。
+    ///
+    /// 只换本进程的表，不改 `all`，所以 `problems(all)` 和第二刀的门禁照旧。NSE、分享扩展由系统启动，
+    /// 没有这个变量：store 里记的 `cn` 在那边按规则回落 global。值不像域名就当没设。
+    static func testRegionProfiles(environment: [String: String]) -> [TellomiRegionProfile] {
+        guard let domain = environment[testRegionDomainKey], isPlausibleTestDomain(domain) else {
+            return all
+        }
+        let testRegion = cnOf(global, domain: "." + domain, enabled: true)
+        return all.map { $0.id == .cn ? testRegion : $0 }
+    }
+
+    private static func isPlausibleTestDomain(_ domain: String) -> Bool {
+        let labels = domain.split(separator: ".", omittingEmptySubsequences: false)
+        return labels.count >= 2 && labels.allSatisfy { label in
+            !label.isEmpty && label.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }
+        }
+    }
+#endif
 }
 
 /// 当前区记在哪（契约第六节）。

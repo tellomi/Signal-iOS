@@ -57,7 +57,7 @@ public final class TellomiNetProvider: Sendable {
     /// 旧 `Net` 在这条队列上放掉：不在 libsignal 自己的 tokio 线程上（在那上面 drop 运行时会 panic），也不卡主线程。
     private static let retireQueue = DispatchQueue(label: "org.tellomi.retired-net", qos: .utility)
 
-    /// 这个进程认识的区：默认是编进包里的表（`TellomiRegions.all`）。
+    /// 这个进程认识的区：默认是本进程的表（`TellomiRegions.processProfiles`，测试构建里可能带测试区）。
     public let profiles: [TellomiRegionProfile]
 
     /// - Parameter retireDelay: 换下来的旧 `Net` 留多久再放。要长过 provisioning 的 90 s、请求超时和 keepalive 的 30 s，
@@ -65,7 +65,7 @@ public final class TellomiNetProvider: Sendable {
     public init(
         region: TellomiRegionProfile,
         net: Net,
-        profiles: [TellomiRegionProfile] = TellomiRegions.all,
+        profiles: [TellomiRegionProfile] = TellomiRegions.processProfiles,
         retireDelay: TimeInterval = 3 * .minute,
     ) {
         self.state = AtomicValue(State(region: region, net: net, generation: 0), lock: .init())
@@ -198,3 +198,92 @@ public final class TellomiNetProvider: Sendable {
         }
     }
 }
+
+#if TESTABLE_BUILD
+
+// MARK: - 判据 2 的切区演练（只在测试构建里；#1056 第三刀提交 E）
+
+/// #1056 判据 2「切 10 次没有连接泄漏」的可复现跑法。带这几个启动环境变量打开主 App：
+///
+/// - `TELLOMI_TEST_REGION_DOMAIN=<域名>`：开一个测试区（`TellomiRegions.testRegionProfiles`）。要有两个开着的区才能切。
+/// - `TELLOMI_REGION_DRILL=10`：切几次。`TELLOMI_REGION_DRILL_INTERVAL` 是间隔秒数，默认 20。
+///
+/// 演练拿着一个未认证的聊天连接（没注册也能连），所以每次切区都有一条真连接跟着 `cycleSocket()` 换到新 `Net` 上。
+/// 每一步记 `Net` 代数、退役数、tokio 线程数和主线程延迟；切完再看 5 分钟：退役期（3 分钟）过后，
+/// 旧 `Net` 应该全部放掉（日志里的 released），tokio 线程数回到演练开始时。
+public enum TellomiRegionDrill {
+    static let countKey = "TELLOMI_REGION_DRILL"
+    static let intervalKey = "TELLOMI_REGION_DRILL_INTERVAL"
+
+    /// 主 App 就绪后调；没带 `TELLOMI_REGION_DRILL` 就什么都不做。
+    public static func startIfRequested() {
+        let environment = ProcessInfo.processInfo.environment
+        guard
+            let count = environment[countKey].flatMap({ Int($0) }), count > 0,
+            let provider = TellomiNetProvider.installed
+        else {
+            return
+        }
+        let interval = environment[intervalKey].flatMap({ TimeInterval($0) }) ?? 20
+        let regions = provider.profiles.filter(\.enabled).map(\.id)
+        guard regions.count >= 2 else {
+            Logger.warn("[Tellomi drill] needs two enabled regions (set \(TellomiRegions.testRegionDomainKey)); enabled: \(regions)")
+            return
+        }
+        Task.detached {
+            let token = DependenciesBridge.shared.chatConnectionManager.requestUnidentifiedConnection()
+            await log("start", provider)
+            for step in 1...count {
+                try? await Task.sleep(nanoseconds: UInt64(interval * TimeInterval(NSEC_PER_SEC)))
+                let target = regions.first { $0 != provider.activeRegion.id } ?? regions[0]
+                do {
+                    try provider.switchTo(target)
+                } catch {
+                    Logger.warn("[Tellomi drill] switch \(step) to \(target.rawValue) failed: \(error)")
+                }
+                await log("switch \(step)/\(count) -> \(target.rawValue)", provider)
+            }
+            for _ in 0..<10 {
+                try? await Task.sleep(nanoseconds: 30 * NSEC_PER_SEC)
+                await log("after", provider)
+            }
+            token.releaseConnection()
+            Logger.info("[Tellomi drill] done")
+        }
+    }
+
+    private static func log(_ step: String, _ provider: TellomiNetProvider) async {
+        let pingedAt = Date()
+        let socket = await MainActor.run { DependenciesBridge.shared.chatConnectionManager.unidentifiedConnectionState.debugDescription }
+        let mainThreadLagMs = Int(Date().timeIntervalSince(pingedAt) * 1000)
+        Logger.info("[Tellomi drill] \(step): net generation \(provider.generation), retired \(provider.retiredCount), tokio threads \(tokioThreadCount()), unauth socket \(socket), main-thread lag \(mainThreadLagMs) ms")
+    }
+
+    /// 本进程里 libsignal tokio 运行时的线程数。每个 `Net` 一个运行时；工作线程和 blocking 线程都叫
+    /// `libsignal-tokio-worker`（libsignal `rust/bridge/shared/types/src/net/tokio.rs` 的 `thread_name`）。
+    public static func tokioThreadCount() -> Int {
+        var threads: thread_act_array_t?
+        var threadCount = mach_msg_type_number_t(0)
+        guard task_threads(mach_task_self_, &threads, &threadCount) == KERN_SUCCESS, let threads else {
+            return -1
+        }
+        defer {
+            for index in 0..<Int(threadCount) {
+                mach_port_deallocate(mach_task_self_, threads[index])
+            }
+            vm_deallocate(mach_task_self_, vm_address_t(bitPattern: threads), vm_size_t(Int(threadCount) * MemoryLayout<thread_t>.stride))
+        }
+        var result = 0
+        var name = [CChar](repeating: 0, count: 64)
+        for index in 0..<Int(threadCount) {
+            guard let thread = pthread_from_mach_thread_np(threads[index]), pthread_getname_np(thread, &name, name.count) == 0 else {
+                continue
+            }
+            if name.withUnsafeBufferPointer({ String(cString: $0.baseAddress!) }).hasPrefix("libsignal-tokio") {
+                result += 1
+            }
+        }
+        return result
+    }
+}
+#endif

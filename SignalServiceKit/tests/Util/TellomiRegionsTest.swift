@@ -536,34 +536,12 @@ class TellomiRegionsTest: XCTestCase {
     )
 
     private func storedNetDeclarations() throws -> [String] {
-        let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent() // Util
-            .deletingLastPathComponent() // tests
-            .deletingLastPathComponent() // SignalServiceKit
-            .deletingLastPathComponent() // 仓库根
-            .resolvingSymlinksInPath()
         var hits = [String]()
-        for target in ["Signal", "SignalServiceKit", "SignalUI", "SignalNSE", "SignalShareExtension"] {
-            guard let enumerator = FileManager.default.enumerator(at: root.appendingPathComponent(target), includingPropertiesForKeys: nil) else {
-                XCTFail("can't read \(target)")
-                continue
-            }
-            for case let url as URL in enumerator {
-                if ["test", "tests", "TestUtils"].contains(url.lastPathComponent) {
-                    enumerator.skipDescendants()
-                    continue
-                }
-                guard url.pathExtension == "swift" else {
-                    continue
-                }
-                let path = url.resolvingSymlinksInPath().path
-                let relativePath = String(path.dropFirst(root.path.count + 1))
-                let text = try String(contentsOf: url, encoding: .utf8)
-                for (index, line) in text.components(separatedBy: "\n").enumerated() {
-                    let range = NSRange(line.startIndex..., in: line)
-                    if Self.storedNetPattern.firstMatch(in: line, range: range) != nil {
-                        hits.append("\(relativePath):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))")
-                    }
+        for file in try appSourceFiles() {
+            for (index, line) in file.lines.enumerated() {
+                let range = NSRange(line.startIndex..., in: line)
+                if Self.storedNetPattern.firstMatch(in: line, range: range) != nil {
+                    hits.append("\(file.relativePath):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))")
                 }
             }
         }
@@ -579,6 +557,178 @@ class TellomiRegionsTest: XCTestCase {
         // 正对照：provider 自己的 State 里存着一个 Net，扫得到才说明上面那条「没有」不是空断言
         let inProvider = try storedNetDeclarations().filter { $0.hasPrefix(Self.netProviderFile + ":") }
         XCTAssertGreaterThanOrEqual(inProvider.count, 1)
+    }
+
+    // MARK: - #1056 第三刀：测试区与切区演练（提交 E）
+
+    private let testDomainKey = TellomiRegions.testRegionDomainKey
+
+    func testTheTestRegionIsOffUnlessTheLaunchEnvironmentAsksForIt() {
+        XCTAssertEqual(TellomiRegions.testRegionProfiles(environment: [:]), TellomiRegions.all)
+        for notADomain in ["", "localhost", ".tellomi.test", "tellomi.test.", "tellomi..test", "tellomi.test/x", "tel lomi.test", "tellomi.测试"] {
+            XCTAssertEqual(TellomiRegions.testRegionProfiles(environment: [testDomainKey: notADomain]), TellomiRegions.all, notADomain)
+        }
+        // 跑单测的进程没带这个变量：本进程的表就是包里的表
+        XCTAssertEqual(TellomiRegions.processProfiles, TellomiRegions.all)
+    }
+
+    func testTheTestRegionMovesEveryCnHostUnderTheGivenDomain() {
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        XCTAssertEqual(profiles.map(\.id), [.global, .cn])
+        XCTAssertEqual(profiles[0], global)
+        let testRegion = profiles[1]
+        XCTAssertTrue(testRegion.enabled)
+        for endpoint in testRegion.endpoints {
+            XCTAssertTrue(TellomiRegions.hostOf(endpoint).hasSuffix(".tellomi.test"), endpoint)
+        }
+        // 同名标签，路径和端口不变
+        XCTAssertEqual(testRegion.chat, "https://chat.tellomi.test")
+        XCTAssertEqual(testRegion.grpcChatHost, "grpc.chat.tellomi.test")
+        XCTAssertEqual(testRegion.cdn3, "https://cdn3.tellomi.test")
+        XCTAssertEqual(testRegion.captchaRegistration, "https://chat.tellomi.test/captcha-tellomi/registration/generate.html")
+        XCTAssertEqual(testRegion.contentProxyPort, global.contentProxyPort)
+        // 包里的表不受影响：CN 仍关着，不变量照旧
+        XCTAssertFalse(TellomiRegions.cn.enabled)
+        XCTAssertEqual(TellomiRegions.problems(TellomiRegions.all), [])
+    }
+
+    func testAStoredTestRegionFallsBackToGlobalWithoutTheLaunchEnvironment() {
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        XCTAssertEqual(TellomiRegions.resolve(storedId: "cn", profiles: profiles), profiles[1])
+        // 下次不带变量启动（NSE、分享扩展一直是这样）：记住的 cn 在包里的表里关着，回落 global
+        XCTAssertEqual(TellomiRegions.resolve(storedId: "cn", profiles: TellomiRegions.processProfiles), global)
+    }
+
+    func testSwitchingTenTimesLeavesNoTokioThreadsBehind() throws {
+        // #1056 判据 2 的单测版：每个 Net 一个 tokio 运行时；切 10 次、退役期过后，线程数回到开始时
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        let (provider, _) = makeSwitchableProvider(profiles: profiles, retireDelay: 0.1)
+        let before = TellomiRegionDrill.tokioThreadCount()
+        XCTAssertGreaterThan(before, 0, "provider 第一个 Net 的运行时要数得到，否则下面的比较是空的")
+
+        for step in 1...10 {
+            XCTAssertTrue(try provider.switchTo(step.isMultiple(of: 2) ? .global : .cn, store: nil))
+        }
+        XCTAssertEqual(provider.generation, 10)
+
+        let deadline = Date().addingTimeInterval(10)
+        while provider.retiredCount > 0 || TellomiRegionDrill.tokioThreadCount() > before, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertEqual(provider.retiredCount, 0)
+        XCTAssertLessThanOrEqual(TellomiRegionDrill.tokioThreadCount(), before)
+    }
+
+    // MARK: - 门禁：测试区和演练只在测试构建里
+
+    /// 测试专用代码的标记。App 源码里出现的每一处都要在 `#if TESTABLE_BUILD` 里（App Store Release 没有这个宏）。
+    private static let testOnlyMarkers = ["TELLOMI_TEST_REGION_DOMAIN", "TELLOMI_REGION_DRILL", "testRegionProfiles(", "TellomiRegionDrill"]
+
+    private func testOnlyMarkerHits() throws -> (guarded: [String], unguarded: [String]) {
+        var guarded = [String]()
+        var unguarded = [String]()
+        for file in try appSourceFiles() {
+            let isGuarded = Self.linesInsideTestableBuild(file.lines)
+            for (index, line) in file.lines.enumerated() {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("//") || trimmed.hasPrefix("*") || trimmed.hasPrefix("/*") {
+                    continue
+                }
+                if Self.testOnlyMarkers.contains(where: { line.contains($0) }) {
+                    let hit = "\(file.relativePath):\(index + 1): \(trimmed)"
+                    if isGuarded[index] {
+                        guarded.append(hit)
+                    } else {
+                        unguarded.append(hit)
+                    }
+                }
+            }
+        }
+        return (guarded, unguarded)
+    }
+
+    /// 每一行是否在 `#if TESTABLE_BUILD` 的真分支里（套在别的 `#if` 里也算；它的 `#else` / `#elseif` 那一支不算）。
+    private static func linesInsideTestableBuild(_ lines: [String]) -> [Bool] {
+        var branches = [Bool]() // 每层 #if：当前这一支是不是 TESTABLE_BUILD 的真分支
+        return lines.map { line in
+            let directive = line.trimmingCharacters(in: .whitespaces).components(separatedBy: "//")[0].trimmingCharacters(in: .whitespaces)
+            if directive.hasPrefix("#if ") {
+                branches.append(directive == "#if TESTABLE_BUILD")
+            } else if directive.hasPrefix("#elseif "), !branches.isEmpty {
+                branches[branches.count - 1] = false
+            } else if directive == "#else", !branches.isEmpty {
+                branches[branches.count - 1] = false
+            } else if directive == "#endif" {
+                let inside = branches.contains(true)
+                _ = branches.popLast()
+                return inside
+            }
+            return branches.contains(true)
+        }
+    }
+
+    func testTestOnlyCodeStaysBehindTestableBuild() throws {
+        let hits = try testOnlyMarkerHits()
+        XCTAssertEqual(hits.unguarded, [], "测试区和切区演练只许出现在 #if TESTABLE_BUILD 里")
+        // 正对照：每个标记都在 #if TESTABLE_BUILD 里找到过，证明扫描和分支判断确实在工作
+        for marker in Self.testOnlyMarkers {
+            XCTAssertTrue(hits.guarded.contains { $0.contains(marker) }, marker)
+        }
+    }
+
+    func testTheTestableBuildBranchTracking() {
+        let lines = [
+            "a",
+            "#if TESTABLE_BUILD",
+            "b",
+            "#if DEBUG",
+            "c",
+            "#endif",
+            "#else",
+            "d",
+            "#endif",
+            "#if DEBUG",
+            "#if TESTABLE_BUILD // 说明",
+            "e",
+            "#endif",
+            "f",
+            "#endif",
+        ]
+        let inside = Self.linesInsideTestableBuild(lines)
+        let insideLines = zip(lines, inside).filter { $0.1 && $0.0.count == 1 }.map(\.0)
+        XCTAssertEqual(insideLines, ["b", "c", "e"])
+    }
+
+    // MARK: -
+
+    /// 各个 App 目标的 Swift 源码（不含测试）：相对仓库根的路径和按行拆开的内容。
+    private func appSourceFiles() throws -> [(relativePath: String, lines: [String])] {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // Util
+            .deletingLastPathComponent() // tests
+            .deletingLastPathComponent() // SignalServiceKit
+            .deletingLastPathComponent() // 仓库根
+            .resolvingSymlinksInPath()
+        var files = [(relativePath: String, lines: [String])]()
+        for target in ["Signal", "SignalServiceKit", "SignalUI", "SignalNSE", "SignalShareExtension"] {
+            guard let enumerator = FileManager.default.enumerator(at: root.appendingPathComponent(target), includingPropertiesForKeys: nil) else {
+                XCTFail("can't read \(target)")
+                continue
+            }
+            for case let url as URL in enumerator {
+                if ["test", "tests", "TestUtils"].contains(url.lastPathComponent) {
+                    enumerator.skipDescendants()
+                    continue
+                }
+                guard url.pathExtension == "swift" else {
+                    continue
+                }
+                let path = url.resolvingSymlinksInPath().path
+                let text = try String(contentsOf: url, encoding: .utf8)
+                files.append((String(path.dropFirst(root.path.count + 1)), text.components(separatedBy: "\n")))
+            }
+        }
+        return files
     }
 }
 
