@@ -1779,15 +1779,24 @@ class PhotoCaptureViewController: OWSViewController, OWSNavigationChildControlle
                         )
                     }
                 }
-                // If anything is presented over the phone capture view, dismiss it first -
-                // then dismiss the photo view and present the restore UI
-                if navigationController?.presentedViewController != nil {
-                    self.navigationController?.presentedViewController?.dismiss(animated: true) {
-                        presentBlock()
-                    }
-                } else {
-                    presentBlock()
-                }
+                // Tellomi：先弹防骗确认，点「继续」才进转移页，取消就接着扫（TellomiQuickRestoreScanConfirmation）
+                let confirmation = TellomiQuickRestoreScanConfirmation.actionSheet(
+                    onContinue: {
+                        // If anything is presented over the phone capture view, dismiss it first -
+                        // then dismiss the photo view and present the restore UI
+                        if self.navigationController?.presentedViewController != nil {
+                            self.navigationController?.presentedViewController?.dismiss(animated: true) {
+                                presentBlock()
+                            }
+                        } else {
+                            presentBlock()
+                        }
+                    },
+                    onCancel: {
+                        self.qrCodeScanned = false
+                    },
+                )
+                presentActionSheet(confirmation)
 
             case .linkDevice:
                 Logger.warn("Scanned linkDevice provisioning URL, but not a registered primary.")

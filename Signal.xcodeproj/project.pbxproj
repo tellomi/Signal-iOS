@@ -1951,6 +1951,7 @@
 		C198FDD62A37C905000BCAC9 /* KyberPreKeyStoreImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C198FDD52A37C905000BCAC9 /* KyberPreKeyStoreImpl.swift */; };
 		C1A0F79D2B9F57340009DC0D /* MessageRootBackupKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A0F79C2B9F57340009DC0D /* MessageRootBackupKey.swift */; };
 		C1A136C32DB044950049CD05 /* OutgoingDeviceRestorePresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A136C22DB044950049CD05 /* OutgoingDeviceRestorePresenter.swift */; };
+		401BA23D1A421C3EBA44BF1D /* TellomiQuickRestoreScanConfirmation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50EB8341DB9A765FA280BCD /* TellomiQuickRestoreScanConfirmation.swift */; };
 		C1A136C52DB044A20049CD05 /* OutgoingDeviceRestoreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A136C42DB044A20049CD05 /* OutgoingDeviceRestoreViewModel.swift */; };
 		C1A979872EE38277005EC945 /* BaseQuickRestoreQRCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A979862EE38277005EC945 /* BaseQuickRestoreQRCodeViewController.swift */; };
 		C1A979892EE38D1F005EC945 /* RegistrationTransferStatusPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A979882EE38D1F005EC945 /* RegistrationTransferStatusPresenter.swift */; };
@@ -2796,6 +2797,7 @@
 		D9317FD52A4BB15D00075A92 /* BitmapsImageCenteredDeadzoneTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9317FD42A4BB15D00075A92 /* BitmapsImageCenteredDeadzoneTest.swift */; };
 		D9317FD82A4BC4FC00075A92 /* BitmapsRectTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9317FD62A4BC4F000075A92 /* BitmapsRectTest.swift */; };
 		9DB8E654AA1F188C00A93C26 /* TellomiScannedCodeTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCBC707E341EFB9FE785481D /* TellomiScannedCodeTest.swift */; };
+		AA0EFB03FEEB9F36437C7CBF /* TellomiQuickRestoreScanConfirmationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F6E4FC536BF8BADA79BC35F /* TellomiQuickRestoreScanConfirmationTest.swift */; };
 		D9317FDC2A4CE48D00075A92 /* UsernameLinkQRCodeColorPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9317FDB2A4CE48D00075A92 /* UsernameLinkQRCodeColorPickerViewController.swift */; };
 		D9324F7C2E1492920095D104 /* BackupAttachmentTrackerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9324F7B2E1492820095D104 /* BackupAttachmentTrackerTest.swift */; };
 		D932C0EB2E13AD3F00FEF9C3 /* BackupAttachmentDownloadTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D932C0EA2E13AD3600FEF9C3 /* BackupAttachmentDownloadTracker.swift */; };
@@ -6324,6 +6326,7 @@
 		C198FDD52A37C905000BCAC9 /* KyberPreKeyStoreImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyberPreKeyStoreImpl.swift; sourceTree = "<group>"; };
 		C1A0F79C2B9F57340009DC0D /* MessageRootBackupKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageRootBackupKey.swift; sourceTree = "<group>"; };
 		C1A136C22DB044950049CD05 /* OutgoingDeviceRestorePresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingDeviceRestorePresenter.swift; sourceTree = "<group>"; };
+		A50EB8341DB9A765FA280BCD /* TellomiQuickRestoreScanConfirmation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiQuickRestoreScanConfirmation.swift; sourceTree = "<group>"; };
 		C1A136C42DB044A20049CD05 /* OutgoingDeviceRestoreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingDeviceRestoreViewModel.swift; sourceTree = "<group>"; };
 		C1A979862EE38277005EC945 /* BaseQuickRestoreQRCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseQuickRestoreQRCodeViewController.swift; sourceTree = "<group>"; };
 		C1A979882EE38D1F005EC945 /* RegistrationTransferStatusPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationTransferStatusPresenter.swift; sourceTree = "<group>"; };
@@ -7170,6 +7173,7 @@
 		D9317FD42A4BB15D00075A92 /* BitmapsImageCenteredDeadzoneTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapsImageCenteredDeadzoneTest.swift; sourceTree = "<group>"; };
 		D9317FD62A4BC4F000075A92 /* BitmapsRectTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitmapsRectTest.swift; sourceTree = "<group>"; };
 		DCBC707E341EFB9FE785481D /* TellomiScannedCodeTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiScannedCodeTest.swift; sourceTree = "<group>"; };
+		9F6E4FC536BF8BADA79BC35F /* TellomiQuickRestoreScanConfirmationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiQuickRestoreScanConfirmationTest.swift; sourceTree = "<group>"; };
 		D9317FDB2A4CE48D00075A92 /* UsernameLinkQRCodeColorPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameLinkQRCodeColorPickerViewController.swift; sourceTree = "<group>"; };
 		D9324F7B2E1492820095D104 /* BackupAttachmentTrackerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupAttachmentTrackerTest.swift; sourceTree = "<group>"; };
 		D932C0EA2E13AD3600FEF9C3 /* BackupAttachmentDownloadTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupAttachmentDownloadTracker.swift; sourceTree = "<group>"; };
@@ -12208,6 +12212,7 @@
 				C197187C2EF9D27E002E4198 /* OutgoingDeviceRestoreBackupPromptViewController.swift */,
 				C14D475F2DAEC45C006178AC /* OutgoingDeviceRestoreInitialViewController.swift */,
 				C1A136C22DB044950049CD05 /* OutgoingDeviceRestorePresenter.swift */,
+				A50EB8341DB9A765FA280BCD /* TellomiQuickRestoreScanConfirmation.swift */,
 				C14D47632DAEE351006178AC /* OutgoingDeviceRestoreProgressViewController.swift */,
 				C1A136C42DB044A20049CD05 /* OutgoingDeviceRestoreViewModel.swift */,
 				C1AE7C592D7B4451007A618D /* QuickRestoreManager.swift */,
@@ -14141,6 +14146,7 @@
 				D9317FD12A4BA7B000075A92 /* BitmapsImagePixelMergingTest.swift */,
 				D9317FD62A4BC4F000075A92 /* BitmapsRectTest.swift */,
 				DCBC707E341EFB9FE785481D /* TellomiScannedCodeTest.swift */,
+				9F6E4FC536BF8BADA79BC35F /* TellomiQuickRestoreScanConfirmationTest.swift */,
 			);
 			path = QRCodes;
 			sourceTree = "<group>";
@@ -18973,6 +18979,7 @@
 				C197187D2EF9D28C002E4198 /* OutgoingDeviceRestoreBackupPromptViewController.swift in Sources */,
 				C14D47602DAEC45C006178AC /* OutgoingDeviceRestoreInitialViewController.swift in Sources */,
 				C1A136C32DB044950049CD05 /* OutgoingDeviceRestorePresenter.swift in Sources */,
+				401BA23D1A421C3EBA44BF1D /* TellomiQuickRestoreScanConfirmation.swift in Sources */,
 				C14D47642DAEE351006178AC /* OutgoingDeviceRestoreProgressViewController.swift in Sources */,
 				C1A136C52DB044A20049CD05 /* OutgoingDeviceRestoreViewModel.swift in Sources */,
 				C14FB7D32EECE31000850EC5 /* OutgoingDeviceTransferTask.swift in Sources */,
@@ -19245,6 +19252,7 @@
 				D9317FD32A4BAC8300075A92 /* BitmapsImagePixelMergingTest.swift in Sources */,
 				D9317FD82A4BC4FC00075A92 /* BitmapsRectTest.swift in Sources */,
 				9DB8E654AA1F188C00A93C26 /* TellomiScannedCodeTest.swift in Sources */,
+				AA0EFB03FEEB9F36437C7CBF /* TellomiQuickRestoreScanConfirmationTest.swift in Sources */,
 				D93108152B34B6BE006A034E /* CallRecordLoaderTest.swift in Sources */,
 				D9F02BE72B96556C00E872C2 /* CallsListViewController+ViewModelLoaderTest.swift in Sources */,
 				954AEE6A1DF33E01002E5410 /* ContactsPickerTest.swift in Sources */,

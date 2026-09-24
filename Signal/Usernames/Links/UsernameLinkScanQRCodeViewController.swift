@@ -205,7 +205,15 @@ extension UsernameLinkScanQRCodeViewController: QRCodeScanDelegate {
             }
             switch source {
             case .camera:
-                handleTellomiQuickRestoreCode(provisioningUrl)
+                // 先弹防骗确认，点「继续」才进转移页（TellomiQuickRestoreScanConfirmation）
+                presentActionSheet(TellomiQuickRestoreScanConfirmation.actionSheet(
+                    onContinue: { [weak self] in
+                        self?.handleTellomiQuickRestoreCode(provisioningUrl)
+                    },
+                    onCancel: { [weak self] in
+                        self?.scanViewController.tryToStartScanning()
+                    },
+                ))
             case .photoLibrary:
                 presentTellomiQuickRestoreFromPhotoWarning()
             }
