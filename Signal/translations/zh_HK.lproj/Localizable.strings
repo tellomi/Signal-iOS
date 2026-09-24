@@ -10410,6 +10410,42 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "輕觸以替換表情符號";
 
+/* Button in the registration consent dialog: agree to the Terms of Service and Privacy Policy and continue. */
+"TELLOMI_CONSENT_AGREE_AND_CONTINUE" = "同意並繼續";
+
+/* Accessibility label for the consent checkbox during registration. */
+"TELLOMI_CONSENT_CHECKBOX_ACCESSIBILITY_LABEL" = "同意用戶服務協議和隱私政策";
+
+/* Body of the consent dialog during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_DIALOG_BODY_FORMAT" = "請閱讀並同意%1$@和%2$@";
+
+/* Title of the dialog asking the user to agree to the Terms of Service and Privacy Policy before continuing registration. */
+"TELLOMI_CONSENT_DIALOG_TITLE" = "用戶協議及隱私政策";
+
+/* Button in consent dialogs: do not agree. */
+"TELLOMI_CONSENT_DISAGREE" = "不同意";
+
+/* Name of the Privacy Policy document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_PRIVACY_LINK" = "《隱私政策》";
+
+/* Consent sentence next to the checkbox during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_ROW_FORMAT" = "我已年滿 18 週歲，已閱讀並同意%1$@和%2$@";
+
+/* Name of the Terms of Service document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_TERMS_LINK" = "《用戶服務協議》";
+
+/* Button in the first-launch privacy notice: agree. */
+"TELLOMI_FIRST_LAUNCH_AGREE" = "同意";
+
+/* Body of the privacy notice shown the first time the app is opened. Embeds {{Privacy Policy}} as a link. */
+"TELLOMI_FIRST_LAUNCH_BODY_FORMAT" = "我們按%1$@處理您的個人信息：註冊只需要手機號碼；訊息、資料和附件都是端到端加密的，我們讀不到。";
+
+/* Shown in the first-launch privacy notice after the user taps 'Disagree'. */
+"TELLOMI_FIRST_LAUNCH_DISAGREE_HINT" = "需要同意後才能使用 Tellomi；不同意的話，我們不會收集任何資訊。";
+
+/* Title of the privacy notice shown the first time the app is opened. */
+"TELLOMI_FIRST_LAUNCH_TITLE" = "歡迎使用 Tellomi";
+
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "粗體";
 
