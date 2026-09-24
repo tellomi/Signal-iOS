@@ -619,6 +619,194 @@ class TellomiRegionsTest: XCTestCase {
         XCTAssertLessThanOrEqual(TellomiRegionDrill.tokioThreadCount(), before)
     }
 
+    // MARK: - #1056 第四刀：选路器（契约第六节；用例照 Desktop 的 RegionSelector 搬）
+
+    private typealias ProbeResult = TellomiRegionSelector.ProbeResult
+
+    /// 探测替身：按区给定结果，记下被探了哪些区、哪些 chat 主机。
+    private final class ProbeLog: Sendable {
+        private let ids = AtomicValue<[TellomiRegionId]>([], lock: .init())
+        private let hosts = AtomicValue<[String]>([], lock: .init())
+
+        var probedIds: [TellomiRegionId] { ids.get() }
+        var probedHosts: [String] { hosts.get() }
+
+        func record(_ region: TellomiRegionProfile) {
+            ids.update { $0.append(region.id) }
+            hosts.update { $0.append(TellomiRegions.hostOf(region.chat)) }
+        }
+    }
+
+    private let selectorStart = Date(timeIntervalSince1970: 1_790_000_000)
+
+    private func makeSelector(
+        profiles: [TellomiRegionProfile],
+        results: [TellomiRegionId: ProbeResult],
+        current: AtomicValue<TellomiRegionId> = AtomicValue(.global, lock: .init()),
+        lastSwitchAt: AtomicValue<Date?> = AtomicValue(nil, lock: .init()),
+        clock: AtomicValue<Date>? = nil,
+    ) -> (TellomiRegionSelector, ProbeLog) {
+        let log = ProbeLog()
+        let clock = clock ?? AtomicValue(selectorStart, lock: .init())
+        let selector = TellomiRegionSelector(
+            profiles: { profiles },
+            currentRegion: { current.get() },
+            lastSwitchAt: { lastSwitchAt.get() },
+            probe: { region, _ in
+                log.record(region)
+                return results[region.id] ?? .failed("unexpected probe of \(region.id.rawValue)")
+            },
+            now: { clock.get() },
+        )
+        return (selector, log)
+    }
+
+    private var bothEnabled: [TellomiRegionProfile] { [global, TellomiRegionProfile(copying: cn, enabled: true)] }
+
+    func testTheSelectorProbesOnlyEnabledRegions() async {
+        XCTAssertEqual(TellomiRegions.all.filter(\.enabled).map(\.id), [.global])
+        let (selector, log) = makeSelector(profiles: TellomiRegions.all, results: [.global: .ok(rtt: 0.040)])
+
+        let decision = await selector.probe()
+
+        XCTAssertEqual(log.probedIds, [.global])
+        XCTAssertEqual(Array(decision.results.keys), [.global])
+        XCTAssertEqual(decision.recommended, .global)
+    }
+
+    func testNoTellomiCnHostIsProbedWhileCnIsDisabled() async {
+        // #1056 判据 4 在选路器这一层：CN 关着时，探测连 tellomi.cn 的主机名都碰不到
+        let (selector, log) = makeSelector(profiles: TellomiRegions.all, results: [.global: .failed("offline in tests")])
+
+        let decision = await selector.probe()
+
+        XCTAssertEqual(log.probedHosts, ["chat.tellomi.app"])
+        XCTAssertEqual(decision.reason, .noAlternative)
+    }
+
+    func testTheSelectorStaysUnlessTheOtherRegionIsFasterByTheThreshold() async {
+        let advantage = TellomiRegionSelector.Thresholds.defaults.latencyAdvantage
+        let clock = AtomicValue(selectorStart.addingTimeInterval(60 * .minute), lock: .init())
+        let (selector, _) = makeSelector(profiles: bothEnabled, results: [.global: .ok(rtt: 0.100), .cn: .ok(rtt: 0.100 - advantage)], clock: clock)
+
+        let reason = await selector.probe().reason
+        XCTAssertEqual(reason, .stay)
+    }
+
+    func testTheFasterRegionWinsAtOnceWithoutASwitchOnRecord() async {
+        let (selector, _) = makeSelector(profiles: bothEnabled, results: [.global: .ok(rtt: 0.200), .cn: .ok(rtt: 0.020)])
+
+        let cold = await selector.probe()
+
+        XCTAssertEqual(cold.reason, .faster)
+        XCTAssertEqual(cold.recommended, .cn)
+    }
+
+    func testAFasterRegionIsHeldBackForTheMinimumDwell() async {
+        // 驻留从记下的上一次切区算起，不从进程启动算起
+        let minDwell = TellomiRegionSelector.Thresholds.defaults.minDwell
+        let current = AtomicValue<TellomiRegionId>(.global, lock: .init())
+        let lastSwitchAt = AtomicValue<Date?>(selectorStart, lock: .init())
+        let clock = AtomicValue(selectorStart, lock: .init())
+        let (selector, _) = makeSelector(
+            profiles: bothEnabled,
+            results: [.global: .ok(rtt: 0.200), .cn: .ok(rtt: 0.020)],
+            current: current,
+            lastSwitchAt: lastSwitchAt,
+            clock: clock,
+        )
+
+        clock.set(selectorStart.addingTimeInterval(minDwell - 1))
+        let early = await selector.probe()
+        XCTAssertEqual(early.reason, .dwell)
+        XCTAssertEqual(early.recommended, .global)
+
+        clock.set(selectorStart.addingTimeInterval(minDwell))
+        let later = await selector.probe()
+        XCTAssertEqual(later.reason, .faster)
+        XCTAssertEqual(later.recommended, .cn)
+
+        // 调用方照建议切了区：provider 换了生效区、记下切区时间
+        current.set(.cn)
+        lastSwitchAt.set(clock.get())
+        let again = await selector.probe()
+        XCTAssertEqual(again.current, .cn)
+        XCTAssertEqual(again.reason, .stay)
+    }
+
+    func testTheSelectorFailsOverOnlyAfterConsecutiveFailures() async {
+        let (selector, _) = makeSelector(profiles: bothEnabled, results: [.global: .failed("timeout"), .cn: .ok(rtt: 0.030)])
+
+        let first = await selector.probe()
+        let second = await selector.probe()
+        let third = await selector.probe()
+
+        XCTAssertEqual(first.reason, .currentFailing)
+        XCTAssertEqual(second.reason, .currentFailing)
+        XCTAssertEqual(third.reason, .failover)
+        XCTAssertEqual(third.recommended, .cn)
+    }
+
+    func testReportedConnectionFailuresCountTowardTheFailover() async {
+        let (selector, _) = makeSelector(profiles: bothEnabled, results: [.global: .failed("timeout"), .cn: .ok(rtt: 0.030)])
+        XCTAssertFalse(selector.reportConnectionFailure())
+        XCTAssertFalse(selector.reportConnectionFailure())
+        // 探测时当前区自己的失败是第三次
+        let reason = await selector.probe().reason
+        XCTAssertEqual(reason, .failover)
+
+        selector.reportConnectionSuccess()
+        XCTAssertFalse(selector.reportConnectionFailure())
+        XCTAssertFalse(selector.reportConnectionFailure())
+        XCTAssertTrue(selector.reportConnectionFailure())
+    }
+
+    func testADisabledRegionIsNeverRecommended() async {
+        // 包里的 CN 关着：就算它会探得很快（假如探了的话），也不探、不推荐；当前区失败也只能 no-alternative
+        let (selector, log) = makeSelector(profiles: TellomiRegions.all, results: [.global: .failed("timeout"), .cn: .ok(rtt: 0.001)])
+
+        for _ in 0..<3 {
+            let decision = await selector.probe()
+            XCTAssertEqual(decision.recommended, .global)
+            XCTAssertEqual(decision.reason, .noAlternative)
+        }
+        XCTAssertFalse(log.probedIds.contains(.cn))
+    }
+
+    func testTheFailureCountStartsOverAfterTheRegionChanges() async {
+        let current = AtomicValue<TellomiRegionId>(.global, lock: .init())
+        let (selector, _) = makeSelector(
+            profiles: bothEnabled,
+            results: [.global: .ok(rtt: 0.030), .cn: .failed("timeout")],
+            current: current,
+        )
+        // global 上攒了两次失败
+        XCTAssertFalse(selector.reportConnectionFailure())
+        XCTAssertFalse(selector.reportConnectionFailure())
+
+        // 切到了 CN（生效区变了），CN 失败一次：从 1 数起，不 failover
+        current.set(.cn)
+        let decision = await selector.probe()
+        XCTAssertEqual(decision.reason, .currentFailing)
+        XCTAssertEqual(decision.recommended, .cn)
+    }
+
+    func testTheChatProbeFailsOnAnUnresolvableHost() async {
+        // 真的探测器：.invalid 永远解析不到，不能被当成健康
+        let unresolvable = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.invalid"])[1]
+        XCTAssertEqual(TellomiRegions.hostOf(unresolvable.chat), "chat.tellomi.invalid")
+
+        let startedAt = Date()
+        let result = await TellomiRegionSelector.chatEndpointProbe(unresolvable, 5)
+        let elapsed = Date().timeIntervalSince(startedAt)
+
+        guard case .failed = result else {
+            return XCTFail("probe of \(unresolvable.chat) should fail, got \(result)")
+        }
+        // 解析不了（.waiting）立刻算失败，不等 5 s 超时（实测 0.1 s 量级）
+        XCTAssertLessThan(elapsed, 3, "\(result)")
+    }
+
     // MARK: - 门禁：测试区和演练只在测试构建里
 
     /// 测试专用代码的标记。App 源码里出现的每一处都要在 `#if TESTABLE_BUILD` 里（App Store Release 没有这个宏）。
