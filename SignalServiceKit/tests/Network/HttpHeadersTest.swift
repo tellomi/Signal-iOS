@@ -72,6 +72,22 @@ class HttpHeadersTest: XCTestCase {
         XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "Retry-After"), "1234")
     }
 
+    /// Tellomi（tellomi/tellomi#1137）：User-Agent 的版本用「+」带构建号，服务端才分得出同一个版本号下的不同构建。
+    func testTellomiUserAgentCarriesTheBuildNumberAfterAPlus() throws {
+        XCTAssertEqual(HttpHeaders.tellomiUserAgentVersion("0.1.2.37"), "0.1.2+37")
+        XCTAssertEqual(HttpHeaders.tellomiUserAgentVersion("1.0.0.0"), "1.0.0+0")
+
+        // 服务端 UserAgentUtil 的 STANDARD_UA_PATTERN，原样照抄：平台和整段版本（含 +构建号）照样取到。
+        let userAgent = HttpHeaders.userAgentHeaderValueSignalIos
+        let serverPattern = try NSRegularExpression(pattern: "^Signal-(Android|Desktop|iOS)/([^ ]+)( (.+))?$", options: .caseInsensitive)
+        let match = try XCTUnwrap(serverPattern.firstMatch(in: userAgent, range: NSRange(userAgent.startIndex..., in: userAgent)), userAgent)
+        let platform = try XCTUnwrap(Range(match.range(at: 1), in: userAgent))
+        let version = try XCTUnwrap(Range(match.range(at: 2), in: userAgent))
+        XCTAssertEqual(String(userAgent[platform]), "iOS")
+        XCTAssertEqual(String(userAgent[version]), HttpHeaders.tellomiUserAgentVersion(AppVersionImpl.shared.currentAppVersion))
+        XCTAssertTrue(userAgent[version].contains("+"), userAgent)
+    }
+
     func testRetryAfter() {
         let now = Date().timeIntervalSince1970
         let testCases: [(String, TimeInterval?)] = [

@@ -149,7 +149,18 @@ public struct HttpHeaders: Codable, CustomDebugStringConvertible, ExpressibleByD
     public static var userAgentHeaderKey: String { "User-Agent" }
 
     public static var userAgentHeaderValueSignalIos: String {
-        "Signal-iOS/\(AppVersionImpl.shared.currentAppVersion) iOS/\(UIDevice.current.systemVersion)"
+        "Signal-iOS/\(tellomiUserAgentVersion(AppVersionImpl.shared.currentAppVersion)) iOS/\(UIDevice.current.systemVersion)"
+    }
+
+    /// Tellomi（tellomi/tellomi#1137，需求 app-update-and-version-policy 3.3）：内部版本号 `0.1.2.37` 在 User-Agent 里写成 `0.1.2+37`。
+    /// 服务端用 semver4j 解析 UA 里的版本，四段写法的最后一段（构建号）会被静默丢掉；写成「+构建号」后，
+    /// `remoteDeprecation.blockedVersions` 按整串比较，能点名拦住某一个构建，`minimumVersions` 比大小不看「+」后面，含义不变。
+    /// 格式三端统一，由服务端（taishi）定。
+    static func tellomiUserAgentVersion(_ appVersion: String) -> String {
+        guard let lastDot = appVersion.lastIndex(of: ".") else {
+            return appVersion
+        }
+        return appVersion.replacingCharacters(in: lastDot...lastDot, with: "+")
     }
 
     public static var acceptLanguageHeaderKey: String { "Accept-Language" }
