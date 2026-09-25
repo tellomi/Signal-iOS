@@ -138,6 +138,16 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         view.sendSubviewToBack(stackView)
     }
 
+    override public func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // Tellomi：第一次打开先弹一次隐私提示（2019《认定方法》：首次运行要用弹窗等明显方式提示隐私政策；
+        // tellomi/tellomi#1211）。同意之前这一页的按钮都被挡在提示后面。
+        if !TellomiLegalConsent.hasAcceptedFirstLaunchNotice, presentedViewController == nil {
+            presentTellomiFirstLaunchNotice()
+        }
+    }
+
     // MARK: - Events
 
     private func didTapModeSwitch() {
