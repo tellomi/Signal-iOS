@@ -186,9 +186,7 @@ public enum TellomiForwardTargets {
         guard thread.canSendChatMessagesToThread() else {
             return nil
         }
-        guard !SSKEnvironment.shared.blockingManagerRef.isThreadBlocked(thread, transaction: tx) else {
-            return nil
-        }
+        // 未接受的消息请求；拉黑的人和群也在这里挡掉（上游：拉黑且还在会话里 = 显示消息请求）
         guard !ThreadFinder().hasPendingMessageRequest(thread: thread, transaction: tx) else {
             return nil
         }

@@ -614,6 +614,7 @@
 		4C21D5D8223AC60F00EF8A77 /* CameraCaptureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C21D5D7223AC60F00EF8A77 /* CameraCaptureSession.swift */; };
 		4C25768A23AD510800E0398D /* LoadMoreMessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C25768923AD510800E0398D /* LoadMoreMessagesView.swift */; };
 		4C2A538C23C5462300D28CD8 /* MessageLoaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C2A538B23C5462300D28CD8 /* MessageLoaderTest.swift */; };
+		507FE651CE598A5FDB905545 /* TellomiForwardGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 454CAF8D05020C3CEE4E6409 /* TellomiForwardGridTests.swift */; };
 		4C2F454F214C00E1004871FF /* AvatarTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C2F454E214C00E1004871FF /* AvatarTableViewCell.swift */; };
 		4C30E224234F9F34009558B7 /* ProvisioningPrepViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C30E223234F9F34009558B7 /* ProvisioningPrepViewController.swift */; };
 		4C30E226234FB033009558B7 /* ProvisioningQRCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C30E225234FB033009558B7 /* ProvisioningQRCodeViewController.swift */; };
@@ -740,7 +741,6 @@
 		504271B62BB4C54500E33C01 /* SystemContact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504271B52BB4C54500E33C01 /* SystemContact.swift */; };
 		50428EA52F2BD81700B0C969 /* StickerPackItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50428EA42F2BD81700B0C969 /* StickerPackItem.swift */; };
 		5042EAA3287F96FB00C9B19F /* VisibleBadgeResolverTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5042EAA2287F96FB00C9B19F /* VisibleBadgeResolverTest.swift */; };
-		019A4CF583FAB580759BFD8D /* TellomiForwardGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EBFFB44813E5B0206EA7C8 /* TellomiForwardGridTests.swift */; };
 		50438A8E2ECBBDF600FCB28F /* BackupRefreshManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B975452E43A4AA00E20364 /* BackupRefreshManager.swift */; };
 		50438A8F2ECBBE1D00FCB28F /* BackupRefreshManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B975472E43BFE000E20364 /* BackupRefreshManagerTest.swift */; };
 		504474CF304601D80058016E /* TableRecord+SSK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504474CE304601D80058016E /* TableRecord+SSK.swift */; };
@@ -4937,6 +4937,7 @@
 		4C21D5D7223AC60F00EF8A77 /* CameraCaptureSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureSession.swift; sourceTree = "<group>"; };
 		4C25768923AD510800E0398D /* LoadMoreMessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadMoreMessagesView.swift; sourceTree = "<group>"; };
 		4C2A538B23C5462300D28CD8 /* MessageLoaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageLoaderTest.swift; sourceTree = "<group>"; };
+		454CAF8D05020C3CEE4E6409 /* TellomiForwardGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiForwardGridTests.swift; sourceTree = "<group>"; };
 		4C2F454E214C00E1004871FF /* AvatarTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarTableViewCell.swift; sourceTree = "<group>"; };
 		4C30E223234F9F34009558B7 /* ProvisioningPrepViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisioningPrepViewController.swift; sourceTree = "<group>"; };
 		4C30E225234FB033009558B7 /* ProvisioningQRCodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvisioningQRCodeViewController.swift; sourceTree = "<group>"; };
@@ -5111,7 +5112,6 @@
 		504271B52BB4C54500E33C01 /* SystemContact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemContact.swift; sourceTree = "<group>"; };
 		50428EA42F2BD81700B0C969 /* StickerPackItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickerPackItem.swift; sourceTree = "<group>"; };
 		5042EAA2287F96FB00C9B19F /* VisibleBadgeResolverTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleBadgeResolverTest.swift; sourceTree = "<group>"; };
-		C4EBFFB44813E5B0206EA7C8 /* TellomiForwardGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiForwardGridTests.swift; sourceTree = "<group>"; };
 		504474CE304601D80058016E /* TableRecord+SSK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSK.swift"; sourceTree = "<group>"; };
 		504474D03046021B0058016E /* TableRecord+SSKTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TableRecord+SSKTest.swift"; sourceTree = "<group>"; };
 		504474D230461B210058016E /* ReregisteringLocalIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReregisteringLocalIdentifiers.swift; sourceTree = "<group>"; };
@@ -9646,8 +9646,8 @@
 				1700E33A28B5684C0073D949 /* MediaGallerySectionsTest.swift */,
 				50D879692A16D2C20031345D /* MessageLoaderBatchTest.swift */,
 				4C2A538B23C5462300D28CD8 /* MessageLoaderTest.swift */,
+				454CAF8D05020C3CEE4E6409 /* TellomiForwardGridTests.swift */,
 				5042EAA2287F96FB00C9B19F /* VisibleBadgeResolverTest.swift */,
-				C4EBFFB44813E5B0206EA7C8 /* TellomiForwardGridTests.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -19285,6 +19285,7 @@
 				1700E33B28B5684C0073D949 /* MediaGallerySectionsTest.swift in Sources */,
 				50D8796A2A16D2C20031345D /* MessageLoaderBatchTest.swift in Sources */,
 				4C2A538C23C5462300D28CD8 /* MessageLoaderTest.swift in Sources */,
+				507FE651CE598A5FDB905545 /* TellomiForwardGridTests.swift in Sources */,
 				45D062F527D7F49800BD505E /* OWSContactsManagerTest.swift in Sources */,
 				F93461BB291ED2B000366682 /* PaymentDetailsValidityTest.swift in Sources */,
 				3471211025ED5F910037CD1F /* PaymentsReconciliationTest.swift in Sources */,
@@ -19316,7 +19317,6 @@
 				5033D47329DCB3FF007FEADA /* UrlOpenerTest.swift in Sources */,
 				45A3579827DAAC6A0051CE8B /* UserProfileTest.swift in Sources */,
 				5042EAA3287F96FB00C9B19F /* VisibleBadgeResolverTest.swift in Sources */,
-				019A4CF583FAB580759BFD8D /* TellomiForwardGridTests.swift in Sources */,
 				17E6049028A17BD300127680 /* ZkGroupIntegrationTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

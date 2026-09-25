@@ -503,34 +503,42 @@ class MediaPageViewController: UIPageViewController {
         case 0:
             owsFail("We should always have at least one attachment stream, for the current item.")
         case 1:
-            tellomiPresentForward(mediaAttachmentStreams, message: messageForCurrentItem)
+            ForwardMessageViewController.present(
+                forAttachmentStreams: mediaAttachmentStreams,
+                fromMessage: messageForCurrentItem,
+                from: self,
+                delegate: self,
+            )
         default:
-            // Tellomi（#1259 F-11）：相册中的一张先问「转发这张 / 转发全部 N 张」（两端 Telegram 都这样）；
-            // 上游是整条转发并二次确认。
-            let actionSheet = ActionSheetController()
-            actionSheet.overrideUserInterfaceStyle = .dark
-            if let currentStream = currentItem.referencedAttachment.asReferencedStream {
-                actionSheet.addAction(ActionSheetAction(title: TellomiForwardAlbumStrings.forwardThisOne) { [weak self] _ in
-                    self?.tellomiPresentForward([currentStream], message: messageForCurrentItem)
-                })
-            }
-            actionSheet.addAction(ActionSheetAction(title: TellomiForwardAlbumStrings.forwardAll(mediaCount)) { [weak self] _ in
-                self?.tellomiPresentForward(mediaAttachmentStreams, message: messageForCurrentItem)
-            })
-            actionSheet.addAction(OWSActionSheets.cancelAction)
-            presentActionSheet(actionSheet)
-        }
-    }
+            // If we are forwarding multiple items, warn the user first.
 
-    /// 从查看器打开的转发网格一律深色（F-2）
-    private func tellomiPresentForward(_ attachmentStreams: [ReferencedAttachmentStream], message: TSMessage) {
-        ForwardMessageViewController.present(
-            forAttachmentStreams: attachmentStreams,
-            fromMessage: message,
-            from: self,
-            delegate: self,
-            tellomiForceDarkTheme: true,
-        )
+            let titleFormatString = OWSLocalizedString(
+                "MEDIA_PAGE_FORWARD_MEDIA_CONFIRM_TITLE_%d",
+                tableName: "PluralAware",
+                comment: "Text confirming the user wants to forward media. Embeds {{ %1$@ the number of media to be forwarded }}.",
+            )
+
+            OWSActionSheets.showConfirmationAlert(
+                message: OWSLocalizedString(
+                    "MEDIA_PAGE_FORWARD_MEDIA_CONFIRM_MESSAGE",
+                    comment: "Text explaining that the user will forward all media from a message.",
+                ),
+                proceedTitle: String.localizedStringWithFormat(
+                    titleFormatString,
+                    mediaCount,
+                ),
+                proceedAction: { [weak self] _ in
+                    guard let self else { return }
+
+                    ForwardMessageViewController.present(
+                        forAttachmentStreams: mediaAttachmentStreams,
+                        fromMessage: messageForCurrentItem,
+                        from: self,
+                        delegate: self,
+                    )
+                },
+            )
+        }
     }
 
     private func shareCurrentMedia(fromNavigationBar: Bool) {

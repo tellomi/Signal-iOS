@@ -5727,12 +5727,6 @@
 /* Text explaining that the user will forward all media from a message. */
 "MEDIA_PAGE_FORWARD_MEDIA_CONFIRM_MESSAGE" = "此訊息中的所有多媒體將會被轉寄。";
 
-/* Tellomi: action in the media viewer to forward every media item of the album. Embeds {{number of items}}. */
-"MEDIA_PAGE_TELLOMI_FORWARD_ALL_%d" = "轉寄全部 %d 張";
-
-/* Tellomi: action in the media viewer to forward only the media item being viewed. */
-"MEDIA_PAGE_TELLOMI_FORWARD_THIS_ONE" = "轉寄這張";
-
 /* Context menu item in media viewer. Refers to deleting currently displayed photo/video. */
 "MEDIA_VIEWER_DELETE_MEDIA_ACTION" = "刪除";
 

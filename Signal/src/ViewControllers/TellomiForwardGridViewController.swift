@@ -1226,18 +1226,3 @@ extension TellomiForwardGridViewController {
         headerView.frame.offsetBy(dx: 0, dy: -collectionView.contentOffset.y)
     }
 }
-
-/// 查看器转发相册中的一张先问「转发这张 / 转发全部 N 张」（F-11）
-enum TellomiForwardAlbumStrings {
-    static var forwardThisOne: String {
-        OWSLocalizedString("MEDIA_PAGE_TELLOMI_FORWARD_THIS_ONE", comment: "Tellomi: action in the media viewer to forward only the media item being viewed.")
-    }
-
-    static func forwardAll(_ count: Int) -> String {
-        let format = OWSLocalizedString(
-            "MEDIA_PAGE_TELLOMI_FORWARD_ALL_%d",
-            comment: "Tellomi: action in the media viewer to forward every media item of the album. Embeds {{number of items}}.",
-        )
-        return String(format: format, count)
-    }
-}

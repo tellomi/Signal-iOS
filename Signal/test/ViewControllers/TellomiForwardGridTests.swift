@@ -510,7 +510,7 @@ final class TellomiForwardGridTests: SignalBaseTest {
         XCTAssertGreaterThan(weight(at: text.range(of: "小王").location), weight(at: text.range(of: "and").location))
     }
 
-    /// 四种语言都有译文（跑在英文下，直接读各语言的表）；F-11 的两项也在。
+    /// 四种语言都有译文（跑在英文下，直接读各语言的表）。
     func testStringsAreTranslated() {
         let expectations: [(String, String, String, String)] = [
             ("FORWARD_MESSAGE_TELLOMI_GRID_SUBTITLE", "选择聊天", "選擇聊天", "選擇聊天"),
@@ -521,8 +521,6 @@ final class TellomiForwardGridTests: SignalBaseTest {
             ("FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_TWO_%@_%@", "已转发给 %1$@ 和 %2$@", "已轉寄給 %1$@ 和 %2$@", "已轉寄給 %1$@ 和 %2$@"),
             ("FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_MANY_%@_%d", "已转发给 %1$@ 等 %2$d 个聊天", "已轉寄給 %1$@ 等 %2$d 個聊天", "已轉寄給 %1$@ 等 %2$d 個聊天"),
             ("FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_SAVED_%@", "已转发到 %@", "已轉寄到 %@", "已轉寄到 %@"),
-            ("MEDIA_PAGE_TELLOMI_FORWARD_THIS_ONE", "转发这张", "轉寄這張", "轉寄這張"),
-            ("MEDIA_PAGE_TELLOMI_FORWARD_ALL_%d", "转发全部 %d 张", "轉寄全部 %d 張", "轉寄全部 %d 張"),
         ]
         for (key, zhCN, zhTW, zhHK) in expectations {
             XCTAssertEqual(tableString(key, "zh_CN"), zhCN, key)
@@ -541,8 +539,6 @@ final class TellomiForwardGridTests: SignalBaseTest {
                 XCTAssertNotNil(tableString(key, localization), "\(key) \(localization)")
             }
         }
-        XCTAssertEqual(TellomiForwardAlbumStrings.forwardAll(3), "Forward All 3")
-        XCTAssertEqual(TellomiForwardAlbumStrings.forwardThisOne, "Forward This One")
     }
 
     // MARK: - 截图

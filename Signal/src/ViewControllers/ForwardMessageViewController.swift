@@ -109,7 +109,6 @@ class ForwardMessageViewController: OWSNavigationController {
         fromMessage message: TSMessage,
         from fromViewController: UIViewController,
         delegate: ForwardMessageDelegate,
-        tellomiForceDarkTheme: Bool = false,
     ) {
         let attachmentLimits = OutgoingAttachmentLimits.currentLimits()
         do {
@@ -125,7 +124,8 @@ class ForwardMessageViewController: OWSNavigationController {
                 from: fromViewController,
                 attachmentLimits: attachmentLimits,
                 delegate: delegate,
-                tellomiForceDarkTheme: tellomiForceDarkTheme,
+                // Tellomi（#1259 F-2）：只有查看器用这个入口，从查看器打开的网格一律深色
+                tellomiForceDarkTheme: true,
             )
         } catch let error {
             ForwardMessageViewController.showAlertForForwardError(
