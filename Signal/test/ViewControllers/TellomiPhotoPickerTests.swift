@@ -394,7 +394,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(picker.captionTextForTesting.count, afterHold, "松手就停")
     }
 
-    /// 点照片本身：选上并进上游的预览 / 编辑页（盖在网格上面）；那里删掉一张，网格里也取消；那里取消回到网格、选中的还在；
+    /// 点照片本身：选上并进上游的预览 / 编辑页（盖在网格上面），先看到点的那张；那里删掉一张，网格里也取消；那里取消回到网格、选中的还在；
     /// 那里改说明，网格的说明和会话输入框跟着变；那里发送照常交给会话页。
     @MainActor
     func testTapPhotoOpensUpstreamEditorOverTheGrid() async throws {
@@ -409,6 +409,10 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         let opened = await waitUntil { self.approvalViewController(over: picker) != nil }
         XCTAssertTrue(opened, "进了上游的预览 / 编辑页")
         let approval = try XCTUnwrap(approvalViewController(over: picker))
+        XCTAssertTrue(
+            approval.currentItem?.attachment.rawValue === hosted.library.attachmentsById["r4"]?.rawValue,
+            "点的是 r4，进来先看到 r4（不是已选里的第一张 r3）",
+        )
 
         let removed = try XCTUnwrap(hosted.library.attachmentsById["r3"])
         picker.attachmentApproval(approval, didRemoveAttachment: AttachmentApprovalItem(attachment: removed, canSave: false))
@@ -750,7 +754,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertTrue(picker.isCountPillShownForTesting)
     }
 
-    /// 点卡片本身：进上游预览 / 编辑页；在那里取消，回到「只看已选」。
+    /// 点卡片本身：进上游预览 / 编辑页，先看到点的那张（编辑页里仍是全部已选、顺序不变）；在那里取消，回到「只看已选」。
     @MainActor
     func testTapCardOpensTheUpstreamEditor() async throws {
         let hosted = host()
@@ -764,6 +768,13 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         picker.selectedViewForTesting.tapCardForTesting("r0")
         let opened = await waitUntil { self.approvalViewController(over: picker) != nil }
         XCTAssertTrue(opened)
+        let approval = try XCTUnwrap(approvalViewController(over: picker))
+        XCTAssertTrue(
+            approval.currentItem?.attachment.rawValue === hosted.library.attachmentsById["r0"]?.rawValue,
+            "点的是第 2 张卡片 r0，进来先看到它",
+        )
+        XCTAssertEqual(approval.attachmentApprovalItems.count, 2, "编辑页里仍是全部已选，顺序不变")
+        XCTAssertTrue(approval.attachmentApprovalItems.first?.attachment.rawValue === hosted.library.attachmentsById["r3"]?.rawValue)
         picker.attachmentApprovalDidCancel()
         let closed = await waitUntil { picker.presentedViewController == nil }
         XCTAssertTrue(closed)
