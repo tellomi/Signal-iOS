@@ -1,0 +1,64 @@
+//
+// Copyright 2026 Tellomi
+// SPDX-License-Identifier: AGPL-3.0-only
+//
+
+import SignalUI
+import UIKit
+import XCTest
+
+final class TellomiMotionTest: XCTestCase {
+
+    /// 数值必须等于标准第三节（owner 2026-09-26 选「活泼」）；改了就是和标准脱节。
+    func testTokensMatchTheStandard() {
+        XCTAssertEqual(TellomiMotion.press, .init(duration: 0.15, bounce: 0))
+        XCTAssertEqual(TellomiMotion.release, .init(duration: 0.3, bounce: 0.3))
+        XCTAssertEqual(TellomiMotion.snap, .init(duration: 0.3, bounce: 0.3))
+        XCTAssertEqual(TellomiMotion.move, .init(duration: 0.4, bounce: 0.15))
+        XCTAssertEqual(TellomiMotion.large, .init(duration: 0.45, bounce: 0.1))
+        XCTAssertEqual(TellomiMotion.emphasis, .init(duration: 0.45, bounce: 0.4))
+        XCTAssertEqual(TellomiMotion.scroll, .init(duration: 0.45, bounce: 0))
+    }
+
+    /// 按下与滚动位置永远不回弹。
+    func testPressAndScrollAreCriticallyDamped() {
+        XCTAssertEqual(TellomiMotion.press.dampingRatio, 1)
+        XCTAssertEqual(TellomiMotion.scroll.dampingRatio, 1)
+    }
+
+    /// Apple `Spring` 文档的例子：(0.5 s, bounce 0.3) → stiffness ≈ 157.9、damping ≈ 17.6（质量 1）。
+    func testPhysicalParametersFollowApplesConversion() {
+        let spring = TellomiMotion.Spring(duration: 0.5, bounce: 0.3)
+        XCTAssertEqual(spring.stiffness, 157.91, accuracy: 0.01)
+        XCTAssertEqual(spring.damping, 17.59, accuracy: 0.01)
+        XCTAssertEqual(spring.dampingRatio, 0.7, accuracy: 1e-9)
+    }
+
+    func testTimingParametersCarryTheSameSpring() {
+        let parameters = TellomiMotion.timingParameters(TellomiMotion.move, initialVelocity: CGVector(dx: 0, dy: 2))
+        XCTAssertEqual(parameters.initialVelocity.dy, 2)
+    }
+
+    /// 减弱动态效果：保留时长，去掉回弹。
+    func testReduceMotionRemovesBounceButKeepsDuration() {
+        let reduced = TellomiMotion.resolved(TellomiMotion.emphasis, reduceMotion: true)
+        XCTAssertEqual(reduced.bounce, 0)
+        XCTAssertEqual(reduced.duration, TellomiMotion.emphasis.duration)
+        XCTAssertEqual(TellomiMotion.resolved(TellomiMotion.emphasis, reduceMotion: false), TellomiMotion.emphasis)
+    }
+
+    /// 动画器必须能在动画中被触摸接管（可打断）。
+    @MainActor
+    func testAnimatorIsInterruptibleAndTakesTouches() {
+        let animator = TellomiMotion.animator(TellomiMotion.move, reduceMotion: false)
+        XCTAssertTrue(animator.isInterruptible)
+        XCTAssertTrue(animator.isUserInteractionEnabled)
+    }
+
+    /// 松手速度换算成「每秒走完剩余路程的比例」；剩余路程几乎为零的轴取 0。
+    func testRelativeVelocity() {
+        let velocity = TellomiMotion.relativeVelocity(CGPoint(x: 100, y: -300), remaining: CGVector(dx: 50, dy: 0.2))
+        XCTAssertEqual(velocity.dx, 2)
+        XCTAssertEqual(velocity.dy, 0)
+    }
+}
