@@ -2,9 +2,10 @@
 
 import os
 import sys
+import plistlib
 import subprocess
 import argparse
-from typing import Iterable
+from typing import Iterable, Optional
 from pathlib import Path
 from lint.util import EXTENSIONS_TO_CHECK
 
@@ -196,6 +197,26 @@ def swiftformat(file_paths):
     return proc.returncode == 0
 
 
+def staged_info_plist_problem() -> Optional[str]:
+    """
+    Tellomi（tellomi/tellomi#1142）：Scripts/update_plist_info.sh 编 App Store Release / Testable Release 时，
+    把构建时间等 BuildDetails 写进 Signal/Signal-Info.plist，编完这份文件是脏的。仓库里它的 BuildDetails 必须是空的，
+    否则所有包都会带着同一个构建时间（构建兜底过期按它算）。只看暂存区，工作区脏着不管。
+    有问题时返回一句给人看的说明，没问题返回 None。
+    """
+    proc = subprocess.run(["git", "show", ":Signal/Signal-Info.plist"], capture_output=True)
+    if proc.returncode != 0:
+        return None
+    try:
+        info = plistlib.loads(proc.stdout)
+    except Exception as error:
+        # taishi 审查 b17：暂存了读不出来的文件（例如合并留下的冲突标记）时，说人话，不要带着 traceback 失败
+        return f"Signal/Signal-Info.plist in the index is not a valid plist ({type(error).__name__}); it may still have merge conflict markers. Fix it and stage it again."
+    if info.get("BuildDetails"):
+        return "Signal/Signal-Info.plist carries BuildDetails written by a release build. Unstage it: git restore --staged Signal/Signal-Info.plist"
+    return None
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="lint & format files")
     parser.add_argument("path", nargs="*", help="a path to process")
@@ -218,6 +239,13 @@ if __name__ == "__main__":
     file_paths = sorted(set(filter(should_process_file, file_paths)))
 
     result = True
+
+    print("Checking Signal/Signal-Info.plist...", flush=True)
+    info_plist_problem = staged_info_plist_problem()
+    if info_plist_problem:
+        print(info_plist_problem)
+        result = False
+    print("")
 
     print("Checking license headers...", flush=True)
     proc = subprocess.run(["Scripts/lint/lint-license-headers", *file_paths])

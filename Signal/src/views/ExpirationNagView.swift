@@ -108,7 +108,8 @@ class ExpirationNagView: ReminderView {
         if osExpirationDate < now {
             return .osExpired(canUpgrade: device.canUpgrade(to: osExpiry.minimumIosMajorVersion))
         }
-        // If the app expires before the OS, warn about that (within 10 days).
+        // If the app expires before the OS, warn about that (within 14 days).
+        // Tellomi（tellomi/tellomi#1142，需求第 3.6 节）：到期前 14 天开始提示（上游 10 天），与 Android 一致。
         if appExpiry.expirationDate < osExpirationDate {
             if appExpiry.expirationDate < now {
                 return .appExpired
@@ -116,7 +117,7 @@ class ExpirationNagView: ReminderView {
             if daysUntilAppExpiry <= 0 {
                 return .appWillExpireToday
             }
-            if daysUntilAppExpiry <= 10 {
+            if daysUntilAppExpiry <= 14 {
                 return .appWillExpireSoon(appExpiry.expirationDate)
             }
         }
