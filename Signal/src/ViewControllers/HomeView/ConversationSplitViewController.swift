@@ -14,6 +14,7 @@ class ConversationSplitViewController: UISplitViewController, ConversationSplit 
     private var chatListNavController: OWSNavigationController { homeVC.chatListNavController }
     private var callsListNavController: OWSNavigationController { homeVC.callsListNavController }
     private var storiesNavController: OWSNavigationController { homeVC.storiesNavController }
+    private var contactsNavController: OWSNavigationController { homeVC.contactsNavController }
 
     private lazy var detailNavController = OWSNavigationController()
     private var lastActiveInterfaceOrientation = UIInterfaceOrientation.unknown
@@ -53,6 +54,8 @@ class ConversationSplitViewController: UISplitViewController, ConversationSplit 
             callsListNavController
         case .stories:
             storiesNavController
+        case .contacts:
+            contactsNavController
         }
 
         if isCollapsed {
@@ -148,6 +151,8 @@ class ConversationSplitViewController: UISplitViewController, ConversationSplit 
             chatListNavController.popToRootViewController(animated: animated)
         case .stories:
             storiesNavController.popToRootViewController(animated: animated)
+        case .contacts:
+            contactsNavController.popToRootViewController(animated: animated)
         }
     }
 
