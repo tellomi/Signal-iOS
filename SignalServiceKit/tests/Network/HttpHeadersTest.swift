@@ -72,20 +72,25 @@ class HttpHeadersTest: XCTestCase {
         XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "Retry-After"), "1234")
     }
 
-    /// Tellomi（tellomi/tellomi#1137）：User-Agent 的版本用「+」带构建号，服务端才分得出同一个版本号下的不同构建。
-    func testTellomiUserAgentCarriesTheBuildNumberAfterAPlus() throws {
-        XCTAssertEqual(HttpHeaders.tellomiUserAgentVersion("0.1.2.37"), "0.1.2+37")
-        XCTAssertEqual(HttpHeaders.tellomiUserAgentVersion("1.0.0.0"), "1.0.0+0")
+    /// Tellomi（tellomi/tellomi#1137）：User-Agent 的版本保持三段，构建号放在最后的 `Build/` 段（taishi 中转包 8 第〇节第 1 条）。
+    func testTellomiUserAgentPutsTheBuildNumberInABuildSegment() throws {
+        XCTAssertEqual(HttpHeaders.tellomiUserAgent(appVersion: "0.1.2.37", systemVersion: "26.0"), "Signal-iOS/0.1.2 iOS/26.0 Build/37")
+        XCTAssertEqual(HttpHeaders.tellomiUserAgent(appVersion: "1.0.0.0", systemVersion: "18.7"), "Signal-iOS/1.0.0 iOS/18.7 Build/0")
+        // 没有构建号（不到四段）就不写 Build/ 段，版本原样。
+        XCTAssertEqual(HttpHeaders.tellomiUserAgent(appVersion: "0.1.2", systemVersion: "26.0"), "Signal-iOS/0.1.2 iOS/26.0")
 
-        // 服务端 UserAgentUtil 的 STANDARD_UA_PATTERN，原样照抄：平台和整段版本（含 +构建号）照样取到。
+        // 服务端 UserAgentUtil 的 STANDARD_UA_PATTERN，原样照抄：平台是 iOS，版本只有三段，构建号落在附加段的 Build/ 里。
         let userAgent = HttpHeaders.userAgentHeaderValueSignalIos
         let serverPattern = try NSRegularExpression(pattern: "^Signal-(Android|Desktop|iOS)/([^ ]+)( (.+))?$", options: .caseInsensitive)
         let match = try XCTUnwrap(serverPattern.firstMatch(in: userAgent, range: NSRange(userAgent.startIndex..., in: userAgent)), userAgent)
         let platform = try XCTUnwrap(Range(match.range(at: 1), in: userAgent))
         let version = try XCTUnwrap(Range(match.range(at: 2), in: userAgent))
+        let additional = try XCTUnwrap(Range(match.range(at: 4), in: userAgent))
+        let appVersion = AppVersionImpl.shared.currentAppVersion.split(separator: ".").map(String.init)
         XCTAssertEqual(String(userAgent[platform]), "iOS")
-        XCTAssertEqual(String(userAgent[version]), HttpHeaders.tellomiUserAgentVersion(AppVersionImpl.shared.currentAppVersion))
-        XCTAssertTrue(userAgent[version].contains("+"), userAgent)
+        XCTAssertEqual(String(userAgent[version]), appVersion.prefix(3).joined(separator: "."))
+        XCTAssertEqual(userAgent[version].split(separator: ".").count, 3, userAgent)
+        XCTAssertTrue(userAgent[additional].hasSuffix(" Build/\(appVersion.dropFirst(3).joined(separator: "."))"), userAgent)
     }
 
     func testRetryAfter() {

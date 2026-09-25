@@ -149,18 +149,22 @@ public struct HttpHeaders: Codable, CustomDebugStringConvertible, ExpressibleByD
     public static var userAgentHeaderKey: String { "User-Agent" }
 
     public static var userAgentHeaderValueSignalIos: String {
-        "Signal-iOS/\(tellomiUserAgentVersion(AppVersionImpl.shared.currentAppVersion)) iOS/\(UIDevice.current.systemVersion)"
+        tellomiUserAgent(appVersion: AppVersionImpl.shared.currentAppVersion, systemVersion: UIDevice.current.systemVersion)
     }
 
-    /// Tellomi（tellomi/tellomi#1137，需求 app-update-and-version-policy 3.3）：内部版本号 `0.1.2.37` 在 User-Agent 里写成 `0.1.2+37`。
-    /// 服务端用 semver4j 解析 UA 里的版本，四段写法的最后一段（构建号）会被静默丢掉；写成「+构建号」后，
-    /// `remoteDeprecation.blockedVersions` 按整串比较，能点名拦住某一个构建，`minimumVersions` 比大小不看「+」后面，含义不变。
-    /// 格式三端统一，由服务端（taishi）定。
-    static func tellomiUserAgentVersion(_ appVersion: String) -> String {
-        guard let lastDot = appVersion.lastIndex(of: ".") else {
-            return appVersion
+    /// Tellomi（tellomi/tellomi#1137，需求 app-update-and-version-policy 3.3；格式由 taishi 在中转包 8 第〇节第 1 条定）：
+    /// 内部版本号 `0.1.2.37`（三段版本 + 构建号）在 User-Agent 里写成 `Signal-iOS/0.1.2 iOS/26.0 Build/37`。
+    /// 版本保持三段，服务端的 `minimumVersions` / `blockedVersions` 照旧只看它；构建号放在最后的 `Build/` 段，
+    /// 服务端按 `^Signal-(Android|Desktop|iOS)/([^ ]+)( (.+))?$` 把它归进附加段，要按构建号拦时再从那里读。
+    /// 和 Android 的 `Signal-Android/0.1.2 Android/34 Build/175101` 同一个格式。
+    static func tellomiUserAgent(appVersion: String, systemVersion: String) -> String {
+        let components = appVersion.split(separator: ".", omittingEmptySubsequences: false)
+        guard components.count > 3 else {
+            return "Signal-iOS/\(appVersion) iOS/\(systemVersion)"
         }
-        return appVersion.replacingCharacters(in: lastDot...lastDot, with: "+")
+        let releaseVersion = components.prefix(3).joined(separator: ".")
+        let buildNumber = components.dropFirst(3).joined(separator: ".")
+        return "Signal-iOS/\(releaseVersion) iOS/\(systemVersion) Build/\(buildNumber)"
     }
 
     public static var acceptLanguageHeaderKey: String { "Accept-Language" }
