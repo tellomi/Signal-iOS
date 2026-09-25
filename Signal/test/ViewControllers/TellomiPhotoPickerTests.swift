@@ -276,6 +276,124 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(sent.body?.text, "今天的照片")
     }
 
+    /// P-9 表情键：说明框右下角 32 的键（离框右、下各 4），字不压到它下面；点了说明框换成表情键盘并进入编辑、键变成「键盘」；
+    /// 再点回到文字键盘（仍在编辑）；在表情键盘时收起键盘，下次就是文字键盘（同 Telegram）。
+    @MainActor
+    func testCaptionEmojiButtonSwitchesTheKeyboard() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        hosted.window.makeKey()
+        let picker = hosted.picker
+        picker.tapCheckForTesting(itemIndex: 0)
+        picker.view.layoutIfNeeded()
+
+        let field = picker.captionFieldFrameForTesting
+        let button = picker.captionEmojiButtonFrameForTesting
+        XCTAssertEqual(button.size.width, 32, accuracy: 0.01)
+        XCTAssertEqual(button.size.height, 32, accuracy: 0.01)
+        XCTAssertEqual(field.maxX - button.maxX, 4, accuracy: 0.5)
+        XCTAssertEqual(field.maxY - button.maxY, 4, accuracy: 0.5)
+        XCTAssertGreaterThanOrEqual(picker.captionTextContainerInsetForTesting.right, field.maxX - button.minX, "字不压到表情键下面")
+        XCTAssertEqual(picker.captionEmojiButtonAccessibilityLabelForTesting, "Emoji")
+        XCTAssertNil(picker.captionInputViewForTesting)
+        XCTAssertFalse(picker.isCaptionEditingForTesting)
+
+        picker.tapCaptionEmojiButtonForTesting()
+        XCTAssertNotNil(picker.captionEmojiKeyboardForTesting, "说明框换成表情键盘")
+        XCTAssertTrue(picker.isCaptionEditingForTesting, "点表情键直接进入编辑")
+        XCTAssertEqual(picker.captionEmojiButtonAccessibilityLabelForTesting, "Keyboard")
+
+        picker.tapCaptionEmojiButtonForTesting()
+        XCTAssertNil(picker.captionInputViewForTesting, "再点回到文字键盘")
+        XCTAssertTrue(picker.isCaptionEditingForTesting)
+        XCTAssertEqual(picker.captionEmojiButtonAccessibilityLabelForTesting, "Emoji")
+
+        picker.tapCaptionEmojiButtonForTesting()
+        XCTAssertNotNil(picker.captionEmojiKeyboardForTesting)
+        picker.endCaptionEditingForTesting()
+        XCTAssertNil(picker.captionInputViewForTesting, "收起键盘后回到文字键盘")
+        XCTAssertEqual(picker.captionEmojiButtonAccessibilityLabelForTesting, "Emoji")
+    }
+
+    /// 表情键盘里点一个 emoji：插在光标处（不是接在末尾），会话输入框跟着变；退格删掉光标前的整个 emoji。
+    @MainActor
+    func testEmojiKeyboardInsertsAtTheCursorAndDeletes() async throws {
+        let hosted = host(initialText: "ab")
+        defer { hosted.tearDown() }
+        hosted.window.makeKey()
+        let picker = hosted.picker
+        picker.tapCheckForTesting(itemIndex: 0)
+        picker.tapCaptionEmojiButtonForTesting()
+        let keyboard = try XCTUnwrap(picker.captionEmojiKeyboardForTesting)
+
+        picker.setCaptionCursorForTesting(1)
+        let emoji = try XCTUnwrap(keyboard.tapEmojiForTesting(at: IndexPath(item: 0, section: 0)))
+        XCTAssertEqual(picker.captionTextForTesting, "a" + emoji + "b")
+        XCTAssertEqual(hosted.delegate.bodies.last??.text, "a" + emoji + "b", "会话输入框跟着变")
+
+        let second = try XCTUnwrap(keyboard.tapEmojiForTesting(at: IndexPath(item: 1, section: 0)))
+        XCTAssertEqual(picker.captionTextForTesting, "a" + emoji + second + "b", "光标跟在刚插的后面")
+
+        keyboard.tapDeleteForTesting()
+        XCTAssertEqual(picker.captionTextForTesting, "a" + emoji + "b", "退格删掉整个 emoji")
+        keyboard.tapDeleteForTesting()
+        keyboard.tapDeleteForTesting()
+        XCTAssertEqual(picker.captionTextForTesting, "b")
+        XCTAssertEqual(hosted.delegate.bodies.last??.text, "b")
+    }
+
+    /// 表情键盘照 Telegram 的排法：分类在上面（占满宽）、emoji 在中间、底栏左边「键盘」右边退格；点「键盘」回到文字键盘（仍在编辑）。
+    @MainActor
+    func testEmojiKeyboardLayoutAndSwitchBack() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        hosted.window.makeKey()
+        let picker = hosted.picker
+        picker.tapCheckForTesting(itemIndex: 0)
+        picker.tapCaptionEmojiButtonForTesting()
+        let keyboard = try XCTUnwrap(picker.captionEmojiKeyboardForTesting)
+        // 键盘是系统异步放上屏的（在 UIRemoteKeyboardWindow 里），等它有了真实宽度再量。
+        let onScreen = await waitUntil { keyboard.window != nil && keyboard.bounds.size.width >= picker.view.bounds.size.width - 0.5 }
+        XCTAssertTrue(onScreen, "表情键盘上屏")
+        keyboard.layoutIfNeeded()
+
+        let toolbar = keyboard.sectionToolbarFrameForTesting
+        let grid = keyboard.emojiViewFrameForTesting
+        let switchButton = keyboard.keyboardButtonFrameForTesting
+        let delete = keyboard.deleteButtonFrameForTesting
+        XCTAssertEqual(toolbar.size.width, keyboard.bounds.size.width, accuracy: 0.5, "分类条占满宽，不和退格挤一行")
+        XCTAssertLessThanOrEqual(toolbar.maxY, grid.minY + 0.5, "分类在 emoji 上面")
+        XCTAssertLessThanOrEqual(grid.maxY, delete.minY + 0.5, "底栏在 emoji 下面")
+        XCTAssertEqual(switchButton.minY, delete.minY, accuracy: 0.5, "「键盘」和退格在同一条底栏")
+        XCTAssertLessThan(switchButton.midX, keyboard.bounds.midX, "「键盘」在左")
+        XCTAssertGreaterThan(delete.midX, keyboard.bounds.midX, "退格在右")
+        XCTAssertGreaterThan(grid.size.height, 150, "emoji 区不被挤没")
+
+        keyboard.tapKeyboardForTesting()
+        XCTAssertNil(picker.captionInputViewForTesting, "点「键盘」回到文字键盘")
+        XCTAssertTrue(picker.isCaptionEditingForTesting)
+        XCTAssertEqual(picker.captionEmojiButtonAccessibilityLabelForTesting, "Emoji")
+    }
+
+    /// 按住退格连着删（先删一个，0.5 秒后每 0.1 秒一个），松手就停。
+    @MainActor
+    func testHoldingDeleteKeepsDeleting() async throws {
+        let hosted = host(initialText: String(repeating: "x", count: 40))
+        defer { hosted.tearDown() }
+        hosted.window.makeKey()
+        let picker = hosted.picker
+        picker.tapCheckForTesting(itemIndex: 0)
+        picker.tapCaptionEmojiButtonForTesting()
+        let keyboard = try XCTUnwrap(picker.captionEmojiKeyboardForTesting)
+        picker.setCaptionCursorForTesting(40)
+
+        try await keyboard.holdDeleteForTesting(seconds: 1.2)
+        let afterHold = picker.captionTextForTesting.count
+        XCTAssertLessThanOrEqual(afterHold, 40 - 3, "按住 1.2 秒删了好几个")
+        try await Task.sleep(nanoseconds: 500_000_000)
+        XCTAssertEqual(picker.captionTextForTesting.count, afterHold, "松手就停")
+    }
+
     /// 点照片本身：选上并进上游的预览 / 编辑页（盖在网格上面）；那里删掉一张，网格里也取消；那里取消回到网格、选中的还在；
     /// 那里改说明，网格的说明和会话输入框跟着变；那里发送照常交给会话页。
     @MainActor
@@ -802,6 +920,18 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             try save(render(withCamera.window), name: "picker-8-camera.png", width: width)
             withCamera.tearDown()
 
+            // 键盘窗口按模拟器真实的屏幕排，这一张的窗口也用真实屏幕高（375 那台是 iPhone SE，667 高）。
+            let screenSize = UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.size }.first
+            let emojiHeight = screenSize.map { $0.width == width ? $0.height : height } ?? height
+            let emoji = host(width: width, height: emojiHeight, initialText: "今天的照片")
+            emoji.window.makeKey()
+            emoji.picker.tapCheckForTesting(itemIndex: 1)
+            emoji.picker.tapCaptionEmojiButtonForTesting()
+            try await settle()
+            try save(renderScreen(over: emoji.window, keyboard: emoji.picker.captionEmojiKeyboardForTesting), name: "picker-9-emoji-keyboard.png", width: width)
+            emoji.picker.endCaptionEditingForTesting()
+            emoji.tearDown()
+
             let landscape = host(width: height, height: width)
             landscape.picker.tapCheckForTesting(itemIndex: 2)
             try await settle()
@@ -936,6 +1066,25 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         format.scale = 3
         return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+    }
+
+    /// 连同键盘一起拍：键盘在另外的窗口里（表情键盘在 UIRemoteKeyboardWindow，它不在 scene 的 windows 里），
+    /// 按层级把测试窗口、它上面的窗口和键盘所在的窗口都画上（测试窗口盖住宿主 App 的窗口）。
+    @MainActor
+    private func renderScreen(over window: UIWindow, keyboard: UIView?) -> UIImage {
+        var windows = (window.windowScene?.windows ?? [window])
+            .filter { !$0.isHidden && ($0 === window || $0.windowLevel > window.windowLevel) }
+        if let keyboardWindow = keyboard?.window, !windows.contains(where: { $0 === keyboardWindow }) {
+            windows.append(keyboardWindow)
+        }
+        windows.sort { $0.windowLevel < $1.windowLevel }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
+            for each in windows {
+                each.drawHierarchy(in: each.frame, afterScreenUpdates: true)
+            }
         }
     }
 

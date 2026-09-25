@@ -5041,6 +5041,9 @@
 /* Accessibility label of the live camera cell at the start of the photo picker grid. */
 "IMAGE_PICKER_TELLOMI_CAMERA" = "Camera";
 
+/* Accessibility label of the button in the photo picker caption field that switches to the emoji keyboard. */
+"IMAGE_PICKER_TELLOMI_CAPTION_EMOJI_BUTTON" = "Emoji";
+
 /* Placeholder of the caption field at the bottom of the photo picker. */
 "IMAGE_PICKER_TELLOMI_CAPTION_PLACEHOLDER" = "Add a caption…";
 

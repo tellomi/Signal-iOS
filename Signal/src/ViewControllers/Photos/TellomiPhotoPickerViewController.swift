@@ -40,7 +40,8 @@ protocol TellomiPhotoPickerDelegate: AnyObject {
 ///   「最近」里左上角是一格宽、两行高的相机实时取景（`TellomiPhotoPickerCamera`），点了打开相机；
 ///   横着滑过格子连续多选（照 Telegram `MediaPickerGridSelectionGesture` 的机制，见 `TellomiSwipeSelectGestureRecognizer`）。
 /// - 受限访问横幅（P-7）：「你已限制 Tellomi 访问照片。」+「管理」（选择更多照片… / 前往设置），在网格里、跟着网格滚走。
-/// - 底部（P-9、P-10）：一有选中就出现「添加说明…」+ 发送；会话输入框里已打的字带过来；在网格里直接发，不必经过预览页。
+/// - 底部（P-9、P-10）：一有选中就出现「添加说明…」+ 表情键 + 发送；会话输入框里已打的字带过来；在网格里直接发，不必经过预览页。
+///   表情键照 Telegram `AttachmentTextInputPanelNode`：说明框右下角笑脸 ↔ 键盘，切的是说明框的 inputView（`TellomiCaptionEmojiKeyboard`）。
 /// - 上限（P-11）：一次最多 32 张，超出提示「一次最多选 32 张」。
 ///
 /// Telegram 的实现只读机制、一行都没搬（GPLv2）。
@@ -56,6 +57,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         static let bannerHeight: CGFloat = 56
         static let captionMinHeight: CGFloat = 40
         static let captionMaxHeight: CGFloat = 110
+        static let captionEmojiButtonSize: CGFloat = 32
     }
 
     /// P-5 的「···」里有哪几项。
@@ -247,6 +249,38 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     private let captionPlaceholder = UILabel()
     private var captionHeightConstraint: NSLayoutConstraint?
 
+    /// P-9 表情键：说明框用文字键盘还是表情键盘。收起键盘就回到文字（同 Telegram）。
+    private enum CaptionInputMode {
+        case text
+        case emoji
+    }
+
+    private var captionInputMode = CaptionInputMode.text
+
+    private lazy var captionEmojiKeyboard: TellomiCaptionEmojiKeyboard = {
+        let keyboard = TellomiCaptionEmojiKeyboard()
+        keyboard.onSelectEmoji = { [weak self] emoji in
+            self?.captionTextView.insertText(emoji)
+        }
+        keyboard.onDeleteBackward = { [weak self] in
+            self?.captionTextView.deleteBackward()
+        }
+        keyboard.onSwitchToText = { [weak self] in
+            self?.setCaptionInputMode(.text)
+        }
+        return keyboard
+    }()
+
+    private lazy var captionEmojiButton: UIButton = {
+        var configuration = UIButton.Configuration.plain()
+        configuration.baseForegroundColor = .Signal.secondaryLabel
+        configuration.contentInsets = .zero
+        let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
+            self?.toggleCaptionInputMode()
+        })
+        return button
+    }()
+
     private lazy var sendButton: UIButton = {
         var configuration = UIButton.Configuration.filled()
         configuration.baseBackgroundColor = .Signal.accent
@@ -373,7 +407,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         captionTextView.bodyRangesDelegate = self
         captionTextView.font = .dynamicTypeBody
         captionTextView.backgroundColor = .clear
-        captionTextView.textContainerInset = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        // 右边让出表情键（离框 4、键 32、再空 4）。
+        captionTextView.textContainerInset = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: Metrics.captionEmojiButtonSize + 8)
         captionTextView.translatesAutoresizingMaskIntoConstraints = false
         captionContainer.addSubview(captionTextView)
         if let initialMessageBody, !initialMessageBody.text.isEmpty {
@@ -386,6 +421,10 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         captionPlaceholder.isUserInteractionEnabled = false
         captionPlaceholder.translatesAutoresizingMaskIntoConstraints = false
         captionContainer.addSubview(captionPlaceholder)
+
+        updateCaptionEmojiButton()
+        captionEmojiButton.translatesAutoresizingMaskIntoConstraints = false
+        captionContainer.addSubview(captionEmojiButton)
 
         sendButton.translatesAutoresizingMaskIntoConstraints = false
         sendBar.addSubview(sendButton)
@@ -410,8 +449,14 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             captionHeight,
 
             captionPlaceholder.leadingAnchor.constraint(equalTo: captionContainer.leadingAnchor, constant: 17),
-            captionPlaceholder.trailingAnchor.constraint(lessThanOrEqualTo: captionContainer.trailingAnchor, constant: -12),
+            captionPlaceholder.trailingAnchor.constraint(lessThanOrEqualTo: captionEmojiButton.leadingAnchor, constant: -4),
             captionPlaceholder.centerYAnchor.constraint(equalTo: captionContainer.topAnchor, constant: Metrics.captionMinHeight / 2),
+
+            // 多行时贴着最后一行（同 Telegram 的键在输入框右下角）。
+            captionEmojiButton.widthAnchor.constraint(equalToConstant: Metrics.captionEmojiButtonSize),
+            captionEmojiButton.heightAnchor.constraint(equalToConstant: Metrics.captionEmojiButtonSize),
+            captionEmojiButton.trailingAnchor.constraint(equalTo: captionContainer.trailingAnchor, constant: -4),
+            captionEmojiButton.bottomAnchor.constraint(equalTo: captionContainer.bottomAnchor, constant: -(Metrics.captionMinHeight - Metrics.captionEmojiButtonSize) / 2),
 
             sendButton.widthAnchor.constraint(equalToConstant: Metrics.roundButtonSize),
             sendButton.heightAnchor.constraint(equalToConstant: Metrics.roundButtonSize),
@@ -988,6 +1033,49 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
 
     // MARK: - Caption
 
+    private func toggleCaptionInputMode() {
+        setCaptionInputMode(captionInputMode == .text ? .emoji : .text)
+        if !captionTextView.isFirstResponder {
+            captionTextView.becomeFirstResponder()
+        }
+    }
+
+    private func setCaptionInputMode(_ mode: CaptionInputMode) {
+        captionInputMode = mode
+        updateCaptionEmojiButton()
+        let desiredInputView: UIView?
+        switch mode {
+        case .text:
+            desiredInputView = nil
+        case .emoji:
+            captionEmojiKeyboard.updateHeightForPresentation()
+            desiredInputView = captionEmojiKeyboard
+        }
+        guard captionTextView.inputView !== desiredInputView else { return }
+        captionTextView.inputView = desiredInputView
+        if captionTextView.isFirstResponder {
+            captionTextView.reloadInputViews()
+        }
+    }
+
+    /// 文字键盘时显示笑脸（点了切表情），表情键盘时显示键盘（点了切回文字）。
+    private func updateCaptionEmojiButton() {
+        switch captionInputMode {
+        case .text:
+            captionEmojiButton.configuration?.image = Theme.iconImage(.emojiSmiley)
+            captionEmojiButton.accessibilityLabel = OWSLocalizedString(
+                "IMAGE_PICKER_TELLOMI_CAPTION_EMOJI_BUTTON",
+                comment: "Accessibility label of the button in the photo picker caption field that switches to the emoji keyboard.",
+            )
+        case .emoji:
+            captionEmojiButton.configuration?.image = UIImage(imageLiteralResourceName: "keyboard")
+            captionEmojiButton.accessibilityLabel = OWSLocalizedString(
+                "INPUT_TOOLBAR_KEYBOARD_BUTTON_ACCESSIBILITY_LABEL",
+                comment: "accessibility label for the button which shows the regular keyboard instead of sticker picker",
+            )
+        }
+    }
+
     private func updateCaptionPlaceholderAndHeight() {
         captionPlaceholder.isHidden = !captionTextView.isEmpty
         let width = captionTextView.bounds.width
@@ -1023,6 +1111,10 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     }
 
     func mentionPickerStyle(_ textView: BodyRangesTextView) -> MentionPickerStyle { .composingAttachment }
+
+    func textViewDidEndEditing(_ textView: UITextView) {
+        setCaptionInputMode(.text)
+    }
 
     func textViewDidChange(_ textView: UITextView) {
         updateCaptionPlaceholderAndHeight()
@@ -1419,6 +1511,29 @@ extension TellomiPhotoPickerViewController {
 
     func tapUndoForTesting() {
         undoBar.tapUndoForTesting()
+    }
+
+    func tapCaptionEmojiButtonForTesting() {
+        captionEmojiButton.sendActions(for: .primaryActionTriggered)
+    }
+
+    var captionEmojiButtonAccessibilityLabelForTesting: String? { captionEmojiButton.accessibilityLabel }
+    var captionEmojiButtonFrameForTesting: CGRect { captionEmojiButton.convert(captionEmojiButton.bounds, to: captionContainer) }
+    var captionFieldFrameForTesting: CGRect { captionContainer.bounds }
+    var captionTextContainerInsetForTesting: UIEdgeInsets { captionTextView.textContainerInset }
+    var captionInputViewForTesting: UIView? { captionTextView.inputView }
+    var isCaptionEditingForTesting: Bool { captionTextView.isFirstResponder }
+
+    /// 表情键盘（没切过表情时是 nil，不为了测试提前建）。
+    var captionEmojiKeyboardForTesting: TellomiCaptionEmojiKeyboard? { captionTextView.inputView as? TellomiCaptionEmojiKeyboard }
+
+    func setCaptionCursorForTesting(_ location: Int) {
+        captionTextView.selectedRange = NSRange(location: location, length: 0)
+    }
+
+    /// 收起键盘（点网格、进预览页等都会让说明框失去焦点）。
+    func endCaptionEditingForTesting() {
+        _ = captionTextView.resignFirstResponder()
     }
 
     /// 撤销条到时间了。
