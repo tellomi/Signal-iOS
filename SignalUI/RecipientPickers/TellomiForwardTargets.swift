@@ -180,8 +180,9 @@ public enum TellomiForwardTargets {
         return TellomiForwardTarget(kind: .savedMessages(item.address), item: item, shortName: name, fullName: name)
     }
 
-    /// 聊天列表里的一个会话能不能进网格；能就给出那一格。
+    /// 聊天列表里的一个会话能不能进网格；能就给出那一格。每道判据只在这里查一次。
     static func chatTarget(thread: TSThread, tx: DBReadTransaction) -> TellomiForwardTarget? {
+        // 不能发言的群（只有管理员能发言、已退出 / 被移出、GV1、已解散）、官方通知号
         guard thread.canSendChatMessagesToThread() else {
             return nil
         }
@@ -199,11 +200,11 @@ public enum TellomiForwardTargets {
                 // 「我的收藏」固定在第一格，不再按会话出现一次
                 return nil
             }
-            return contactTarget(address: address, tx: tx)
-        case let groupThread as TSGroupThread:
-            guard groupThread.groupModel.groupMembership.isLocalUserFullMember else {
+            guard !DependenciesBridge.shared.recipientHidingManager.isHiddenAddress(address, tx: tx) else {
                 return nil
             }
+            return buildContactTarget(address: address, thread: contactThread, tx: tx)
+        case let groupThread as TSGroupThread:
             let dmConfig = DependenciesBridge.shared.disappearingMessagesConfigurationStore.fetchOrBuildDefault(
                 for: .thread(groupThread),
                 tx: tx,
@@ -220,6 +221,7 @@ public enum TellomiForwardTargets {
         }
     }
 
+    /// 搜索里的人（可能还没聊过）：没拉黑、没隐藏、有会话的话不是未接受的消息请求。
     static func contactTarget(address: SignalServiceAddress, tx: DBReadTransaction) -> TellomiForwardTarget? {
         guard !address.isLocalAddress else {
             return nil
@@ -234,6 +236,10 @@ public enum TellomiForwardTargets {
         if let thread, ThreadFinder().hasPendingMessageRequest(thread: thread, transaction: tx) {
             return nil
         }
+        return buildContactTarget(address: address, thread: thread, tx: tx)
+    }
+
+    private static func buildContactTarget(address: SignalServiceAddress, thread: TSContactThread?, tx: DBReadTransaction) -> TellomiForwardTarget {
         let dmConfigurationStore = DependenciesBridge.shared.disappearingMessagesConfigurationStore
         let dmConfig = thread.map { dmConfigurationStore.fetchOrBuildDefault(for: .thread($0), tx: tx) }
         let displayName = SSKEnvironment.shared.contactManagerRef.displayName(for: address, tx: tx)

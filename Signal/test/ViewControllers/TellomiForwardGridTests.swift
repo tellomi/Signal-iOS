@@ -87,16 +87,18 @@ final class TellomiForwardGridTests: SignalBaseTest {
         _ = (old, newest)
     }
 
-    /// F-5：不出现——已退出的群、拉黑的人、还没接受的消息请求；「动态」本来就不进。
+    /// F-5：不出现——已退出的群、拉黑的人和群、还没接受的消息请求；「动态」本来就不进。
     func testChatsYouCannotPostInAreLeftOut() throws {
         register()
         let friend = makeContactChat("朋友")
         let blocked = makeContactChat("拉黑的")
         let stranger = makeContactChat("陌生人", incoming: true)
         _ = makeGroupChat("还在的群")
+        let blockedGroup = makeGroupChat("拉黑的群")
         let leftGroup = makeGroupChat("退出的群", includingMe: false)
         write { tx in
             SSKEnvironment.shared.blockingManagerRef.addBlockedAddress(blocked, blockMode: .local, transaction: tx)
+            SSKEnvironment.shared.blockingManagerRef.addBlockedGroupId(blockedGroup.groupId, blockMode: .local, transaction: tx)
         }
 
         let names = read { tx in TellomiForwardTargets.load(tx: tx) }.map(\.shortName)
@@ -479,6 +481,33 @@ final class TellomiForwardGridTests: SignalBaseTest {
         let onlySaved = try XCTUnwrap(TellomiForwardedToast(recipients: [saved]))
         XCTAssertEqual(onlySaved.text, "Forwarded to Saved Messages")
         XCTAssertTrue(onlySaved.opensSavedMessages)
+    }
+
+    /// F-8：提示条里的名字加粗（ToastView 的 tellomiEmphasize）。
+    @MainActor
+    func testToastBoldsTheNames() throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        window.frame = scene.screen.bounds
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        hostedWindows.append(window)
+
+        let toast = ToastController(text: "Forwarded to 小林 and 小王")
+        toast.tellomiBoldTexts = ["小林", "小王"]
+        toast.presentToastView(from: .bottom, of: root.view, inset: 20)
+
+        let toastView = try XCTUnwrap(findToast(in: window))
+        let attributed = try XCTUnwrap(toastView.tellomiAttributedTextForTesting)
+        let text = attributed.string as NSString
+        func weight(at location: Int) -> CGFloat {
+            let font = attributed.attribute(.font, at: location, effectiveRange: nil) as? UIFont
+            let traits = font?.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
+            return (traits?[.weight] as? CGFloat) ?? 0
+        }
+        XCTAssertGreaterThan(weight(at: text.range(of: "小林").location), weight(at: 0))
+        XCTAssertGreaterThan(weight(at: text.range(of: "小王").location), weight(at: text.range(of: "and").location))
     }
 
     /// 四种语言都有译文（跑在英文下，直接读各语言的表）；F-11 的两项也在。
