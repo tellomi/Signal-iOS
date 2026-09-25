@@ -88,7 +88,15 @@ final class ReactionFlyIn {
         }
     }
 
-    /// 飞到 `targetView`（胶囊里显示这个表情的那个字）上。飞行期间把它藏起来，落定后再露出。
+    /// 找到落点的那一刻就把它藏起来：聊天列表是在同一轮 runloop 里配置好新格子、再通知落地的，
+    /// 这时藏，新表情一帧都不会先露出来；要是之后取消了，[cancel] 会把它放回来。
+    func claim(_ targetView: UIView) {
+        guard !hasFinished else { return }
+        self.targetView = targetView
+        targetView.alpha = 0
+    }
+
+    /// 飞到 `targetView`（胶囊里显示这个表情的那个字）上。飞行期间它一直藏着，落定后再露出。
     func land(on targetView: UIView, targetFontSize: CGFloat) {
         guard !hasFinished, overlayView.superview != nil, targetView.window != nil else {
             cancel()
@@ -147,10 +155,11 @@ final class ReactionFlyIn {
         animator.startAnimation()
     }
 
-    /// 等不到落点：原地淡出。可以重复调用。
+    /// 等不到落点：原地淡出，已经藏起来的落点放回来。可以重复调用。
     func cancel() {
         guard !hasFinished else { return }
         hasFinished = true
+        targetView?.alpha = 1
         fadeOut()
     }
 

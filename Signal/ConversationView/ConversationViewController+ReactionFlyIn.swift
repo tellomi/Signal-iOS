@@ -42,6 +42,7 @@ extension ConversationViewController {
             return
         }
         viewState.pendingReactionFlyIn = nil
+        flyIn.claim(target)
         landWhenStill(flyIn: flyIn, target: target, previousCenter: nil, checksLeft: Self.reactionFlyInStillCheckLimit)
     }
 
