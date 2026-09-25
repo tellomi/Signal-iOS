@@ -82,7 +82,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
     }
 
     /// 竖屏 3 列、横屏 5 列，间距 1，正方形；三种屏宽都一样。
-    /// 边长按屏幕像素（1/3 pt）向下取整，除不尽时剩下的不到每列 1 像素，由 flow layout 摊进列间距（最多 1.34）。
+    /// 边长按屏幕像素（1/scale pt：3x 是 1/3、SE 这类 2x 是 1/2）向下取整，除不尽时剩下的不到每列 1 像素，
+    /// 由 flow layout 摊进列间距（3x 最多 1.34、2x 最多 1.5）。
     @MainActor
     func testGridColumnsSpacingAndSquareCells() async throws {
         for (width, height) in [(375, 812), (402, 874), (440, 956)] as [(CGFloat, CGFloat)] {
@@ -92,15 +93,16 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
                 let frames = (0...columns).map { frame(of: $0, in: hosted.picker) }
                 let label = "\(Int(w))×\(Int(h))"
                 XCTAssertEqual(frames[0].size.width, frames[0].size.height, accuracy: 0.01, "\(label) 正方形")
+                let pixel = 1 / hosted.window.screen.scale
                 let gap = frames[1].minX - frames[0].maxX
                 XCTAssertGreaterThanOrEqual(gap, 0.99, "\(label) 列间距 1")
-                XCTAssertLessThanOrEqual(gap, 1.34, "\(label) 列间距 1")
+                XCTAssertLessThanOrEqual(gap, 1 + pixel + 0.01, "\(label) 列间距 1（最多再摊 1 像素）")
                 XCTAssertEqual(frames[columns - 1].minY, frames[0].minY, accuracy: 0.01, "\(label) 第一行有 \(columns) 格")
                 XCTAssertEqual(frames[columns].minX, frames[0].minX, accuracy: 0.01, "\(label) 第 \(columns + 1) 格换行")
                 XCTAssertEqual(frames[columns].minY - frames[0].maxY, 1, accuracy: 0.01, "\(label) 行间距 1")
                 let leftover = hosted.picker.collectionViewForTesting.bounds.size.width - (CGFloat(columns) * frames[0].size.width + CGFloat(columns - 1))
                 XCTAssertGreaterThanOrEqual(leftover, -0.01, "\(label) 一行放得下")
-                XCTAssertLessThan(leftover, CGFloat(columns) / 3, "\(label) 铺满一行（剩下的不到每列 1 像素）")
+                XCTAssertLessThan(leftover, CGFloat(columns) * pixel, "\(label) 铺满一行（剩下的不到每列 1 像素）")
             }
         }
     }
@@ -345,7 +347,9 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
     /// 表情键盘照 Telegram 的排法：分类在上面（占满宽）、emoji 在中间、底栏左边「键盘」右边退格；点「键盘」回到文字键盘（仍在编辑）。
     @MainActor
     func testEmojiKeyboardLayoutAndSwitchBack() async throws {
-        let hosted = host()
+        // 键盘窗口按模拟器真实的屏幕排（375 那台是 SE），宿主窗口也用真实屏幕大小，不然键盘永远比窗口窄
+        let screen = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.size }.first)
+        let hosted = host(width: screen.width, height: screen.height)
         defer { hosted.tearDown() }
         hosted.window.makeKey()
         let picker = hosted.picker
