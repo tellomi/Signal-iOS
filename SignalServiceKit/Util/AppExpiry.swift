@@ -16,6 +16,7 @@ public final class AppExpiry {
 
     private let appVersion: AppVersionNumber4
     private let buildDate: Date
+    private let isTestFlightBuild: Bool
 
     private struct ExpirationState: Codable, Equatable {
         let appVersion: String
@@ -48,13 +49,13 @@ public final class AppExpiry {
     static let keyValueKey = "expirationState"
 
     public convenience init(appVersion: any AppVersion) {
-        self.init(appVersion: appVersion.currentAppVersion4, buildDate: appVersion.buildDate)
+        self.init(appVersion: appVersion.currentAppVersion4, buildDate: appVersion.buildDate, isTestFlightBuild: Self.isTestFlightInstall())
     }
 
 #if TESTABLE_BUILD
 
-    public static func forUnitTests(buildDate: Date = Date()) -> Self {
-        return Self(appVersion: try! AppVersionNumber4(AppVersionNumber("1.2.3.4")), buildDate: buildDate)
+    public static func forUnitTests(buildDate: Date = Date(), isTestFlightBuild: Bool = false) -> Self {
+        return Self(appVersion: try! AppVersionNumber4(AppVersionNumber("1.2.3.4")), buildDate: buildDate, isTestFlightBuild: isTestFlightBuild)
     }
 
 #endif
@@ -62,10 +63,12 @@ public final class AppExpiry {
     public init(
         appVersion: AppVersionNumber4,
         buildDate: Date,
+        isTestFlightBuild: Bool = false,
     ) {
         self.keyValueStore = KeyValueStore(collection: Self.keyValueCollection)
         self.appVersion = appVersion
         self.buildDate = buildDate
+        self.isTestFlightBuild = isTestFlightBuild
 
         self.expirationState = AtomicValue(
             .init(appVersion: appVersion.wrappedValue.rawValue, mode: .default),
@@ -184,8 +187,25 @@ public final class AppExpiry {
     // 90 天不发版所有人会同时停止收发；兜底保留，时长三端统一 180 天（owner 可改）。
     public static let defaultExpirationInterval: TimeInterval = 180 * .day
 
+    // Tellomi（owner 2026-09-25：iOS 用 TestFlight 外部测试发给朋友）：TestFlight 的构建 90 天后会被 TestFlight 停用、打不开，
+    // 180 天的兜底在它上面永远走不到，「14 天后过期」的提醒也就永远不出现。TestFlight 装的包按 90 天算，第 76 天起提醒。
+    public static let testFlightExpirationInterval: TimeInterval = 90 * .day
+
+    static func expirationInterval(isTestFlightBuild: Bool) -> TimeInterval {
+        return isTestFlightBuild ? testFlightExpirationInterval : defaultExpirationInterval
+    }
+
+    /// 这个包是不是从 TestFlight 装的：TestFlight 装的包带沙盒收据（`sandboxReceipt`），App Store 正式包的收据叫 `receipt`，
+    /// Xcode 直接装的开发包收据地址照样叫 `sandboxReceipt`，但文件不存在。扩展里 `Bundle.main` 是扩展自己，所以看主 App 的收据。
+    static func isTestFlightInstall(receiptURL: URL? = Bundle.main.app.appStoreReceiptURL, fileManager: FileManager = .default) -> Bool {
+        guard let receiptURL, receiptURL.lastPathComponent == "sandboxReceipt" else {
+            return false
+        }
+        return fileManager.fileExists(atPath: receiptURL.path)
+    }
+
     private var defaultExpirationDate: Date {
-        return buildDate.addingTimeInterval(Self.defaultExpirationInterval)
+        return buildDate.addingTimeInterval(Self.expirationInterval(isTestFlightBuild: isTestFlightBuild))
     }
 
     @MainActor

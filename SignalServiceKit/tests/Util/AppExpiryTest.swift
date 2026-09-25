@@ -42,6 +42,35 @@ final class AppExpiryTest: XCTestCase {
         XCTAssertTrue(appExpiry.isExpired(now: defaultExpiry.addingTimeInterval(1)))
     }
 
+    func testTestFlightBuildsExpireAfterNinetyDays() {
+        // owner 2026-09-25：TestFlight 构建 90 天后被 TestFlight 停用；App 内按 90 天算，「14 天后过期」第 76 天起出现。
+        let testFlight = AppExpiry(appVersion: appVersion, buildDate: buildDate, isTestFlightBuild: true)
+        let ninetyDays = buildDate.addingTimeInterval(90 * .day)
+        XCTAssertEqual(testFlight.expirationDate, ninetyDays)
+        XCTAssertFalse(testFlight.isExpired(now: ninetyDays))
+        XCTAssertTrue(testFlight.isExpired(now: ninetyDays.addingTimeInterval(1)))
+        XCTAssertTrue(testFlight.isBuildTooOld(now: ninetyDays.addingTimeInterval(1)))
+
+        // 别的装法（App Store、Xcode 直接装）照旧 180 天。
+        XCTAssertEqual(appExpiry.expirationDate, defaultExpiry)
+    }
+
+    func testOnlyASandboxReceiptThatExistsMeansTestFlight() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let sandboxReceipt = directory.appendingPathComponent("sandboxReceipt")
+        let appStoreReceipt = directory.appendingPathComponent("receipt")
+        try Data("receipt".utf8).write(to: sandboxReceipt)
+        try Data("receipt".utf8).write(to: appStoreReceipt)
+
+        XCTAssertTrue(AppExpiry.isTestFlightInstall(receiptURL: sandboxReceipt))
+        XCTAssertFalse(AppExpiry.isTestFlightInstall(receiptURL: appStoreReceipt))
+        // Xcode 直接装的开发包：收据地址照样叫 sandboxReceipt，但文件不存在。
+        XCTAssertFalse(AppExpiry.isTestFlightInstall(receiptURL: directory.appendingPathComponent("missing/sandboxReceipt")))
+        XCTAssertFalse(AppExpiry.isTestFlightInstall(receiptURL: nil))
+    }
+
     func testWarmCachesWithInvalidDataInDatabase() throws {
         let data = Data([1, 2, 3])
         db.write { tx in
