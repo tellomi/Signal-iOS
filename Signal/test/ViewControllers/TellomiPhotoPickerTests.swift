@@ -864,17 +864,52 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(frame(of: 0, in: hosted.picker).origin, .zero)
     }
 
-    /// 有选中时点相机：拍到的不回到这里的已选里，所以同 ✕ 先问「丢弃媒体」，不直接打开。
+    /// 有选中时点相机格：不问「丢弃媒体」，直接开相机（盖在面板上面，同 Telegram），已选不动；先停网格里的取景，相机关掉后接着取景。
     @MainActor
-    func testCameraTapWithSelectionAsksFirst() async throws {
-        let hosted = host(camera: FakeCamera(access: .authorized))
+    func testCameraTapKeepsTheSelection() async throws {
+        let camera = FakeCamera(access: .authorized)
+        let hosted = host(camera: camera)
         defer { hosted.tearDown() }
         hosted.picker.tapCheckForTesting(itemIndex: 0)
+        hosted.picker.tapCheckForTesting(itemIndex: 2)
+        let startsBefore = camera.starts
+        let stopsBefore = camera.stops
         try XCTUnwrap(hosted.picker.cameraCellForTesting).tapForTesting()
 
-        XCTAssertEqual(hosted.delegate.cameraRequests, 0)
-        let asked = await waitUntil { hosted.picker.presentedViewController is ActionSheetController }
-        XCTAssertTrue(asked)
+        XCTAssertEqual(hosted.delegate.cameraRequests, 1, "直接开相机")
+        XCTAssertNil(hosted.picker.presentedViewController, "不先问「丢弃媒体」")
+        XCTAssertEqual(hosted.picker.selectedIdsForTesting, ["r0", "r2"])
+        XCTAssertEqual(camera.stops, stopsBefore + 1, "先停网格里的取景")
+
+        hosted.picker.cameraDidClose()
+        XCTAssertEqual(camera.starts, startsBefore + 1, "相机关掉后接着取景")
+    }
+
+    /// 相机格打开的相机（`TellomiPickerCameraRoute`）取消：只关相机这一层，选图面板还在、已选还在，面板接着取景。
+    @MainActor
+    func testCameraRouteCancelClosesOnlyTheCamera() async throws {
+        let camera = FakeCamera(access: .authorized)
+        let hosted = host(camera: camera, presentedFromRoot: true)
+        defer { hosted.tearDown() }
+        let root = try XCTUnwrap(hosted.window.rootViewController)
+        XCTAssertTrue(root.presentedViewController === hosted.picker)
+        let pickerOnScreen = await waitUntil { hosted.picker.view.window != nil && !hosted.picker.isBeingPresented }
+        XCTAssertTrue(pickerOnScreen)
+        hosted.picker.tapCheckForTesting(itemIndex: 1)
+
+        let cameraScreen = UIViewController()
+        hosted.picker.present(cameraScreen, animated: false)
+        let cameraOnScreen = await waitUntil { hosted.picker.presentedViewController === cameraScreen && cameraScreen.view.window != nil }
+        XCTAssertTrue(cameraOnScreen, "相机盖在面板上面")
+        let startsBefore = camera.starts
+
+        TellomiPickerCameraRoute(picker: hosted.picker, conversation: nil).closeCamera(cameraScreen)
+        let closed = await waitUntil { hosted.picker.presentedViewController == nil }
+        XCTAssertTrue(closed, "相机关了")
+        XCTAssertTrue(root.presentedViewController === hosted.picker, "选图面板还在")
+        XCTAssertEqual(hosted.picker.selectedIdsForTesting, ["r1"], "已选还在")
+        let resumed = await waitUntil { camera.starts > startsBefore }
+        XCTAssertTrue(resumed, "面板接着取景")
     }
 
     // MARK: - 截图
@@ -976,6 +1011,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         initialText: String? = nil,
         chatBackground: UIView? = nil,
         camera: TellomiPhotoPickerCamera? = nil,
+        presentedFromRoot: Bool = false,
     ) -> Hosted {
         let delegate = RecordingPickerDelegate()
         let dataSource = FakeApprovalDataSource()
@@ -995,9 +1031,19 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         picker.delegate = delegate
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: height))
         window.backgroundColor = .Signal.background
-        window.rootViewController = picker
-        window.isHidden = false
+        if presentedFromRoot {
+            // 同真机：会话页把选图面板弹出来。
+            let root = UIViewController()
+            window.rootViewController = root
+            window.isHidden = false
+            picker.modalPresentationStyle = .fullScreen
+            root.present(picker, animated: false)
+        } else {
+            window.rootViewController = picker
+            window.isHidden = false
+        }
         window.layoutIfNeeded()
+        picker.view.layoutIfNeeded()
         picker.collectionViewForTesting.layoutIfNeeded()
         return Hosted(window: window, picker: picker, delegate: delegate, dataSource: dataSource, library: library)
     }

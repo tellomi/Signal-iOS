@@ -671,7 +671,9 @@ private extension ConversationViewController {
 
     // MARK: - Media Library
 
-    func takePictureOrVideo() {
+    /// Tellomi（#1261 P-8）：`presenter` / `sendMediaNavDelegate` 给选图面板的相机格用（见文件末尾 `tellomiTakePictureOrVideo`）；
+    /// 其它入口照旧（都是 nil = 会话页自己）。
+    func takePictureOrVideo(presenter: UIViewController? = nil, sendMediaNavDelegate: SendMediaNavDelegate? = nil) {
         AssertIsOnMainThread()
 
         let attachmentLimits = OutgoingAttachmentLimits.currentLimits()
@@ -693,7 +695,7 @@ private extension ConversationViewController {
                     hasQuotedReplyDraft: self.inputToolbar?.quotedReplyDraft != nil,
                     attachmentLimits: attachmentLimits,
                 )
-                pickerModal.sendMediaNavDelegate = self
+                pickerModal.sendMediaNavDelegate = sendMediaNavDelegate ?? self
                 pickerModal.sendMediaNavDataSource = self
                 pickerModal.modalPresentationStyle = .overFullScreen
                 // Defer hiding status bar until modal is fully onscreen
@@ -703,7 +705,7 @@ private extension ConversationViewController {
                     pickerModal.modalPresentationCapturesStatusBarAppearance = true
                 }
                 self.dismissKeyBoard()
-                self.present(pickerModal, animated: true) {
+                (presenter ?? self).present(pickerModal, animated: true) {
                     if pickerHidesStatusBar {
                         pickerModal.modalPresentationCapturesStatusBarAppearance = true
                         pickerModal.setNeedsStatusBarAppearanceUpdate()
@@ -1048,5 +1050,14 @@ extension ConversationViewController: PollSendDelegate {
             ),
             thread: self.thread,
         )
+    }
+}
+
+// MARK: - Tellomi
+
+extension ConversationViewController {
+    /// Tellomi（tellomi/tellomi#1261 P-8）：选图面板的相机格从面板上面打开相机（上面的 `takePictureOrVideo` 在 private 扩展里）。
+    func tellomiTakePictureOrVideo(presenter: UIViewController, sendMediaNavDelegate: SendMediaNavDelegate) {
+        takePictureOrVideo(presenter: presenter, sendMediaNavDelegate: sendMediaNavDelegate)
     }
 }

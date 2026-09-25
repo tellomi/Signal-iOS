@@ -69,6 +69,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
 
     weak var delegate: TellomiPhotoPickerDelegate?
 
+    /// 相机格打开的相机怎么走（`TellomiPickerCameraRoute`）；相机那边的 delegate 是 weak，由面板留着。
+    var cameraRoute: SendMediaNavDelegate?
+
     private let library: TellomiPhotoPickerLibrary
     private let defaultImageQuality: ImageQuality
     private let canSendSeparately: Bool
@@ -986,20 +989,32 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         confirmDiscardingSelection()
     }
 
-    /// 相机格：打开相机（上游的相机流程，自己问权限、自己发）。拍到的不回到这里的已选里，所以有选中时同 ✕ 先问一句。
+    /// 相机格：打开相机（上游的相机流程，自己问权限、自己发；拍到的在相机自己的预览页里发，不进这里的已选，同 Telegram）。
+    /// 相机盖在面板上面，取消回来已选都还在，所以不用先问「丢弃媒体」。
+    /// 两个取景会抢同一个相机，先停网格里的，相机关掉后（`cameraDidClose`）再接着取景。
     private func didTapCamera() {
-        guard !selectedIds.isEmpty else {
-            delegate?.photoPickerDidRequestCamera(self)
-            return
+        camera?.stopPreview()
+        delegate?.photoPickerDidRequestCamera(self)
+    }
+
+    /// 盖在面板上面的相机关掉了：「最近」的相机格还露着就接着取景。
+    func cameraDidClose() {
+        if showsCamera, !collectionView.visibleSupplementaryViews(ofKind: TellomiPhotoPickerCameraCell.kind).isEmpty {
+            camera?.startPreview()
         }
-        confirmDiscardingSelection { [weak self] in
-            guard let self else { return }
-            self.delegate?.photoPickerDidRequestCamera(self)
+    }
+
+    /// 在盖在上面的相机里改了说明：面板的说明框跟着变（会话输入框那边由会话页自己更新，这里不再往回报）。
+    func updateCaptionFromCamera(_ messageBody: MessageBody?) {
+        captionTextView.setMessageBody(messageBody, txProvider: DependenciesBridge.shared.db.readTxProvider)
+        updateCaptionPlaceholderAndHeight()
+        if displayMode == .selected {
+            refreshSelectedView(animated: false)
         }
     }
 
     /// 有选中时关面板（✕ 或下拉）先问一句，照 Telegram `MediaPickerScreen.requestDismiss`；文案用上游 Signal 选图流程的「丢弃媒体」。
-    private func confirmDiscardingSelection(then discard: (() -> Void)? = nil) {
+    private func confirmDiscardingSelection() {
         let actionSheet = ActionSheetController()
         actionSheet.addAction(ActionSheetAction(
             title: OWSLocalizedString(
@@ -1009,11 +1024,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             style: .destructive,
             handler: { [weak self] _ in
                 guard let self else { return }
-                if let discard {
-                    discard()
-                } else {
-                    self.delegate?.photoPickerDidCancel(self)
-                }
+                self.delegate?.photoPickerDidCancel(self)
             },
         ))
         actionSheet.addAction(OWSActionSheets.cancelAction)
