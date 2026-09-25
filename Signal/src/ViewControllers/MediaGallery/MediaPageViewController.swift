@@ -1370,8 +1370,17 @@ extension MediaPageViewController {
         (navigationItem.rightBarButtonItems ?? []).lazy.compactMap { $0.customView as? TellomiViewerMenuButton }.first
     }
 
-    func noteTouchForTesting() {
-        noteAutoHideControlsActivity()
+    /// 走真实的那条路：在查看器根视图上找挂着的「碰过屏幕」识别器，像系统送触摸时那样问它的代理。
+    /// 找不到（识别器没挂上 / 代理没接）就返回 false，计时也不会从头来。
+    func noteTouchForTesting() -> Bool {
+        guard
+            let recognizer = view.gestureRecognizers?.first(where: { $0.delegate is TellomiTouchActivityObserver }),
+            let delegate = recognizer.delegate
+        else {
+            return false
+        }
+        _ = delegate.gestureRecognizer?(recognizer, shouldReceive: UITouch())
+        return true
     }
 
     /// 标题胶囊（iOS 26 上是容器里的那块玻璃）与底栏的删除键，量它们在白底图上是不是深色。

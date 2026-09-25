@@ -807,16 +807,21 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         MediaPageViewController.isVoiceOverRunning = { false }
         await hidesAfterDelay("关掉 VoiceOver 后再等满时间收")
 
-        // 碰一下屏幕：计时从头来（这一段把时间放长到 2 秒，免得机器忙时抖）
-        MediaPageViewController.autoHideControlsDelay = 2
+        // 碰一下屏幕：计时从头来。这一段时间放长到 3 秒，判据只用下限——收起离「碰」那一下至少满 3 秒；
+        // 机器忙只会让它更晚收、不会更早（原来「2.4 秒时还在」那种定点看，Android 440dp 在机器忙时红过一次，两端一起改）。
+        // 没清零的话，从叫出控件（上一次清零）算满 3 秒就收，离「碰」只有约 2 秒，这条就红。
+        MediaPageViewController.autoHideControlsDelay = 3
         showControls()
-        try await Task.sleep(nanoseconds: 1_200_000_000)
-        viewer.noteTouchForTesting()
-        try await Task.sleep(nanoseconds: 1_200_000_000)
-        report += "autohide: touched hidden=\(viewer.areToolbarsHiddenForTesting)\n"
-        XCTAssertFalse(viewer.areToolbarsHiddenForTesting, "碰过屏幕，计时从头来（2.4 秒时还在）")
-        let hiddenAfterTouch = await waitUntil(timeout: 4) { viewer.areToolbarsHiddenForTesting }
+        let shownAt = Date()
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertFalse(viewer.areToolbarsHiddenForTesting, "碰之前控件还在（离叫出 \(String(format: "%.2f", Date().timeIntervalSince(shownAt)))s）")
+        let touchedAt = Date()
+        XCTAssertTrue(viewer.noteTouchForTesting(), "查看器根视图上挂着「碰过屏幕」识别器")
+        let hiddenAfterTouch = await waitUntil(timeout: 8) { viewer.areToolbarsHiddenForTesting }
+        let sinceTouch = Date().timeIntervalSince(touchedAt)
+        report += "autohide: touched \(String(format: "%.2f", touchedAt.timeIntervalSince(shownAt)))s after shown, hidden=\(hiddenAfterTouch) after=\(String(format: "%.2f", sinceTouch))s\n"
         XCTAssertTrue(hiddenAfterTouch, "碰过之后再等满时间收")
+        XCTAssertGreaterThanOrEqual(sinceTouch, 3, "碰过屏幕，计时从头来（收起离「碰」\(String(format: "%.2f", sinceTouch))s）")
 
         try report.write(to: FileManager.default.temporaryDirectory.appendingPathComponent("metrics-autohide.txt"), atomically: true, encoding: .utf8)
         if ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1" {
