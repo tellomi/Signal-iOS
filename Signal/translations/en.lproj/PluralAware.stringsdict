@@ -1799,9 +1799,9 @@ Try again in %d hours.</string>
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>one</key>
-			<string>You changed your username recently. You can change it again in %d day.</string>
+			<string>You changed your username recently. You can change it again in %d day. Until then, you can only change back to your original username.</string>
 			<key>other</key>
-			<string>You changed your username recently. You can change it again in %d days.</string>
+			<string>You changed your username recently. You can change it again in %d days. Until then, you can only change back to your original username.</string>
 		</dict>
 	</dict>
 	<key>USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d</key>

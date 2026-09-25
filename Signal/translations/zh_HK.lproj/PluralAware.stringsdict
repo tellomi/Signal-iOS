@@ -1573,7 +1573,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>你最近更改過用戶名稱，%d 天後可以再更改。</string>
+			<string>你最近更改過用戶名稱，%d 天後可以再更改。在那之前，只能改回原來的名稱。</string>
 		</dict>
 	</dict>
 	<key>USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d</key>

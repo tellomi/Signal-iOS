@@ -172,6 +172,25 @@ class UrlOpenerTest: XCTestCase {
         )
     }
 
+    /// owner 2026-09-25 在 TestFlight 上撞到：冷却期里换名被拒时，只说「N 天后可以再改」不够，还要说清这段时间只能改回原来的名字
+    /// （服务端 ADR-0066 §6.2 冷却期只放行本账号保留期内的旧名）。四种语言逐字钉住，与 Android a21 同句。
+    func testTellomiRenameCooldownErrorSaysOnlyTheOriginalNameCanComeBack() throws {
+        let key = "USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d"
+        let expected: [(String, Int, String)] = [
+            ("en", 29, "You changed your username recently. You can change it again in 29 days. Until then, you can only change back to your original username."),
+            ("en", 1, "You changed your username recently. You can change it again in 1 day. Until then, you can only change back to your original username."),
+            ("zh_CN", 29, "你最近改过用户名，29 天后可以再改。在那之前，只能改回原来的名字。"),
+            ("zh_HK", 29, "你最近更改過用戶名稱，29 天後可以再更改。在那之前，只能改回原來的名稱。"),
+            ("zh_TW", 29, "你最近更改過用戶名稱，29 天後可以再更改。在那之前，只能改回原來的名稱。"),
+        ]
+        for (localization, days, text) in expected {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: localization, ofType: "lproj"), localization)
+            let bundle = try XCTUnwrap(Bundle(path: path), localization)
+            let format = bundle.localizedString(forKey: key, value: nil, table: "PluralAware")
+            XCTAssertEqual(String.localizedStringWithFormat(format, days), text, localization)
+        }
+    }
+
     /// tellomi/tellomi#1106 第二刀：选用户名页「没改 / 只改大小写」的捷径只认原判别位是 01 的；`.57` 这类旧号同名也要重新预约 `.01`。
     func testTellomiUsernameShortcutsOnlyForFixedDiscriminator() {
         let fixed = Usernames.ParsedUsername(rawUsername: "kaixin.01")
