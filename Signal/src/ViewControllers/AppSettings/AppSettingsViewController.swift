@@ -243,7 +243,9 @@ class AppSettingsViewController: OWSTableViewController2 {
             },
         ))
 
-        if isPrimaryDevice {
+        // Tellomi（tellomi/tellomi#1193）：正式构建里主设备这一行后面只有远端备份（上游的免费 / 付费套餐），阶段一不做，整行不出；
+        // 开发 / beta 构建走有本地备份的落地页，照留。见 TSConstants.remoteBackupsEnabled。
+        if isPrimaryDevice, TSConstants.remoteBackupsEnabled || BuildFlags.LocalFileBackups.settingsUI {
             section2.add(.disclosureItem(
                 icon: .backup,
                 withText: OWSLocalizedString(
@@ -282,7 +284,8 @@ class AppSettingsViewController: OWSTableViewController2 {
                     )
                 },
             ))
-        } else {
+        } else if !isPrimaryDevice, TSConstants.remoteBackupsEnabled {
+            // Tellomi（tellomi/tellomi#1193）：关联设备这页写着「您可以在您的主设备上开始备份」，可主设备没有这个入口，一起不出
             section2.add(.disclosureItem(
                 icon: .backup,
                 withText: OWSLocalizedString(
@@ -392,6 +395,18 @@ class AppSettingsViewController: OWSTableViewController2 {
             actionBlock: { [weak self] in
                 let vc = HelpViewController()
                 self?.navigationController?.pushViewController(vc, animated: true)
+            },
+        ))
+        // Tellomi（tellomi/tellomi#1165）：「关于 Tellomi」从「帮助」里拿出来，紧跟「帮助」
+        section3.add(.disclosureItem(
+            icon: .info,
+            withText: OWSLocalizedString(
+                "SETTINGS_ABOUT_TELLOMI_TITLE",
+                value: "About Tellomi",
+                comment: "Tellomi: title of the About Tellomi page and of its row in settings.",
+            ),
+            actionBlock: { [weak self] in
+                self?.navigationController?.pushViewController(AboutTellomiViewController(), animated: true)
             },
         ))
         section3.add(.item(
@@ -522,7 +537,8 @@ class AppSettingsViewController: OWSTableViewController2 {
             switch localUsernameState {
             case let .available(username, _):
                 addSubtitleLabel(
-                    text: username,
+                    // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：`.01` 结尾的去掉后缀显示，别的后缀完整显示
+                    text: TellomiLinks.displayUsername(username),
                     textColor: Theme.primaryTextColor,
                 )
             case .unset, .usernameAndLinkCorrupted, .linkCorrupted:
@@ -605,6 +621,32 @@ extension AppSettingsViewController: UsernameLinkScanDelegate {
                 guard
                     let (_, aci) = await UsernameQuerier().queryForUsernameLink(
                         link: usernameLink,
+                        fromViewController: presentingViewController,
+                    )
+                else {
+                    return
+                }
+
+                SignalApp.shared.presentConversationForAddress(
+                    SignalServiceAddress(aci),
+                    animated: true,
+                )
+            }
+        }
+    }
+
+    /// Tellomi（tellomi/tellomi#947）：扫到裸用户名码，与扫到用户名链接同一个结果（打开会话）。
+    func plainUsernameScanned(_ username: String) {
+        guard let presentingViewController else {
+            owsFailDebug("Missing presenting view controller!")
+            return
+        }
+
+        presentingViewController.dismiss(animated: true) {
+            Task {
+                guard
+                    let aci = await UsernameQuerier().queryForUsername(
+                        username: username,
                         fromViewController: presentingViewController,
                     )
                 else {

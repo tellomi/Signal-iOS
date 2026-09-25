@@ -134,6 +134,29 @@ class LocalUsernameManagerTests: XCTestCase {
         XCTAssertEqual(mockSyncMessageSender.usernameChangeSyncMessageCount, 1)
     }
 
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：注册资料页用注册拿到的凭证显式认证去保留 / 确认（本机注册还没完成，隐式认证取不到凭证）；
+    /// 不传认证时仍是隐式，上游原来的行为不变。
+    func testReserveAndConfirmUseTheGivenAuth() async throws {
+        let explicitAuth = ChatServiceAuth.explicit(aci: Aci.randomForTesting(), deviceId: .primary, password: "registration-password")
+        let candidates = try Usernames.HashedUsername.generateCandidates(forNickname: "kaixin", minNicknameLength: 3, maxNicknameLength: 20, desiredDiscriminator: nil)
+
+        var reserveAuths: [ChatServiceAuth] = []
+        mockUsernameApiClient.reserveUsernameCandidatesMocks = [
+            { _, auth in reserveAuths.append(auth); return .rejected },
+            { _, auth in reserveAuths.append(auth); return .rejected },
+        ]
+        _ = await localUsernameManager.reserveUsername(usernameCandidates: candidates, chatServiceAuth: explicitAuth)
+        _ = await localUsernameManager.reserveUsername(usernameCandidates: candidates)
+        XCTAssertEqual(reserveAuths, [explicitAuth, .implicit()])
+
+        var confirmAuths: [ChatServiceAuth] = []
+        mockUsernameLinkManager.entropyToGenerate = .success(.mockEntropy)
+        mockUsernameApiClient.confirmReservedUsernameMocks = [{ _, _, auth in confirmAuths.append(auth); return .rejected }]
+        _ = await localUsernameManager.confirmUsername(reservedUsername: .mock("kaixin.01"), chatServiceAuth: explicitAuth)
+        XCTAssertEqual(confirmAuths, [explicitAuth])
+        XCTAssertTrue(mockUsernameApiClient.reserveUsernameCandidatesMocks.isEmpty)
+    }
+
     func testConfirmBailsEarlyIfNotReachable() async {
         mockReachabilityManager.isReachable = false
 
@@ -599,6 +622,156 @@ class LocalUsernameManagerTests: XCTestCase {
         return mockDB.read { tx in
             return localUsernameManager.usernameState(tx: tx)
         }
+    }
+
+    // MARK: - Tellomi
+
+    /// Tellomi（tellomi/tellomi#1106 第二刀，ADR-0066 §六「生成」）：不指定判别位时只产 `<nickname>.01` 一个候选；
+    /// 指定了照用（修复模式沿用旧判别位的路径还在）；昵称不合法照旧抛错，界面按错误类型给提示。
+    func testTellomiCandidatesUseOnlyTheFixedDiscriminator() throws {
+        let generated = try Usernames.HashedUsername.generateCandidates(
+            forNickname: "kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: true,
+        )
+        XCTAssertEqual(generated.candidateHashes.count, 1)
+        XCTAssertEqual(generated.candidate(matchingHash: generated.candidateHashes[0])?.usernameString, "kaixin.01")
+
+        let custom = try Usernames.HashedUsername.generateCandidates(
+            forNickname: "kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: "57",
+            enforcingLetterFirst: true,
+        )
+        XCTAssertEqual(custom.candidate(matchingHash: custom.candidateHashes[0])?.usernameString, "kaixin.57")
+
+        XCTAssertThrowsError(try Usernames.HashedUsername.generateCandidates(
+            forNickname: "1kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: true,
+        ))
+    }
+
+    /// Tellomi（ADR-0066 §六 第 73 行 / ADR-0036）：新建 / 修改的用户名必须字母开头。libsignal 放行 `_` 开头，客户端收紧；
+    /// 太短 / 非法字符照旧由 libsignal 先报；`_` 在中间、结尾照旧合法。
+    func testTellomiNicknameMustStartWithLetter() throws {
+        typealias CandidateError = Usernames.HashedUsername.CandidateGenerationError
+
+        func generate(_ nickname: String) throws -> Usernames.HashedUsername.GeneratedCandidates {
+            try Usernames.HashedUsername.generateCandidates(
+                forNickname: nickname,
+                minNicknameLength: 3,
+                maxNicknameLength: 20,
+                desiredDiscriminator: nil,
+                enforcingLetterFirst: true,
+            )
+        }
+
+        func assertRejected(_ nickname: String, _ expected: CandidateError, file: StaticString = #filePath, line: UInt = #line) {
+            XCTAssertThrowsError(try generate(nickname), file: file, line: line) { error in
+                XCTAssertEqual(error as? CandidateError, expected, "\(nickname)", file: file, line: line)
+            }
+        }
+
+        assertRejected("_kaixin", .nicknameCannotStartWithUnderscore)
+        assertRejected("___", .nicknameCannotStartWithUnderscore)
+        assertRejected("_1abc", .nicknameCannotStartWithUnderscore)
+        assertRejected("_a", .nicknameTooShort)
+        assertRejected("_ab cd", .nicknameContainsInvalidCharacters)
+        assertRejected("1kaixin", .nicknameCannotStartWithDigit)
+
+        XCTAssertEqual(try generate("kai_xin").candidateHashes.count, 1)
+        XCTAssertEqual(try generate("kaixin_").candidateHashes.count, 1)
+    }
+
+    /// Tellomi（taishi 审 a4-v2 与 Signal-Desktop#4 第三版）：「字母开头」对新起的名字收紧，旧后缀迁到 `.01` 也算新名字；
+    /// 只有修复模式整段不收紧（包括全新的 `_` 名，比 Android / Desktop 宽一档）。`.01` 只改大小写走选名页的捷径，到不了这里。
+    func testTellomiLetterFirstOnlyForNewNames() throws {
+        typealias HashedUsername = Usernames.HashedUsername
+
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(isAttemptingRecovery: false))
+        // 修复模式整段不收紧，全新的 `_` 名也放过（taishi 审 a4-v2 同意保留）
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(isAttemptingRecovery: true))
+
+        let kept = try HashedUsername.generateCandidates(
+            forNickname: "_kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: false,
+        )
+        XCTAssertEqual(kept.candidate(matchingHash: kept.candidateHashes[0])?.usernameString, "_kaixin.01")
+
+        XCTAssertThrowsError(try HashedUsername.generateCandidates(
+            forNickname: "1kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: false,
+        )) { error in
+            XCTAssertEqual(error as? HashedUsername.CandidateGenerationError, .nicknameCannotStartWithDigit)
+        }
+    }
+
+    /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 按 Retry-After 分成改名冷却和普通限流。
+    func testTellomiReservationRateLimitSplitsOffRenameCooldown() {
+        guard case .changeCooldown(let retryAfter) = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: 2_591_999) else {
+            return XCTFail("30 天的 Retry-After 应当是改名冷却")
+        }
+        XCTAssertEqual(retryAfter, 2_591_999)
+
+        for shortOrMissing: TimeInterval? in [9, 3600, nil] {
+            guard case .rateLimited = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: shortOrMissing) else {
+                return XCTFail("\(String(describing: shortOrMissing)) 秒应当是普通限流")
+            }
+        }
+    }
+
+    /// Tellomi（ADR-0066 §6.2）：删掉的用户名保留 30 天；时钟往回拨仍算在保留期内（与 Android `TellomiUsernamesTest.usernameHoldWindow` 同一组）。
+    func testTellomiUsernameHoldWindow() {
+        let deletedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        XCTAssertFalse(TellomiUsernameHold.isWithinHold(deletedAt: nil, now: deletedAt))
+        XCTAssertTrue(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt))
+        XCTAssertTrue(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt + 30 * .day - 1))
+        XCTAssertFalse(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt + 30 * .day))
+        XCTAssertTrue(TellomiUsernameHold.isWithinHold(deletedAt: deletedAt, now: deletedAt - .day))
+    }
+
+    /// Tellomi（ADR-0066 §6.2）：保存用户名前弹哪种确认框（与 Android `UsernameEditSaveConfirmationTest` 同一组）。
+    func testTellomiSaveConfirmation() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: false, deletedAt: nil, now: now), .none)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: true, deletedAt: nil, now: now), .change)
+        // 有用户名时，删除记录不影响：照旧是换名提醒
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: true, deletedAt: now - .day, now: now), .change)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: false, deletedAt: now - .day, now: now), .setAfterDelete)
+        XCTAssertEqual(TellomiUsernameHold.saveConfirmation(hasExistingUsername: false, deletedAt: now - 31 * .day, now: now), .none)
+    }
+
+    /// Tellomi（ADR-0066 §6.2）：本机删成功才记删除时间；删失败（用户名状态存疑）不记。
+    func testTellomiDeletionRecordsDeletedAt() async throws {
+        mockUsernameApiClient.deleteCurrentUsernameMocks = [{ throw OWSHTTPError.mockNetworkFailure }]
+        _ = setUsername(username: "boba_fett.42")
+
+        let failed = await localUsernameManager.deleteUsername()
+
+        XCTAssertEqual(failed.isNetworkError, true)
+        XCTAssertNil(mockDB.read { tx in TellomiUsernameHold.deletedAt(tx: tx) })
+
+        mockUsernameApiClient.deleteCurrentUsernameMocks = [{}]
+        let before = Date()
+
+        let succeeded = await localUsernameManager.deleteUsername()
+
+        XCTAssertEqual(succeeded.isSuccess, true)
+        let deletedAt = try XCTUnwrap(mockDB.read { tx in TellomiUsernameHold.deletedAt(tx: tx) })
+        XCTAssertGreaterThanOrEqual(deletedAt, before.addingTimeInterval(-1))
+        XCTAssertLessThanOrEqual(deletedAt, Date().addingTimeInterval(1))
     }
 }
 

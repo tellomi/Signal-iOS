@@ -227,6 +227,30 @@ class OWSContactsManagerTest: SignalBaseTest {
         }
     }
 
+    /// Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：只能拿用户名兜底时，`.01` 结尾的去掉后缀显示（保留原大小写），
+    /// 别的后缀完整显示——`kaixin.57` 必须显示成 `kaixin.57`，不能冒充 `kaixin`。
+    func testGetDisplayNamesWithTellomiUsernames() {
+        let acis = [Aci.randomForTesting(), Aci.randomForTesting(), Aci.randomForTesting()]
+        let addresses = acis.map { SignalServiceAddress($0) }
+
+        dbV2.write { transaction in
+            mockUsernameLookupMananger.saveUsername("kaixin.01", forAci: acis[0], transaction: transaction)
+            mockUsernameLookupMananger.saveUsername("KaiXin.01", forAci: acis[1], transaction: transaction)
+            mockUsernameLookupMananger.saveUsername("kaixin.57", forAci: acis[2], transaction: transaction)
+        }
+
+        // Prevent default fake names from being used.
+        (SSKEnvironment.shared.profileManagerRef as! OWSFakeProfileManager).fakeUserProfiles = [:]
+
+        dbV2.read { transaction in
+            let contactsManager = SSKEnvironment.shared.contactManagerRef as! OWSContactsManager
+            let actual = contactsManager.displayNames(for: addresses, tx: transaction).map { $0.resolvedValue() }
+            XCTAssertEqual(actual, ["kaixin", "KaiXin", "kaixin.57"])
+            // 只改显示：存的仍是完整用户名
+            XCTAssertEqual(mockUsernameLookupMananger.fetchUsername(forAci: acis[0], transaction: transaction), "kaixin.01")
+        }
+    }
+
     func testGetDisplayNamesUnknown() {
         let addresses = [SignalServiceAddress.randomForTesting(), SignalServiceAddress.randomForTesting()]
 
@@ -346,5 +370,14 @@ class OWSContactsManagerTest: SignalBaseTest {
             let expected = ["Alice Aliceson (home)", nil]
             XCTAssertEqual(actual, expected)
         }
+    }
+
+    /// Tellomi（tellomi/tellomi#1240）：还没决定要不要给通讯录时，只有用户在选人页点了「允许访问」才去问系统；
+    /// 打开聊天、新建会话、选人页加载这些自动调用一律不弹框。决定过的照上游。
+    func testTellomiContactsPromptOnlyWhenUserInitiated() {
+        XCTAssertFalse(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .notDetermined))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: true, status: .notDetermined))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .authorized))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .denied))
     }
 }

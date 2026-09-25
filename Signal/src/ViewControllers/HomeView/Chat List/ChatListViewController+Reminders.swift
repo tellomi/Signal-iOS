@@ -24,6 +24,8 @@ public class CLVReminderViews {
     fileprivate let paymentsReminderView = UIView()
     fileprivate var usernameCorruptedReminderView = UIView()
     fileprivate var usernameLinkCorruptedReminderView = UIView()
+    /// Tellomi（#1218 F-01）：系统通知被拒 / 被关时常驻的「通知已关闭 · 去设置」。
+    fileprivate var notificationsDisabledReminderView = UIView()
 
     public weak var chatListViewController: ChatListViewController?
 
@@ -101,6 +103,34 @@ public class CLVReminderViews {
             usernameCorruptedReminderView,
             usernameLinkCorruptedReminderView,
         ])
+
+        // Tellomi（tellomi/tellomi#1218 F-01）：没有关闭按钮——在系统设置里打开通知后，回到 App 时自己消失
+        // （`applicationDidBecomeActive` 会重新判）。授权状态只能异步拿，先藏着，等第一次判完再说。
+        notificationsDisabledReminderView = ReminderView(
+            style: .warning,
+            text: OWSLocalizedString(
+                "TELLOMI_NOTIFICATIONS_DISABLED_REMINDER",
+                comment: "Chat list banner shown while system notifications for Tellomi are turned off.",
+            ),
+            actionTitle: OWSLocalizedString(
+                "TELLOMI_NOTIFICATIONS_DISABLED_REMINDER_ACTION",
+                comment: "Button on the chat list banner that opens the system notification settings for Tellomi.",
+            ),
+            tapAction: {
+                let urlString: String
+                if #available(iOS 16.0, *) {
+                    urlString = UIApplication.openNotificationSettingsURLString
+                } else {
+                    urlString = UIApplication.openSettingsURLString
+                }
+                if let url = URL(string: urlString) {
+                    UIApplication.shared.open(url)
+                }
+            },
+        )
+        notificationsDisabledReminderView.isHidden = true
+        reminderStackView.addArrangedSubview(notificationsDisabledReminderView)
+        notificationsDisabledReminderView.accessibilityIdentifier = "notificationsDisabledReminderView"
     }
 
     fileprivate func updateDeregisteredView(_ deregisteredState: DeregisteredState?) {
@@ -190,7 +220,8 @@ public class CLVReminderViews {
             !self.expiredView.isHidden ||
             !self.paymentsReminderView.isHidden ||
             !self.usernameCorruptedReminderView.isHidden ||
-            !self.usernameLinkCorruptedReminderView.isHidden
+            !self.usernameLinkCorruptedReminderView.isHidden ||
+            !self.notificationsDisabledReminderView.isHidden
 
     }
 }
@@ -206,6 +237,7 @@ extension ChatListViewController {
     fileprivate var paymentsReminderView: UIView { reminderViews.paymentsReminderView }
     fileprivate var usernameCorruptedReminderView: UIView { reminderViews.usernameCorruptedReminderView }
     fileprivate var usernameLinkCorruptedReminderView: UIView { reminderViews.usernameLinkCorruptedReminderView }
+    fileprivate var notificationsDisabledReminderView: UIView { reminderViews.notificationsDisabledReminderView }
 
     public func updateArchiveReminderView() {
         archiveReminderView.isHidden = viewState.chatListMode != .archive
@@ -241,6 +273,19 @@ extension ChatListViewController {
         } else {
             self.paymentsReminderView.isHidden = false
             self.configureUnreadPaymentsBannerMultiple(paymentsReminderView, unreadCount: unreadPaymentNotificationsCount)
+        }
+    }
+
+    /// Tellomi（#1218 F-01）：系统通知关着（`.denied`）就挂「通知已关闭 · 去设置」，开了就收起。
+    public func updateNotificationsDisabledReminderView() {
+        Task { @MainActor in
+            let status = await TellomiNotificationPrimer.currentAuthorizationStatus()
+            let shouldHide = !TellomiNotificationPrimer.shouldShowDisabledReminder(authorizationStatus: status)
+            guard notificationsDisabledReminderView.isHidden != shouldHide else {
+                return
+            }
+            notificationsDisabledReminderView.isHidden = shouldHide
+            loadCoordinator.loadIfNecessary()
         }
     }
 
@@ -396,7 +441,7 @@ extension ChatListViewController: UsernameSelectionDelegate {
                     "USERNAME_RESET_SUCCESSFUL_TOAST",
                     comment: "A message in a toast informing the user their username, link, and QR code have successfully been reset. Embeds {{ the user's new username }}.",
                 ),
-                username,
+                TellomiLinks.displayUsername(username), // Tellomi（tellomi/tellomi#1106 第三刀）
             ),
             extraVInset: 8,
         )

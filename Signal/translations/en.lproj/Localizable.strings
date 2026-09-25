@@ -223,6 +223,21 @@
 /* Shown in place of the text input box in a conversation when the app has expired and the user is no longer allowed to send messages. This value is a tappable link embedded in a larger sentence. */
 "APP_EXPIRED_BOTTOM_UPDATE" = "Update now";
 
+/* Tellomi: On the 'update required' page, reassurance that updating keeps the chats on this phone. */
+"APP_EXPIRED_TELLOMI_BLOCKING_CHATS_KEPT" = "Updating keeps all the chats on this phone.";
+
+/* Tellomi: On the 'update required' page, why the app must be updated: this version is too old. */
+"APP_EXPIRED_TELLOMI_BLOCKING_REASON_BUILD_TOO_OLD" = "This version is too old. Update to keep sending and receiving messages.";
+
+/* Tellomi: On the 'update required' page, why the app must be updated: the server no longer accepts this version. */
+"APP_EXPIRED_TELLOMI_BLOCKING_REASON_SERVER_REJECTED" = "This version can no longer communicate with the server. Update to keep sending and receiving messages.";
+
+/* Tellomi: Title of the full-screen page shown when this version of the app can no longer be used and must be updated. */
+"APP_EXPIRED_TELLOMI_BLOCKING_TITLE" = "Update Tellomi to continue";
+
+/* Tellomi: The only button on the 'update required' page. Opens the page where the new version can be installed. */
+"APP_EXPIRED_TELLOMI_BLOCKING_UPDATE_BUTTON" = "Update now";
+
 /* Default message for the 'app launch failed' alert. */
 "APP_LAUNCH_FAILURE_ALERT_MESSAGE" = "Tellomi can't launch. Please send a debug log to support@tellomi.app so that we can troubleshoot this issue.";
 
@@ -2161,8 +2176,17 @@
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_TITLE" = "No Chats";
 
+/* Chat list title while the app is connecting to the server. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_CONNECTING_TELLOMI" = "Connecting…";
+
 /* Title for the chat list's default mode. */
 "CHAT_LIST_TITLE_INBOX" = "Chats";
+
+/* Chat list title while the app is receiving the messages that arrived while it was offline. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_UPDATING_TELLOMI" = "Updating…";
+
+/* Chat list title while the device has no network connection. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_WAITING_FOR_NETWORK_TELLOMI" = "Waiting for network…";
 
 /* Title for context menu action to enable Filter by Unread */
 "CHAT_LIST_UNREAD_FILTER_MENU_ACTION" = "Filter by Unread";
@@ -2295,6 +2319,12 @@
 
 /* Multi-line label explaining why compose-screen contact picker is empty. */
 "COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "You can enable contacts access in the iOS Settings app to see which of your contacts are Tellomi users.";
+
+/* Tellomi: shown at the top of the compose / member picker before the user has been asked for contacts access. Explains what contacts are used for. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_PURPOSE_TELLOMI" = "Allow access to your contacts to show the names you’ve saved for them in Tellomi. Your contacts are not uploaded.";
+
+/* Tellomi: button that asks the system for contacts access, after the purpose has been explained. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_ALLOW_TELLOMI" = "Allow Access";
 
 /* Configure reactions title text */
 "CONFIGURE_REACTIONS" = "Configure Reactions";
@@ -3994,6 +4024,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "Enter a username followed by a dot and its set of numbers.";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "Enter the person’s username.";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "Username";
 
@@ -4048,8 +4081,14 @@
 /* Accessibility label for the close button in each Get Started card. */
 "GET_STARTED_CARD_CLOSE_A11YLABEL" = "Remove suggestion";
 
+/* 'Get Started' button directing users to find someone by their username */
+"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "Search by Username";
+
 /* 'Get Started' button directing users to invite friends */
 "GET_STARTED_CARD_INVITE_FRIENDS" = "Invite Friends";
+
+/* 'Get Started' button directing users to their own username QR code */
+"GET_STARTED_CARD_MY_QR_CODE_TELLOMI" = "My QR Code";
 
 /* 'Get Started' button directing users to create a group */
 "GET_STARTED_CARD_NEW_GROUP" = "New Group";
@@ -5374,6 +5413,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "This QR code is not valid. Please make sure you are scanning the QR code that is displayed on the device you want to link.";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404). %@ is the other app's name (Signal), passed from code so the brand script leaves it alone. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "This QR code has expired, or it's from %@ rather than Tellomi. Scan the QR code shown right now in Tellomi on your computer.";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "Linking Device Failed";
 
@@ -5388,6 +5430,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "Retry";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "Scan Again";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "Use this device to scan the QR code displayed on the device you want to link";
@@ -5520,6 +5565,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "Linked Devices";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "Couldn't reach the server, or the server is busy. Check your internet connection and try again in a moment.";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "Linking Device Failed";
@@ -6588,6 +6636,30 @@
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "Register without Transferring";
 
+/* Tellomi: Body of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_BODY" = "Tellomi on your old phone will be logged out, and your earlier messages won't appear on this phone.";
+
+/* Tellomi: Title of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_TITLE" = "Register Without Transferring?";
+
+/* Tellomi: Description on the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_DESCRIPTION" = "You can move your account and messages directly from your old iPhone, or just register. If you register without transferring, your earlier messages won't appear on this phone.";
+
+/* Tellomi: Body shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_BODY" = "Messages on an Android phone can't be transferred to an iPhone yet. You can just register: your earlier messages won't come with you, and Tellomi on your old phone will be logged out.";
+
+/* Tellomi: Title shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_TITLE" = "Messages Can't Be Moved from Android";
+
+/* Tellomi: Explanation of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_BODY" = "Your earlier messages won't appear on this phone";
+
+/* Tellomi: Title of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_TITLE" = "Register Without Transferring";
+
+/* Tellomi: Title of the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_TITLE" = "Transfer Your Messages?";
+
 /* If a user is installing Signal on a new phone, they may be asked whether they want to restore their device from a backup. */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_TITLE" = "Restore or Transfer Account";
 
@@ -6681,6 +6753,9 @@
 /* Label indicating that registration has been ratelimited. Embeds {{remaining time string}}. */
 "ONBOARDING_PHONE_NUMBER_RATE_LIMIT_WARNING_FORMAT" = "Please wait a few minutes before trying again. (%@)";
 
+/* Label under the phone number field when verification codes can't be sent to numbers from the entered region. */
+"ONBOARDING_PHONE_NUMBER_UNSUPPORTED_REGION_WARNING" = "Registration isn't open to numbers from this region yet. For now, only mainland China (+86) numbers can register.";
+
 /* Label indicating that the phone number is invalid in the 'onboarding phone number' view. */
 "ONBOARDING_PHONE_NUMBER_VALIDATION_WARNING" = "Invalid phone number. Please enter a valid phone number to register.";
 
@@ -6708,11 +6783,26 @@
 /* Title for the 'have my old device' choice of the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "I have my old phone";
 
+/* Tellomi: One-line text link under the 'Continue' button in the 'onboarding splash' view, for people moving to a new phone. */
+"ONBOARDING_SPLASH_NEW_PHONE_LINK_TITLE" = "New phone?";
+
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
 "ONBOARDING_SPLASH_NONPROFIT" = "Signal is a 501c3 nonprofit";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "Restore or Transfer Account";
+
+/* Tellomi: Explanation of the 'my old iPhone is here' choice: scan a QR code with the old iPhone to transfer the account and messages directly. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_BODY" = "Scan a QR code with your old iPhone to move your account and messages over directly";
+
+/* Tellomi: Title for the 'my old iPhone is here' choice after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_TITLE" = "My old iPhone is here";
+
+/* Tellomi: Explanation of the 'register directly' choice: registering works, but earlier messages won't come to this phone and Tellomi on the old phone will be logged out. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "Just register. Your earlier messages won't come with you, and Tellomi on your old phone will be logged out.";
+
+/* Tellomi: Title for the choice to register directly (old phone is not at hand, or is an Android phone) after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_TITLE" = "My old phone isn't here, or it's an Android phone";
 
 /* Link to the 'terms and privacy policy' in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_TERM_AND_PRIVACY_POLICY" = "Terms & Privacy Policy";
@@ -6749,6 +6839,33 @@
 
 /* Format string for button counting down time until SMS code can be resent. Embeds {{time remaining}}. */
 "ONBOARDING_VERIFICATION_RESEND_CODE_COUNTDOWN_FORMAT" = "Resend Code in %@";
+
+/* Tellomi: Button in the 'didn't get the code?' sheet that goes back to the phone number screen. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CHANGE_NUMBER" = "Change Number";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet. Embeds {{the phone number the code was sent to}}. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CHECK_NUMBER_FORMAT" = "Check that the number is right: %1$@";
+
+/* Tellomi: Button in the 'didn't get the code?' sheet that composes an email to support. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CONTACT_SUPPORT" = "Contact Support";
+
+/* Tellomi: Label for the button (and title of the sheet) that helps people who didn't receive the SMS verification code. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_LINK" = "Didn't Get the Code?";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: the SMS may have been caught by the phone's built-in spam/harassment filter. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_SPAM_FILTER" = "The text may have been filtered. Open your phone's built-in security or phone manager app and look in its blocked or spam messages.";
+
+/* Tellomi: Last bullet in the 'didn't get the code?' sheet: email support. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_SUPPORT" = "Still nothing? Email support@tellomi.app and we'll take a look.";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet, only shown when the server can call and read out the code. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_VOICE" = "You can also get the code by phone call instead of a text.";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT" = "Texts sometimes arrive a little late, so give it a moment.";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late, and one registration can only send a few codes. Embeds {{how many verification codes one registration can send}}. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT_WITH_QUOTA_FORMAT" = "Texts sometimes arrive a little late, so give it a moment. Each registration can send at most %1$@ codes, so please don't resend too often.";
 
 /* Format for the title of the 'onboarding verification' view. Embeds {{the user's phone number}}. */
 "ONBOARDING_VERIFICATION_TITLE_DEFAULT_FORMAT" = "Enter the code we sent to %@";
@@ -7845,6 +7962,12 @@
 /* Title of alert shown when push tokens sync job succeeds. */
 "PUSH_REGISTER_SUCCESS" = "Successfully re-registered for push notifications.";
 
+/* Tellomi: body of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. Warns that continuing moves the account to that phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_MESSAGE_TELLOMI" = "A new phone is asking to take over your account. Continue only if you are switching to your own new phone and registering on it right now. If someone else asked you to scan this, cancel. Continuing moves your account to their phone.";
+
+/* Tellomi: title of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_TITLE_TELLOMI" = "This QR code transfers your account";
+
 /* Body for sheet with info about scanning a Quick Restore QR code */
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_BODY" = "Use this device to scan the QR code on the device you want to transfer to";
 
@@ -8184,11 +8307,50 @@
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "About Profile Privacy";
 
+/* During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field. */
+"REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI" = "Name";
+
+/* During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting. */
+"REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI" = "Your phone number isn't shown to anyone by default.";
+
 /* During registration, users set up their profile. This is the subtitle on the screen where this is done. It tells users about the privacy of their profile. A \"learn more\" link will be added to the end of this string. */
 "REGISTRATION_PROFILE_SETUP_SUBTITLE" = "Profiles are visible to people you message, contacts, and groups.";
 
 /* During registration, users set up their profile. This is the title on the screen where this is done. */
 "REGISTRATION_PROFILE_SETUP_TITLE" = "Set up your profile";
+
+/* Tellomi: registration username is being checked with the server. */
+"REGISTRATION_PROFILE_USERNAME_CHECKING_TELLOMI" = "Checking…";
+
+/* Tellomi: registration username could not be checked because of a network or server error. */
+"REGISTRATION_PROFILE_USERNAME_CHECK_FAILED_TELLOMI" = "Couldn't check this username. Try again in a moment.";
+
+/* Tellomi: registration username contains characters other than letters, numbers and underscores. */
+"REGISTRATION_PROFILE_USERNAME_INVALID_CHARACTERS_TELLOMI" = "Use only letters, numbers and underscores";
+
+/* Tellomi: registration username is taken or reserved. */
+"REGISTRATION_PROFILE_USERNAME_NOT_AVAILABLE_TELLOMI" = "This username isn't available";
+
+/* Tellomi: during registration, placeholder of the optional username field below the name field. */
+"REGISTRATION_PROFILE_USERNAME_PLACEHOLDER_TELLOMI" = "Username (optional)";
+
+/* Tellomi: registration username does not start with a letter. */
+"REGISTRATION_PROFILE_USERNAME_START_WITH_LETTER_TELLOMI" = "Start with a letter";
+
+/* Tellomi: registration username is longer than 20 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_LONG_TELLOMI" = "Use 20 characters or fewer";
+
+/* Tellomi: registration username reservation was rate limited for less than an hour. */
+"REGISTRATION_PROFILE_USERNAME_TOO_MANY_ATTEMPTS_TELLOMI" = "Too many attempts. Try again later.";
+
+/* Tellomi: registration username is shorter than 3 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_SHORT_TELLOMI" = "Use at least 3 characters";
+
+/* Tellomi: label before the suggested usernames when the one typed is not available. */
+"REGISTRATION_PROFILE_USERNAME_TRY_TELLOMI" = "Try:";
+
+/* Tellomi: registration username is available. Embeds {{ the link, like tell.cc/kaixin }}. */
+"REGISTRATION_PROFILE_USERNAME_YOUR_LINK_TELLOMI" = "Your link: %@";
 
 /* Error shown if an SMS/call service provider is unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_PERMANENT" = "We are unable to send an SMS to your number. Please try again in several hours.";
@@ -8232,6 +8394,9 @@
 /* Tutorial text describing the second step to scanning the restore/transfer QR code with your old phone: tap the camera icon */
 "REGISTRATION_SCAN_QR_CODE_TUTORIAL_TAP_CAMERA" = "Tap the camera icon";
 
+/* Error message when sending a verification code via SMS failed and no other way of sending the code is available. */
+"REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR" = "We couldn't send a verification code to this number. Registration is currently open to mainland China numbers only. If yours is one, please try again later or contact support@tellomi.app.";
+
 /* Button when sending a verification code via sms failed, but resending via voice call might succeed. */
 "REGISTRATION_SMS_CODE_FAILED_TRY_VOICE_BUTTON" = "Voice Call";
 
@@ -8243,6 +8408,15 @@
 
 /* Alert shown when submitting a verification code too many times. Embeds {{ duration }}, such as \"5:00\" */
 "REGISTRATION_SUBMIT_CODE_RATE_LIMIT_ALERT_FORMAT" = "You’ve made too many attempts to enter the code. Try again in %1$@";
+
+/* Tellomi: Alert shown when the verification code can no longer be submitted, because it expired or was entered wrong too many times. */
+"REGISTRATION_TELLOMI_CODE_NO_LONGER_VALID" = "This code can no longer be used. It may have expired, or been entered wrong too many times. Please get a new code.";
+
+/* Tellomi: Alert shown when the registration verification session has expired; the user goes back to the phone number screen to request a new code. */
+"REGISTRATION_TELLOMI_SESSION_EXPIRED" = "This verification is no longer valid. Please check your number and get a new code.";
+
+/* Shown inline under the verification code field when the entered code is wrong. */
+"REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "Incorrect code. Check the SMS and try again.";
 
 /* During registration and re-registration, users may have to enter a code to verify ownership of their phone number. If they enter an invalid code, they will see this error message. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_VERIFICATION_CODE" = "The code you entered is not valid. Please resend the code and try again.";
@@ -8804,6 +8978,72 @@
 
 /* Title for the set wallpaper settings view. */
 "SET_WALLPAPER_TITLE" = "Set Wallpaper";
+
+/* Tellomi: row in About Tellomi that opens the download page. */
+"SETTINGS_ABOUT_TELLOMI_CHECK_FOR_UPDATES" = "Check for updates";
+
+/* Tellomi: row in About Tellomi that opens the complaints and reporting rules page. */
+"SETTINGS_ABOUT_TELLOMI_COMPLAINTS_AND_REPORTS" = "Complaints and reporting rules";
+
+/* Tellomi: row in About Tellomi showing the support email address. */
+"SETTINGS_ABOUT_TELLOMI_CONTACT_SUPPORT" = "Customer support";
+
+/* Tellomi: shown when the user long-presses an email in About Tellomi but no mail account is set up. */
+"SETTINGS_ABOUT_TELLOMI_EMAIL_UNAVAILABLE_MESSAGE" = "Your device isn't set up to send email. The address has been copied, so you can paste it into another email app.";
+
+/* Tellomi: row in About Tellomi that opens the website. */
+"SETTINGS_ABOUT_TELLOMI_OFFICIAL_WEBSITE" = "Official website";
+
+/* Tellomi: row in About Tellomi that lists third-party licenses. */
+"SETTINGS_ABOUT_TELLOMI_OPEN_SOURCE_LICENSES" = "Open source licenses";
+
+/* Tellomi: row in About Tellomi that opens the list of personal information collected. */
+"SETTINGS_ABOUT_TELLOMI_PERSONAL_INFORMATION_COLLECTED" = "Personal information we collect";
+
+/* Tellomi: row in About Tellomi showing the privacy email address. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_AND_PERSONAL_DATA" = "Privacy and personal data";
+
+/* Tellomi: row in About Tellomi that opens the Privacy Policy page. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_POLICY" = "Privacy Policy";
+
+/* Tellomi: row in About Tellomi showing the abuse report email address. */
+"SETTINGS_ABOUT_TELLOMI_REPORT_ABUSE" = "Report abuse";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_CONTACT" = "Contact us";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_LEGAL" = "Legal and compliance";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_OPEN_SOURCE" = "Open source";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_UPDATES" = "Updates";
+
+/* Tellomi: row in About Tellomi that opens the source code on GitHub. */
+"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE" = "Source code";
+
+/* Tellomi: row in About Tellomi that opens the list of system permissions the app uses. */
+"SETTINGS_ABOUT_TELLOMI_SYSTEM_PERMISSIONS" = "System permissions we use";
+
+/* Tellomi: accessory text on email rows in About Tellomi; tapping the row copies the address. */
+"SETTINGS_ABOUT_TELLOMI_TAP_TO_COPY" = "Tap to copy";
+
+/* Tellomi: row in About Tellomi that opens the Terms of Service page. */
+"SETTINGS_ABOUT_TELLOMI_TERMS_OF_SERVICE" = "Terms of Service";
+
+/* Tellomi: row in About Tellomi that opens the list of third-party sharing and SDKs. */
+"SETTINGS_ABOUT_TELLOMI_THIRD_PARTY_SHARING" = "Third-party sharing and SDKs";
+
+/* Tellomi: title of the About Tellomi page and of its row in settings. */
+"SETTINGS_ABOUT_TELLOMI_TITLE" = "About Tellomi";
+
+/* Tellomi: version line at the top of About Tellomi. Embeds {{ version }} and {{ build number }}. */
+"SETTINGS_ABOUT_TELLOMI_VERSION_FORMAT" = "Version %1$@ (build %2$@)";
+
+/* Tellomi: context menu action on email rows in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_WRITE_EMAIL" = "Write email";
 
 /* Title for the 'account' link in settings. */
 "SETTINGS_ACCOUNT" = "Account";
@@ -10470,6 +10710,21 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "Tap to replace an emoji";
 
+/* Chat list banner shown while system notifications for Tellomi are turned off. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER" = "Notifications are off. You won't be alerted to new messages or calls while Tellomi isn't open.";
+
+/* Button on the chat list banner that opens the system notification settings for Tellomi. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER_ACTION" = "Go to Settings";
+
+/* Body of the one-time notification permission explanation sheet. Explains the purpose and that the system will ask next. */
+"TELLOMI_NOTIFICATION_PRIMER_BODY" = "When Tellomi isn't open, notifications tell you about new messages and calls. After you tap Continue, iOS will ask once. You can change this anytime in Settings.";
+
+/* The only button on the notification permission explanation sheet. Must read 'Continue', never 'Allow'. */
+"TELLOMI_NOTIFICATION_PRIMER_CONTINUE" = "Continue";
+
+/* Title of the one-time sheet shown on the chat list after registration, explaining why Tellomi asks for notification permission. */
+"TELLOMI_NOTIFICATION_PRIMER_TITLE" = "Know when messages arrive";
+
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "Bold";
 
@@ -10785,6 +11040,12 @@
 /* Text providing instructions on how to use the username link QR code scanning. */
 "USERNAME_LINK_SCAN_QR_CODE_INSTRUCTIONS_LABEL" = "Scan the QR Code on your contact’s device.";
 
+/* Tellomi: shown when a device-linking QR code is scanned on a device that is not the primary phone. */
+"USERNAME_LINK_SCAN_DEVICE_LINK_NOT_PRIMARY_TELLOMI" = "This code is for linking a new device. Scan it from Settings > Linked Devices on your primary phone.";
+
+/* Tellomi: title of the sheet showing the content of a scanned QR code that is not a Tellomi code. */
+"USERNAME_LINK_SCAN_RESULT_TITLE_TELLOMI" = "Scanned Content";
+
 /* Text for a tappable cell that copies the user's username link when selected. */
 "USERNAME_LINK_SHARE_SHEET_COPY_LINK_ACTION" = "Copy Link";
 
@@ -10805,6 +11066,9 @@
 
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@ is not a valid username. Make sure you’ve entered the complete username followed by its set of digits.";
+
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ is not a valid username.";
 
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "Invalid Username";
@@ -10827,11 +11091,17 @@
 /* An error message shown when the user has typed a username that starts with a digit, which is invalid. */
 "USERNAME_SELECTION_CANNOT_START_WITH_DIGIT_ERROR_MESSAGE" = "Username cannot begin with a number";
 
+/* An error message shown when the user has typed a username that starts with an underscore. Tellomi usernames must start with a letter. */
+"USERNAME_SELECTION_CANNOT_START_WITH_UNDERSCORE_ERROR_MESSAGE_TELLOMI" = "Username must begin with a letter";
+
 /* A message explaining the side effects of changing your username. */
 "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE" = "Changing your username will reset your existing QR code and link. Are you sure?";
 
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "Usernames are always paired with a set of numbers. %1$@";
+
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "People can find and message you by your username, without knowing your phone number.";
 
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "Choose your username";
@@ -11030,3 +11300,105 @@
 
 /* Info Message when you update disappearing messages duration. Embeds a {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
 "YOU_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "You set disappearing message time to %@.";
+
+/* Button in the registration consent dialog: agree to the Terms of Service and Privacy Policy and continue. */
+"TELLOMI_CONSENT_AGREE_AND_CONTINUE" = "Agree and Continue";
+
+/* Accessibility label for the consent checkbox during registration. */
+"TELLOMI_CONSENT_CHECKBOX_ACCESSIBILITY_LABEL" = "Agree to the Terms of Service and Privacy Policy";
+
+/* Body of the consent dialog during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_DIALOG_BODY_FORMAT" = "Please read and agree to the %1$@ and %2$@.";
+
+/* Title of the dialog asking the user to agree to the Terms of Service and Privacy Policy before continuing registration. */
+"TELLOMI_CONSENT_DIALOG_TITLE" = "Terms and Privacy Policy";
+
+/* Button in consent dialogs: do not agree. */
+"TELLOMI_CONSENT_DISAGREE" = "Disagree";
+
+/* Name of the Privacy Policy document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_PRIVACY_LINK" = "Privacy Policy";
+
+/* Consent sentence next to the checkbox during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_ROW_FORMAT" = "I'm 18 or older and have read and agree to the %1$@ and %2$@";
+
+/* Name of the Terms of Service document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_TERMS_LINK" = "Terms of Service";
+
+/* Shown on the cross-border notice after the user taps 'Disagree'. */
+"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "If you don’t agree, you won’t be able to use Tellomi until our mainland China service launches, and we won’t send any of your information. You can close the app, or come back to this page and agree later.";
+
+/* Introduction of the cross-border data transfer notice. */
+"TELLOMI_CROSS_BORDER_INTRO" = "When you sign up for and use Tellomi, some of your personal information is sent to servers located outside mainland China. Please read the points below before deciding whether to agree.";
+
+/* Cross-border notice item 9 body: this page is the separate consent and can be withdrawn. */
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "Tapping “Agree and Continue” means you separately consent to the transfer described above. You can withdraw at any time; after withdrawing, you won’t be able to keep using Tellomi until our mainland China service launches.";
+
+/* Cross-border notice item 9 title: separate consent. */
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE" = "Separate consent";
+
+/* Cross-border notice item 3 body: how to contact the personal information protection team. */
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY" = "For questions about personal information protection, email privacy@tellomi.app.";
+
+/* Cross-border notice item 3 title: contact. */
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_TITLE" = "Contact";
+
+/* Cross-border notice item 6 body: kinds of personal information transferred. */
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY" = "Phone number; account and device identifiers; push tokens; network information such as your IP address when connecting; encrypted messages, attachments and profiles (ciphertext); search terms when you use GIF search.";
+
+/* Cross-border notice item 6 title: kinds of personal information. */
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_TITLE" = "Personal information involved";
+
+/* Cross-border notice item 5 body: end-to-end encryption and what is processed in plaintext. */
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY" = "Message content, profiles, group information and attachments are end-to-end encrypted. Our servers and attachment storage only hold ciphertext we can’t read. Only a few items are processed in plaintext, such as the phone number you sign up with and the network information needed to connect.";
+
+/* Cross-border notice item 5 title: how the data is processed. */
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE" = "How it’s processed";
+
+/* Cross-border notice item 8 body: legal procedure for the transfer (pending legal review). */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY" = "We’ll complete the procedures required by law for transferring personal information abroad. The specific procedure will be stated here once confirmed by our legal team.";
+
+/* Cross-border notice item 8 title: legal procedure for the transfer. */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_TITLE" = "Legal procedure for the transfer";
+
+/* Cross-border notice item 4 body: purposes of processing. */
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY" = "Signing up and signing in; delivering and temporarily storing messages and attachments; push notifications; connecting voice and video calls; GIF search.";
+
+/* Cross-border notice item 4 title: purposes of processing. */
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_TITLE" = "Purposes";
+
+/* Cross-border notice item 2 body: who receives the data outside mainland China. */
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY" = "Tellomi’s services deployed in Hong Kong, and our infrastructure providers Alibaba Cloud (Hong Kong), Cloudflare, Inc. (attachment storage, call relay) and Apple (iOS push notifications). When you use GIF search, your search terms are sent to GIPHY through our proxy.";
+
+/* Cross-border notice item 2 title: overseas recipients. */
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_TITLE" = "Recipients outside mainland China";
+
+/* Cross-border notice item 7 body: how to exercise personal information rights. */
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY" = "You can access, correct or delete your personal information, delete your account, or withdraw this consent as described in sections 26 and 27 of the Privacy Policy, or by emailing privacy@tellomi.app.";
+
+/* Cross-border notice item 7 title: your rights. */
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_TITLE" = "Your rights";
+
+/* Cross-border notice item 1 body: where servers and storage are located. */
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY" = "Yes. Tellomi’s servers are in Hong Kong, and attachments are stored in Cloudflare R2, whose storage locations may be outside mainland China.";
+
+/* Cross-border notice item 1 title: whether data leaves mainland China. */
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_TITLE" = "Does my information leave mainland China?";
+
+/* Link at the bottom of the cross-border notice that opens the Privacy Policy sections about storage location and cross-border transfer. */
+"TELLOMI_CROSS_BORDER_PRIVACY_LINK" = "Read sections 20 and 21 of the Privacy Policy";
+
+/* Title of the cross-border data transfer notice shown before the phone number is sent during registration. */
+"TELLOMI_CROSS_BORDER_TITLE" = "Your information will be processed outside mainland China (Hong Kong)";
+
+/* Button in the first-launch privacy notice: agree. */
+"TELLOMI_FIRST_LAUNCH_AGREE" = "Agree";
+
+/* Body of the privacy notice shown the first time the app is opened. Embeds {{Privacy Policy}} as a link. */
+"TELLOMI_FIRST_LAUNCH_BODY_FORMAT" = "We handle your personal information according to our %1$@. Signing up only needs your phone number, and your messages, profile and attachments are end-to-end encrypted — we can't read them.";
+
+/* Shown in the first-launch privacy notice after the user taps 'Disagree'. */
+"TELLOMI_FIRST_LAUNCH_DISAGREE_HINT" = "You need to agree before using Tellomi. If you don't, we won't collect any information.";
+
+/* Title of the privacy notice shown the first time the app is opened. */
+"TELLOMI_FIRST_LAUNCH_TITLE" = "Welcome to Tellomi";

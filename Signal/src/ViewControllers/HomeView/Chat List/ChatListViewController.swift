@@ -25,6 +25,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         viewState.localFileBackupExportProgressView.chatListViewController = self
         viewState.settingsButtonCreator.delegate = self
         viewState.proxyButtonCreator.delegate = self
+        viewState.connectionTitleObserver.delegate = self
         viewState.configure()
     }
 
@@ -101,6 +102,7 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         updateExpirationReminderView()
         updatePaymentReminderView()
         updateUsernameReminderView()
+        updateNotificationsDisabledReminderView() // Tellomi（#1218 F-01）
         updateTableViewPaddingIfNeeded()
         observeNotifications()
     }
@@ -831,6 +833,24 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         }
     }
 
+    /// Tellomi（tellomi/tellomi#1218 F-02）：首屏「搜索用户名」卡。「新建会话」上面直接叠着「按用户名查找」：
+    /// 找到了照常开会话，返回是「新建会话」。不先要通讯录权限（上游 showNewConversationView 会要）——
+    /// 点的是「搜索用户名」，这时弹通讯录授权会让人摸不着头脑，Tellomi 也不靠通讯录找人。
+    func showFindByUsernameView() {
+        AssertIsOnMainThread()
+
+        Logger.info("")
+
+        // Dismiss any message actions if they're presented
+        conversationSplitViewController?.selectedConversationViewController?.dismissMessageContextMenu(animated: true)
+
+        let viewController = ComposeViewController()
+        let modal = OWSNavigationController(rootViewController: viewController)
+        viewController.loadViewIfNeeded()
+        viewController.recipientPicker.showFindByUsername(animated: false)
+        self.navigationController?.presentFormSheet(modal, animated: true)
+    }
+
     func showNewGroupView() {
         AssertIsOnMainThread()
 
@@ -1370,6 +1390,8 @@ extension ChatListViewController {
         case paymentsTransferIn
         case appearance
         case avatarBuilder
+        /// Tellomi（tellomi/tellomi#1218 F-02）：首屏「我的二维码」卡
+        case tellomiMyQRCode
         case backups(
             page: BackupSettingsPage = BuildFlags.LocalFileBackups.settingsUI ? .landingPage : .remote(),
         )
@@ -1379,6 +1401,22 @@ extension ChatListViewController {
         case linkedDevices
         case proxy
         case accountSettings
+    }
+
+    /// Tellomi（tellomi/tellomi#1193）：远端备份不做时（`TSConstants.remoteBackupsEnabled`），哪些备份页还能开：
+    /// 远端页不开；落地页只在有本地备份的构建里开（正式构建里它等于远端页）；本地备份照旧。
+    static func tellomiCanOpenBackupSettings(page: ShowAppSettingsMode.BackupSettingsPage) -> Bool {
+        if TSConstants.remoteBackupsEnabled {
+            return true
+        }
+        switch page {
+        case .remote:
+            return false
+        case .landingPage:
+            return BuildFlags.LocalFileBackups.settingsUI
+        case .local:
+            return true
+        }
     }
 
     func showAppSettings(mode: ShowAppSettingsMode? = nil, completion: (() -> Void)? = nil) {
@@ -1426,7 +1464,21 @@ extension ChatListViewController {
             viewControllers += [profile]
             internalCompletion = { profile.presentAvatarSettingsView() }
 
+        case .tellomiMyQRCode:
+            let profile = ProfileSettingsViewController(
+                usernameChangeDelegate: appSettingsViewController,
+                usernameLinkScanDelegate: appSettingsViewController,
+            )
+            viewControllers += [profile]
+            internalCompletion = { profile.presentTellomiMyQRCode() }
+
         case .backups(let page):
+            // Tellomi（tellomi/tellomi#1193）：megaphone、首屏提示、通知等各处「去备份」都汇到这里。远端备份不做时不开远端页，
+            // 只停在设置首页（这里的 break 跳出外层 switch mode）；本地备份照旧。
+            guard Self.tellomiCanOpenBackupSettings(page: page) else {
+                Logger.warn("Remote backups are disabled; opening settings without the backups page.")
+                break
+            }
             let backupSettingsVC: UIViewController
             switch page {
             case .landingPage:
@@ -1608,6 +1660,14 @@ extension ChatListViewController: GetStartedBannerViewControllerDelegate {
 
     func getStartedBannerDidTapAvatarBuilder(_ banner: GetStartedBannerViewController) {
         showAppSettings(mode: .avatarBuilder)
+    }
+
+    func getStartedBannerDidTapFindByUsername(_ banner: GetStartedBannerViewController) {
+        showFindByUsernameView()
+    }
+
+    func getStartedBannerDidTapMyQRCode(_ banner: GetStartedBannerViewController) {
+        showAppSettings(mode: .tellomiMyQRCode)
     }
 }
 

@@ -66,14 +66,148 @@ class UrlOpenerTest: XCTestCase {
         }
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#u/ceshi.57")!), "ceshi.57")
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/u/#u/linktest.56")!), "linktest.56")
-        // 裸形状（与 Android 对齐）：tell.cc/<username>，带 `.<数字>` 判别位才算用户名，保留字路径不算
+        // 裸形状（与 Android 对齐）：tell.cc/<username>，保留字路径不算
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/ceshi.57")!), "ceshi.57")
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/linktest.56/")!), "linktest.56")
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/call#key=abc")!))
+        // tellomi/tellomi#1106（ADR-0066）：不带「.数字」的也认，返回补上 `.01` 的完整用户名
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin?from=wechat")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/kaixin/")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/u#u/kaixin")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin.01")!), "kaixin.01")
+        // 3 位以上的保留路径显式挡（大小写不敏感）；两位名、数字开头不是用户名
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/app")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/CALL")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/ab")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/1abc")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#p/+16505550100")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/g#u/notauser")!))
         // tell.cc/u#p/… 不能被当成群邀请（Android #973 撞过的坑）
         XCTAssertNil(PossibleGroupInviteLinkUrl.parseFrom(TellomiLinks.legacyEquivalent(of: URL(string: "https://tell.cc/u#p/+16505550100")!)))
+    }
+
+    /// tellomi/tellomi#1106（ADR-0066）：找人页 / 联系人搜索把输入的名字补成协议层的完整用户名（与 Android `TellomiUsernamesTest` 同一组）。
+    func testTellomiProtocolUsername() {
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin"), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.protocolUsername("@kaixin"), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.protocolUsername("  kaixin \n"), "kaixin.01")
+        // 旧账号带随机后缀：原样保留，按全名去查
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.57"), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.protocolUsername(" @kaixin.57 "), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.01"), "kaixin.01")
+    }
+
+    /// tellomi/tellomi#1106 第四刀（ADR-0066 §6.2）：一小时是改名冷却与限流的分界线；天数向上取整、至少 1（与 Android、Desktop 同一组）。
+    func testTellomiRenameCooldown() {
+        XCTAssertFalse(TellomiLinks.isRenameCooldown(retryAfter: 9))
+        XCTAssertFalse(TellomiLinks.isRenameCooldown(retryAfter: 3600))
+        XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 3601))
+        XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 2_591_999))
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 2_591_999), 30)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86400), 1)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86401), 2)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 7200), 1)
+    }
+
+    /// tellomi/tellomi#1106 第四刀：两条复数文案必须在 `PluralAware.stringsdict` 的**顶层**。
+    /// 嵌进上一条的 dict 里时 `plutil -lint` 照样通过，运行时却查不到键、界面上直接显示键名（taishi 审查 2026-09-24）。
+    /// 四种语言各查一遍：测试进程只跑英文，只查当前语言会漏掉中文三份。
+    func testTellomiRenameCooldownPluralStringsResolveInEveryLocale() throws {
+        let keys = [
+            "USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d",
+            "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d",
+        ]
+        for localization in ["en", "zh_CN", "zh_HK", "zh_TW"] {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: localization, ofType: "lproj"), localization)
+            let bundle = try XCTUnwrap(Bundle(path: path), localization)
+            for key in keys {
+                let format = bundle.localizedString(forKey: key, value: nil, table: "PluralAware")
+                XCTAssertNotEqual(format, key, "\(localization): \(key)")
+                XCTAssertTrue(String.localizedStringWithFormat(format, 30).contains("30"), "\(localization): \(key)")
+            }
+        }
+    }
+
+    /// Tellomi（ADR-0066 §6.2）：删除框和「删后再设」确认框的两条复数文案，四种语言都要在顶层查得到，参数位置也要对：
+    /// 第 1 个参数是改名冷却天数（决定单复数），用户名、保留天数按位置取。冷却天数故意给 7、保留天数给 30，位置错了就看得出来。
+    func testTellomiUsernameHoldStringsResolveInEveryLocale() throws {
+        let deleteKey = "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d"
+        let setAfterDeleteKey = "USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d"
+        let expected: [String: (delete: String, setAfterDelete: String)] = [
+            "en": (
+                "This will remove your username and disable your QR code and link. “kaixin” stays reserved for you for 30 days; if you set a username during that time, you won’t be able to change it again for 7 days. Are you sure?",
+                "You deleted your username less than 30 days ago, so setting one now counts as a change: you won’t be able to change it again for 7 days. Are you sure?",
+            ),
+            "zh_CN": (
+                "这样做将会删除你的用户名，并使你的二维码和链接失效。“kaixin”会为你保留 30 天；这期间再设置用户名，之后 7 天内不能再改。确定要删除吗？",
+                "你在 30 天内删除过用户名，现在设置也算一次更改：之后 7 天内不能再改。确定要继续吗？",
+            ),
+            "zh_HK": (
+                "這將刪除你的用戶名稱及停用你的二維碼和連結。「kaixin」會為你保留 30 天；這期間再設定用戶名稱，之後 7 天內不能再更改。你確定嗎？",
+                "你在 30 天內刪除過用戶名稱，現在設定也算一次更改：之後 7 天內不能再更改。你確定嗎？",
+            ),
+            "zh_TW": (
+                "這將刪除你的用戶名稱及停用你的二維碼和連結。「kaixin」會為你保留 30 天；這期間再設定用戶名稱，之後 7 天內不能再更改。你確定嗎？",
+                "你在 30 天內刪除過用戶名稱，現在設定也算一次更改：之後 7 天內不能再更改。你確定嗎？",
+            ),
+        ]
+        for (localization, texts) in expected {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: localization, ofType: "lproj"), localization)
+            let bundle = try XCTUnwrap(Bundle(path: path), localization)
+            let deleteFormat = bundle.localizedString(forKey: deleteKey, value: nil, table: "PluralAware")
+            XCTAssertEqual(String.localizedStringWithFormat(deleteFormat, 7, "kaixin", 30), texts.delete, localization)
+            let setAfterDeleteFormat = bundle.localizedString(forKey: setAfterDeleteKey, value: nil, table: "PluralAware")
+            XCTAssertEqual(String.localizedStringWithFormat(setAfterDeleteFormat, 7, 30), texts.setAfterDelete, localization)
+        }
+
+        // 英文单数：冷却 1 天时是「1 day」
+        let enPath = try XCTUnwrap(Bundle.main.path(forResource: "en", ofType: "lproj"))
+        let en = try XCTUnwrap(Bundle(path: enPath))
+        XCTAssertTrue(
+            String.localizedStringWithFormat(en.localizedString(forKey: setAfterDeleteKey, value: nil, table: "PluralAware"), 1, 30)
+                .hasSuffix("you won’t be able to change it again for 1 day. Are you sure?"),
+        )
+    }
+
+    /// tellomi/tellomi#1106 第二刀：选用户名页「没改 / 只改大小写」的捷径只认原判别位是 01 的；`.57` 这类旧号同名也要重新预约 `.01`。
+    func testTellomiUsernameShortcutsOnlyForFixedDiscriminator() {
+        let fixed = Usernames.ParsedUsername(rawUsername: "kaixin.01")
+        XCTAssertNotNil(fixed)
+        XCTAssertEqual(UsernameSelectionViewController.existingUsernameForShortcuts(fixed), fixed)
+        XCTAssertNil(UsernameSelectionViewController.existingUsernameForShortcuts(Usernames.ParsedUsername(rawUsername: "kaixin.57")))
+        XCTAssertNil(UsernameSelectionViewController.existingUsernameForShortcuts(nil))
+    }
+
+    /// tellomi/tellomi#1181（ADR-0066 §六）：选名页输入框的上限取「新名字上限」与「现有昵称长度」中较大的，
+    /// 上限改成 20 之前建的 21–32 位用户名才能改大小写、逐个删字。
+    func testTellomiNicknameInputKeepsLongExistingNamesEditable() throws {
+        typealias VC = UsernameSelectionViewController
+        let long = "abcdefghijklmnopqrstuvwxy" // 25 位
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: nil, configuredMax: 20), 20)
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "kaixin.01"), configuredMax: 20), 20)
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "\(long).01"), configuredMax: 20), 25)
+        XCTAssertEqual(VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "\(long).57"), configuredMax: 20), 25)
+
+        // 按这个上限，25 位的名字能把首字母改成大写、能删掉一个字；按旧的 20 位上限两样都被拒
+        let limit = VC.tellomiMaxNicknameInputLength(existingUsername: Usernames.ParsedUsername(rawUsername: "\(long).01"), configuredMax: 20)
+        let capitalize = TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 0, length: 1), replacementString: "A", maxUnicodeScalarCount: limit)
+        XCTAssertTrue(capitalize.shouldChange)
+        let deleteOne = TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 24, length: 1), replacementString: "", maxUnicodeScalarCount: limit)
+        XCTAssertTrue(deleteOne.shouldChange)
+        XCTAssertFalse(TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 0, length: 1), replacementString: "A", maxUnicodeScalarCount: 20).shouldChange)
+        // 比现有昵称更长的照旧拦
+        XCTAssertFalse(TextHelper.shouldChangeCharactersInRange(with: long, editingRange: NSRange(location: 25, length: 0), replacementString: "z", maxUnicodeScalarCount: limit).shouldChange)
+    }
+
+    /// tellomi/tellomi#1106（ADR-0066 §六「显示」）：只有 `.01` 结尾的去掉后缀，别的后缀完整显示（与 Android `TellomiUsernamesTest` 同一组）。
+    func testTellomiDisplayUsername() {
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.01"), "kaixin")
+        XCTAssertEqual(TellomiLinks.displayUsername("KaiXin.01"), "KaiXin")
+        // 反向：别的后缀原样——`kaixin.57` 不能显示成 `kaixin`
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.57"), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.101"), "kaixin.101")
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.001"), "kaixin.001")
     }
 }

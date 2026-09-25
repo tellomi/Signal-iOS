@@ -153,6 +153,8 @@ class RegistrationPhoneNumberInputView: UIView {
         result.textColor = .Signal.label
         result.textContentType = .telephoneNumber
         result.keyboardType = .phonePad
+        // Tellomi（tellomi/tellomi#1213，ADR-0051 §C）：非空时有清空 ×。
+        result.clearButtonMode = .whileEditing
         result.placeholder = OWSLocalizedString(
             "ONBOARDING_PHONE_NUMBER_PLACEHOLDER",
             comment: "Placeholder string for phone number field during registration",
@@ -200,6 +202,23 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         shouldChangeCharactersIn range: NSRange,
         replacementString: String,
     ) -> Bool {
+        // Tellomi（tellomi/tellomi#1213）：一次进来一整串（粘贴 / 自动填充）就当完整号码解析一次（Telegram PhoneInputNode
+        // 同样把多字符插入当完整号码重新解析区号）。上游只在输入框为空、而且带「+」时这样做；框里已经有字，或者是
+        // 「0086…」「86…」这种写法，会被原样接到后面，变成十几位的无效号码。
+        if
+            replacementString.count > 1,
+            let phoneNumber = Self.tellomiFullPhoneNumber(
+                in: replacementString,
+                currentCountry: country,
+                phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef,
+            )
+        {
+            country = phoneNumber.country
+            textField.text = formatNationalNumber(input: phoneNumber.nationalNumber)
+            delegate?.didChange()
+            return false
+        }
+
         let wasEmpty = textField.text.isEmptyOrNil
         var replacementString = replacementString
 
@@ -247,6 +266,46 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         delegate?.didPressReturn()
         return false
+    }
+
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        // Tellomi（tellomi/tellomi#1213）：清空 × 不经过 shouldChangeCharactersIn，要自己通知一次，
+        // 否则「下一步」的可用状态和号码校验不跟着变。
+        DispatchQueue.main.async { [weak self] in
+            self?.delegate?.didChange()
+        }
+        return true
+    }
+
+    /// Tellomi：把一段文字当完整号码解析——「+86 138 0013 8000」「0086 138…」，或者以当前区号开头、
+    /// 去掉区号后恰好是这个国家本地号码长度的「8613800138000」。都不是就返回 nil，按普通输入处理。
+    static func tellomiFullPhoneNumber(
+        in text: String,
+        currentCountry: PhoneNumberCountry,
+        phoneNumberUtil: PhoneNumberUtil,
+    ) -> RegistrationPhoneNumber? {
+        let compact = text.filter { !$0.isWhitespace && !"-()".contains($0) }
+        let international: String
+        if compact.hasPrefix("+") {
+            international = compact
+        } else if compact.hasPrefix("00") {
+            international = "+" + compact.dropFirst(2)
+        } else {
+            let callingCode = String(currentCountry.plusPrefixedCallingCode.dropFirst())
+            guard
+                compact.allSatisfy({ $0.isASCII && $0.isNumber }),
+                compact.hasPrefix(callingCode),
+                let example = phoneNumberUtil.exampleNationalNumber(forCountryCode: currentCountry.countryCode),
+                compact.count - callingCode.count == example.filter({ $0.isASCII && $0.isNumber }).count
+            else {
+                return nil
+            }
+            international = "+" + compact
+        }
+        guard let e164 = E164(international) else {
+            return nil
+        }
+        return RegistrationPhoneNumberParser(phoneNumberUtil: phoneNumberUtil).parseE164(e164)
     }
 
     private func formatNationalNumber(input: String) -> String {

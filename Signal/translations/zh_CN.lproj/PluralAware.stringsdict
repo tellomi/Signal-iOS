@@ -1350,6 +1350,20 @@
 			<string>%2$@和其他 %1$ld 人举手了</string>
 		</dict>
 	</dict>
+	<key>REGISTRATION_PROFILE_USERNAME_COOLDOWN_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>%d 天后才能设置用户名</string>
+		</dict>
+	</dict>
 	<key>REREGISTER_INVALID_PIN_ATTEMPT_COUNT_%d</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -1560,6 +1574,62 @@
 			<string>d</string>
 			<key>other</key>
 			<string>用户名须至少以 %1$d 个字符为开头</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>你最近改过用户名，%d 天后可以再改。</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>更改用户名会重置你现有的二维码和链接，而且之后 %d 天内不能再改。确定要更改吗？</string>
+		</dict>
+	</dict>
+	<key>PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>这样做将会删除你的用户名，并使你的二维码和链接失效。“%2$@”会为你保留 %3$d 天；这期间再设置用户名，之后 %d 天内不能再改。确定要删除吗？</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>你在 %2$d 天内删除过用户名，现在设置也算一次更改：之后 %d 天内不能再改。确定要继续吗？</string>
 		</dict>
 	</dict>
 </dict>

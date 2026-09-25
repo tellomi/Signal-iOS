@@ -347,7 +347,8 @@ class ProfileSettingsViewController: OWSTableViewController2 {
             customCellBlock: {
                 let cell = OWSTableItem.buildCell(
                     icon: .profileUsername,
-                    itemName: username,
+                    // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：`.01` 结尾的去掉后缀显示，别的后缀完整显示
+                    itemName: TellomiLinks.displayUsername(username),
                     accessoryType: .disclosureIndicator,
                 )
 
@@ -468,6 +469,21 @@ class ProfileSettingsViewController: OWSTableViewController2 {
 
     // MARK: Username actions
 
+    /// Tellomi（tellomi/tellomi#1218 F-02）：首屏「我的二维码」卡。有用户名就弹二维码；
+    /// 注册时用户名是选填的，没有就先去设用户名；用户名或链接坏了走上游原来的修复流程。
+    func presentTellomiMyQRCode() {
+        switch localUsernameState {
+        case let .available(username, usernameLink):
+            presentUsernameLink(username: username, usernameLink: usernameLink)
+        case .linkCorrupted:
+            presentUsernameLinkCorruptedResolution()
+        case .usernameAndLinkCorrupted:
+            presentUsernameCorruptedResolution()
+        case .unset, nil:
+            presentUsernameSelection(currentUsername: nil, isAttemptingRecovery: false)
+        }
+    }
+
     func presentUsernameCorruptedResolution() {
         guard let localUsernameState else {
             return
@@ -550,12 +566,17 @@ class ProfileSettingsViewController: OWSTableViewController2 {
 
     private func offerToDeleteUsername(currentUsername: String) {
         OWSActionSheets.showConfirmationAlert(
-            message: String.nonPluralLocalizedStringWithFormat(
+            // Tellomi（ADR-0066 §6.2）：删掉的名字服务端给原主人保留 30 天，不是上游说的「可供其他人申请」；保留期内再设名也算改名
+            // （与 Desktop#4、Android `ManageProfileFragment__tellomi_delete_username_dialog_body` 同一句）
+            message: String.localizedStringWithFormat(
                 OWSLocalizedString(
-                    "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_FORMAT",
-                    comment: "A message asking the user if they are sure they want to remove their username and explaining what will happen. Embeds {{ the user's current username }}.",
+                    "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d",
+                    tableName: "PluralAware",
+                    comment: "Tellomi: a message asking the user if they are sure they want to remove their username. The server holds the deleted username for them for 30 days, and setting any username during that time starts the rename cooldown. Embeds {{ %d the cooldown length in days (30) }}, {{ %2$@ the user's current username }} and {{ %3$d the hold length in days (30) }}.",
                 ),
-                currentUsername,
+                TellomiLinks.renameCooldownDays,
+                TellomiLinks.displayUsername(currentUsername), // Tellomi（#1106 第三刀）
+                TellomiUsernameHold.holdDays,
             ),
             proceedTitle: OWSLocalizedString(
                 "PROFILE_SETTINGS_USERNAME_DELETION_USERNAME_ACTION_TITLE",
@@ -900,5 +921,9 @@ extension ProfileSettingsViewController: UsernameChangeDelegate {
 extension ProfileSettingsViewController: UsernameLinkScanDelegate {
     func usernameLinkScanned(_ usernameLink: Usernames.UsernameLink) {
         usernameLinkScanDelegate?.usernameLinkScanned(usernameLink)
+    }
+
+    func plainUsernameScanned(_ username: String) {
+        usernameLinkScanDelegate?.plainUsernameScanned(username) // Tellomi（#947）
     }
 }
