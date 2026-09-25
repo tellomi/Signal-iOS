@@ -28,22 +28,22 @@ final class TellomiRecentFilesDatabaseSource: TellomiRecentFilesSource {
 
     static func fetch(limit: Int, tx: DBReadTransaction) -> [TellomiRecentFile] {
         let sql = """
-            SELECT
-                r.attachmentRowId, r.ownerRowId, r.sourceFilename, r.receivedAtTimestamp,
-                COALESCE(a.unencryptedByteCount, r.sourceUnencryptedByteCount, 0) AS byteCount,
-                a.mimeType,
-                (a.sha256ContentHash IS NOT NULL AND a.encryptedByteCount IS NOT NULL AND a.unencryptedByteCount IS NOT NULL
-                    AND a.digestSHA256Ciphertext IS NOT NULL AND a.localRelativeFilePath IS NOT NULL) AS isOnDevice
-            FROM MessageAttachmentReference AS r
-            JOIN Attachment AS a ON a.id = r.attachmentRowId
-            JOIN model_TSInteraction AS i ON i.id = r.ownerRowId
-            WHERE r.ownerType = 0
-                AND r.isViewOnce = 0
-                AND r.ownerIsPastEditRevision = 0
-                AND r.isInvalidOrFileContentType = 1
-                AND i.recordType = \(SDSRecordType.outgoingMessage.rawValue)
-            ORDER BY r.receivedAtTimestamp DESC, r.ownerRowId DESC, r.orderInMessage DESC
-            """
+        SELECT
+            r.attachmentRowId, r.ownerRowId, r.sourceFilename, r.receivedAtTimestamp,
+            COALESCE(a.unencryptedByteCount, r.sourceUnencryptedByteCount, 0) AS byteCount,
+            a.mimeType,
+            (a.sha256ContentHash IS NOT NULL AND a.encryptedByteCount IS NOT NULL AND a.unencryptedByteCount IS NOT NULL
+                AND a.digestSHA256Ciphertext IS NOT NULL AND a.localRelativeFilePath IS NOT NULL) AS isOnDevice
+        FROM MessageAttachmentReference AS r
+        JOIN Attachment AS a ON a.id = r.attachmentRowId
+        JOIN model_TSInteraction AS i ON i.id = r.ownerRowId
+        WHERE r.ownerType = 0
+            AND r.isViewOnce = 0
+            AND r.ownerIsPastEditRevision = 0
+            AND r.isInvalidOrFileContentType = 1
+            AND i.recordType = \(SDSRecordType.outgoingMessage.rawValue)
+        ORDER BY r.receivedAtTimestamp DESC, r.ownerRowId DESC, r.orderInMessage DESC
+        """
         var seen = Set<Int64>()
         var files = [TellomiRecentFile]()
         do {

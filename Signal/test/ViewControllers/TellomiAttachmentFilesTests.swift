@@ -6,10 +6,10 @@
 import GRDB
 import LibSignalClient
 import PDFKit
+import XCTest
 @testable import Signal
 @testable import SignalServiceKit
 @testable import SignalUI
-import XCTest
 
 /// Tellomi（tellomi/tellomi#1121，需求 `attachment-files-location.md` §二 F-1…F-10）：附件 Sheet 的「文件」页。
 ///
