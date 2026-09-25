@@ -198,7 +198,16 @@ class TellomiContactsViewController: RecipientPickerContainerViewController {
         let thread = SSKEnvironment.shared.databaseStorageRef.write { transaction in
             TSContactThread.getOrCreateThread(withContactAddress: address, transaction: transaction)
         }
-        SignalApp.shared.presentConversationForThread(threadUniqueId: thread.uniqueId, action: .compose, animated: true)
+        Self.open(threadUniqueId: thread.uniqueId)
+    }
+
+    /// 在联系人 Tab 里打开会话，返回回到联系人（#1108，审计 A-41）。
+    private static func open(threadUniqueId: String) {
+        guard let splitViewController = SignalApp.shared.conversationSplitViewController else {
+            SignalApp.shared.presentConversationForThread(threadUniqueId: threadUniqueId, action: .compose, animated: true)
+            return
+        }
+        splitViewController.presentThreadFromContactsTab(threadUniqueId: threadUniqueId, animated: true)
     }
 }
 
@@ -220,7 +229,7 @@ extension TellomiContactsViewController: RecipientPickerDelegate, UsernameLinkSc
         case .address(let address):
             openConversation(address: address)
         case .group(let groupThread):
-            SignalApp.shared.presentConversationForThread(threadUniqueId: groupThread.uniqueId, action: .compose, animated: true)
+            Self.open(threadUniqueId: groupThread.uniqueId)
         }
     }
 
