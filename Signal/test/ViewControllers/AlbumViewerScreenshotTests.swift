@@ -12,14 +12,14 @@ import XCTest
 @testable import SignalServiceKit
 @testable import SignalUI
 
-/// tellomi/tellomi#1257：横滑相册在**真实的消息 cell**（CVComponentMessage → CVCellView）里的判据与截图。
+/// tellomi/tellomi#1257：相册 / 视频查看器的判据与截图，以及「聊天里的相册仍是 Signal 原来的宫格」。
 ///
-/// SignalBaseTest 的内存环境里建会话和带真实图片数据的相册消息（不连服务端、不建真账号），用
-/// `CVLoader.buildStandaloneRenderItem`（消息详情页、聊天颜色预览走的同一条路）按指定屏宽排版，断言几何与手势归属，顺手截图。
+/// SignalBaseTest 的内存环境里建会话和带真实图片数据的相册消息（不连服务端、不建真账号）。聊天里的相册用
+/// `CVLoader.buildStandaloneRenderItem`（消息详情页、聊天颜色预览走的同一条路）按指定屏宽排版成**真实的消息 cell**。
 ///
-/// 只在环境变量 `TELLOMI_SHOTS=1` 时跑（xcodebuild 用 `TEST_RUNNER_TELLOMI_SHOTS=1` 传进来）；
+/// 查看器的几条只在环境变量 `TELLOMI_SHOTS=1` 时跑（xcodebuild 用 `TEST_RUNNER_TELLOMI_SHOTS=1` 传进来）；宫格那条总是跑，截图只在 `TELLOMI_SHOTS=1` 时存。
 /// 截图写到 `TELLOMI_SHOTS_DIR/<屏宽>/`，屏宽取 `TELLOMI_SHOT_WIDTHS`（逗号分隔，默认 402,440,375）。
-final class AlbumCarouselScreenshotTests: XCTestCase {
+final class AlbumViewerScreenshotTests: XCTestCase {
 
     private var report = ""
     private var oldContext: (any AppContext)!
@@ -94,236 +94,48 @@ final class AlbumCarouselScreenshotTests: XCTestCase {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时跑")
     }
 
-    // MARK: - 判据 1–4：2 / 5 / 12 / 32 张
+    // MARK: - 聊天里的相册：Signal 原来的宫格（owner 2026-09-25 撤回横滑）
 
+    /// owner 2026-09-25：聊天里一行横滑会接住横向滑动，挡住右滑返回一级导航，撤回；照旧用 Signal 原来的宫格
+    /// （`CVMediaAlbumView`：最多露 5 格，多的在第 5 格上显示 +N）。横滑的实现留在存档分支，给以后的动态用。
+    /// 判据：2 / 5 / 12 张都画成宫格；cell 里没有能横向滚动的视图；在相册上横向拖动照旧归消息自己（同上游）。
     @MainActor
-    func testAlbumsByCount() async throws {
-        try requireShots()
-
+    func testChatAlbumsUseTheOriginalGrid() async throws {
+        let width = shotWidths.first ?? 402
+        let shooting = ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1"
         let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
-        var messages = [(label: String, message: TSMessage)]()
-        for count in [2, 5, 12, 32] {
-            messages.append(("in\(count)", try await insertAlbum(thread: thread, incoming: true, sizes: sizes(count), body: nil)))
-            messages.append(("out\(count)", try await insertAlbum(thread: thread, incoming: false, sizes: sizes(count), body: nil)))
-        }
-        // 两张 9:16 竖图：自己发的放得下，整组靠右、不能滑（C-5）
-        messages.append(("out2fits", try await insertAlbum(thread: thread, incoming: false, sizes: [CGSize(width: 1080, height: 1920), CGSize(width: 1080, height: 1920)], body: nil)))
+        var shots = [UIImage]()
+        for (count, incoming) in [(2, true), (5, false), (12, true), (12, false)] {
+            let label = "\(incoming ? "in" : "out")\(count)"
+            let message = try await insertAlbum(thread: thread, incoming: incoming, sizes: sizes(count), body: nil)
+            let hosted = try await host(message: message, thread: thread, width: width)
 
-        for width in shotWidths {
-            let expectedRowHeight = AlbumCarouselGeometry.rowHeight(screenWidth: width, screenHeight: max(width, 874), capByScreenHeight: false)
-            let expectedOutgoingStart = width - 16 - maxMessageWidth(width: width, isGroup: false)
-            report += "width=\(width) rowHeight(expected)=\(expectedRowHeight) outgoingStart(expected)=\(expectedOutgoingStart)\n"
+            let album = try XCTUnwrap(findView(CVMediaAlbumView.self, in: hosted.cellView), "\(label)：没有宫格")
+            report += "  \(label): items=\(album.itemViews.count) more=\(album.moreItemsView != nil) frame=\(NSCoder.string(for: hosted.cellView.convert(album.bounds, from: album)))\n"
+            XCTAssertEqual(album.itemViews.count, min(count, 5), "\(label)：最多露 5 格")
+            XCTAssertEqual(album.moreItemsView != nil, count > 5, "\(label)：超过 5 张才有 +N")
 
-            var shots = [UIImage]()
-            for (label, message) in messages {
-                let hosted = try await host(message: message, thread: thread, width: width)
-                let carousel = try XCTUnwrap(findCarousel(in: hosted.cellView), "\(label): 没有横滑相册")
-                let layout = try XCTUnwrap(carousel.geometry)
-                let firstItem = try XCTUnwrap(carousel.itemViews.first)
-                let lastItem = try XCTUnwrap(carousel.itemViews.last)
-                let firstLeft = hosted.cellView.convert(firstItem.bounds, from: firstItem).minX
+            let scrollable = horizontallyScrollableViews(in: hosted.cellView)
+            XCTAssertTrue(scrollable.isEmpty, "\(label)：聊天里不能有横向滚动的视图（会挡住右滑返回）：\(scrollable)")
 
-                report += "  \(label): rowHeight=\(carousel.bounds.size.height) carouselWidth=\(carousel.bounds.size.width) firstLeft=\(firstLeft) scrollable=\(layout.isScrollable) items=\(carousel.itemViews.count)\n"
-                if label == "in2" || label == "out2" {
-                    report += carousel.layoutDescriptionForTesting + "\n"
-                    if let renderItem = hosted.cellView.renderItem {
-                        let m = renderItem.cellMeasurement
-                        report += "    cellSize=\(NSCoder.string(for: m.cellSize)) rowHeight(measured)=\(m.value(key: "CVComponentBodyMedia.measurementKey_albumCarouselRowHeight") ?? -1)\n"
-                        for key in ["CVComponentMessage.measurementKey_hOuterStack", "CVComponentMessage.measurementKey_hInnerStack", "CVComponentMessage.measurementKey_contentStack", "CVComponentMessage.measurementKey_bottomFullWidthStackView", "CVComponentBodyMedia.measurementKey_stackView"] {
-                            report += "    \(key)=\(m.measurement(key: key).map { NSCoder.string(for: $0.measuredSize) } ?? "nil")\n"
-                        }
-                    }
-                    if let placeholder = findPlaceholder(in: hosted.cellView) {
-                        var node: UIView? = placeholder
-                        while let view = node, view !== hosted.cellView {
-                            report += "    placeholder-ancestor \(type(of: view)) frame=\(NSCoder.string(for: view.frame)) subviews=\(view.subviews.count)\n"
-                            node = view.superview
-                        }
-                    }
-                    var ancestor: UIView? = carousel
-                    while let view = ancestor, view !== hosted.cellView {
-                        report += "    ancestor \(type(of: view)) frame=\(NSCoder.string(for: view.frame))\n"
-                        ancestor = view.superview
-                    }
-                }
+            let pan = FakePan()
+            pan.locationInWindow = hosted.window.convert(CGPoint(x: album.bounds.midX, y: album.bounds.midY), from: album)
+            let panHandler = hosted.cellView.findPanHandler(
+                sender: pan,
+                componentDelegate: hosted.delegate,
+                messageSwipeActionState: CVMessageSwipeActionState(),
+            )
+            XCTAssertNotNil(panHandler, "\(label)：相册上的横向拖动照旧归消息（同上游）")
 
-                // C-2：行高；C-5：滑动区整屏宽
-                XCTAssertEqual(carousel.bounds.size.height, expectedRowHeight, "\(label) width=\(width)")
-                XCTAssertEqual(hosted.cellView.convert(carousel.bounds, from: carousel).size.width, width, "\(label) width=\(width)")
-
-                let isIncoming = message is TSIncomingMessage
-                if label == "out2fits" {
-                    // 放得下：不能滑、整组靠右，最后一张右边 = 屏宽 − 16
-                    XCTAssertFalse(layout.isScrollable, "\(label) width=\(width)")
-                    let lastRight = hosted.cellView.convert(lastItem.bounds, from: lastItem).maxX
-                    XCTAssertEqual(lastRight, width - 16, accuracy: 0.5, "\(label) width=\(width)")
-                } else if layout.isScrollable {
-                    // C-5：静止时第一张对齐起点（对方 16，自己 = 气泡列起点）
-                    XCTAssertEqual(firstLeft, isIncoming ? 16 : expectedOutgoingStart, accuracy: 0.5, "\(label) width=\(width)")
-                }
-
+            if shooting {
                 shots.append(render(hosted))
-                try save(shots.last!, name: "\(label).png", width: width)
-
-                if layout.isScrollable {
-                    // 滑到底：最后一张右边 = 屏宽 − 16；每个吸附位上下一张都露出来（≤ 屏宽 − 48）
-                    carousel.setContentOffsetForTesting(layout.maxScroll)
-                    hosted.window.layoutIfNeeded()
-                    let lastRight = hosted.cellView.convert(lastItem.bounds, from: lastItem).maxX
-                    report += "    atEnd lastRight=\(lastRight)\n"
-                    XCTAssertEqual(lastRight, width - 16, accuracy: 0.5, "\(label) width=\(width)")
-                    for index in 0..<(layout.itemCount - 1) {
-                        let nextLeftOnScreen = layout.itemLefts[index + 1] - layout.snapOffset(forItem: index)
-                        XCTAssertLessThanOrEqual(nextLeftOnScreen, width - 48, "\(label) width=\(width) item=\(index)")
-                    }
-                    if label == "in12" {
-                        try await settle(hosted)
-                        shots.append(render(hosted))
-                        try save(shots.last!, name: "in12-scrolled-to-end.png", width: width)
-                    }
-                    carousel.setContentOffsetForTesting(0)
-                    hosted.window.layoutIfNeeded()
-                }
-
-                // C-10：长按预览要连相册一起（整行），不是气泡里那段空占位
-                let componentView = try XCTUnwrap(hosted.cellView.componentView)
-                XCTAssertTrue(componentView.contextMenuContentView?() === componentView.rootView, "\(label) width=\(width)：长按预览要是整行")
-
-                // C-13：读作「相册，共 N 项」，上下滑逐张切换
-                XCTAssertEqual(carousel.accessibilityLabel, "Album, \(carousel.itemViews.count) items", "\(label) width=\(width)")
-                XCTAssertEqual(carousel.accessibilityValue, "Item 1 of \(carousel.itemViews.count)", "\(label) width=\(width)")
-
-                if label == "in12" {
-                    // C-9：查看器缩回前按附件找这一张——先把它滚到完整露出
-                    let messageComponent = try XCTUnwrap(hosted.cellView.renderItem?.rootComponent as? CVComponentMessage)
-                    let target = carousel.itemViews[7]
-                    let returned = messageComponent.albumItemView(forAttachment: target.attachment.attachment, componentView: componentView)
-                    hosted.window.layoutIfNeeded()
-                    let revealed = hosted.cellView.convert(target.bounds, from: target)
-                    report += "    revealItem8 frame=\(NSCoder.string(for: revealed)) offset=\(carousel.contentOffsetForTesting)\n"
-                    XCTAssertTrue(returned === target, "\(label)：要返回第 8 张自己的视图")
-                    XCTAssertGreaterThanOrEqual(revealed.minX, 0, "\(label) width=\(width)：第 8 张要整张露出")
-                    XCTAssertLessThanOrEqual(revealed.maxX, width, "\(label) width=\(width)：第 8 张要整张露出")
-
-                    carousel.setContentOffsetForTesting(0)
-                    carousel.accessibilityIncrement()
-                    try await Task.sleep(nanoseconds: 700_000_000)
-                    report += "    afterIncrement value=\(carousel.accessibilityValue ?? "nil") offset=\(carousel.contentOffsetForTesting)\n"
-                    XCTAssertEqual(carousel.accessibilityValue, "Item 2 of 12", "\(label) width=\(width)")
-                    XCTAssertEqual(carousel.contentOffsetForTesting, layout.snapOffset(forItem: 1), accuracy: 0.5, "\(label) width=\(width)")
-                    carousel.setContentOffsetForTesting(0)
-                    hosted.window.layoutIfNeeded()
-                }
-
-                // C-11：能滑的相册上横向拖动不归消息（不滑动回复）；放得下的照常
-                let panOnAlbum = FakePan()
-                panOnAlbum.locationInWindow = hosted.window.convert(CGPoint(x: carousel.bounds.midX, y: carousel.bounds.midY), from: carousel)
-                let panHandler = hosted.cellView.findPanHandler(
-                    sender: panOnAlbum,
-                    componentDelegate: hosted.delegate,
-                    messageSwipeActionState: CVMessageSwipeActionState(),
-                )
-                report += "    panHandlerOnAlbum=\(panHandler == nil ? "nil" : "swipe")\n"
-                if layout.isScrollable {
-                    XCTAssertNil(panHandler, "\(label) width=\(width)：能滑的相册上不应滑动回复")
-                } else {
-                    XCTAssertNotNil(panHandler, "\(label) width=\(width)：放得下的相册照常滑动回复")
-                }
-
-                // 点气泡外面的某一张（第 2 张的中心；气泡里的占位宽 0）也要归相册处理
-                if isIncoming, carousel.itemViews.count >= 2 {
-                    let second = carousel.itemViews[1]
-                    let tap = FakeTap()
-                    tap.locationInWindow = hosted.window.convert(CGPoint(x: second.bounds.midX, y: second.bounds.midY), from: second)
-                    let handled = hosted.cellView.handleTap(sender: tap, componentDelegate: hosted.delegate)
-                    report += "    tapOnSecondItemHandled=\(handled)\n"
-                    XCTAssertTrue(handled, "\(label) width=\(width)：点相册里的一张要被处理")
-                }
-
-                // C-7：无说明时时间胶囊在相册可视区右下角，不随图片滚动
-                let pill = carousel.overlayView.subviews.first { $0 is ManualLayoutViewWithLayer }
-                report += "    footerPill=\(pill.map { NSCoder.string(for: hosted.cellView.convert($0.bounds, from: $0)) } ?? "nil")\n"
-                XCTAssertNotNil(pill, "\(label) width=\(width)：无说明时要有时间胶囊")
-                if let pill {
-                    let pillFrame = hosted.cellView.convert(pill.bounds, from: pill)
-                    let areaFrame = hosted.cellView.convert(carousel.albumAreaFrame, from: carousel)
-                    XCTAssertEqual(pillFrame.maxX, areaFrame.maxX - 8, accuracy: 0.5, "\(label) width=\(width)")
-                    XCTAssertEqual(pillFrame.maxY, areaFrame.maxY - 8, accuracy: 0.5, "\(label) width=\(width)")
-                }
-
-                hosted.tearDown()
             }
-            try save(stack(shots, width: width), name: "albums-by-count.png", width: width)
+            hosted.tearDown()
         }
-
-        try report.write(to: shotsDirectory(width: shotWidths.first ?? 402).deletingLastPathComponent().appendingPathComponent("metrics-albums.txt"), atomically: true, encoding: .utf8)
-    }
-
-    // MARK: - C-8：说明、群昵称
-
-    @MainActor
-    func testCaptionAndGroupName() async throws {
-        try requireShots()
-
-        let contactThread = write { tx in ContactThreadFactory().create(transaction: tx) }
-        let member = CommonGenerator.address()
-        let groupThread = try write { tx in
-            try GroupManager.createGroupForTests(members: [member], name: "相册测试群", transaction: tx)
+        if shooting {
+            try save(stack(shots, width: width), name: "albums-grid.png", width: width)
+            try report.write(to: shotsDirectory(width: width).deletingLastPathComponent().appendingPathComponent("metrics-albums-grid.txt"), atomically: true, encoding: .utf8)
         }
-
-        let captionIn = try await insertAlbum(thread: contactThread, incoming: true, sizes: sizes(5), body: "周末去爬山拍的，最后一张是山顶。")
-        let captionOut = try await insertAlbum(thread: contactThread, incoming: false, sizes: sizes(5), body: "收到，这组我也发一下 👍")
-        let groupIn = try await insertAlbum(thread: groupThread, incoming: true, sizes: sizes(5), body: nil, author: member.aci)
-        let groupInCaption = try await insertAlbum(thread: groupThread, incoming: true, sizes: sizes(12), body: "群里的第二组，带说明", author: member.aci)
-
-        for width in shotWidths {
-            var shots = [UIImage]()
-            report += "width=\(width)\n"
-            for (label, message, thread) in [
-                ("captionIn", captionIn, contactThread as TSThread),
-                ("captionOut", captionOut, contactThread),
-                ("groupIn", groupIn, groupThread),
-                ("groupInCaption", groupInCaption, groupThread),
-            ] {
-                let hosted = try await host(message: message, thread: thread, width: width)
-                let carousel = try XCTUnwrap(findCarousel(in: hosted.cellView), "\(label): 没有横滑相册")
-                let firstItem = try XCTUnwrap(carousel.itemViews.first)
-                let firstLeft = hosted.cellView.convert(firstItem.bounds, from: firstItem).minX
-                let isGroup = thread is TSGroupThread
-                report += "  \(label): firstLeft=\(firstLeft) rowHeight=\(carousel.bounds.size.height)\n"
-
-                if message is TSIncomingMessage {
-                    // 群聊在头像后：12 + 28 + 8 = 48
-                    XCTAssertEqual(firstLeft, isGroup ? 48 : 16, accuracy: 0.5, "\(label) width=\(width)")
-                }
-
-                if message.body?.isEmpty == false {
-                    // 说明气泡上照常滑动回复（C-11）
-                    let bubbleText = try XCTUnwrap(findBodyTextLabel(in: hosted.cellView), "\(label): 找不到说明文字")
-                    let pan = FakePan()
-                    pan.locationInWindow = hosted.window.convert(CGPoint(x: bubbleText.bounds.midX, y: bubbleText.bounds.midY), from: bubbleText)
-                    let panHandler = hosted.cellView.findPanHandler(
-                        sender: pan,
-                        componentDelegate: hosted.delegate,
-                        messageSwipeActionState: CVMessageSwipeActionState(),
-                    )
-                    report += "    panHandlerOnCaption=\(panHandler == nil ? "nil" : "swipe")\n"
-                    XCTAssertNotNil(panHandler, "\(label) width=\(width)：说明气泡上照常滑动回复")
-
-                    // 说明在相册下方
-                    let textFrame = hosted.cellView.convert(bubbleText.bounds, from: bubbleText)
-                    let carouselFrame = hosted.cellView.convert(carousel.bounds, from: carousel)
-                    XCTAssertGreaterThanOrEqual(textFrame.minY, carouselFrame.maxY, "\(label) width=\(width)：说明要在相册下方")
-                }
-
-                shots.append(render(hosted))
-                try save(shots.last!, name: "\(label).png", width: width)
-                hosted.tearDown()
-            }
-            try save(stack(shots, width: width), name: "caption-and-group.png", width: width)
-        }
-
-        try report.write(to: shotsDirectory(width: shotWidths.first ?? 402).deletingLastPathComponent().appendingPathComponent("metrics-caption-group.txt"), atomically: true, encoding: .utf8)
     }
 
     // MARK: - 查看器（owner 2026-09-25，对照 Telegram）
@@ -951,55 +763,28 @@ final class AlbumCarouselScreenshotTests: XCTestCase {
 
     // MARK: - Finding views
 
-    private func findCarousel(in view: UIView) -> CVAlbumCarouselView? {
-        if let carousel = view as? CVAlbumCarouselView {
-            return carousel
+    private func findView<T: UIView>(_ type: T.Type, in view: UIView) -> T? {
+        if let found = view as? T {
+            return found
         }
         for subview in view.subviews {
-            if let carousel = findCarousel(in: subview) {
-                return carousel
-            }
-        }
-        return nil
-    }
-
-    /// 横滑模式下 CVComponentBodyMedia 的 rootView（气泡里的占位）。
-    private func findPlaceholder(in view: UIView) -> UIView? {
-        if String(reflecting: type(of: view)).contains("CVComponentViewBodyMediaRootView") {
-            return view
-        }
-        for subview in view.subviews {
-            if let found = findPlaceholder(in: subview) {
+            if let found = findView(type, in: subview) {
                 return found
             }
         }
         return nil
     }
 
-    /// 说明文字用的是 SignalUI 里 CVTextLabel 的私有视图类（不是 UILabel），按类型名找。
-    private func findBodyTextLabel(in view: UIView) -> UIView? {
-        if String(reflecting: type(of: view)).contains("CVTextLabel") {
-            return view
+    /// 能横向滚动的视图（内容比自己宽、且允许滚动）。
+    private func horizontallyScrollableViews(in view: UIView) -> [UIScrollView] {
+        var result = [UIScrollView]()
+        if let scrollView = view as? UIScrollView, scrollView.isScrollEnabled, scrollView.contentSize.width > scrollView.bounds.size.width + 0.5 {
+            result.append(scrollView)
         }
         for subview in view.subviews {
-            if let found = findBodyTextLabel(in: subview) {
-                return found
-            }
+            result += horizontallyScrollableViews(in: subview)
         }
-        return nil
-    }
-
-    private func maxMessageWidth(width: CGFloat, isGroup: Bool) -> CGFloat {
-        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
-        let style = ConversationStyle(
-            type: .`default`,
-            thread: thread,
-            viewWidth: width,
-            hasWallpaper: false,
-            shouldDimWallpaperInDarkMode: false,
-            chatColor: ChatColorSettingStore.Constants.defaultColor.colorSetting,
-        )
-        return style.maxMessageWidth
+        return result
     }
 
     // MARK: - Messages with real image data
@@ -1135,17 +920,6 @@ final class AlbumCarouselScreenshotTests: XCTestCase {
 // MARK: - Fake gestures（只用来喂「落点」给消息 cell 的手势分派）
 
 private final class FakePan: UIPanGestureRecognizer {
-    var locationInWindow: CGPoint = .zero
-
-    override func location(in view: UIView?) -> CGPoint {
-        guard let view else {
-            return locationInWindow
-        }
-        return view.convert(locationInWindow, from: nil)
-    }
-}
-
-private final class FakeTap: UITapGestureRecognizer {
     var locationInWindow: CGPoint = .zero
 
     override func location(in view: UIView?) -> CGPoint {

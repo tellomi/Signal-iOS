@@ -842,7 +842,7 @@ class PlayerProgressView: UIView {
 
 #if TESTABLE_BUILD
 
-// Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumCarouselScreenshotTests）。
+// Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumViewerScreenshotTests）。
 extension PlayerProgressView {
     var positionTextForTesting: String? { positionLabel.text }
     var durationTextForTesting: String? { durationLabel.text }

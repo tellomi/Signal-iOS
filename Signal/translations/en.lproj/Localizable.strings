@@ -26,7 +26,6 @@
 
 /* Accessibility label for media. */
 "ACCESSIBILITY_LABEL_MEDIA" = "Media";
-"ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_FORMAT" = "Album, %1$@ items";
 "ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_ITEM_FORMAT" = "Item %1$@ of %2$@";
 
 /* Accessibility label for stickers. */

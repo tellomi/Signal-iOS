@@ -1265,7 +1265,7 @@ extension MediaPageViewController: UINavigationBarDelegate {
 
 #if TESTABLE_BUILD
 
-// Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumCarouselScreenshotTests）。
+// Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumViewerScreenshotTests）。
 extension MediaPageViewController {
     var areToolbarsHiddenForTesting: Bool { shouldHideToolbars }
 

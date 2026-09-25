@@ -45,9 +45,6 @@ public class CVWallpaperBlurView: ManualLayoutViewWithLayer, CVDimmableView {
         }
     }
 
-    /// Tellomi（tellomi/tellomi#1257）：横滑相册在气泡里的那一段（本视图坐标），见 `CVColorOrGradientView.bubbleGap`。
-    var bubbleGap: (() -> CVBubbleGap?)?
-
     public func applyLayout() {
         guard bounds.size.isNonEmpty else { return }
 
@@ -57,23 +54,15 @@ public class CVWallpaperBlurView: ManualLayoutViewWithLayer, CVDimmableView {
             strokeLayer.frame = layer.bounds
 
             if let bubbleConfig {
-                let gap = bubbleGap?()
-
                 // Corners.
-                imageViewMaskLayer.path = bubbleConfig.bubblePath(
-                    for: maskFrame,
-                    gap: gap?.offsetBy(dy: maskFrame.minY - bounds.minY),
-                ).cgPath
-                maskLayer.path = bubbleConfig.bubblePath(for: bounds, gap: gap).cgPath
+                imageViewMaskLayer.path = bubbleConfig.bubblePath(for: maskFrame).cgPath
+                maskLayer.path = bubbleConfig.bubblePath(for: bounds).cgPath
                 layer.mask = maskLayer
 
                 // Stroke.
                 if
                     let stroke = bubbleConfig.stroke,
-                    let strokePath = bubbleConfig.strokePath(
-                        for: strokeLayer.frame,
-                        gap: gap?.offsetBy(dy: strokeLayer.frame.minY - bounds.minY),
-                    )
+                    let strokePath = bubbleConfig.strokePath(for: strokeLayer.frame)
                 {
                     strokeLayer.lineWidth = stroke.width
                     strokeLayer.strokeColor = stroke.color.cgColor
@@ -164,7 +153,6 @@ public class CVWallpaperBlurView: ManualLayoutViewWithLayer, CVDimmableView {
         isPreview = false
         provider = nil
         bubbleConfig = nil
-        bubbleGap = nil
         isReduceTransparencyMode = false
 
         resetContent()

@@ -26,7 +26,6 @@
 
 /* Accessibility label for media. */
 "ACCESSIBILITY_LABEL_MEDIA" = "媒體";
-"ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_FORMAT" = "相簿，共 %1$@ 項";
 "ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_ITEM_FORMAT" = "第 %1$@ 項，共 %2$@ 項";
 
 /* Accessibility label for stickers. */

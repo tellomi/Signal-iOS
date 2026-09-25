@@ -80,11 +80,7 @@ extension ConversationViewController: UIGestureRecognizerDelegate {
             // Only allow the pan gesture to recognize horizontal panning,
             // to avoid conflicts with the conversation view scroll view.
             let translation = collectionViewPanGestureRecognizer.translation(in: view)
-            guard abs(translation.x) > abs(translation.y) else {
-                return false
-            }
-            // Tellomi（#1257，C-11）：没有处理者时不开始（例如能滑的相册上：横向拖动归相册自己的滚动）
-            return findPanHandler(sender: collectionViewPanGestureRecognizer) != nil
+            return abs(translation.x) > abs(translation.y)
         } else {
             return true
         }
