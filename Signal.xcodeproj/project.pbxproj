@@ -1588,6 +1588,7 @@
 		76A2EB1228B57AEE00A29C24 /* ColorPickerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */; };
 		76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */; };
 		4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */; };
+		CF008600BED0E24E78FCD199 /* TellomiViewerGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */; };
 		06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */; };
 		EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */; };
 		5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */; };
@@ -5887,6 +5888,7 @@
 		76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerBar.swift; sourceTree = "<group>"; };
 		76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaControlPanelView.swift; sourceTree = "<group>"; };
 		0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAlbumScrubberView.swift; sourceTree = "<group>"; };
+		41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiViewerGlass.swift; sourceTree = "<group>"; };
 		98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlaybackSpeedMenuView.swift; sourceTree = "<group>"; };
 		C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoCenterControlsView.swift; sourceTree = "<group>"; };
 		1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoScrubPreviewView.swift; sourceTree = "<group>"; };
@@ -9788,6 +9790,7 @@
 				4CA46F4B219CCC630038ABDE /* MediaCaptionView.swift */,
 				76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */,
 				0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */,
+				41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */,
 				98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */,
 				C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */,
 				1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */,
@@ -18923,6 +18926,7 @@
 				4CA46F4C219CCC630038ABDE /* MediaCaptionView.swift in Sources */,
 				76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */,
 				4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */,
+				CF008600BED0E24E78FCD199 /* TellomiViewerGlass.swift in Sources */,
 				06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */,
 				EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */,
 				5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */,

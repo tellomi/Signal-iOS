@@ -124,8 +124,7 @@ class MediaPageViewController: UIPageViewController {
     // MARK: UIViewController
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        guard Theme.forceDarkThemeForMedia else { return .default }
-
+        // Tellomi：查看器一律深色（见 viewDidLoad），状态栏也一律按上游「强制深色」时的规则走。
         if Theme.isDarkThemeEnabled {
             return .lightContent
         }
@@ -156,9 +155,10 @@ class MediaPageViewController: UIPageViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if Theme.forceDarkThemeForMedia {
-            overrideUserInterfaceStyle = .dark
-        }
+        // Tellomi（#1257，照 Telegram）：查看器一律深色——底色黑、按钮是深色玻璃 + 白图标，不跟系统的浅色模式。
+        // 上游在 iOS 26 起让查看器跟随系统（Theme.forceDarkThemeForMedia = false），浅色玻璃按钮放在亮的图片上看不清；
+        // Telegram 的查看器按钮在浅色、深色模式下都是深色（GalleryTitleView / 底栏 GlassControlPanelComponent 都写死 isDark / 深色主题）。
+        overrideUserInterfaceStyle = .dark
         view.backgroundColor = .Signal.mediaBackground
 
         mediaInteractiveDismiss.addGestureRecognizer(to: view)
@@ -177,6 +177,16 @@ class MediaPageViewController: UIPageViewController {
         navigationBar.compactAppearance = appearance
         navigationBar.scrollEdgeAppearance = appearance
         navigationBar.setItems([UINavigationItem(title: ""), navigationItem], animated: false)
+        if #available(iOS 26, *) {
+            // Tellomi（#1257，照 Telegram）：系统的返回键是跟着背景变浅的玻璃，换成同样深色的返回键（点了照系统返回：关查看器）。
+            navigationItem.hidesBackButton = true
+            navigationItem.leftBarButtonItem = TellomiViewerGlass.barButtonItem(
+                image: UIImage(systemName: "chevron.backward"),
+                accessibilityLabel: CommonStrings.backButton,
+                action: UIAction { [weak self] _ in self?.dismissSelf(animated: true) },
+                menu: nil,
+            )
+        }
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
         topPanel.addSubview(navigationBar)
 
@@ -425,8 +435,14 @@ class MediaPageViewController: UIPageViewController {
         if traitCollection.verticalSizeClass == .compact {
             // Order of buttons is reversed: first button in array is the outermost in the navbar.
             navigationItem.rightBarButtonItems = [buildContextMenuBarButton(), barButtonForwardMedia, barButtonShareMedia]
+            if #available(iOS 26, *) {
+                navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.map(TellomiViewerGlass.barButtonItem(from:))
+            }
         } else {
             navigationItem.rightBarButtonItems = [buildContextMenuBarButton()]
+            if #available(iOS 26, *) {
+                navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.map(TellomiViewerGlass.barButtonItem(from:))
+            }
         }
     }
 
@@ -848,6 +864,8 @@ class MediaPageViewController: UIPageViewController {
         label.textAlignment = .center
         label.textColor = .Signal.label
         if #available(iOS 26, *) {
+            // Tellomi（#1257）：胶囊是深色玻璃，字一律白色（不让玻璃按背后图的亮度改成黑字）。
+            label.textColor = .white
             label.font = .dynamicTypeSubheadlineClamped.semibold()
             // "semibold" fonts aren't dynamic anymore - have to track changes manually.
             label.registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (label: UILabel, _) in
@@ -866,6 +884,8 @@ class MediaPageViewController: UIPageViewController {
         label.textAlignment = .center
         label.textColor = .Signal.label
         if #available(iOS 26, *) {
+            // Tellomi（#1257）：胶囊是深色玻璃，字一律白色（不让玻璃按背后图的亮度改成黑字）。
+            label.textColor = .white
             label.font = .dynamicTypeCaption1Clamped
             label.adjustsFontForContentSizeCategory = true
         } else {
@@ -884,9 +904,9 @@ class MediaPageViewController: UIPageViewController {
         let containerView = UIView()
         if #available(iOS 26, *) {
             // Can't return `glassEffectView` as `headerView` because UINavigationBar stretches it to fill width.
-            let glassEffect = UIGlassEffect(style: .regular)
-            glassEffect.isInteractive = true
-            let glassEffectView = UIVisualEffectView(effect: glassEffect)
+            // Tellomi（#1257）：深色玻璃，白底的图上也看得清（TellomiViewerGlass）。
+            let glassEffectView = UIVisualEffectView(effect: TellomiViewerGlass.effect())
+            TellomiViewerGlass.darken(glassEffectView)
             glassEffectView.cornerConfiguration = .capsule()
             glassEffectView.translatesAutoresizingMaskIntoConstraints = false
             glassEffectView.contentView.addSubview(stackView)
@@ -1268,6 +1288,12 @@ extension MediaPageViewController: UINavigationBarDelegate {
 // Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumViewerScreenshotTests）。
 extension MediaPageViewController {
     var areToolbarsHiddenForTesting: Bool { shouldHideToolbars }
+
+    /// 标题胶囊（iOS 26 上是容器里的那块玻璃）与底栏的删除键，量它们在白底图上是不是深色。
+    var headerViewForTesting: UIView { headerView.subviews.first ?? headerView }
+    var deleteButtonForTesting: UIButton { bottomMediaPanel.deleteButtonForTesting }
+    var leftBarButtonItemForTesting: UIBarButtonItem? { navigationItem.leftBarButtonItem }
+    var rightBarButtonItemsForTesting: [UIBarButtonItem] { navigationItem.rightBarButtonItems ?? [] }
 
     var currentItemForTesting: MediaGalleryItem { currentItem }
 

@@ -87,9 +87,8 @@ class VideoPlaybackControlView: UIView {
 
     @available(iOS 26, *)
     private func glassEffect() -> UIVisualEffect? {
-        let glassEffect = UIGlassEffect(style: .regular)
-        glassEffect.isInteractive = true
-        return glassEffect
+        // Tellomi（#1257）：深色玻璃（TellomiViewerGlass）。
+        TellomiViewerGlass.effect()
     }
 
     // MARK: UIView
@@ -541,9 +540,8 @@ class PlayerProgressView: UIView {
 
     @available(iOS 26, *)
     private func interactiveGlassEffect() -> UIVisualEffect? {
-        let glassEffect = UIGlassEffect(style: .regular)
-        glassEffect.isInteractive = true
-        return glassEffect
+        // Tellomi（#1257）：深色玻璃（TellomiViewerGlass）。
+        TellomiViewerGlass.effect()
     }
 
     private weak var progressObserver: AnyObject?

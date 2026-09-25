@@ -141,7 +141,7 @@ final class AlbumViewerScreenshotTests: XCTestCase {
     // MARK: - 查看器（owner 2026-09-25，对照 Telegram）
 
     /// 打开时什么都不显示，轻点后四角按钮与本组缩略条一起出现（「3 / 5」）；在缩略条上拖，指到哪张查看器就切到哪张；
-    /// 转发、删除都先问「这张 / 全部 5 张」；只有一张时没有缩略条。
+    /// 转发、删除都先问「这张 / 全部 5 张」；只有一张时没有缩略条。系统浅色模式下查看器也是深色（按钮深色玻璃 + 白图标，照 Telegram）。
     @MainActor
     func testViewerHiddenChromeScrubberAndAlbumChoices() async throws {
         try requireShots()
@@ -154,12 +154,15 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         let third = try bodyAttachments(of: album)[2]
         let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: third, thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
         let window = UIWindow(frame: UIScreen.main.bounds)
+        // 系统是浅色模式时查看器也要是深色（照 Telegram：浅色玻璃按钮放在亮的图片上看不清）。
+        window.overrideUserInterfaceStyle = .light
         window.rootViewController = viewer
         window.isHidden = false
         window.layoutIfNeeded()
         try await Task.sleep(nanoseconds: 1_500_000_000)
 
-        report += "viewer: opened toolbarsHidden=\(viewer.areToolbarsHiddenForTesting) current=\(viewer.currentItemForTesting.albumIndex)\n"
+        report += "viewer: opened toolbarsHidden=\(viewer.areToolbarsHiddenForTesting) current=\(viewer.currentItemForTesting.albumIndex) style=\(viewer.traitCollection.userInterfaceStyle.rawValue)\n"
+        XCTAssertEqual(viewer.traitCollection.userInterfaceStyle, .dark, "系统浅色模式下查看器也是深色")
         XCTAssertTrue(viewer.areToolbarsHiddenForTesting, "打开时什么都不显示")
         XCTAssertEqual(viewer.currentItemForTesting.albumIndex, 2)
         try save(renderWindow(window), name: "viewer-1-opened.png", width: width)
@@ -223,6 +226,42 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         XCTAssertTrue(singleViewer.albumScrubberForTesting.isHidden, "只有一张时不显示缩略条")
         try save(renderWindow(singleWindow), name: "viewer-6-single.png", width: width)
         singleWindow.isHidden = true
+
+        // 白底的图（截图、文档）上：按钮照样看得清——深色玻璃 + 白图标（照 Telegram）。
+        let whitePage = try await insertMediaMessage(thread: thread, incoming: true, media: [(data: whitePageJpeg(), mimeType: "image/jpeg")], body: nil)
+        let whiteViewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: try bodyAttachments(of: whitePage)[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let whiteWindow = UIWindow(frame: UIScreen.main.bounds)
+        whiteWindow.overrideUserInterfaceStyle = .light
+        whiteWindow.rootViewController = whiteViewer
+        whiteWindow.isHidden = false
+        whiteWindow.layoutIfNeeded()
+        try await Task.sleep(nanoseconds: 1_200_000_000)
+        whiteViewer.tapMediaForTesting()
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let whiteShot = renderWindow(whiteWindow)
+        let deleteButton = whiteViewer.deleteButtonForTesting
+        let header = whiteViewer.headerViewForTesting
+        // 量按钮底色：取圆钮 / 胶囊里面、左侧避开图标和文字的一小块（整块方形会把圆外的白角也算进去）。
+        func backgroundPatch(of view: UIView) -> CGRect {
+            let frame = view.convert(view.bounds, to: whiteWindow)
+            return CGRect(x: frame.minX + frame.size.width * 0.12, y: frame.midY - 2, width: 4, height: 4)
+        }
+        let deleteLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: backgroundPatch(of: deleteButton)))
+        let headerLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: backgroundPatch(of: header)))
+        let backButton = try XCTUnwrap(whiteViewer.leftBarButtonItemForTesting?.customView, "返回键是自定义的深色圆钮")
+        let backLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: backgroundPatch(of: backButton)))
+        let moreButton = try XCTUnwrap(whiteViewer.rightBarButtonItemsForTesting.first?.customView, "「···」是自定义的深色圆钮")
+        let moreLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: backgroundPatch(of: moreButton)))
+        let pageLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: CGRect(x: 8, y: whiteWindow.bounds.midY, width: 4, height: 4)))
+        report += "viewer: whitePage style=\(whiteViewer.traitCollection.userInterfaceStyle.rawValue) pageLuma=\(pageLuma) deleteLuma=\(deleteLuma) headerLuma=\(headerLuma) backLuma=\(backLuma) moreLuma=\(moreLuma)\n"
+        XCTAssertEqual(whiteViewer.traitCollection.userInterfaceStyle, .dark, "白底的图上也是深色按钮")
+        XCTAssertGreaterThan(pageLuma, 0.9, "背后确实是白底")
+        XCTAssertLessThan(deleteLuma, 0.3, "白底的图上，底栏删除键是深色的（不是跟着背景变浅的白玻璃）")
+        XCTAssertLessThan(headerLuma, 0.3, "白底的图上，标题胶囊是深色的")
+        XCTAssertLessThan(backLuma, 0.3, "白底的图上，返回键是深色的")
+        XCTAssertLessThan(moreLuma, 0.3, "白底的图上，「···」是深色的")
+        try save(whiteShot, name: "viewer-7-white-page.png", width: width)
+        whiteWindow.isHidden = true
 
         try report.write(to: shotsDirectory(width: width).deletingLastPathComponent().appendingPathComponent("metrics-viewer.txt"), atomically: true, encoding: .utf8)
     }
@@ -887,6 +926,51 @@ final class AlbumViewerScreenshotTests: XCTestCase {
             }
         }
         return message
+    }
+
+    /// 截图里某块区域的平均亮度（0 黑 … 1 白）。
+    private func averageLuma(of image: UIImage, in rect: CGRect) -> CGFloat? {
+        guard let cgImage = image.cgImage else { return nil }
+        let scale = image.scale
+        let pixelRect = CGRect(x: rect.minX * scale, y: rect.minY * scale, width: rect.size.width * scale, height: rect.size.height * scale).integral
+        guard let cropped = cgImage.cropping(to: pixelRect) else { return nil }
+        let width = cropped.width
+        let height = cropped.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        guard
+            let context = CGContext(
+                data: &pixels,
+                width: width,
+                height: height,
+                bitsPerComponent: 8,
+                bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+            ) else { return nil }
+        context.draw(cropped, in: CGRect(x: 0, y: 0, width: width, height: height))
+        var total: CGFloat = 0
+        for index in stride(from: 0, to: pixels.count, by: 4) {
+            total += 0.2126 * CGFloat(pixels[index]) + 0.7152 * CGFloat(pixels[index + 1]) + 0.0722 * CGFloat(pixels[index + 2])
+        }
+        return total / CGFloat(width * height) / 255
+    }
+
+    /// 一张白底的「文档截图」（竖屏整页、几行浅灰字块），看查看器按钮在亮图上清不清楚。
+    private func whitePageJpeg() -> Data {
+        let size = CGSize(width: 402, height: 874)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+            UIColor(white: 0.93, alpha: 1).setFill()
+            for (index, y) in stride(from: 150.0, to: 700.0, by: 70.0).enumerated() {
+                let width: CGFloat = index % 3 == 2 ? 220 : 350
+                context.cgContext.addPath(UIBezierPath(roundedRect: CGRect(x: 26, y: y, width: width, height: 44), cornerRadius: 12).cgPath)
+                context.cgContext.fillPath()
+            }
+        }
+        return image.jpegData(compressionQuality: 0.9)!
     }
 
     private func jpeg(size: CGSize, number: Int) -> Data {

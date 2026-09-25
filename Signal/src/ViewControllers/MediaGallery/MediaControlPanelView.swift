@@ -155,7 +155,7 @@ class MediaControlPanelView: UIView {
     // This controls how large the bottom button is. Insets are added to 24x24 button icons.
     private static let buttonContentInset: CGFloat = if #available(iOS 26, *) { 10 } else { 8 }
     private lazy var buttonForwardMedia: UIButton = {
-        let configuration: UIButton.Configuration = if #available(iOS 26, *) { .glass() } else { .plain() }
+        let configuration: UIButton.Configuration = if #available(iOS 26, *) { TellomiViewerGlass.buttonConfiguration() } else { .plain() }
         let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
             self?.didPressForward()
         })
@@ -166,7 +166,7 @@ class MediaControlPanelView: UIView {
     }()
 
     private lazy var buttonDeleteMedia: UIButton = {
-        let configuration: UIButton.Configuration = if #available(iOS 26, *) { .glass() } else { .plain() }
+        let configuration: UIButton.Configuration = if #available(iOS 26, *) { TellomiViewerGlass.buttonConfiguration() } else { .plain() }
         let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
             self?.didPressDelete()
         })
@@ -180,7 +180,7 @@ class MediaControlPanelView: UIView {
     }()
 
     private lazy var buttonPlaybackSpeed: UIButton = {
-        let configuration: UIButton.Configuration = if #available(iOS 26, *) { .glass() } else { .plain() }
+        let configuration: UIButton.Configuration = if #available(iOS 26, *) { TellomiViewerGlass.buttonConfiguration() } else { .plain() }
         let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
             self?.didPressPlaybackSpeed()
         })
@@ -226,9 +226,8 @@ class MediaControlPanelView: UIView {
     // Convenience method to create a "regular" glass effect that is interactive.
     @available(iOS 26, *)
     private func interactiveGlassEffect() -> UIVisualEffect? {
-        let glassEffect = UIGlassEffect(style: .regular)
-        glassEffect.isInteractive = true
-        return glassEffect
+        // Tellomi（#1257）：深色玻璃（TellomiViewerGlass）。
+        TellomiViewerGlass.effect()
     }
 
     // MARK: Layout
@@ -1185,6 +1184,7 @@ extension MediaControlPanelView {
     var progressViewForTesting: PlayerProgressView? { videoPlaybackProgressView }
     var scrubPreviewForTesting: MediaVideoScrubPreviewView { scrubPreview }
     var playbackSpeedButtonForTesting: UIButton { buttonPlaybackSpeed }
+    var deleteButtonForTesting: UIButton { buttonDeleteMedia }
     var playbackSpeedBadgeTextForTesting: String? {
         playbackSpeedBadge.isHidden ? nil : playbackSpeedBadge.text?.trimmingCharacters(in: .whitespaces)
     }
