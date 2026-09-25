@@ -5041,8 +5041,17 @@
 /* Placeholder of the caption field at the bottom of the photo picker. */
 "IMAGE_PICKER_TELLOMI_CAPTION_PLACEHOLDER" = "添加说明…";
 
+/* Undo bar in the photo picker after unselecting photos in the selected-only view. Embeds {{ number unselected }}. */
+"IMAGE_PICKER_TELLOMI_DESELECTED_FORMAT" = "已取消选择 %@ 张";
+
+/* Hint in the photo picker's selected-only view that the photos can be dragged to change their order. */
+"IMAGE_PICKER_TELLOMI_DRAG_TO_REORDER" = "拖动可调整顺序";
+
 /* Banner at the top of the photo picker when the user gave Tellomi access to only some photos. */
 "IMAGE_PICKER_TELLOMI_LIMITED_ACCESS" = "你已限制 Tellomi 访问照片。";
+
+/* Small label above the selected photos in the photo picker's selected-only view. */
+"IMAGE_PICKER_TELLOMI_MESSAGE_PREVIEW" = "消息预览";
 
 /* Accessibility label for the more-options button in the photo picker. */
 "IMAGE_PICKER_TELLOMI_MORE" = "更多选项";
@@ -5070,6 +5079,9 @@
 
 /* Photo picker more-menu item: send the selection right away in standard quality (this time only). */
 "IMAGE_PICKER_TELLOMI_SEND_STANDARD_QUALITY" = "以标准质量发送";
+
+/* Button in the photo picker's undo bar that puts unselected photos back. */
+"IMAGE_PICKER_TELLOMI_UNDO" = "撤销";
 
 /* Accessibility label for a video in the photo picker. Embeds {{ duration }}. */
 "IMAGE_PICKER_TELLOMI_VIDEO_FORMAT" = "视频，%@";

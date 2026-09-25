@@ -31,7 +31,8 @@ protocol TellomiPhotoPickerDelegate: AnyObject {
 ///
 /// - 顶栏（P-1、P-2）：左 ✕；一有选中，✕ 右边出现强调色胶囊「✓N」（高 44、数字等宽，缩放 + 淡入；照 Telegram `SelectedButtonNode`）；
 ///   中间「最近 ⌄」换相册；一有选中，右边出现「···」（P-5：以高清 / 标准质量发送、单独发送，点了立即发出）。
-///   「✓N」暂时进上游的预览编辑页，「只看已选」（P-3）下一刀做。
+///   点「✓N」切到「只看已选」（P-3，`TellomiPhotoPickerSelectedView`）：✕ 变返回、「✓N」与「最近 ⌄」隐藏；
+///   在那里取消的弹「已取消选择 N 张 · 撤销」（4 秒），全部取消自动回网格。
 /// - 网格（P-8）：竖屏 3 列、横屏 5 列、间距 1、正方形；编号勾、视频时长见 `TellomiPhotoPickerCell`；
 ///   横着滑过格子连续多选（照 Telegram `MediaPickerGridSelectionGesture` 的机制，见 `TellomiSwipeSelectGestureRecognizer`）。
 /// - 受限访问横幅（P-7）：「你已限制 Tellomi 访问照片。」+「管理」（选择更多照片… / 前往设置），在网格里、跟着网格滚走。
@@ -84,6 +85,21 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     /// 进上游预览页时每张附件对应网格里的哪一项：在那里删掉一张，网格里也取消勾选。
     private var editingItems = [(itemId: String, attachment: SignalAttachment)]()
 
+    /// P-3：网格还是「只看已选」。
+    enum DisplayMode {
+        case all
+        case selected
+    }
+
+    private(set) var displayMode = DisplayMode.all
+    private let chatBackground: UIView?
+    private let bubbleColor: ColorOrGradientValue?
+
+    /// 「只看已选」里取消的（按取消的先后，带原来的位置）：撤销时倒着放回原位。
+    private var undoableDeselections = [(item: TellomiPhotoPickerItem, index: Int)]()
+    private var undoTimer: Timer?
+    private static let undoDuration: TimeInterval = 4
+
     init(
         library: TellomiPhotoPickerLibrary,
         initialMessageBody: MessageBody?,
@@ -93,6 +109,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         attachmentLimits: OutgoingAttachmentLimits,
         approvalDataSource: AttachmentApprovalViewControllerDataSource,
         stickerSheetDelegate: StickerPickerSheetDelegate?,
+        chatBackground: UIView? = nil,
+        bubbleColor: ColorOrGradientValue? = nil,
         maxSelection: Int = SignalAttachment.maxAttachmentsAllowed,
     ) {
         self.library = library
@@ -103,6 +121,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         self.attachmentLimits = attachmentLimits
         self.approvalDataSource = approvalDataSource
         self.stickerSheetDelegate = stickerSheetDelegate
+        self.chatBackground = chatBackground
+        self.bubbleColor = bubbleColor
         self.maxSelection = maxSelection
         super.init()
     }
@@ -129,7 +149,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         configuration.image = Theme.iconImage(.checkmark).withRenderingMode(.alwaysTemplate)
         configuration.imagePadding = 2
         configuration.contentInsets = .init(top: 0, leading: 10, bottom: 0, trailing: 16)
-        let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in self?.openSelectionForEditing() })
+        let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in self?.showSelectedOnly() })
         button.isHidden = true
         return button
     }()
@@ -194,6 +214,22 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         return gesture
     }()
 
+    private lazy var selectedView: TellomiPhotoPickerSelectedView = {
+        let selectedView = TellomiPhotoPickerSelectedView(library: library, chatBackground: chatBackground, bubbleColor: bubbleColor)
+        selectedView.onDeselect = { [weak self] id in self?.deselectInSelectedView(id) }
+        selectedView.onOpen = { [weak self] _ in self?.openSelectionForEditing() }
+        selectedView.onReorder = { [weak self] ids in self?.applyReorder(ids) }
+        selectedView.isHidden = true
+        return selectedView
+    }()
+
+    private lazy var undoBar: TellomiPhotoPickerUndoBar = {
+        let undoBar = TellomiPhotoPickerUndoBar()
+        undoBar.onUndo = { [weak self] in self?.undoDeselections() }
+        undoBar.isHidden = true
+        return undoBar
+    }()
+
     private let sendBar = UIView()
     private let captionContainer = UIView()
     private let captionTextView = BodyRangesTextView()
@@ -222,7 +258,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
 
         setUpTopBar()
         setUpCollectionView()
+        setUpSelectedView()
         setUpSendBar()
+        view.addSubview(undoBar)
 
         library.onChange = { [weak self] in self?.reloadLibrary() }
         reloadLibrary()
@@ -235,6 +273,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         updateItemSize()
         // 说明框的高度要按排好之后的真实宽度算（一开始宽度是 0）。
         updateCaptionPlaceholderAndHeight()
+        layoutUndoBar()
     }
 
     private func setUpTopBar() {
@@ -283,6 +322,17 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+    }
+
+    private func setUpSelectedView() {
+        selectedView.translatesAutoresizingMaskIntoConstraints = false
+        view.insertSubview(selectedView, belowSubview: topBar)
+        NSLayoutConstraint.activate([
+            selectedView.topAnchor.constraint(equalTo: topBar.bottomAnchor),
+            selectedView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            selectedView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            selectedView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
 
@@ -486,6 +536,12 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         }
         refreshVisibleSelectionNumbers(animatedItemId: selected ? item.id : nil)
         updateSelectionChrome(animated: true)
+        if displayMode == .selected {
+            refreshSelectedView(animated: true)
+            if selectedIds.isEmpty {
+                returnToGridAfterLastDeselection()
+            }
+        }
         return true
     }
 
@@ -535,12 +591,13 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         isModalInPresentation = hasSelection
 
         let showMore = hasSelection && !moreMenuItems().isEmpty
-        let pillAppears = hasSelection && countPill.isHidden
+        let showPill = hasSelection && displayMode == .all
+        let pillAppears = showPill && countPill.isHidden
         let changes = {
-            self.countPill.isHidden = !hasSelection
+            self.countPill.isHidden = !showPill
             self.moreButton.isHidden = !showMore
             self.sendBar.isHidden = !hasSelection
-            self.countPill.alpha = hasSelection ? 1 : 0
+            self.countPill.alpha = showPill ? 1 : 0
             self.countPill.transform = .identity
         }
         if animated {
@@ -558,6 +615,136 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         let bottomInset = hasSelection ? max(0, sendBar.frame.height - view.safeAreaInsets.bottom) : 0
         collectionView.contentInset.bottom = bottomInset
         collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
+        selectedView.bottomInset = hasSelection ? sendBar.frame.height : view.safeAreaInsets.bottom
+        layoutUndoBar()
+    }
+
+    // MARK: - Selected only (P-3)
+
+    /// 点「✓N」：网格换成「只看已选」，✕ 变返回，「✓N」「最近 ⌄」隐藏。
+    private func showSelectedOnly() {
+        guard !selectedIds.isEmpty, displayMode == .all else { return }
+        displayMode = .selected
+        refreshSelectedView(animated: false)
+        selectedView.isHidden = false
+        selectedView.alpha = 0
+        UIView.animate(withDuration: 0.25, animations: {
+            self.selectedView.alpha = 1
+            self.collectionView.alpha = 0
+        }, completion: { _ in
+            if self.displayMode == .selected {
+                self.collectionView.isHidden = true
+            }
+        })
+        updateTopBarForDisplayMode()
+        updateSelectionChrome(animated: true)
+    }
+
+    /// 返回（或全取消了）：回到网格，编号按新的顺序。
+    private func showAll() {
+        guard displayMode == .selected else { return }
+        displayMode = .all
+        collectionView.isHidden = false
+        UIView.animate(withDuration: 0.25, animations: {
+            self.selectedView.alpha = 0
+            self.collectionView.alpha = 1
+        }, completion: { _ in
+            if self.displayMode == .all {
+                self.selectedView.isHidden = true
+            }
+        })
+        refreshVisibleSelectionNumbers(animatedItemId: nil)
+        updateTopBarForDisplayMode()
+        updateSelectionChrome(animated: true)
+    }
+
+    private func updateTopBarForDisplayMode() {
+        let isSelected = displayMode == .selected
+        closeButton.configuration?.image = isSelected ? UIImage(named: "chevron-left-26") : Theme.iconImage(.buttonX)
+        closeButton.accessibilityLabel = isSelected ? CommonStrings.backButton : CommonStrings.dismissButton
+        titleButton.isHidden = isSelected
+    }
+
+    private func refreshSelectedView(animated: Bool) {
+        selectedView.update(
+            items: selectedIds.compactMap { selectedItems[$0] },
+            caption: messageBodyForSending?.text,
+            animated: animated,
+        )
+    }
+
+    /// 「只看已选」里点了某张的勾：取消它，弹「已取消选择 N 张 · 撤销」。
+    private func deselectInSelectedView(_ itemId: String) {
+        guard let index = selectedIds.firstIndex(of: itemId), let item = selectedItems[itemId] else { return }
+        undoableDeselections.append((item, index))
+        setSelection(item: item, selected: false)
+        showUndoBar()
+    }
+
+    /// 同 Telegram：卡片先淡出，0.3 秒后回网格。
+    private func returnToGridAfterLastDeselection() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self, self.selectedIds.isEmpty else { return }
+            self.showAll()
+        }
+    }
+
+    /// 拖动排序：新的顺序就是发出去的顺序。
+    private func applyReorder(_ ids: [String]) {
+        guard Set(ids) == Set(selectedIds) else { return }
+        selectedIds = ids
+        refreshVisibleSelectionNumbers(animatedItemId: nil)
+    }
+
+    private func showUndoBar() {
+        undoBar.count = undoableDeselections.count
+        undoTimer?.invalidate()
+        undoTimer = Timer.scheduledTimer(withTimeInterval: Self.undoDuration, repeats: false) { [weak self] _ in
+            self?.hideUndoBar()
+        }
+        // 可能正在淡出（上一轮到时间了）：从当前透明度接着淡入。
+        if undoBar.isHidden {
+            undoBar.isHidden = false
+            undoBar.alpha = 0
+        }
+        layoutUndoBar()
+        UIView.animate(withDuration: 0.2, delay: 0, options: .beginFromCurrentState) { self.undoBar.alpha = 1 }
+    }
+
+    private func hideUndoBar() {
+        undoTimer?.invalidate()
+        undoTimer = nil
+        undoableDeselections.removeAll()
+        guard !undoBar.isHidden else { return }
+        UIView.animate(withDuration: 0.2, animations: { self.undoBar.alpha = 0 }, completion: { _ in
+            if self.undoableDeselections.isEmpty {
+                self.undoBar.isHidden = true
+            }
+        })
+    }
+
+    /// 撤销：倒着把取消的放回原来的位置（选满了就放不回去）。
+    private func undoDeselections() {
+        for (item, index) in undoableDeselections.reversed() {
+            guard selectionNumber(for: item.id) == nil, selectedIds.count < maxSelection else { continue }
+            selectedIds.insert(item.id, at: min(index, selectedIds.count))
+            selectedItems[item.id] = item
+        }
+        hideUndoBar()
+        refreshVisibleSelectionNumbers(animatedItemId: nil)
+        updateSelectionChrome(animated: true)
+        if displayMode == .selected {
+            refreshSelectedView(animated: true)
+        }
+    }
+
+    /// 撤销条在说明栏上面；说明栏收起了（全取消）就在屏幕底部。
+    private func layoutUndoBar() {
+        guard !undoBar.isHidden else { return }
+        let margins = view.layoutMargins
+        let height = TellomiPhotoPickerUndoBar.height
+        let bottom = sendBar.isHidden ? view.safeAreaLayoutGuide.layoutFrame.maxY : sendBar.frame.minY
+        undoBar.frame = CGRect(x: margins.left, y: bottom - 8 - height, width: view.bounds.width - margins.left - margins.right, height: height)
     }
 
     // MARK: - More menu (P-5)
@@ -693,6 +880,10 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     }
 
     private func didTapClose() {
+        if displayMode == .selected {
+            showAll()
+            return
+        }
         guard !selectedIds.isEmpty else {
             delegate?.photoPickerDidCancel(self)
             return
@@ -773,6 +964,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     func textViewDidChange(_ textView: UITextView) {
         updateCaptionPlaceholderAndHeight()
         delegate?.photoPicker(self, didChangeMessageBody: captionTextView.messageBodyForSending)
+        if displayMode == .selected {
+            refreshSelectedView(animated: false)
+        }
     }
 
     // MARK: - AttachmentApprovalViewControllerDelegate（点照片进的上游预览 / 编辑页）
@@ -793,6 +987,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         captionTextView.setMessageBody(newMessageBody, txProvider: DependenciesBridge.shared.db.readTxProvider)
         updateCaptionPlaceholderAndHeight()
         delegate?.photoPicker(self, didChangeMessageBody: newMessageBody)
+        if displayMode == .selected {
+            refreshSelectedView(animated: false)
+        }
     }
 
     func attachmentApproval(_ attachmentApproval: AttachmentApprovalViewController, didChangeViewOnceState isViewOnce: Bool) {}
@@ -809,6 +1006,74 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
 
     func attachmentApprovalDidTapAddMore(_ attachmentApproval: AttachmentApprovalViewController) {
         dismiss(animated: true)
+    }
+}
+
+// MARK: - Undo bar (P-3)
+
+/// 「已取消选择 N 张 · 撤销」：深色圆角条，同 Telegram 的撤销提示（4 秒后自己消失）。
+private final class TellomiPhotoPickerUndoBar: UIView {
+
+    static let height: CGFloat = 48
+
+    var onUndo: (() -> Void)?
+
+    var count = 0 {
+        didSet {
+            label.text = String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString("IMAGE_PICKER_TELLOMI_DESELECTED_FORMAT", comment: "Undo bar in the photo picker after unselecting photos in the selected-only view. Embeds {{ number unselected }}."),
+                OWSFormat.formatInt(count),
+            )
+        }
+    }
+
+    private let label = UILabel()
+
+    private lazy var undoButton: UIButton = {
+        var configuration = UIButton.Configuration.plain()
+        configuration.title = OWSLocalizedString("IMAGE_PICKER_TELLOMI_UNDO", comment: "Button in the photo picker's undo bar that puts unselected photos back.")
+        configuration.baseForegroundColor = UIColor(rgbHex: 0x8AB4FF)
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = UIFont.dynamicTypeSubheadlineClamped.semibold()
+            return attributes
+        }
+        return UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in self?.onUndo?() })
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = UIColor(white: 0.12, alpha: 0.95)
+        layer.cornerRadius = 12
+
+        label.font = .dynamicTypeSubheadlineClamped
+        label.textColor = .white
+
+        let stack = UIStackView(arrangedSubviews: [label, undoButton])
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.directionalLayoutMargins = .init(top: 0, leading: 16, bottom: 0, trailing: 6)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+        label.setContentHuggingHorizontalLow()
+        undoButton.setContentHuggingPriority(.required, for: .horizontal)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    var textForTesting: String? { label.text }
+
+    func tapUndoForTesting() {
+        undoButton.sendActions(for: .primaryActionTriggered)
     }
 }
 
@@ -1035,12 +1300,13 @@ extension TellomiPhotoPickerViewController {
         perform(item)
     }
 
+    /// 这几个都走按钮本身的动作（不直接调内部方法），按钮接错了测试才会红。
     func tapCloseForTesting() {
-        didTapClose()
+        closeButton.sendActions(for: .primaryActionTriggered)
     }
 
     func tapSendForTesting() {
-        send(quality: defaultImageQuality, separately: false)
+        sendButton.sendActions(for: .primaryActionTriggered)
     }
 
     func switchAlbumForTesting(title: String) {
@@ -1063,6 +1329,31 @@ extension TellomiPhotoPickerViewController {
     }
 
     var isGridScrollEnabledForTesting: Bool { collectionView.isScrollEnabled }
+
+    var selectedViewForTesting: TellomiPhotoPickerSelectedView { selectedView }
+    var isTitleShownForTesting: Bool { !titleButton.isHidden }
+    var closeButtonAccessibilityLabelForTesting: String? { closeButton.accessibilityLabel }
+    var undoBarTextForTesting: String? { undoBar.isHidden ? nil : undoBar.textForTesting }
+    var undoBarFrameForTesting: CGRect { undoBar.frame }
+
+    func tapCountPillForTesting() {
+        countPill.sendActions(for: .primaryActionTriggered)
+    }
+
+    /// 在说明框里打了这些字。
+    func typeCaptionForTesting(_ text: String) {
+        captionTextView.setMessageBody(MessageBody(text: text, ranges: .empty), txProvider: DependenciesBridge.shared.db.readTxProvider)
+        textViewDidChange(captionTextView)
+    }
+
+    func tapUndoForTesting() {
+        undoBar.tapUndoForTesting()
+    }
+
+    /// 撤销条到时间了。
+    func expireUndoForTesting() {
+        hideUndoBar()
+    }
 }
 
 #endif

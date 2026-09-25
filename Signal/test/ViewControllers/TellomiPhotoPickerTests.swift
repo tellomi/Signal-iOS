@@ -419,6 +419,240 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(Set(timestamps).count, 3)
     }
 
+    // MARK: - P-3 只看已选
+
+    /// 点「✓N」：网格换成「只看已选」——✕ 变返回、「✓N」「最近 ⌄」隐藏，「···」和说明栏照旧；顶部「消息预览」「拖动可调整顺序」；
+    /// 卡片按勾的顺序、编号 1…N，行高与每张的宽照聊天里的相册（AlbumCarouselGeometry，放得下时靠右）；有说明时下面一个靠右的气泡；
+    /// 铺的是会话的聊天背景。返回回到网格（不是关闭）。
+    @MainActor
+    func testCountPillShowsSelectedOnlyPreview() async throws {
+        let background = UIView()
+        background.backgroundColor = .systemTeal
+        let hosted = host(initialText: "今天的照片", chatBackground: background)
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        for index in [3, 0, 5] {
+            picker.tapCheckForTesting(itemIndex: index)
+        }
+
+        picker.tapCountPillForTesting()
+        XCTAssertEqual(picker.displayMode, .selected)
+        XCTAssertFalse(picker.isCountPillShownForTesting)
+        XCTAssertFalse(picker.isTitleShownForTesting)
+        XCTAssertEqual(picker.closeButtonAccessibilityLabelForTesting, CommonStrings.backButton)
+        XCTAssertTrue(picker.isMoreButtonShownForTesting)
+        XCTAssertTrue(picker.isSendBarShownForTesting)
+
+        let preview = picker.selectedViewForTesting
+        preview.layoutIfNeeded()
+        XCTAssertTrue(preview.backgroundViewForTesting === background, "铺会话的聊天背景")
+        XCTAssertEqual(preview.chipTextsForTesting, ["Message Preview", "Drag to reorder"])
+        XCTAssertEqual(preview.cardIdsForTesting, ["r3", "r0", "r5"])
+        XCTAssertEqual(preview.cardNumbersForTesting, ["1", "2", "3"])
+
+        let expected = AlbumCarouselGeometry.layout(
+            viewportWidth: 402,
+            startInset: 16,
+            endMargin: AlbumCarouselGeometry.endMargin,
+            spacing: AlbumCarouselGeometry.itemSpacing,
+            minNextPeek: AlbumCarouselGeometry.nextItemMinPeek,
+            rowHeight: AlbumCarouselGeometry.rowHeight(screenWidth: 402, screenHeight: 874, capByScreenHeight: false),
+            aspectRatios: [3, 0, 5].map { AlbumCarouselGeometry.aspectRatio(FakePhotoLibrary.pixelSizes[$0 % FakePhotoLibrary.pixelSizes.count]) },
+            alignEndWhenFits: true,
+        )
+        XCTAssertEqual(preview.rowLayoutForTesting, expected, "按真实发出的样子：同聊天里的横滑相册")
+        XCTAssertEqual(preview.cardFramesForTesting, (0..<3).map { expected.itemFrame($0) })
+        XCTAssertEqual(preview.captionBubbleTextForTesting, "今天的照片")
+        XCTAssertEqual(preview.captionBubbleFrameForTesting.maxX, 402 - AlbumCarouselGeometry.endMargin, accuracy: 0.01, "说明气泡靠右")
+        XCTAssertGreaterThan(preview.captionBubbleFrameForTesting.minY, preview.rowFrameForTesting.maxY, "说明在那一行下面")
+
+        picker.typeCaptionForTesting("改过的说明")
+        XCTAssertEqual(preview.captionBubbleTextForTesting, "改过的说明", "说明改了，预览跟着变")
+        XCTAssertEqual(hosted.delegate.bodies.last??.text, "改过的说明", "会话输入框也跟着变")
+
+        picker.tapCloseForTesting()
+        XCTAssertEqual(picker.displayMode, .all)
+        XCTAssertTrue(picker.isCountPillShownForTesting)
+        XCTAssertTrue(picker.isTitleShownForTesting)
+        XCTAssertEqual(picker.closeButtonAccessibilityLabelForTesting, CommonStrings.dismissButton)
+        XCTAssertEqual(hosted.delegate.cancels, 0, "返回不是关闭")
+    }
+
+    /// 只选一张：只有「消息预览」，没有「拖动可调整顺序」，也拿不起来排序；卡片靠右（同自己发的单张）。
+    @MainActor
+    func testSingleSelectionPreviewHasNoDragHint() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        hosted.picker.tapCheckForTesting(itemIndex: 2)
+        hosted.picker.tapCountPillForTesting()
+        let preview = hosted.picker.selectedViewForTesting
+        preview.layoutIfNeeded()
+
+        XCTAssertEqual(preview.chipTextsForTesting, ["Message Preview"])
+        XCTAssertNil(preview.captionBubbleTextForTesting, "没有说明就没有气泡")
+        let card = try XCTUnwrap(preview.cardFramesForTesting.first)
+        XCTAssertEqual(card.maxX, 402 - AlbumCarouselGeometry.endMargin, accuracy: 0.01)
+        XCTAssertFalse(preview.beginReorder(at: try XCTUnwrap(preview.cardCenterForTesting("r2"))))
+    }
+
+    /// 长按 0.3 秒拖动排序：拿起的那张跟着手指，越过别的卡片就换位，松手放下；新的顺序就是发出去的顺序（编号、网格、发送都照它）。
+    @MainActor
+    func testLongPressDragReordersSelection() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        for index in [3, 0, 5] {
+            picker.tapCheckForTesting(itemIndex: index)
+        }
+        picker.tapCountPillForTesting()
+        let preview = picker.selectedViewForTesting
+        preview.layoutIfNeeded()
+        XCTAssertEqual(preview.reorderPressDurationForTesting, 0.3, accuracy: 0.001)
+
+        let start = try XCTUnwrap(preview.cardCenterForTesting("r3"))
+        XCTAssertTrue(preview.beginReorder(at: start))
+        XCTAssertTrue(preview.isReorderingForTesting)
+        let over = try XCTUnwrap(preview.cardCenterForTesting("r0"))
+        preview.moveReorder(to: CGPoint(x: over.x + 20, y: start.y + 30))
+        XCTAssertEqual(preview.cardIdsForTesting, ["r0", "r3", "r5"])
+        XCTAssertEqual(preview.cardNumbersForTesting, ["1", "2", "3"])
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r0", "r3", "r5"], "排序就是发出去的顺序")
+        preview.endReorder()
+        XCTAssertFalse(preview.isReorderingForTesting)
+
+        picker.tapCloseForTesting()
+        picker.collectionViewForTesting.layoutIfNeeded()
+        XCTAssertEqual(picker.cellForTesting(itemIndex: 0)?.numberTextForTesting, "1")
+        XCTAssertEqual(picker.cellForTesting(itemIndex: 3)?.numberTextForTesting, "2")
+        XCTAssertEqual(picker.cellForTesting(itemIndex: 5)?.numberTextForTesting, "3")
+
+        picker.tapSendForTesting()
+        let sent = try await nextSend(hosted, count: 1)
+        XCTAssertEqual(hosted.library.ids(of: sent.approved), ["r0", "r3", "r5"])
+    }
+
+    /// 拖到这一行的右端附近：整行自动往右滚，拿着的那张跟着往后排。
+    @MainActor
+    func testDragNearTheEndAutoScrollsTheRow() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        for index in [3, 0, 5, 9, 6] {
+            picker.tapCheckForTesting(itemIndex: index)
+        }
+        picker.tapCountPillForTesting()
+        let preview = picker.selectedViewForTesting
+        preview.layoutIfNeeded()
+        XCTAssertEqual(preview.rowLayoutForTesting?.isScrollable, true)
+
+        let start = try XCTUnwrap(preview.cardCenterForTesting("r3"))
+        XCTAssertTrue(preview.beginReorder(at: start))
+        preview.moveReorder(to: CGPoint(x: preview.rowFrameForTesting.maxX - 10, y: start.y))
+        for _ in 0..<120 {
+            preview.autoScrollTick()
+        }
+        XCTAssertGreaterThan(preview.rowContentOffsetForTesting, 0, "整行往右滚了")
+        XCTAssertEqual(preview.cardIdsForTesting.last, "r3", "拿着的那张一路排到最后")
+        preview.endReorder()
+        XCTAssertEqual(picker.selectedIdsForTesting.last, "r3")
+    }
+
+    /// 这一行松手吸附同聊天里的相册（某一张的左边对齐起点）。
+    @MainActor
+    func testPreviewRowSnapsLikeTheChatAlbum() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        for index in [3, 0, 5, 9] {
+            hosted.picker.tapCheckForTesting(itemIndex: index)
+        }
+        hosted.picker.tapCountPillForTesting()
+        let preview = hosted.picker.selectedViewForTesting
+        preview.layoutIfNeeded()
+        let layout = try XCTUnwrap(preview.rowLayoutForTesting)
+
+        XCTAssertEqual(preview.scrollViewWillEndDraggingForTesting(projectedOffset: layout.snapOffsets[1] + 30, velocity: 0), layout.snapOffsets[1])
+        XCTAssertEqual(preview.scrollViewWillEndDraggingForTesting(projectedOffset: 10, velocity: 1), layout.snapOffsets[1], "往右甩至少走一格")
+    }
+
+    /// 在「只看已选」里点某张的勾：取消它，说明栏上面弹「已取消选择 N 张 · 撤销」；再取消一张数字累加；撤销把它们放回原来的位置。
+    @MainActor
+    func testDeselectInPreviewOffersUndo() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        for index in [3, 0, 5] {
+            picker.tapCheckForTesting(itemIndex: index)
+        }
+        picker.tapCountPillForTesting()
+        let preview = picker.selectedViewForTesting
+        preview.layoutIfNeeded()
+
+        preview.tapCheckForTesting("r0")
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r3", "r5"])
+        XCTAssertEqual(picker.undoBarTextForTesting, "1 deselected")
+        XCTAssertEqual(picker.undoBarFrameForTesting.maxY, picker.sendBarFrameForTesting.minY - 8, accuracy: 0.01, "在说明栏上面")
+
+        preview.tapCheckForTesting("r5")
+        XCTAssertEqual(picker.undoBarTextForTesting, "2 deselected")
+        XCTAssertEqual(preview.cardIdsForTesting, ["r3"])
+        XCTAssertEqual(preview.chipTextsForTesting, ["Message Preview"], "只剩一张就不提示拖动")
+
+        picker.tapUndoForTesting()
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r3", "r0", "r5"], "放回原来的位置")
+        XCTAssertEqual(preview.cardIdsForTesting, ["r3", "r0", "r5"])
+        let hidden = await waitUntil { picker.undoBarTextForTesting == nil }
+        XCTAssertTrue(hidden)
+
+        preview.tapCheckForTesting("r3")
+        picker.expireUndoForTesting()
+        picker.tapUndoForTesting()
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r0", "r5"], "过了时间就不能撤销")
+    }
+
+    /// 全部取消：自动回网格（撤销条还在，说明栏收起）；这时撤销，选中的回来、留在网格。
+    @MainActor
+    func testDeselectingEverythingReturnsToTheGrid() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        picker.tapCheckForTesting(itemIndex: 2)
+        picker.tapCountPillForTesting()
+        picker.selectedViewForTesting.layoutIfNeeded()
+
+        picker.selectedViewForTesting.tapCheckForTesting("r2")
+        XCTAssertEqual(picker.selectedIdsForTesting, [])
+        let back = await waitUntil { picker.displayMode == .all }
+        XCTAssertTrue(back, "全部取消自动回网格")
+        XCTAssertEqual(picker.undoBarTextForTesting, "1 deselected")
+        XCTAssertFalse(picker.isSendBarShownForTesting)
+
+        picker.tapUndoForTesting()
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r2"])
+        XCTAssertEqual(picker.displayMode, .all, "撤销后留在网格")
+        XCTAssertTrue(picker.isCountPillShownForTesting)
+    }
+
+    /// 点卡片本身：进上游预览 / 编辑页；在那里取消，回到「只看已选」。
+    @MainActor
+    func testTapCardOpensTheUpstreamEditor() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        picker.tapCheckForTesting(itemIndex: 3)
+        picker.tapCheckForTesting(itemIndex: 0)
+        picker.tapCountPillForTesting()
+        picker.selectedViewForTesting.layoutIfNeeded()
+
+        picker.selectedViewForTesting.tapCardForTesting("r0")
+        let opened = await waitUntil { self.approvalViewController(over: picker) != nil }
+        XCTAssertTrue(opened)
+        picker.attachmentApprovalDidCancel()
+        let closed = await waitUntil { picker.presentedViewController == nil }
+        XCTAssertTrue(closed)
+        XCTAssertEqual(picker.displayMode, .selected, "取消回到「只看已选」")
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r3", "r0"])
+    }
+
     // MARK: - 截图
 
     @MainActor
@@ -447,6 +681,25 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             try await settle()
             try save(render(limited.window), name: "picker-3-limited.png", width: width)
             limited.tearDown()
+
+            let preview = host(width: width, height: height, initialText: "今天的照片", chatBackground: Self.shotChatBackground())
+            for index in [3, 0, 5, 9] {
+                preview.picker.tapCheckForTesting(itemIndex: index)
+            }
+            preview.picker.tapCountPillForTesting()
+            try await settle()
+            try save(render(preview.window), name: "picker-5-selected-preview.png", width: width)
+            let view = preview.picker.selectedViewForTesting
+            if let start = view.cardCenterForTesting("r3"), view.beginReorder(at: start) {
+                view.moveReorder(to: CGPoint(x: start.x + 60, y: start.y + 24))
+                try await settle()
+                try save(render(preview.window), name: "picker-6-reordering.png", width: width)
+                view.endReorder()
+            }
+            view.tapCheckForTesting("r0")
+            try await settle()
+            try save(render(preview.window), name: "picker-7-undo.png", width: width)
+            preview.tearDown()
 
             let landscape = host(width: height, height: width)
             landscape.picker.tapCheckForTesting(itemIndex: 2)
@@ -479,6 +732,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         canSendSeparately: Bool = true,
         maxSelection: Int = 32,
         initialText: String? = nil,
+        chatBackground: UIView? = nil,
     ) -> Hosted {
         let delegate = RecordingPickerDelegate()
         let dataSource = FakeApprovalDataSource()
@@ -491,6 +745,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             attachmentLimits: .currentLimits(),
             approvalDataSource: dataSource,
             stickerSheetDelegate: nil,
+            chatBackground: chatBackground,
             maxSelection: maxSelection,
         )
         picker.delegate = delegate
@@ -501,6 +756,17 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         window.layoutIfNeeded()
         picker.collectionViewForTesting.layoutIfNeeded()
         return Hosted(window: window, picker: picker, delegate: delegate, dataSource: dataSource, library: library)
+    }
+
+    /// 截图用的「聊天背景」：一张浅色渐变（真机上是会话的壁纸）。
+    @MainActor
+    private static func shotChatBackground() -> UIView {
+        let view = UIView()
+        let gradient = CAGradientLayer()
+        gradient.colors = [UIColor(rgbHex: 0xDCE8F5).cgColor, UIColor(rgbHex: 0xF3E7F0).cgColor]
+        gradient.frame = CGRect(x: 0, y: 0, width: 1000, height: 1000)
+        view.layer.addSublayer(gradient)
+        return view
     }
 
     @MainActor
@@ -588,6 +854,16 @@ private final class FakePhotoLibrary: TellomiPhotoPickerLibrary {
     let recents: [TellomiPhotoPickerItem]
     let screenshots: [TellomiPhotoPickerItem]
 
+    /// 各种比例轮着来：横 4:3、竖 3:4、方、宽 16:9、窄 9:16、3:2。
+    static let pixelSizes = [
+        CGSize(width: 4032, height: 3024),
+        CGSize(width: 3024, height: 4032),
+        CGSize(width: 2000, height: 2000),
+        CGSize(width: 1920, height: 1080),
+        CGSize(width: 1080, height: 1920),
+        CGSize(width: 3000, height: 2000),
+    ]
+
     /// 交出去的附件，按网格里的 id（用来核对发送顺序）。
     private(set) var attachmentsById = [String: PreviewableAttachment]()
 
@@ -598,11 +874,12 @@ private final class FakePhotoLibrary: TellomiPhotoPickerLibrary {
                 isVideo: index == 1 || index == 7,
                 duration: index == 1 ? 75 : 3_725,
                 isLivePhoto: index == 2,
+                pixelSize: Self.pixelSizes[index % Self.pixelSizes.count],
                 asset: nil,
             )
         }
         screenshots = (0..<3).map { index in
-            TellomiPhotoPickerItem(id: "s\(index)", isVideo: false, duration: 0, isLivePhoto: false, asset: nil)
+            TellomiPhotoPickerItem(id: "s\(index)", isVideo: false, duration: 0, isLivePhoto: false, pixelSize: CGSize(width: 1170, height: 2532), asset: nil)
         }
     }
 
