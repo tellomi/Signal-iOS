@@ -543,8 +543,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
 
     // MARK: - P-3 只看已选
 
-    /// 点「✓N」：网格换成「只看已选」——✕ 变返回、「✓N」「最近 ⌄」隐藏，「···」和说明栏照旧；顶部「消息预览」「拖动可调整顺序」；
-    /// 卡片按勾的顺序、编号 1…N，行高与每张的宽照聊天里的相册（AlbumCarouselGeometry，放得下时靠右）；有说明时下面一个靠右的气泡；
+    /// 点「✓N」：网格换成「只看已选」——✕ 变返回、「✓N」「最近 ⌄」隐藏，「···」和说明栏照旧；顶部只有「拖动可调整顺序」（没有「消息预览」）；
+    /// 卡片按勾的顺序、编号 1…N，行高与每张的宽照 AlbumCarouselGeometry（放得下时靠右）；有说明时下面一个靠右的气泡；
     /// 铺的是会话的聊天背景。返回回到网格（不是关闭）。
     @MainActor
     func testCountPillShowsSelectedOnlyPreview() async throws {
@@ -568,7 +568,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         let preview = picker.selectedViewForTesting
         preview.layoutIfNeeded()
         XCTAssertTrue(preview.backgroundViewForTesting === background, "铺会话的聊天背景")
-        XCTAssertEqual(preview.chipTextsForTesting, ["Message Preview", "Drag to reorder"])
+        XCTAssertEqual(preview.chipTextsForTesting, ["Drag to reorder"])
         XCTAssertEqual(preview.cardIdsForTesting, ["r3", "r0", "r5"])
         XCTAssertEqual(preview.cardNumbersForTesting, ["1", "2", "3"])
 
@@ -582,7 +582,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             aspectRatios: [3, 0, 5].map { AlbumCarouselGeometry.aspectRatio(FakePhotoLibrary.pixelSizes[$0 % FakePhotoLibrary.pixelSizes.count]) },
             alignEndWhenFits: true,
         )
-        XCTAssertEqual(preview.rowLayoutForTesting, expected, "按真实发出的样子：同聊天里的横滑相册")
+        XCTAssertEqual(preview.rowLayoutForTesting, expected, "排序行的几何照 AlbumCarouselGeometry")
         XCTAssertEqual(preview.cardFramesForTesting, (0..<3).map { expected.itemFrame($0) })
         XCTAssertEqual(preview.captionBubbleTextForTesting, "今天的照片")
         XCTAssertEqual(preview.captionBubbleFrameForTesting.maxX, 402 - AlbumCarouselGeometry.endMargin, accuracy: 0.01, "说明气泡靠右")
@@ -600,7 +600,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(hosted.delegate.cancels, 0, "返回不是关闭")
     }
 
-    /// 只选一张：只有「消息预览」，没有「拖动可调整顺序」，也拿不起来排序；卡片靠右（同自己发的单张）。
+    /// 只选一张：没有「拖动可调整顺序」（顶部什么小字都没有），也拿不起来排序；卡片靠右。
     @MainActor
     func testSingleSelectionPreviewHasNoDragHint() async throws {
         let hosted = host()
@@ -610,7 +610,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         let preview = hosted.picker.selectedViewForTesting
         preview.layoutIfNeeded()
 
-        XCTAssertEqual(preview.chipTextsForTesting, ["Message Preview"])
+        XCTAssertEqual(preview.chipTextsForTesting, [])
         XCTAssertNil(preview.captionBubbleTextForTesting, "没有说明就没有气泡")
         let card = try XCTUnwrap(preview.cardFramesForTesting.first)
         XCTAssertEqual(card.maxX, 402 - AlbumCarouselGeometry.endMargin, accuracy: 0.01)
@@ -679,7 +679,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(picker.selectedIdsForTesting.last, "r3")
     }
 
-    /// 这一行松手吸附同聊天里的相册（某一张的左边对齐起点）。
+    /// 这一行松手吸附（AlbumCarouselGeometry：某一张的左边对齐起点）。
     @MainActor
     func testPreviewRowSnapsLikeTheChatAlbum() async throws {
         let hosted = host()
@@ -717,7 +717,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         preview.tapCheckForTesting("r5")
         XCTAssertEqual(picker.undoBarTextForTesting, "2 deselected")
         XCTAssertEqual(preview.cardIdsForTesting, ["r3"])
-        XCTAssertEqual(preview.chipTextsForTesting, ["Message Preview"], "只剩一张就不提示拖动")
+        XCTAssertEqual(preview.chipTextsForTesting, [], "只剩一张就不提示拖动")
 
         picker.tapUndoForTesting()
         XCTAssertEqual(picker.selectedIdsForTesting, ["r3", "r0", "r5"], "放回原来的位置")

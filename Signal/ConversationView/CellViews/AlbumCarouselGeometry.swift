@@ -7,6 +7,9 @@ import CoreGraphics
 
 /// Tellomi：多图横滑相册的几何（tellomi/tellomi#1257，需求 docs/product/specs/media-album-forward-picker.md C-2…C-6）。
 ///
+/// owner 2026-09-25：聊天里的横滑撤回（会挡住右滑返回），聊天仍是 Signal 原来的宫格；这套几何现在给选图面板
+/// 「只看已选」的排序行用（#1261），以后做动态（微博 / Threads / X 式）时的横滑图片也用它。
+///
 /// 一行横滑、整组同一个高度、每张按原比例；滑动区是整屏宽，静止时第一张的左边对齐「起点」，
 /// 松手停在「某一张的左边对齐起点」，滑到底最后一张右边对齐右边距。与 Android 的 `AlbumCarouselGeometry.kt` 同一套规则。
 ///
