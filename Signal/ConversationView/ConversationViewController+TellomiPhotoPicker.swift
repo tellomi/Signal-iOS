@@ -58,11 +58,13 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         openAttachmentKeyboard()
     }
 
-    /// 相机格：收起选图面板，走上游「+ → 相机」同一条路（自己问相机 / 麦克风权限，拍完在它自己的预览页里发）。
+    /// 相机格：走上游「+ → 相机」同一条路（自己问相机 / 麦克风权限，拍完在它自己的预览页里发），但盖在选图面板上面——
+    /// 同 Telegram（`ChatControllerOpenAttachmentMenu.openCamera` 把相机叠在附件菜单上）：取消只关相机、回到面板，已选都还在；
+    /// 在相机里发了照常发，发完会话页整个收起（面板里的已选不发，同 Telegram）。
     func photoPickerDidRequestCamera(_ picker: TellomiPhotoPickerViewController) {
-        dismiss(animated: true) { [weak self] in
-            self?.cameraButtonPressed()
-        }
+        let route = TellomiPickerCameraRoute(picker: picker, conversation: self)
+        picker.cameraRoute = route
+        tellomiTakePictureOrVideo(presenter: picker, sendMediaNavDelegate: route)
     }
 
     func photoPicker(
@@ -95,6 +97,50 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?) {
         guard hasViewWillAppearEverBegun, let inputToolbar else { return }
         inputToolbar.setMessageBody(messageBody, animated: false)
+    }
+}
+
+/// Tellomi（#1261 P-8）：从选图面板的相机格打开的相机，事件怎么走。
+/// 取消只关相机这一层、回到面板（面板接着取景）；发送、改说明、一次性查看都照会话页自己打开相机时的路子走（发完由会话页整个收起）。
+final class TellomiPickerCameraRoute: SendMediaNavDelegate {
+    private weak var picker: TellomiPhotoPickerViewController?
+    private weak var conversation: ConversationViewController?
+
+    init(picker: TellomiPhotoPickerViewController, conversation: ConversationViewController?) {
+        self.picker = picker
+        self.conversation = conversation
+    }
+
+    /// 只关相机（它自己 dismiss），面板留着；关完面板接着取景。
+    func closeCamera(_ camera: UIViewController) {
+        camera.dismiss(animated: true) { [weak picker] in
+            picker?.cameraDidClose()
+        }
+    }
+
+    func sendMediaNavDidCancel(_ sendMediaNavigationController: SendMediaNavigationController) {
+        closeCamera(sendMediaNavigationController)
+    }
+
+    func sendMediaNav(
+        _ sendMediaNavigationController: SendMediaNavigationController,
+        didApproveAttachments approvedAttachments: ApprovedAttachments,
+        messageBody: MessageBody?,
+    ) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didApproveAttachments: approvedAttachments, messageBody: messageBody)
+    }
+
+    func sendMediaNav(_ sendMediaNavigationController: SendMediaNavigationController, didFinishWithTextAttachment textAttachment: UnsentTextAttachment) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didFinishWithTextAttachment: textAttachment)
+    }
+
+    func sendMediaNav(_ sendMediaNavigationController: SendMediaNavigationController, didChangeMessageBody newMessageBody: MessageBody?) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didChangeMessageBody: newMessageBody)
+        picker?.updateCaptionFromCamera(newMessageBody)
+    }
+
+    func sendMediaNav(_ sendMediaNavigationController: SendMediaNavigationController, didChangeViewOnceState isViewOnce: Bool) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didChangeViewOnceState: isViewOnce)
     }
 }
 
