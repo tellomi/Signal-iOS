@@ -113,6 +113,9 @@ class MediaControlPanelView: UIView {
     private let videoPlayerControlsArea = UILayoutGuide()
     private(set) var videoPlaybackControlView: VideoPlaybackControlView?
     private var videoPlaybackProgressView: PlayerProgressView?
+
+    /// Tellomi（#1257）：正在拖进度条（播放中自动收起控件时，拖着不收；同 Telegram 的 isInteracting）。
+    var isScrubbingVideo: Bool { videoPlaybackProgressView?.isScrubbing ?? false }
     private var videoPlayerControlsConstraintsPortrait = [NSLayoutConstraint]()
     private var videoPlayerControlsConstraintsLandscape = [NSLayoutConstraint]()
 
