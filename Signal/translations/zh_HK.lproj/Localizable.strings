@@ -5056,9 +5056,6 @@
 /* Banner at the top of the photo picker when the user gave Tellomi access to only some photos. */
 "IMAGE_PICKER_TELLOMI_LIMITED_ACCESS" = "你已限制 Tellomi 存取相片。";
 
-/* Small label above the selected photos in the photo picker's selected-only view. */
-"IMAGE_PICKER_TELLOMI_MESSAGE_PREVIEW" = "訊息預覽";
-
 /* Accessibility label for the more-options button in the photo picker. */
 "IMAGE_PICKER_TELLOMI_MORE" = "更多選項";
 

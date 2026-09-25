@@ -5056,9 +5056,6 @@
 /* Banner at the top of the photo picker when the user gave Tellomi access to only some photos. */
 "IMAGE_PICKER_TELLOMI_LIMITED_ACCESS" = "You’ve limited Tellomi’s access to your photos.";
 
-/* Small label above the selected photos in the photo picker's selected-only view. */
-"IMAGE_PICKER_TELLOMI_MESSAGE_PREVIEW" = "Message Preview";
-
 /* Accessibility label for the more-options button in the photo picker. */
 "IMAGE_PICKER_TELLOMI_MORE" = "More options";
 

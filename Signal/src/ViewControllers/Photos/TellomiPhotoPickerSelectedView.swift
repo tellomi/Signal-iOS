@@ -9,9 +9,9 @@ import SignalUI
 /// Tellomi（tellomi/tellomi#1261 P-3）：点「✓N」之后，选图网格换成「只看已选」。
 ///
 /// 机制照 Telegram（iOS `MediaPickerSelectedListNode`、Android `ChatAttachAlertPhotoLayoutPreview`）：会话的聊天背景上，
-/// 顶部小字「消息预览」，≥ 2 张再加「拖动可调整顺序」，下面按真实发出的样子排——Tellomi 的多图是一行横滑（#1257），
-/// 所以这里就是那一行：`AlbumCarouselGeometry` 的行高、按原比例的宽、间距 8、圆角 18、放得下时靠右，松手吸附也照它；
-/// 有说明时下面再一个发出方向的气泡。
+/// ≥ 2 张时顶部小字「拖动可调整顺序」，下面一行卡片就是排序区（owner 2026-09-25 选 A：聊天里的相册改回 Signal 原来的宫格之后，
+/// 这里不再冒充「发出去的样子」，只管排顺序）：行用 `AlbumCarouselGeometry` 的行高、按原比例的宽、间距 8、圆角 18、放得下时靠右，
+/// 松手吸附也照它；有说明时下面再一个发出方向的气泡。
 /// - 长按 0.3 秒（同 Telegram）拖动排序，排序 = 发出去的顺序：拿起的那张跟着手指走，其它卡片实时让位，贴近两端时整行自动滚。
 /// - 每张右上角的编号勾：点了取消选择（「已取消选择 N 张 · 撤销」由选图页弹）；点卡片本身进上游预览 / 编辑页。
 ///
@@ -20,7 +20,6 @@ final class TellomiPhotoPickerSelectedView: UIView, UIScrollViewDelegate {
 
     private enum Metrics {
         static let topPadding: CGFloat = 16
-        static let chipSpacing: CGFloat = 8
         static let chipsToRow: CGFloat = 16
         static let rowToCaption: CGFloat = 6
         static let startInset: CGFloat = 16
@@ -41,7 +40,6 @@ final class TellomiPhotoPickerSelectedView: UIView, UIScrollViewDelegate {
 
     private let backgroundView: UIView
     private let contentScrollView = UIScrollView()
-    private let previewChip = TellomiPhotoPickerChip()
     private let dragHintChip = TellomiPhotoPickerChip()
     private let rowScrollView = UIScrollView()
     private let captionBubble = TellomiPhotoPickerCaptionBubble()
@@ -72,9 +70,7 @@ final class TellomiPhotoPickerSelectedView: UIView, UIScrollViewDelegate {
         contentScrollView.showsVerticalScrollIndicator = false
         addSubview(contentScrollView)
 
-        previewChip.text = OWSLocalizedString("IMAGE_PICKER_TELLOMI_MESSAGE_PREVIEW", comment: "Small label above the selected photos in the photo picker's selected-only view.")
         dragHintChip.text = OWSLocalizedString("IMAGE_PICKER_TELLOMI_DRAG_TO_REORDER", comment: "Hint in the photo picker's selected-only view that the photos can be dragged to change their order.")
-        contentScrollView.addSubview(previewChip)
         contentScrollView.addSubview(dragHintChip)
 
         rowScrollView.delegate = self
@@ -153,20 +149,17 @@ final class TellomiPhotoPickerSelectedView: UIView, UIScrollViewDelegate {
         guard width > 0 else { return }
 
         var y = Metrics.topPadding
-        previewChip.sizeToFit()
-        previewChip.center = CGPoint(x: width / 2, y: y + previewChip.bounds.height / 2)
-        y += previewChip.bounds.height
 
+        // 只有一张时没什么可排的，不提示。
         dragHintChip.isHidden = items.count < 2
         if !dragHintChip.isHidden {
-            y += Metrics.chipSpacing
             dragHintChip.sizeToFit()
             dragHintChip.center = CGPoint(x: width / 2, y: y + dragHintChip.bounds.height / 2)
             y += dragHintChip.bounds.height
         }
         y += Metrics.chipsToRow
 
-        // 行高同聊天里的相册（CVComponentBodyMedia.albumCarouselRowHeight）：按宽算，横屏与 iPad 再按屏高封顶。
+        // 行高用 AlbumCarouselGeometry：按宽算，横屏与 iPad 再按屏高封顶。
         let screenSize = window?.bounds.size ?? UIScreen.main.bounds.size
         let capByScreenHeight = screenSize.width > screenSize.height || UIDevice.current.userInterfaceIdiom == .pad
         let rowHeight = AlbumCarouselGeometry.rowHeight(screenWidth: width, screenHeight: screenSize.height, capByScreenHeight: capByScreenHeight)
@@ -217,7 +210,7 @@ final class TellomiPhotoPickerSelectedView: UIView, UIScrollViewDelegate {
         }
     }
 
-    // MARK: - UIScrollViewDelegate（一行横滑的吸附，同聊天里的相册）
+    // MARK: - UIScrollViewDelegate（这一行的吸附：AlbumCarouselGeometry）
 
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         guard scrollView === rowScrollView, let rowLayout else { return }
@@ -487,7 +480,7 @@ private final class TellomiPhotoPickerSelectedCard: UIView {
 
 // MARK: - Chip / caption bubble
 
-/// 「消息预览」「拖动可调整顺序」那样的小字胶囊（同会话里的日期标签，盖在聊天背景上）。
+/// 「拖动可调整顺序」那样的小字胶囊（同会话里的日期标签，盖在聊天背景上）。
 final class TellomiPhotoPickerChip: UIView {
 
     private let label = UILabel()
@@ -580,7 +573,7 @@ private final class TellomiPhotoPickerCaptionBubble: UIView {
 
 extension TellomiPhotoPickerSelectedView {
     var chipTextsForTesting: [String] {
-        [previewChip, dragHintChip].filter { !$0.isHidden }.compactMap(\.text)
+        [dragHintChip].filter { !$0.isHidden }.compactMap(\.text)
     }
 
     var cardIdsForTesting: [String] { items.map(\.id) }
