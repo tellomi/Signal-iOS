@@ -487,6 +487,7 @@
 		34A4D8832677C59400A794E7 /* ConversationViewController+Misc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A4D8822677C59300A794E7 /* ConversationViewController+Misc.swift */; };
 		34A4D8852677DF6B00A794E7 /* ConversationViewController+ConversationInputToolbarDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A4D8842677DF6B00A794E7 /* ConversationViewController+ConversationInputToolbarDelegate.swift */; };
 		E5CD5A4B793DCA20F239035D /* ConversationViewController+TellomiPhotoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91184E3A21BA97BB3C3D2AC3 /* ConversationViewController+TellomiPhotoPicker.swift */; };
+		DD83D26F2B1155DE0617174E /* ConversationViewController+TellomiFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDBE644EE702B83DAF0CC93D /* ConversationViewController+TellomiFiles.swift */; };
 		34A4D8872678F24300A794E7 /* ConversationViewController+Delegates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A4D8862678F24300A794E7 /* ConversationViewController+Delegates.swift */; };
 		34A4D8892679296600A794E7 /* ConversationViewController+UIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A4D8882679296600A794E7 /* ConversationViewController+UIScrollView.swift */; };
 		34A4D88B26795AF800A794E7 /* ConversationViewController+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A4D88A26795AF800A794E7 /* ConversationViewController+UI.swift */; };
@@ -497,6 +498,7 @@
 		494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */; };
 		3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */; };
 		3127CA830877399B6F32FAA9 /* TellomiPhotoPickerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7395A91DCF7C0E057F379F3B /* TellomiPhotoPickerTests.swift */; };
+		F3518B1F897D0F10D352F91C /* TellomiAttachmentFilesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DEA00574736BBE816D6CAC /* TellomiAttachmentFilesTests.swift */; };
 		C32B37A061F91F34FE339395 /* AlbumCarouselGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */; };
 		34A954B2271A471300B05242 /* SignalUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; };
 		34A954BD271A471300B05242 /* SignalUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; };
@@ -1748,6 +1750,12 @@
 		88A505FA23DBA1360005C012 /* IntroducingPINsMegaphone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A505F923DBA1360005C012 /* IntroducingPINsMegaphone.swift */; };
 		88A941992409A391000E9700 /* LottieToggleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A941982409A391000E9700 /* LottieToggleButton.swift */; };
 		88A9729222FA5D4B004B4FBF /* AttachmentFormatPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A9729122FA5D4B004B4FBF /* AttachmentFormatPickerView.swift */; };
+		704D7F5E1343417E818B6A8F /* TellomiScannedDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B85C8E3CB9FBF6A0AE3B43C /* TellomiScannedDocument.swift */; };
+		3587922E7C45A8B2B5F3DF52 /* TellomiRecentFilesDatabaseSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8395664094170BF01E1BD550 /* TellomiRecentFilesDatabaseSource.swift */; };
+		5CE7E2EDA57094378B020DF4 /* TellomiAttachmentFilesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DBFB4871F0C17176FDF3DE2 /* TellomiAttachmentFilesViewController.swift */; };
+		050E5D1AE683F2E88C7A1C21 /* TellomiAttachmentSheetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00DB1A1EA26FEC3D46DE4784 /* TellomiAttachmentSheetController.swift */; };
+		C92DC1FB7E3BC05DF994ED29 /* TellomiRecentFileCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D474684F6FD03D4E8E524 /* TellomiRecentFileCell.swift */; };
+		A1852FFCCB5AD1A3EB713F85 /* TellomiFileTypeIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC115CC0CA5B9F692122B4D /* TellomiFileTypeIcon.swift */; };
 		88A9729422FB4D02004B4FBF /* LocationPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A9729322FB4D02004B4FBF /* LocationPicker.swift */; };
 		88B00D4B28A32DB600BC9CA0 /* StoryGroupReplyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B00D4A28A32DB600BC9CA0 /* StoryGroupReplyViewController.swift */; };
 		88B00D4D28A3346100BC9CA0 /* StoryViewsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B00D4C28A3346000BC9CA0 /* StoryViewsViewController.swift */; };
@@ -4710,6 +4718,7 @@
 		34A4D8822677C59300A794E7 /* ConversationViewController+Misc.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+Misc.swift"; sourceTree = "<group>"; };
 		34A4D8842677DF6B00A794E7 /* ConversationViewController+ConversationInputToolbarDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+ConversationInputToolbarDelegate.swift"; sourceTree = "<group>"; };
 		91184E3A21BA97BB3C3D2AC3 /* ConversationViewController+TellomiPhotoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+TellomiPhotoPicker.swift"; sourceTree = "<group>"; };
+		EDBE644EE702B83DAF0CC93D /* ConversationViewController+TellomiFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+TellomiFiles.swift"; sourceTree = "<group>"; };
 		34A4D8862678F24300A794E7 /* ConversationViewController+Delegates.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+Delegates.swift"; sourceTree = "<group>"; };
 		34A4D8882679296600A794E7 /* ConversationViewController+UIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+UIScrollView.swift"; sourceTree = "<group>"; };
 		34A4D88A26795AF800A794E7 /* ConversationViewController+UI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+UI.swift"; sourceTree = "<group>"; };
@@ -4720,6 +4729,7 @@
 		5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumCarouselGeometryTest.swift; sourceTree = "<group>"; };
 		8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumViewerScreenshotTests.swift; sourceTree = "<group>"; };
 		7395A91DCF7C0E057F379F3B /* TellomiPhotoPickerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiPhotoPickerTests.swift; sourceTree = "<group>"; };
+		27DEA00574736BBE816D6CAC /* TellomiAttachmentFilesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiAttachmentFilesTests.swift; sourceTree = "<group>"; };
 		DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumCarouselGeometry.swift; sourceTree = "<group>"; };
 		34A954A8271A471200B05242 /* SignalUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SignalUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		34A954B1271A471300B05242 /* SignalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -6108,6 +6118,12 @@
 		88A695BC232C18DF002F7B9B /* AudioWaveformProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioWaveformProgressView.swift; sourceTree = "<group>"; };
 		88A941982409A391000E9700 /* LottieToggleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieToggleButton.swift; sourceTree = "<group>"; };
 		88A9729122FA5D4B004B4FBF /* AttachmentFormatPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentFormatPickerView.swift; sourceTree = "<group>"; };
+		4B85C8E3CB9FBF6A0AE3B43C /* TellomiScannedDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiScannedDocument.swift; sourceTree = "<group>"; };
+		8395664094170BF01E1BD550 /* TellomiRecentFilesDatabaseSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiRecentFilesDatabaseSource.swift; sourceTree = "<group>"; };
+		9DBFB4871F0C17176FDF3DE2 /* TellomiAttachmentFilesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiAttachmentFilesViewController.swift; sourceTree = "<group>"; };
+		00DB1A1EA26FEC3D46DE4784 /* TellomiAttachmentSheetController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiAttachmentSheetController.swift; sourceTree = "<group>"; };
+		B42D474684F6FD03D4E8E524 /* TellomiRecentFileCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiRecentFileCell.swift; sourceTree = "<group>"; };
+		DAC115CC0CA5B9F692122B4D /* TellomiFileTypeIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiFileTypeIcon.swift; sourceTree = "<group>"; };
 		88A9729322FB4D02004B4FBF /* LocationPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPicker.swift; sourceTree = "<group>"; };
 		88ABAB8A25B8B3CC0008C78A /* ColorAndWallpaperSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorAndWallpaperSettingsViewController.swift; sourceTree = "<group>"; };
 		88ABAB8C25B8BE1E0008C78A /* SetWallpaperViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetWallpaperViewController.swift; sourceTree = "<group>"; };
@@ -9095,6 +9111,7 @@
 				34A4D8802677B2AB00A794E7 /* ConversationViewController+Calls.swift */,
 				34A4D8842677DF6B00A794E7 /* ConversationViewController+ConversationInputToolbarDelegate.swift */,
 				91184E3A21BA97BB3C3D2AC3 /* ConversationViewController+TellomiPhotoPicker.swift */,
+				EDBE644EE702B83DAF0CC93D /* ConversationViewController+TellomiFiles.swift */,
 				3470518D254B511B00A19468 /* ConversationViewController+CVC.swift */,
 				34A4D87C2677A1EF00A794E7 /* ConversationViewController+CVComponentDelegate.swift */,
 				34A4D8862678F24300A794E7 /* ConversationViewController+Delegates.swift */,
@@ -9684,6 +9701,7 @@
 				5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */,
 				8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */,
 				7395A91DCF7C0E057F379F3B /* TellomiPhotoPickerTests.swift */,
+				27DEA00574736BBE816D6CAC /* TellomiAttachmentFilesTests.swift */,
 				1700E33A28B5684C0073D949 /* MediaGallerySectionsTest.swift */,
 				50D879692A16D2C20031345D /* MessageLoaderBatchTest.swift */,
 				4C2A538B23C5462300D28CD8 /* MessageLoaderTest.swift */,
@@ -11455,6 +11473,12 @@
 			isa = PBXGroup;
 			children = (
 				88A9729122FA5D4B004B4FBF /* AttachmentFormatPickerView.swift */,
+				4B85C8E3CB9FBF6A0AE3B43C /* TellomiScannedDocument.swift */,
+				8395664094170BF01E1BD550 /* TellomiRecentFilesDatabaseSource.swift */,
+				9DBFB4871F0C17176FDF3DE2 /* TellomiAttachmentFilesViewController.swift */,
+				00DB1A1EA26FEC3D46DE4784 /* TellomiAttachmentSheetController.swift */,
+				B42D474684F6FD03D4E8E524 /* TellomiRecentFileCell.swift */,
+				DAC115CC0CA5B9F692122B4D /* TellomiFileTypeIcon.swift */,
 				8809CE8622F8FE6D00D38867 /* AttachmentKeyboard.swift */,
 				B9E02DEF2D974F2B00C9DDF8 /* LimitedPhotoPermissionsView.swift */,
 				8809CE8922F93C2200D38867 /* RecentPhotoCollectionView.swift */,
@@ -18486,6 +18510,12 @@
 				F9B3A92D293553930071EB95 /* ASWebAuthenticationSession+Util.swift in Sources */,
 				661AEE482C2088FD0046B1D8 /* AttachmentDownloadRetryRunner.swift in Sources */,
 				88A9729222FA5D4B004B4FBF /* AttachmentFormatPickerView.swift in Sources */,
+				704D7F5E1343417E818B6A8F /* TellomiScannedDocument.swift in Sources */,
+				3587922E7C45A8B2B5F3DF52 /* TellomiRecentFilesDatabaseSource.swift in Sources */,
+				5CE7E2EDA57094378B020DF4 /* TellomiAttachmentFilesViewController.swift in Sources */,
+				050E5D1AE683F2E88C7A1C21 /* TellomiAttachmentSheetController.swift in Sources */,
+				C92DC1FB7E3BC05DF994ED29 /* TellomiRecentFileCell.swift in Sources */,
+				A1852FFCCB5AD1A3EB713F85 /* TellomiFileTypeIcon.swift in Sources */,
 				8809CE8722F8FE6D00D38867 /* AttachmentKeyboard.swift in Sources */,
 				B99CD9452DB066740035C77B /* AttachmentSaving.swift in Sources */,
 				D954A5AE2D7BA9B200F61C36 /* AttachmentSharing.swift in Sources */,
@@ -18691,6 +18721,7 @@
 				34A4D8812677B2AB00A794E7 /* ConversationViewController+Calls.swift in Sources */,
 				34A4D8852677DF6B00A794E7 /* ConversationViewController+ConversationInputToolbarDelegate.swift in Sources */,
 				E5CD5A4B793DCA20F239035D /* ConversationViewController+TellomiPhotoPicker.swift in Sources */,
+				DD83D26F2B1155DE0617174E /* ConversationViewController+TellomiFiles.swift in Sources */,
 				3470518E254B511B00A19468 /* ConversationViewController+CVC.swift in Sources */,
 				34A4D87D2677A1EF00A794E7 /* ConversationViewController+CVComponentDelegate.swift in Sources */,
 				34A4D8872678F24300A794E7 /* ConversationViewController+Delegates.swift in Sources */,
@@ -19343,6 +19374,7 @@
 				494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */,
 				3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */,
 				3127CA830877399B6F32FAA9 /* TellomiPhotoPickerTests.swift in Sources */,
+				F3518B1F897D0F10D352F91C /* TellomiAttachmentFilesTests.swift in Sources */,
 				1700E33B28B5684C0073D949 /* MediaGallerySectionsTest.swift in Sources */,
 				50D8796A2A16D2C20031345D /* MessageLoaderBatchTest.swift in Sources */,
 				4C2A538C23C5462300D28CD8 /* MessageLoaderTest.swift in Sources */,

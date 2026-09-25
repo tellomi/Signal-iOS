@@ -105,16 +105,24 @@ extension ConversationViewController {
         )
         picker.delegate = self
 
+        // #1121：附件 Sheet 是个容器，dock 的「相册」「文件」在同一个 Sheet 里换页
+        let presented: UIViewController
         if asAttachmentSheet {
-            picker.modalPresentationStyle = .pageSheet
-            if let sheet = picker.sheetPresentationController {
+            let container = TellomiAttachmentSheetController(photoPicker: picker) { [weak self] in
+                self?.makeTellomiFilesPage() ?? UIViewController()
+            }
+            container.modalPresentationStyle = .pageSheet
+            if let sheet = container.sheetPresentationController {
                 Self.configureAttachmentSheet(sheet)
             }
+            presented = container
+        } else {
+            presented = picker
         }
 
         dismissKeyBoard()
         let presenter = splitViewController ?? self
-        presenter.present(picker, animated: true)
+        presenter.present(presented, animated: true)
     }
 }
 
@@ -125,9 +133,13 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         dismiss(animated: true)
     }
 
-    /// dock 的「文件 / 位置 / 投票 / 联系人」：先收起 Sheet，再走上游原来的流程（取消了会经 openAttachmentKeyboard 回到 Sheet）。
-    /// 「文件」页（#1121）做好之前先是上游的系统文件选择器。
+    /// dock 的「文件」：同一个 Sheet 里换到「文件」页（#1121）。
+    /// 「位置 / 投票 / 联系人」：先收起 Sheet，再走上游原来的流程（取消了会经 openAttachmentKeyboard 回到 Sheet）。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {
+        if item == .file, let container = picker.parent as? TellomiAttachmentSheetController {
+            container.show(.files)
+            return
+        }
         dismiss(animated: true) { [weak self] in
             guard let self else { return }
             switch item {
