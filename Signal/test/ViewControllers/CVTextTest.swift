@@ -631,3 +631,30 @@ class TellomiBubbleTailTest: XCTestCase {
         XCTAssertEqual(wrapper.tellomiSubviewOutsets, .zero)
     }
 }
+
+/// Tellomi（#1205，设计规范第 2 节）：「正在输入」气泡和对方的消息一样带尾巴，在对方那侧的下角；有壁纸时才带描边（和上游一样）。
+class TellomiTypingTailTest: XCTestCase {
+
+    func testTypingBubbleHasATailOnTheOtherPersonsSide() {
+        let ltr = CVComponentTypingIndicator.tellomiBubbleConfig(hasWallpaper: false, isDarkThemeEnabled: false, isRTL: false)
+        XCTAssertEqual(ltr.tail, BubbleConfiguration.Tail(isOnRight: false))
+        XCTAssertNil(ltr.stroke)
+
+        let rtl = CVComponentTypingIndicator.tellomiBubbleConfig(hasWallpaper: true, isDarkThemeEnabled: true, isRTL: true)
+        XCTAssertEqual(rtl.tail, BubbleConfiguration.Tail(isOnRight: true))
+        XCTAssertNotNil(rtl.stroke)
+    }
+
+    func testTypingBubbleOutlineIncludesTheTail() {
+        let config = CVComponentTypingIndicator.tellomiBubbleConfig(hasWallpaper: false, isDarkThemeEnabled: false, isRTL: false)
+        let rect = CGRect(x: 0, y: 0, width: 70 + BubbleConfiguration.Tail.extent, height: 36)
+        let path = config.bubblePath(for: rect)
+
+        // 尖端在左下、气泡本体外
+        XCTAssertTrue(path.contains(CGPoint(x: 3, y: 35.5)))
+        // 尾巴只有 14 高
+        XCTAssertFalse(path.contains(CGPoint(x: 3, y: 10)))
+        // 右下角照旧是胶囊的圆角
+        XCTAssertFalse(path.contains(CGPoint(x: rect.maxX - 1, y: 35)))
+    }
+}

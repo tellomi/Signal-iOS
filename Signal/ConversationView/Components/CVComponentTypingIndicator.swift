@@ -84,15 +84,13 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
         }
 
         let bubbleView: UIView
+        let bubbleConfig = Self.tellomiBubbleConfig(hasWallpaper: conversationStyle.hasWallpaper, isDarkThemeEnabled: isDarkThemeEnabled, isRTL: CurrentAppContext().isRTL)
         if conversationStyle.hasWallpaper {
             let wallpaperBlurView = componentView.ensureWallpaperBlurView()
             configureWallpaperBlurView(
                 wallpaperBlurView: wallpaperBlurView,
                 componentDelegate: componentDelegate,
-                bubbleConfig: BubbleConfiguration(
-                    corners: .capsule(),
-                    stroke: ConversationStyle.bubbleStroke(isDarkThemeEnabled: isDarkThemeEnabled),
-                ),
+                bubbleConfig: bubbleConfig,
             )
             bubbleView = wallpaperBlurView
         } else {
@@ -100,11 +98,18 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
             chatColorView.configure(
                 value: conversationStyle.bubbleChatColorIncoming,
                 referenceView: componentDelegate.view,
-                bubbleConfig: BubbleConfiguration(corners: .capsule()),
+                bubbleConfig: bubbleConfig,
             )
             bubbleView = chatColorView
         }
-        innerStackView.addSubviewToFillSuperviewEdges(bubbleView)
+        // Tellomi（#1205）：气泡视图在尾巴那一侧外扩 `Tail.extent`，尾巴画在这一条里；三个点的位置不变。
+        // ManualStackView 先排子视图、再跑布局块，所以这里设的 frame 不会被排版覆盖。
+        innerStackView.addSubview(bubbleView)
+        let outsets = bubbleConfig.tail?.contentInsets ?? .zero
+        innerStackView.addLayoutBlock { view in
+            let frame = view.bounds.inset(by: UIEdgeInsets(top: -outsets.top, left: -outsets.left, bottom: -outsets.bottom, right: -outsets.right))
+            ManualLayoutView.setSubviewFrame(subview: bubbleView, frame: frame)
+        }
 
         let typingIndicatorView = componentView.typingIndicatorView
         typingIndicatorView.configureForConversationView(cellMeasurement: cellMeasurement)
@@ -125,6 +130,16 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
             cellMeasurement: cellMeasurement,
             measurementKey: Self.measurementKey_outerStack,
             subviews: outerViews,
+        )
+    }
+
+    /// Tellomi（#1205，设计规范 `bubbles-and-motion-design.md` 第 2 节）：「正在输入」气泡和对方的消息一样带尾巴，在对方那侧的下角。
+    /// 它总是单独一条，所以总是画。
+    static func tellomiBubbleConfig(hasWallpaper: Bool, isDarkThemeEnabled: Bool, isRTL: Bool) -> BubbleConfiguration {
+        BubbleConfiguration(
+            corners: .capsule(),
+            stroke: hasWallpaper ? ConversationStyle.bubbleStroke(isDarkThemeEnabled: isDarkThemeEnabled) : nil,
+            tail: BubbleConfiguration.Tail(isOnRight: isRTL),
         )
     }
 
