@@ -40,6 +40,7 @@ extension ConversationViewController {
             // 「只看已选」（P-3）铺会话的聊天背景、说明气泡用会话的颜色。
             chatBackground: viewState.wallpaperViewBuilder?.build().asPreviewView(),
             bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
+            camera: TellomiSystemPickerCamera(),
         )
         picker.delegate = self
 
@@ -55,6 +56,13 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         // 同上游 sendMediaNavDidCancel：回到附件面板。
         dismiss(animated: true)
         openAttachmentKeyboard()
+    }
+
+    /// 相机格：收起选图面板，走上游「+ → 相机」同一条路（自己问相机 / 麦克风权限，拍完在它自己的预览页里发）。
+    func photoPickerDidRequestCamera(_ picker: TellomiPhotoPickerViewController) {
+        dismiss(animated: true) { [weak self] in
+            self?.cameraButtonPressed()
+        }
     }
 
     func photoPicker(

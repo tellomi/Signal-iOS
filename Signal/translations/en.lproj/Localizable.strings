@@ -5038,6 +5038,9 @@
 /* Toast when trying to select more photos than allowed. Embeds {{ the maximum }}. */
 "IMAGE_PICKER_TELLOMI_AT_MOST_FORMAT" = "You can select up to %@ items at a time";
 
+/* Accessibility label of the live camera cell at the start of the photo picker grid. */
+"IMAGE_PICKER_TELLOMI_CAMERA" = "Camera";
+
 /* Placeholder of the caption field at the bottom of the photo picker. */
 "IMAGE_PICKER_TELLOMI_CAPTION_PLACEHOLDER" = "Add a caption…";
 

@@ -13,6 +13,9 @@ protocol TellomiPhotoPickerDelegate: AnyObject {
     /// ✕（有选中时先确认）。
     func photoPickerDidCancel(_ picker: TellomiPhotoPickerViewController)
 
+    /// 点了「最近」第一格的相机（有选中时先确认）：打开相机。
+    func photoPickerDidRequestCamera(_ picker: TellomiPhotoPickerViewController)
+
     /// 发送：网格里直接发（P-10）、「···」里立即发（P-5），或从上游预览 / 编辑页发。
     /// 附件按勾的顺序；画质只管这一次（D9）；`separately` 时一张一条、说明挂最后一条。发完由接收方把面板收起。
     func photoPicker(
@@ -33,14 +36,15 @@ protocol TellomiPhotoPickerDelegate: AnyObject {
 ///   中间「最近 ⌄」换相册；一有选中，右边出现「···」（P-5：以高清 / 标准质量发送、单独发送，点了立即发出）。
 ///   点「✓N」切到「只看已选」（P-3，`TellomiPhotoPickerSelectedView`）：✕ 变返回、「✓N」与「最近 ⌄」隐藏；
 ///   在那里取消的弹「已取消选择 N 张 · 撤销」（4 秒），全部取消自动回网格。
-/// - 网格（P-8）：竖屏 3 列、横屏 5 列、间距 1、正方形；编号勾、视频时长见 `TellomiPhotoPickerCell`；
+/// - 网格（P-8）：竖屏 3 列、横屏 5 列、间距 1、正方形（`TellomiPhotoPickerGridLayout`）；编号勾、视频时长见 `TellomiPhotoPickerCell`；
+///   「最近」里左上角是一格宽、两行高的相机实时取景（`TellomiPhotoPickerCamera`），点了打开相机；
 ///   横着滑过格子连续多选（照 Telegram `MediaPickerGridSelectionGesture` 的机制，见 `TellomiSwipeSelectGestureRecognizer`）。
 /// - 受限访问横幅（P-7）：「你已限制 Tellomi 访问照片。」+「管理」（选择更多照片… / 前往设置），在网格里、跟着网格滚走。
 /// - 底部（P-9、P-10）：一有选中就出现「添加说明…」+ 发送；会话输入框里已打的字带过来；在网格里直接发，不必经过预览页。
 /// - 上限（P-11）：一次最多 32 张，超出提示「一次最多选 32 张」。
 ///
 /// Telegram 的实现只读机制、一行都没搬（GPLv2）。
-final class TellomiPhotoPickerViewController: OWSViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout,
+final class TellomiPhotoPickerViewController: OWSViewController, UICollectionViewDataSource, UICollectionViewDelegate,
     BodyRangesTextViewDelegate, AttachmentApprovalViewControllerDelegate, UIAdaptivePresentationControllerDelegate
 {
 
@@ -94,6 +98,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     private(set) var displayMode = DisplayMode.all
     private let chatBackground: UIView?
     private let bubbleColor: ColorOrGradientValue?
+    private let camera: TellomiPhotoPickerCamera?
 
     /// 「只看已选」里取消的（按取消的先后，带原来的位置）：撤销时倒着放回原位。
     private var undoableDeselections = [(item: TellomiPhotoPickerItem, index: Int)]()
@@ -111,6 +116,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         stickerSheetDelegate: StickerPickerSheetDelegate?,
         chatBackground: UIView? = nil,
         bubbleColor: ColorOrGradientValue? = nil,
+        camera: TellomiPhotoPickerCamera? = nil,
         maxSelection: Int = SignalAttachment.maxAttachmentsAllowed,
     ) {
         self.library = library
@@ -123,6 +129,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         self.stickerSheetDelegate = stickerSheetDelegate
         self.chatBackground = chatBackground
         self.bubbleColor = bubbleColor
+        self.camera = camera
         self.maxSelection = maxSelection
         super.init()
     }
@@ -184,10 +191,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         return button
     }()
 
-    private lazy var layout: UICollectionViewFlowLayout = {
-        let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = Metrics.gridSpacing
-        layout.minimumLineSpacing = Metrics.gridSpacing
+    private lazy var layout: TellomiPhotoPickerGridLayout = {
+        let layout = TellomiPhotoPickerGridLayout()
+        layout.spacing = Metrics.gridSpacing
         return layout
     }()
 
@@ -202,6 +208,11 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             TellomiPhotoPickerLimitedAccessHeader.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
             withReuseIdentifier: TellomiPhotoPickerLimitedAccessHeader.reuseIdentifier,
+        )
+        collectionView.register(
+            TellomiPhotoPickerCameraCell.self,
+            forSupplementaryViewOfKind: TellomiPhotoPickerCameraCell.kind,
+            withReuseIdentifier: TellomiPhotoPickerCameraCell.reuseIdentifier,
         )
         return collectionView
     }()
@@ -266,6 +277,18 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         reloadLibrary()
         updateSelectionChrome(animated: false)
         presentationController?.delegate = self
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        camera?.stopPreview()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if showsCamera, !collectionView.visibleSupplementaryViews(ofKind: TellomiPhotoPickerCameraCell.kind).isEmpty {
+            camera?.startPreview()
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -409,6 +432,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         }
         showsLimitedAccessBanner = library.isAccessLimited
         titleButton.configuration?.title = currentAlbum?.title
+        updateGridLayout()
         collectionView.reloadData()
     }
 
@@ -416,6 +440,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         guard album.id != currentAlbum?.id else { return }
         currentAlbum = album
         titleButton.configuration?.title = album.title
+        updateGridLayout()
         collectionView.reloadData()
         collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.adjustedContentInset.top), animated: false)
     }
@@ -438,22 +463,27 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         view.bounds.width > view.bounds.height ? 5 : 3
     }
 
-    /// 边长按屏幕像素向下取整（3x 屏是 1/3 pt），这样间距就是 1，不会被 flow layout 摊成 1.5。
+    /// 相机格只在「最近」里、而且有相机（没被拒）时才有。
+    private var showsCamera: Bool {
+        guard let camera, currentAlbum?.isRecents == true else { return false }
+        return camera.access != .unavailable
+    }
+
+    private func updateGridLayout() {
+        layout.columns = columnCount
+        layout.screenScale = view.window?.screen.scale ?? UIScreen.main.scale
+        layout.headerHeight = showsLimitedAccessBanner ? Metrics.bannerHeight : 0
+        layout.showsCamera = showsCamera
+    }
+
     private func updateItemSize() {
-        let width = collectionView.bounds.width
-        guard width > 0 else { return }
-        let columns = CGFloat(columnCount)
-        let scale = view.window?.screen.scale ?? UIScreen.main.scale
-        let side = floor((width - Metrics.gridSpacing * (columns - 1)) / columns * scale) / scale
-        if layout.itemSize.width != side {
-            layout.itemSize = CGSize(width: side, height: side)
-            layout.invalidateLayout()
-        }
+        updateGridLayout()
     }
 
     private var thumbnailSize: CGSize {
         let scale = view.window?.screen.scale ?? 3
-        return CGSize(width: layout.itemSize.width * scale, height: layout.itemSize.height * scale)
+        let side = max(layout.itemSide, 1)
+        return CGSize(width: side * scale, height: side * scale)
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -485,6 +515,14 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         viewForSupplementaryElementOfKind kind: String,
         at indexPath: IndexPath,
     ) -> UICollectionReusableView {
+        if kind == TellomiPhotoPickerCameraCell.kind {
+            let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: TellomiPhotoPickerCameraCell.reuseIdentifier, for: indexPath)
+            if let cameraCell = view as? TellomiPhotoPickerCameraCell, let camera {
+                cameraCell.configure(camera: camera)
+                cameraCell.onTap = { [weak self] in self?.didTapCamera() }
+            }
+            return view
+        }
         let header = collectionView.dequeueReusableSupplementaryView(
             ofKind: kind,
             withReuseIdentifier: TellomiPhotoPickerLimitedAccessHeader.reuseIdentifier,
@@ -494,8 +532,17 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         return header
     }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        showsLimitedAccessBanner ? CGSize(width: collectionView.bounds.width, height: Metrics.bannerHeight) : .zero
+    // 相机格露出来才取景，滚走 / 换相册 / 面板收起就停。
+    func collectionView(_ collectionView: UICollectionView, willDisplaySupplementaryView view: UICollectionReusableView, forElementKind elementKind: String, at indexPath: IndexPath) {
+        if elementKind == TellomiPhotoPickerCameraCell.kind {
+            camera?.startPreview()
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didEndDisplayingSupplementaryView view: UICollectionReusableView, forElementOfKind elementKind: String, at indexPath: IndexPath) {
+        if elementKind == TellomiPhotoPickerCameraCell.kind {
+            camera?.stopPreview()
+        }
     }
 
     /// P-10：点照片本身（不是勾）：选上（没选的话），然后进上游的预览 / 编辑页。
@@ -891,8 +938,20 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         confirmDiscardingSelection()
     }
 
+    /// 相机格：打开相机（上游的相机流程，自己问权限、自己发）。拍到的不回到这里的已选里，所以有选中时同 ✕ 先问一句。
+    private func didTapCamera() {
+        guard !selectedIds.isEmpty else {
+            delegate?.photoPickerDidRequestCamera(self)
+            return
+        }
+        confirmDiscardingSelection { [weak self] in
+            guard let self else { return }
+            self.delegate?.photoPickerDidRequestCamera(self)
+        }
+    }
+
     /// 有选中时关面板（✕ 或下拉）先问一句，照 Telegram `MediaPickerScreen.requestDismiss`；文案用上游 Signal 选图流程的「丢弃媒体」。
-    private func confirmDiscardingSelection() {
+    private func confirmDiscardingSelection(then discard: (() -> Void)? = nil) {
         let actionSheet = ActionSheetController()
         actionSheet.addAction(ActionSheetAction(
             title: OWSLocalizedString(
@@ -902,7 +961,11 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             style: .destructive,
             handler: { [weak self] _ in
                 guard let self else { return }
-                self.delegate?.photoPickerDidCancel(self)
+                if let discard {
+                    discard()
+                } else {
+                    self.delegate?.photoPickerDidCancel(self)
+                }
             },
         ))
         actionSheet.addAction(OWSActionSheets.cancelAction)
@@ -1329,6 +1392,14 @@ extension TellomiPhotoPickerViewController {
     }
 
     var isGridScrollEnabledForTesting: Bool { collectionView.isScrollEnabled }
+
+    var cameraCellForTesting: TellomiPhotoPickerCameraCell? {
+        collectionView.visibleSupplementaryViews(ofKind: TellomiPhotoPickerCameraCell.kind).first as? TellomiPhotoPickerCameraCell
+    }
+
+    var cameraFrameForTesting: CGRect? {
+        layout.layoutAttributesForSupplementaryView(ofKind: TellomiPhotoPickerCameraCell.kind, at: IndexPath(item: 0, section: 0))?.frame
+    }
 
     var selectedViewForTesting: TellomiPhotoPickerSelectedView { selectedView }
     var isTitleShownForTesting: Bool { !titleButton.isHidden }
