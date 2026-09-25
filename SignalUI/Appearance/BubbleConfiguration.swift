@@ -21,11 +21,16 @@ public struct BubbleConfiguration {
     /// This property can be `nil` for no stroke.
     public let stroke: Stroke?
 
+    /// Tellomi（#1205）：一组最后一条、单独一条的小尾巴。`nil` = 不画。
+    public let tail: Tail?
+
     /// - Parameter corners: Bubble's corner rouding configuration.
     /// - Parameter stroke: Bubble's stroke configuration. Pass `nil` for no stroke.
-    public init(corners: Corners, stroke: Stroke? = nil) {
+    /// - Parameter tail: Tellomi：小尾巴。有尾巴时传给 `bubblePath(for:)` 的矩形在尾巴那一侧多出 `Tail.extent`。
+    public init(corners: Corners, stroke: Stroke? = nil, tail: Tail? = nil) {
         self.stroke = stroke
         self.corners = corners
+        self.tail = tail
     }
 
     // MARK: - Corners
@@ -144,6 +149,10 @@ public struct BubbleConfiguration {
     ///
     /// Designed to allow callers to configure masking layers that match bubble shape..
     public func bubblePath(for rect: CGRect) -> UIBezierPath {
+        if let tail {
+            return tail.outline(body: tail.bodyRect(in: rect), corners: corners)
+        }
+
         switch corners.style {
         case .uniform:
             let cornerRadius = corners.radius(for: .topLeft, in: rect)
@@ -165,6 +174,84 @@ public struct BubbleConfiguration {
         case .capsule:
             let cornerRadius = corners.radius(for: .topLeft, in: rect)
             return UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius)
+        }
+    }
+
+    // MARK: - Tail (Tellomi)
+
+    ///
+    /// Tellomi（#1205）：气泡下角伸出的小尾巴，形状是设计规范 `docs/product/specs/bubbles-and-motion-design.md`
+    /// 第 2 节 owner 选的 A「圆润」：伸出约 6、高 14，尖端是一个小圆头；和 Android 同一条路径。
+    ///
+    /// 尾巴和气泡是**同一条轮廓**，不是另贴一块：遮罩、描边、渐变、壁纸模糊都自动覆盖尾巴，交接处不叠深、不出内线。
+    /// 尾巴那一侧的下角不画圆角：侧边一直下到尾巴起点，接尾巴曲线到尖端，再沿底边回来。
+    ///
+    public struct Tail: Equatable {
+
+        /// 尾巴在右下角（`true`）还是左下角。按屏幕方向：调用方已把「我发的 / 对方发的」和从右往左排版换算好。
+        public let isOnRight: Bool
+
+        public init(isOnRight: Bool) {
+            self.isOnRight = isOnRight
+        }
+
+        /// 尾巴伸出气泡的宽度（按控制点量；曲线本身最远约 6.1）。
+        public static let extent: CGFloat = 6.3
+
+        /// 尾巴沿气泡侧边的高度。
+        public static let height: CGFloat = 14
+
+        /// 气泡本体：整块去掉尾巴那一侧的 `extent`。
+        public func bodyRect(in rect: CGRect) -> CGRect {
+            var body = rect
+            body.size.width = max(0, rect.width - Self.extent)
+            if !isOnRight {
+                body.origin.x += Self.extent
+            }
+            return body
+        }
+
+        /// 气泡里的内容在尾巴那一侧要让出的宽度。
+        public var contentInsets: UIEdgeInsets {
+            isOnRight
+                ? UIEdgeInsets(top: 0, left: 0, bottom: 0, right: Self.extent)
+                : UIEdgeInsets(top: 0, left: Self.extent, bottom: 0, right: 0)
+        }
+
+        /// 「气泡 + 尾巴」一条顺时针轮廓。先按尾巴在右边画，尾巴在左边时整体镜像（半径先按镜像取）。
+        func outline(body: CGRect, corners: Corners) -> UIBezierPath {
+            let maxRadius = min(body.width, body.height) / 2
+            func radius(_ corner: UIRectCorner) -> CGFloat {
+                min(corners.radius(for: corner, in: body), maxRadius)
+            }
+            let topNear = radius(isOnRight ? .topRight : .topLeft)
+            let topFar = radius(isOnRight ? .topLeft : .topRight)
+            let bottomFar = radius(isOnRight ? .bottomLeft : .bottomRight)
+
+            let x0 = body.minX
+            let x1 = body.maxX
+            let y0 = body.minY
+            let y1 = body.maxY
+            // 气泡矮到放不下 14 高的尾巴时，尾巴从上角圆弧结束处开始。
+            let tailTop = max(y0 + topNear, y1 - Self.height)
+
+            let path = UIBezierPath()
+            path.move(to: CGPoint(x: x0 + topFar, y: y0))
+            path.addLine(to: CGPoint(x: x1 - topNear, y: y0))
+            path.addArc(withCenter: CGPoint(x: x1 - topNear, y: y0 + topNear), radius: topNear, startAngle: -.pi / 2, endAngle: 0, clockwise: true)
+            path.addLine(to: CGPoint(x: x1, y: tailTop))
+            path.addCurve(to: CGPoint(x: x1 + 5.4, y: y1 - 1.0), controlPoint1: CGPoint(x: x1, y: y1 - 6.5), controlPoint2: CGPoint(x: x1 + 2.2, y: y1 - 1.8))
+            path.addCurve(to: CGPoint(x: x1 + 5.4, y: y1), controlPoint1: CGPoint(x: x1 + 6.3, y: y1 - 0.8), controlPoint2: CGPoint(x: x1 + 6.3, y: y1))
+            path.addLine(to: CGPoint(x: x0 + bottomFar, y: y1))
+            path.addArc(withCenter: CGPoint(x: x0 + bottomFar, y: y1 - bottomFar), radius: bottomFar, startAngle: .pi / 2, endAngle: .pi, clockwise: true)
+            path.addLine(to: CGPoint(x: x0, y: y0 + topFar))
+            path.addArc(withCenter: CGPoint(x: x0 + topFar, y: y0 + topFar), radius: topFar, startAngle: .pi, endAngle: .pi * 3 / 2, clockwise: true)
+            path.close()
+
+            if !isOnRight {
+                path.apply(CGAffineTransform(translationX: body.minX + body.maxX, y: 0).scaledBy(x: -1, y: 1))
+            }
+            return path
         }
     }
 

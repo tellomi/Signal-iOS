@@ -534,3 +534,100 @@ class TellomiBubbleGroupingTest: SignalBaseTest {
         XCTAssertFalse(CVItemViewState.tellomiCanClusterMessages(upper: upper, upperHasReactions: true, lower: lower))
     }
 }
+
+/// Tellomi（#1205，设计规范 bubbles-and-motion-design.md 第 2 节，owner 选 A「圆润」）：小尾巴画进气泡的轮廓里。
+class TellomiBubbleTailTest: XCTestCase {
+
+    private let rect = CGRect(x: 0, y: 0, width: 200, height: 40)
+    private let corners = BubbleConfiguration.Corners.segmented(sharpCorners: [], sharpCornerRadius: 4, wideCornerRadius: 18)
+
+    private func path(tailOnRight: Bool?) -> UIBezierPath {
+        let tail = tailOnRight.map { BubbleConfiguration.Tail(isOnRight: $0) }
+        return BubbleConfiguration(corners: corners, tail: tail).bubblePath(for: rect)
+    }
+
+    func testTailOnTheRightReplacesTheBottomRightCorner() {
+        let path = path(tailOnRight: true)
+        let body = BubbleConfiguration.Tail(isOnRight: true).bodyRect(in: rect)
+        XCTAssertEqual(body, CGRect(x: 0, y: 0, width: 200 - 6.3, height: 40))
+
+        // 尖端在气泡本体外、贴着底边
+        XCTAssertTrue(path.contains(CGPoint(x: body.maxX + 3, y: rect.maxY - 0.5)))
+        // 尾巴只有 14 高：再往上就在外面
+        XCTAssertFalse(path.contains(CGPoint(x: body.maxX + 3, y: rect.maxY - 20)))
+        // 本体右下角不再是圆角，被尾巴接上
+        XCTAssertTrue(path.contains(CGPoint(x: body.maxX - 1, y: rect.maxY - 1)))
+        // 其余的角照旧是圆的
+        XCTAssertFalse(path.contains(CGPoint(x: body.maxX - 1, y: rect.minY + 1)))
+        XCTAssertFalse(path.contains(CGPoint(x: rect.minX + 1, y: rect.maxY - 1)))
+
+        // 伸出约 6.1（按控制点是 6.3），不出整块的范围；底边和气泡底边齐平
+        let bounds = path.bounds
+        XCTAssertEqual(bounds.minX, rect.minX, accuracy: 0.01)
+        XCTAssertGreaterThan(bounds.maxX, body.maxX + 6)
+        XCTAssertLessThanOrEqual(bounds.maxX, rect.maxX + 0.01)
+        XCTAssertEqual(bounds.maxY, rect.maxY, accuracy: 0.01)
+    }
+
+    func testTailOnTheLeftIsTheMirrorImage() {
+        let right = path(tailOnRight: true)
+        let left = path(tailOnRight: false)
+        let points = [
+            CGPoint(x: 196.7, y: 39.5),
+            CGPoint(x: 196.7, y: 20),
+            CGPoint(x: 192.7, y: 39),
+            CGPoint(x: 192.7, y: 1),
+            CGPoint(x: 100, y: 20),
+            CGPoint(x: 1, y: 1),
+            CGPoint(x: 1, y: 39),
+        ]
+        for point in points {
+            XCTAssertEqual(right.contains(point), left.contains(CGPoint(x: rect.maxX - point.x, y: point.y)), "\(point)")
+        }
+        XCTAssertGreaterThanOrEqual(left.bounds.minX, rect.minX - 0.01)
+        XCTAssertLessThan(left.bounds.minX, rect.minX + 0.3)
+    }
+
+    func testWithoutATailTheBubbleIsUnchanged() {
+        XCTAssertEqual(path(tailOnRight: nil).bounds, rect)
+        XCTAssertTrue(path(tailOnRight: nil).contains(CGPoint(x: 199, y: 20)))
+        XCTAssertFalse(path(tailOnRight: nil).contains(CGPoint(x: 199, y: 39)))
+    }
+
+    func testContentKeepsItsPlaceOnTheTailSide() {
+        XCTAssertEqual(BubbleConfiguration.Tail(isOnRight: true).contentInsets, UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 6.3))
+        XCTAssertEqual(BubbleConfiguration.Tail(isOnRight: false).contentInsets, UIEdgeInsets(top: 0, left: 6.3, bottom: 0, right: 0))
+    }
+
+    /// 和 Android TellomiBubbleTail.shouldDraw 同一规则。
+    func testOnlyTheLastMessageOfAGroupWithABubbleInTheConversationGetsATail() {
+        XCTAssertTrue(CVComponentMessage.tellomiShouldDrawTail(isLastInCluster: true, hasReactions: false, hasBubbleBackground: true, styleType: .`default`))
+        XCTAssertFalse(CVComponentMessage.tellomiShouldDrawTail(isLastInCluster: false, hasReactions: false, hasBubbleBackground: true, styleType: .`default`))
+        XCTAssertFalse(CVComponentMessage.tellomiShouldDrawTail(isLastInCluster: true, hasReactions: true, hasBubbleBackground: true, styleType: .`default`))
+        XCTAssertFalse(CVComponentMessage.tellomiShouldDrawTail(isLastInCluster: true, hasReactions: false, hasBubbleBackground: false, styleType: .`default`))
+        XCTAssertFalse(CVComponentMessage.tellomiShouldDrawTail(isLastInCluster: true, hasReactions: false, hasBubbleBackground: true, styleType: .messageDetails))
+    }
+
+    /// 会话页渲染时样式常是 placeholder（走查模拟器上打日志量到的），这时也要画；只按 `== .default` 判断就一个尾巴都没有。
+    func testConversationRenderedWithThePlaceholderStyleStillGetsATail() {
+        XCTAssertTrue(CVComponentMessage.tellomiShouldDrawTail(isLastInCluster: true, hasReactions: false, hasBubbleBackground: true, styleType: .placeholder))
+    }
+
+    /// 气泡视图在尾巴那一侧比包装大出 `Tail.extent`，滑动回复的位移照旧叠加；复用 reset 后回到原样。
+    func testSwipeWrapperExtendsTheBubbleOnTheTailSide() {
+        let wrapper = SwipeToReplyWrapper(name: "test", useSlowOffset: false, shouldReset: true)
+        wrapper.frame = CGRect(x: 0, y: 0, width: 100, height: 40)
+        let bubble = UIView()
+        wrapper.subview = bubble
+        wrapper.tellomiSubviewOutsets = BubbleConfiguration.Tail(isOnRight: true).contentInsets
+        wrapper.layoutIfNeeded()
+        XCTAssertEqual(bubble.frame, CGRect(x: 0, y: 0, width: 106.3, height: 40))
+
+        wrapper.offset = CGPoint(x: -20, y: 0)
+        wrapper.layoutIfNeeded()
+        XCTAssertEqual(bubble.frame, CGRect(x: -20, y: 0, width: 106.3, height: 40))
+
+        wrapper.reset()
+        XCTAssertEqual(wrapper.tellomiSubviewOutsets, .zero)
+    }
+}
