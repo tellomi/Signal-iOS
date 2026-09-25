@@ -14,8 +14,9 @@ enum TellomiAboutLinks {
     static let websiteLabel = "www.tellomi.app"
     /// iOS 还没有上架，「版本更新」先去下载页（与 Signal-iOS #23 的「去更新」同一个页）
     static let download = URL(string: "https://www.tellomi.app/download/")!
-    static let sourceCode = URL(string: "https://github.com/tellomi")!
-    static let sourceCodeLabel = "github.com/tellomi"
+    /// 源代码的获取页（AGPL-3.0：分发二进制时要让用户拿得到对应源代码）。owner 2026-09-25：「关于」里不放 GitHub 地址，
+    /// 改成「开源许可」页最上面一句说明，指向官网这一页（官网那页再列各仓库）。
+    static let sourceCodePage = URL(string: "https://www.tellomi.app/source/")!
 
     static let supportEmail = "support@tellomi.app"
     static let privacyEmail = "privacy@tellomi.app"
@@ -167,12 +168,6 @@ final class AboutTellomiViewController: OWSTableViewController2 {
         openSourceSection.add(.disclosureItem(
             withText: OWSLocalizedString("SETTINGS_ABOUT_TELLOMI_OPEN_SOURCE_LICENSES", value: "Open source licenses", comment: "Tellomi: row in About Tellomi that lists third-party licenses."),
             actionBlock: { [weak self] in self?.actions.showLicenses() },
-        ))
-        openSourceSection.add(.item(
-            name: OWSLocalizedString("SETTINGS_ABOUT_TELLOMI_SOURCE_CODE", value: "Source code", comment: "Tellomi: row in About Tellomi that opens the source code on GitHub."),
-            subtitle: TellomiAboutLinks.sourceCodeLabel,
-            accessoryType: .disclosureIndicator,
-            actionBlock: { [weak self] in self?.actions.openInAppBrowser(TellomiAboutLinks.sourceCode) },
         ))
         // 页脚三行署名从「帮助」原样搬过来（#984，owner 2026-09-23 定），和 Android 一字一句对齐：
         //   Copyright Signal Messenger        ← 上游署名，AGPL 要求派生作品保留，不能换成我们自己
@@ -343,8 +338,32 @@ enum TellomiAcknowledgements {
 }
 
 final class TellomiAcknowledgementsViewController: OWSTableViewController2 {
+    /// 页面最上面那一句：许可证 + 源代码在哪（owner 2026-09-25：「关于」里不再放 GitHub 那一行，改成这里一句指向官网的说明）
+    static var sourceCodeNotice: String {
+        OWSLocalizedString(
+            "SETTINGS_ABOUT_TELLOMI_SOURCE_CODE_NOTICE",
+            value: "Tellomi is a modified version of Signal, released under the GNU AGPLv3. The source code is available at www.tellomi.app/source.",
+            comment: "Tellomi: sentence at the top of the open source licenses page saying where to get the source code. Keep the web address as is.",
+        )
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        let noticeSection = OWSTableSection()
+        noticeSection.hasBackground = false
+        noticeSection.add(OWSTableItem(customCellBlock: {
+            let cell = OWSTableItem.newCell()
+            cell.selectionStyle = .none
+            let label = UILabel()
+            label.text = Self.sourceCodeNotice
+            label.font = .dynamicTypeFootnote
+            label.textColor = .Signal.secondaryLabel
+            label.numberOfLines = 0
+            cell.contentView.addSubview(label)
+            label.autoPinEdgesToSuperviewMargins()
+            return cell
+        }))
 
         let section = OWSTableSection()
         for entry in TellomiAcknowledgements.load() {
@@ -359,7 +378,7 @@ final class TellomiAcknowledgementsViewController: OWSTableViewController2 {
         }
         self.contents = OWSTableContents(
             title: OWSLocalizedString("SETTINGS_ABOUT_TELLOMI_OPEN_SOURCE_LICENSES", value: "Open source licenses", comment: "Tellomi: row in About Tellomi that lists third-party licenses."),
-            sections: [section],
+            sections: [noticeSection, section],
         )
     }
 }

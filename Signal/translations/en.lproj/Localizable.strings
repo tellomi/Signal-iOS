@@ -8778,8 +8778,8 @@
 /* Tellomi: section header in About Tellomi. */
 "SETTINGS_ABOUT_TELLOMI_SECTION_UPDATES" = "Updates";
 
-/* Tellomi: row in About Tellomi that opens the source code on GitHub. */
-"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE" = "Source code";
+/* Tellomi: sentence at the top of the open source licenses page saying where to get the source code. Keep the web address as is. */
+"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE_NOTICE" = "Tellomi is a modified version of Signal, released under the GNU AGPLv3. The source code is available at www.tellomi.app/source.";
 
 /* Tellomi: row in About Tellomi that opens the list of system permissions the app uses. */
 "SETTINGS_ABOUT_TELLOMI_SYSTEM_PERMISSIONS" = "System permissions we use";
