@@ -252,7 +252,8 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         let backLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: backgroundPatch(of: backButton)))
         let moreButton = try XCTUnwrap(whiteViewer.rightBarButtonItemsForTesting.first?.customView, "「···」是自定义的深色圆钮")
         let moreLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: backgroundPatch(of: moreButton)))
-        let pageLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: CGRect(x: 8, y: whiteWindow.bounds.midY, width: 4, height: 4)))
+        // 取屏幕正中：图片按比例放进屏幕，比例不同的屏（375 = iPhone SE，667 高）左右会留黑边，贴边取样会落在黑边上。
+        let pageLuma = try XCTUnwrap(averageLuma(of: whiteShot, in: CGRect(x: whiteWindow.bounds.midX - 2, y: whiteWindow.bounds.midY, width: 4, height: 4)))
         report += "viewer: whitePage style=\(whiteViewer.traitCollection.userInterfaceStyle.rawValue) pageLuma=\(pageLuma) deleteLuma=\(deleteLuma) headerLuma=\(headerLuma) backLuma=\(backLuma) moreLuma=\(moreLuma)\n"
         XCTAssertEqual(whiteViewer.traitCollection.userInterfaceStyle, .dark, "白底的图上也是深色按钮")
         XCTAssertGreaterThan(pageLuma, 0.9, "背后确实是白底")
