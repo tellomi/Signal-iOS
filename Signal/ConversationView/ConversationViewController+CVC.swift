@@ -227,7 +227,8 @@ extension ConversationViewController: CVLoadCoordinatorDelegate {
 
         // This will be nil for non-group threads.
         let newGroupModel = thread.groupModelIfGroupThread
-        if oldGroupModel != newGroupModel || pinnedMessagesChanged {
+        // Tellomi：「我的收藏」的分类有变化（比如刚存了第一张图）也要重排（#1174）
+        if oldGroupModel != newGroupModel || pinnedMessagesChanged || tellomiSavedCategoriesChanged() {
             ensureBannerState()
         }
 
