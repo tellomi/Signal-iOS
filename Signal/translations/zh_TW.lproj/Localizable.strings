@@ -6382,7 +6382,7 @@
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "重新註冊";
 
 /* Label for 1:1 conversation with yourself. */
-"NOTE_TO_SELF" = "給自己的筆記";
+"NOTE_TO_SELF" = "我的收藏";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
 "NOTIFICATION_BODY_CLOCK_SKEW" = "當你的裝置日期和時間不正確時，Tellomi 無法接收訊息。開啟「設定」以進行更正。";
@@ -10435,7 +10435,7 @@
 "THREAD_DETAILS_NO_MEMBERS" = "尚未有其他群組成員";
 
 /* Subtitle appearing at the top of the users 'note to self' conversation */
-"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "你可以在此聊天中為自己新增註釋。 如果你的帳戶有任何已連結的裝置，則新的筆記將被同步。";
+"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "把訊息轉寄到這裡，或直接傳給自己，隨時查看。若你的帳戶有已連結的裝置，這裡的新訊息會同步過去。";
 
 /* Label for a group with one member (not counting yourself), displaying their name */
 "THREAD_DETAILS_ONE_MEMBER" = "%1$@";

@@ -7,6 +7,7 @@ import XCTest
 
 import SignalServiceKit
 @testable import Signal
+@testable import SignalUI
 
 class VisibleBadgeResolverTest: XCTestCase {
 
@@ -246,4 +247,29 @@ class VisibleBadgeResolverTest: XCTestCase {
         }
     }
 
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 「备忘录」改名「我的收藏」、设置页入口用书签图标（需求 official-account-and-saved §3.2）。
+class TellomiSavedMessagesNamingTest: XCTestCase {
+
+    private func localizedString(_ key: String, _ localization: String) -> String? {
+        guard let path = Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: localization) else {
+            return nil
+        }
+        return NSDictionary(contentsOfFile: path)?[key] as? String
+    }
+
+    func testItIsCalled我的收藏InChineseAndSavedMessagesInEnglish() {
+        XCTAssertEqual(localizedString("NOTE_TO_SELF", "zh_CN"), "我的收藏")
+        XCTAssertEqual(localizedString("NOTE_TO_SELF", "zh_HK"), "我的收藏")
+        XCTAssertEqual(localizedString("NOTE_TO_SELF", "zh_TW"), "我的收藏")
+        XCTAssertEqual(localizedString("NOTE_TO_SELF", "en"), "Saved Messages")
+    }
+
+    func testTheSettingsEntryUsesTheBookmarkAssetAndItShipsInTheApp() {
+        XCTAssertEqual(Theme.iconName(.settingsTellomiSavedMessages, isDarkThemeEnabled: false), "tellomi-bookmark-resizable")
+        XCTAssertNotNil(UIImage(named: "tellomi-bookmark-resizable"))
+    }
 }
