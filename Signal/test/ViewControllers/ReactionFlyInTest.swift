@@ -4,6 +4,7 @@
 //
 
 import SignalUI
+import UIKit
 import XCTest
 
 @testable import Signal
@@ -50,7 +51,83 @@ final class ReactionFlyInTest: XCTestCase {
         XCTAssertLessThanOrEqual(path.lift, 20)
     }
 
+    // MARK: - 收尾（叠在窗口上的那一层一定要收走）
+
+    /// 调用方起飞后就放掉引用、落定的回弹又拖过了 2 s 等待上限——那一层仍然要收走，落点的字要放回来，对象也要释放。
+    /// （走查模拟器上抓到过：回弹收尾时对象已经没了，那一层一直悬在窗口上。）
+    func testOverlayIsRemovedAfterLandingEvenIfTheCallerLetsGo() {
+        let (window, target) = makeWindowWithTarget()
+        let baseline = window.subviews.count
+        var flyIn: ReactionFlyIn? = makeFlyIn(window: window)
+        weak let weakFlyIn = flyIn
+        XCTAssertEqual(window.subviews.count, baseline + 1)
+
+        // 像真实流程一样过一会儿才找到落点：菜单收起、聊天列表落地要大约半秒到一秒。
+        let found = expectation(description: "found target")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            flyIn?.claim(target)
+            XCTAssertEqual(target.alpha, 0)
+            flyIn?.land(on: target, targetFontSize: 14)
+            flyIn = nil
+            found.fulfill()
+        }
+        wait(for: [found], timeout: 3)
+
+        waitUntil(timeout: 6) { window.subviews.count == baseline && weakFlyIn == nil }
+        XCTAssertEqual(window.subviews.count, baseline)
+        XCTAssertEqual(target.alpha, 1)
+        XCTAssertNil(weakFlyIn)
+    }
+
+    /// 等不到落点：已经藏起来的落点放回来，那一层收走，对象释放。
+    func testCancelRestoresTheClaimedTargetAndRemovesTheOverlay() {
+        let (window, target) = makeWindowWithTarget()
+        let baseline = window.subviews.count
+        var flyIn: ReactionFlyIn? = makeFlyIn(window: window)
+        weak let weakFlyIn = flyIn
+        // UIKit 登记动画收尾闭包时会把对象放进当前的 autorelease pool；测试方法自己的 pool 要到方法结束才清，
+        // 所以在这里单独包一层（App 里主线程每轮 runloop 都会清）。
+        autoreleasepool {
+            flyIn?.claim(target)
+            flyIn?.cancel()
+            flyIn = nil
+        }
+
+        waitUntil(timeout: 3) { window.subviews.count == baseline && weakFlyIn == nil }
+        XCTAssertEqual(window.subviews.count, baseline)
+        XCTAssertEqual(target.alpha, 1)
+        XCTAssertNil(weakFlyIn)
+    }
+
     // MARK: -
+
+    private func makeWindowWithTarget() -> (UIWindow, UILabel) {
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.isHidden = false
+        let target = UILabel(frame: CGRect(x: 200, y: 400, width: 20, height: 18))
+        target.font = .boldSystemFont(ofSize: 14)
+        target.text = "👍"
+        window.addSubview(target)
+        addTeardownBlock { window.isHidden = true }
+        return (window, target)
+    }
+
+    private func makeFlyIn(window: UIWindow) -> ReactionFlyIn {
+        ReactionFlyIn(
+            messageUniqueId: "message",
+            emoji: "👍",
+            source: ReactionFlyIn.Source(frameInWindow: CGRect(x: 100, y: 300, width: 44, height: 44), fontSize: 32),
+            window: window,
+        )
+    }
+
+    /// 让主线程跑着（动画要靠它推进），直到条件成立或超时。
+    private func waitUntil(timeout: TimeInterval, _ condition: () -> Bool) {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition(), Date() < deadline {
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        }
+    }
 
     private struct Path {
         var maxDeviationFromStraightLine: CGFloat = 0

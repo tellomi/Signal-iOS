@@ -54,6 +54,13 @@ final class ReactionFlyIn {
     private weak var targetView: UIView?
     private var landingScale: CGFloat = 1
     private var arrivalsRemaining = 0
+    /// 飞行期间自己留住自己，直到叠在窗口上的那一层收走（[finish]）。
+    /// 调用方什么时候放掉引用都行；不留住的话，落定的回弹动画收尾时对象已经没了，那一层会永远留在窗口上
+    /// （走查模拟器上撤回回应后，胶囊没了、一个小表情还悬在原处，就是这么来的）。
+    private var keepAlive: ReactionFlyIn?
+    /// 选中时「拿起来」的放大动画。起飞或收尾时停掉：那一层离开窗口后它可能永远等不到结束，
+    /// 留着就会一直握着它的闭包。
+    private var liftAnimator: UIViewPropertyAnimator?
 
     init(messageUniqueId: String, emoji: String, source: Source, window: UIWindow) {
         self.messageUniqueId = messageUniqueId
@@ -78,13 +85,16 @@ final class ReactionFlyIn {
         emojiLabel.center = .zero
         verticalView.addSubview(emojiLabel)
 
-        TellomiMotion.animator(TellomiMotion.snap, reduceMotion: false) {
-            self.emojiLabel.transform = CGAffineTransform(scaleX: Self.liftScale, y: Self.liftScale)
-        }.startAnimation()
+        let lifted = CGAffineTransform(scaleX: ReactionFlyIn.liftScale, y: ReactionFlyIn.liftScale)
+        let liftAnimator = TellomiMotion.animator(TellomiMotion.snap, reduceMotion: false) { [emojiLabel] in
+            emojiLabel.transform = lifted
+        }
+        liftAnimator.startAnimation()
+        self.liftAnimator = liftAnimator
 
-        // 故意强引用：就算调用方提前放掉它，到点也一定把叠在窗口上的这一层收走；已经落定时 cancel() 什么都不做。
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.landingTimeout) {
-            self.cancel()
+        keepAlive = self
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.landingTimeout) { [weak self] in
+            self?.cancel()
         }
     }
 
@@ -109,6 +119,8 @@ final class ReactionFlyIn {
         let landingScale = Self.landingScale(sourceFontSize: sourceFontSize, targetFontSize: targetFontSize)
         self.landingScale = landingScale
         targetView.alpha = 0
+
+        stopLiftAnimation()
 
         let verticalDistance = targetCenter.y - sourceCenter.y
         let horizontal = TellomiMotion.animator(Self.horizontalSpring, reduceMotion: false) {
@@ -150,7 +162,7 @@ final class ReactionFlyIn {
         }
         animator.addCompletion { [weak self, weak targetView] _ in
             targetView?.alpha = 1
-            self?.overlayView.removeFromSuperview()
+            self?.finish()
         }
         animator.startAnimation()
     }
@@ -169,8 +181,25 @@ final class ReactionFlyIn {
             delay: 0,
             options: [.curveEaseIn, .beginFromCurrentState],
             animations: { self.overlayView.alpha = 0 },
-            completion: { _ in self.overlayView.removeFromSuperview() },
+            completion: { _ in self.finish() },
         )
+    }
+
+    /// 停在当前的放大比例上，接下来的动画从这里接着走。
+    private func stopLiftAnimation() {
+        guard let liftAnimator else { return }
+        if liftAnimator.state == .active {
+            liftAnimator.stopAnimation(false)
+            liftAnimator.finishAnimation(at: .current)
+        }
+        self.liftAnimator = nil
+    }
+
+    /// 唯一的收尾：停掉还在跑的放大动画，把叠在窗口上的那一层收走，放开自己。
+    private func finish() {
+        stopLiftAnimation()
+        overlayView.removeFromSuperview()
+        keepAlive = nil
     }
 
     // MARK: - 数值（单测覆盖）
