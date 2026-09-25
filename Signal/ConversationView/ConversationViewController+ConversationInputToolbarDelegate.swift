@@ -478,6 +478,12 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
         takePictureOrVideo()
     }
 
+    public func attachmentSheetButtonPressed() {
+        AssertIsOnMainThread()
+
+        presentTellomiAttachmentSheet()
+    }
+
     public func photosButtonPressed() {
         AssertIsOnMainThread()
 

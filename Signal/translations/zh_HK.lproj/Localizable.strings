@@ -469,6 +469,9 @@
 /* A button to select a poll from the Attachment Keyboard */
 "ATTACHMENT_KEYBOARD_POLL" = "投票";
 
+/* Tellomi: dock button in the attachment sheet that shows the photo grid. */
+"ATTACHMENT_KEYBOARD_TELLOMI_GALLERY" = "相簿";
+
 /* Accessibility label for attaching photos */
 "ATTACHMENT_LABEL" = "附件";
 

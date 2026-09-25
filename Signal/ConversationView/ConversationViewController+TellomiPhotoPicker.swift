@@ -25,7 +25,67 @@ extension ConversationViewController {
         }
     }
 
-    private func presentTellomiPhotoPicker() {
+    // MARK: - 附件 Sheet（#1115）
+
+    /// 「+」：附件 Sheet = 选图网格 + 底部 dock（相册 · 文件 · 位置 · 投票 · 联系人，owner 2026-09-23 定），两档高度，下滑关闭。
+    /// 相册权限：没问过就先问；拒绝 / 受限制也照样打开（dock 里别的格子还要用），网格里显示去「设置」开权限的说明。
+    func presentTellomiAttachmentSheet() {
+        AssertIsOnMainThread()
+        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
+        case .notDetermined:
+            Task { @MainActor in
+                _ = await self.ows_askForMediaLibraryPermissions(for: .readWrite)
+                self.presentTellomiPhotoPicker(asAttachmentSheet: true)
+            }
+        default:
+            presentTellomiPhotoPicker(asAttachmentSheet: true)
+        }
+    }
+
+    /// 上游好几处是先 `dismiss(animated:)` 再马上「回到附件面板」：前一页还在收起时弹不出来，等它收完再弹。
+    func presentTellomiAttachmentSheetWhenPossible(attempt: Int = 0) {
+        guard let presented = presentedViewController else {
+            presentTellomiAttachmentSheet()
+            return
+        }
+        if presented.isBeingDismissed, let coordinator = presented.transitionCoordinator {
+            coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+                self?.presentTellomiAttachmentSheetWhenPossible(attempt: attempt + 1)
+            }
+            return
+        }
+        // 上面还盖着别的页面（不是正在收起）：稍等再看，最多等一秒，不叠着弹
+        guard attempt < 10 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.presentTellomiAttachmentSheetWhenPossible(attempt: attempt + 1)
+        }
+    }
+
+    static let attachmentSheetHalfDetent = UISheetPresentationController.Detent.Identifier("tellomi.attachmentSheet.half")
+
+    /// 附件 Sheet 的两档：收起（聊天露在上面、压暗）与全屏；网格滚到顶再往上拖就展开。
+    /// 收起的高度照 Telegram iOS（`AttachmentContainer.attachmentDefaultTopInset`：顶边比全屏低屏幕高度的 0.2488，约为全屏高度的 73%）；
+    /// 只有两档、没有中间档；顶上有抓手（glass 样式有，`hasPill`）。
+    static func configureAttachmentSheet(_ sheet: UISheetPresentationController) {
+        if #available(iOS 16, *) {
+            sheet.detents = [
+                .custom(identifier: attachmentSheetHalfDetent) { context in context.maximumDetentValue * 0.73 },
+                .large(),
+            ]
+            sheet.selectedDetentIdentifier = attachmentSheetHalfDetent
+        } else {
+            // iOS 15 没有自定义高度：系统的半屏 / 全屏两档
+            sheet.detents = [.medium(), .large()]
+            sheet.selectedDetentIdentifier = .medium
+        }
+        sheet.prefersScrollingExpandsWhenScrolledToEdge = true
+        sheet.prefersEdgeAttachedInCompactHeight = true
+        sheet.widthFollowsPreferredContentSizeWhenEdgeAttached = true
+        sheet.largestUndimmedDetentIdentifier = nil
+        sheet.prefersGrabberVisible = true
+    }
+
+    private func presentTellomiPhotoPicker(asAttachmentSheet: Bool = false) {
         guard hasViewWillAppearEverBegun, let inputToolbar else { return }
 
         let picker = TellomiPhotoPickerViewController(
@@ -41,8 +101,16 @@ extension ConversationViewController {
             chatBackground: viewState.wallpaperViewBuilder?.build().asPreviewView(),
             bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
             camera: TellomiSystemPickerCamera(),
+            dockItems: asAttachmentSheet ? TellomiAttachmentDockItem.allCases : [],
         )
         picker.delegate = self
+
+        if asAttachmentSheet {
+            picker.modalPresentationStyle = .pageSheet
+            if let sheet = picker.sheetPresentationController {
+                Self.configureAttachmentSheet(sheet)
+            }
+        }
 
         dismissKeyBoard()
         let presenter = splitViewController ?? self
@@ -53,9 +121,28 @@ extension ConversationViewController {
 extension ConversationViewController: TellomiPhotoPickerDelegate {
 
     func photoPickerDidCancel(_ picker: TellomiPhotoPickerViewController) {
-        // 同上游 sendMediaNavDidCancel：回到附件面板。
+        // #1115：面板本身就是附件 Sheet，✕ 就是关掉、回到聊天（不再「回到附件面板」，不然关不掉）。
         dismiss(animated: true)
-        openAttachmentKeyboard()
+    }
+
+    /// dock 的「文件 / 位置 / 投票 / 联系人」：先收起 Sheet，再走上游原来的流程（取消了会经 openAttachmentKeyboard 回到 Sheet）。
+    /// 「文件」页（#1121）做好之前先是上游的系统文件选择器。
+    func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {
+        dismiss(animated: true) { [weak self] in
+            guard let self else { return }
+            switch item {
+            case .gallery:
+                break
+            case .file:
+                self.fileButtonPressed()
+            case .location:
+                self.locationButtonPressed()
+            case .poll:
+                self.pollButtonPressed()
+            case .contact:
+                self.contactButtonPressed()
+            }
+        }
     }
 
     /// 相机格：走上游「+ → 相机」同一条路（自己问相机 / 麦克风权限，拍完在它自己的预览页里发），但盖在选图面板上面——
