@@ -226,6 +226,7 @@ extension AppSetup.GlobalsContinuation {
                 if let customServerHostname = TSConstants.customServerChatHostname {
                     return Net(
                         customServerHostname: customServerHostname,
+                        chatPort: TellomiRegions.chatPort(for: TellomiRegions.active()),
                         userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
                         buildVariant: BuildFlags.netBuildVariant,
                         remoteConfig: remoteConfig.netConfig(),
@@ -351,6 +352,7 @@ extension AppSetup.GlobalsContinuation {
                 makeNet: { region in
                     Net(
                         customServerHostname: region.grpcChatHost,
+                        chatPort: TellomiRegions.chatPort(for: region),
                         userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
                         buildVariant: BuildFlags.netBuildVariant,
                         remoteConfig: remoteConfigProvider.currentConfig().netConfig(),

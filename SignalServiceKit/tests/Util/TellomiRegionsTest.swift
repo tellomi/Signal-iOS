@@ -599,6 +599,58 @@ class TellomiRegionsTest: XCTestCase {
         XCTAssertEqual(TellomiRegions.resolve(storedId: "cn", profiles: TellomiRegions.processProfiles), global)
     }
 
+    // MARK: 测试区可以指定端口（TELLOMI_TEST_REGION_PORT）
+
+    private let testPortKey = TellomiRegions.testRegionPortKey
+
+    func testPackagedRegionsAlwaysUseChatPort443() {
+        XCTAssertEqual(TellomiRegions.chatPort(for: global), 443)
+        XCTAssertEqual(TellomiRegions.chatPort(for: TellomiRegions.cn), 443)
+        // 没带端口的测试区也是 443
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        XCTAssertEqual(TellomiRegions.chatPort(for: profiles[1]), 443)
+    }
+
+    func testTheTestRegionPortMovesEveryUrlEndpointAndTheChatPort() {
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "127.0.0.1.nip.io", testPortKey: "18443"])
+        XCTAssertEqual(profiles[0], global)
+        XCTAssertEqual(TellomiRegions.chatPort(for: profiles[0]), 443)
+        let testRegion = profiles[1]
+        XCTAssertEqual(TellomiRegions.chatPort(for: testRegion), 18443)
+        XCTAssertEqual(testRegion.chat, "https://chat.127.0.0.1.nip.io:18443")
+        XCTAssertEqual(testRegion.grpcChatHost, "grpc.chat.127.0.0.1.nip.io")
+        XCTAssertEqual(testRegion.captchaRegistration, "https://chat.127.0.0.1.nip.io:18443/captcha-tellomi/registration/generate.html")
+        XCTAssertEqual(testRegion.contentProxyPort, 18443)
+        XCTAssertEqual(testRegion.uptimeHost, "uptime.127.0.0.1.nip.io")
+        let urls = [
+            testRegion.chat,
+            testRegion.storage,
+            testRegion.cdn0,
+            testRegion.cdn2,
+            testRegion.cdn3,
+            testRegion.updates,
+            testRegion.captchaRegistration,
+            testRegion.captchaChallenge,
+            testRegion.sfu,
+            testRegion.debugLog,
+        ]
+        for url in urls {
+            XCTAssertEqual(URLComponents(string: url)?.port, 18443, url)
+            XCTAssertTrue(TellomiRegions.hostOf(url).hasSuffix(".127.0.0.1.nip.io"), url)
+        }
+    }
+
+    func testAnInvalidTestRegionPortIsIgnored() {
+        let plain = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        for notAPort in ["", "0", "65536", "-1", "abc", "443x", " 443"] {
+            let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test", testPortKey: notAPort])
+            XCTAssertEqual(profiles, plain, notAPort)
+            XCTAssertEqual(TellomiRegions.chatPort(for: profiles[1]), 443, notAPort)
+        }
+        // 光有端口、没有测试区域名：包里的表原样
+        XCTAssertEqual(TellomiRegions.testRegionProfiles(environment: [testPortKey: "18443"]), TellomiRegions.all)
+    }
+
     func testSwitchingTenTimesLeavesNoTokioThreadsBehind() throws {
         // #1056 判据 2 的单测版：每个 Net 一个 tokio 运行时；切 10 次、退役期过后，线程数回到开始时
         let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
@@ -810,7 +862,7 @@ class TellomiRegionsTest: XCTestCase {
     // MARK: - 门禁：测试区和演练只在测试构建里
 
     /// 测试专用代码的标记。App 源码里出现的每一处都要在 `#if TESTABLE_BUILD` 里（App Store Release 没有这个宏）。
-    private static let testOnlyMarkers = ["TELLOMI_TEST_REGION_DOMAIN", "TELLOMI_REGION_DRILL", "testRegionProfiles(", "TellomiRegionDrill"]
+    private static let testOnlyMarkers = ["TELLOMI_TEST_REGION_DOMAIN", "TELLOMI_TEST_REGION_PORT", "TELLOMI_REGION_DRILL", "testRegionProfiles(", "TellomiRegionDrill"]
 
     private func testOnlyMarkerHits() throws -> (guarded: [String], unguarded: [String]) {
         var guarded = [String]()
