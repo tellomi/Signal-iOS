@@ -1573,7 +1573,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>你最近改过用户名，%d 天后可以再改。</string>
+			<string>你最近改过用户名，%d 天后可以再改。在那之前，只能改回原来的名字。</string>
 		</dict>
 	</dict>
 	<key>USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d</key>
@@ -1601,7 +1601,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>d</string>
 			<key>other</key>
-			<string>这样做将会删除你的用户名，并使你的二维码和链接失效。“%2$@”会为你保留 %3$d 天；这期间再设置用户名，之后 %d 天内不能再改。确定要删除吗？</string>
+			<string>这样做将会删除你的用户名，并使你的二维码和链接失效。“%2$@”会为你保留 %3$d 天；这期间再设置用户名，之后 %1$d 天内不能再改。如果你 %1$d 天内改过用户名，删除后只能改回原来的名字。确定要删除吗？</string>
 		</dict>
 	</dict>
 	<key>USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d</key>

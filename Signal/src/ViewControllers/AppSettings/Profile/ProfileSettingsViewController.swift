@@ -557,7 +557,7 @@ class ProfileSettingsViewController: OWSTableViewController2 {
                 OWSLocalizedString(
                     "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d",
                     tableName: "PluralAware",
-                    comment: "Tellomi: a message asking the user if they are sure they want to remove their username. The server holds the deleted username for them for 30 days, and setting any username during that time starts the rename cooldown. Embeds {{ %d the cooldown length in days (30) }}, {{ %2$@ the user's current username }} and {{ %3$d the hold length in days (30) }}.",
+                    comment: "Tellomi: a message asking the user if they are sure they want to remove their username. The server holds the deleted username for them for 30 days, and setting any username during that time starts the rename cooldown; if they changed their username within the cooldown, they can only change back to the original one after deleting (owner 2026-09-24). Embeds {{ %1$d the cooldown length in days (30), twice }}, {{ %2$@ the user's current username }} and {{ %3$d the hold length in days (30) }}.",
                 ),
                 TellomiLinks.renameCooldownDays,
                 TellomiLinks.displayUsername(currentUsername), // Tellomi（#1106 第三刀）
