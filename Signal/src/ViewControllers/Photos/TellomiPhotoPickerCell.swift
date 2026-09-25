@@ -14,18 +14,13 @@ final class TellomiPhotoPickerCell: UICollectionViewCell {
     static let reuseIdentifier = "TellomiPhotoPickerCell"
 
     private enum Metrics {
-        static let checkTouchSize: CGFloat = 29
         static let checkInset: CGFloat = 3
-        static let checkVisualSize: CGFloat = 24
-        static let checkBorder: CGFloat = 1.5
     }
 
     private let imageView = UIImageView()
     private let durationLabel = UILabel()
     private let livePhotoBadge = UIImageView(image: UIImage(systemName: "livephoto"))
-    private let checkButton = UIButton(type: .custom)
-    private let checkCircle = UIView()
-    private let numberLabel = UILabel()
+    private let check = TellomiNumberedCheck()
 
     /// 点了右上角的勾。
     var onCheckTapped: (() -> Void)?
@@ -61,24 +56,8 @@ final class TellomiPhotoPickerCell: UICollectionViewCell {
         livePhotoBadge.isHidden = true
         contentView.addSubview(livePhotoBadge)
 
-        checkCircle.isUserInteractionEnabled = false
-        checkCircle.layer.cornerRadius = Metrics.checkVisualSize / 2
-        checkCircle.layer.borderWidth = Metrics.checkBorder
-        checkCircle.layer.borderColor = UIColor.white.cgColor
-        checkCircle.layer.shadowColor = UIColor.black.cgColor
-        checkCircle.layer.shadowOpacity = 0.3
-        checkCircle.layer.shadowRadius = 2
-        checkCircle.layer.shadowOffset = .zero
-        checkButton.addSubview(checkCircle)
-
-        numberLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .bold)
-        numberLabel.textColor = .white
-        numberLabel.textAlignment = .center
-        checkCircle.addSubview(numberLabel)
-
-        checkButton.accessibilityLabel = OWSLocalizedString("IMAGE_PICKER_TELLOMI_SELECT", comment: "Accessibility label for the numbered check on a photo in the photo picker.")
-        checkButton.addAction(UIAction { [weak self] _ in self?.onCheckTapped?() }, for: .touchUpInside)
-        contentView.addSubview(checkButton)
+        check.addAction(UIAction { [weak self] _ in self?.onCheckTapped?() }, for: .touchUpInside)
+        contentView.addSubview(check)
 
         setSelectionNumber(nil, accentColor: .Signal.accent, animated: false)
     }
@@ -91,15 +70,12 @@ final class TellomiPhotoPickerCell: UICollectionViewCell {
         super.layoutSubviews()
         imageView.frame = contentView.bounds
         let size = contentView.bounds.size
-        checkButton.frame = CGRect(
-            x: size.width - Metrics.checkTouchSize - Metrics.checkInset,
+        check.frame = CGRect(
+            x: size.width - TellomiNumberedCheck.touchSize - Metrics.checkInset,
             y: Metrics.checkInset,
-            width: Metrics.checkTouchSize,
-            height: Metrics.checkTouchSize,
+            width: TellomiNumberedCheck.touchSize,
+            height: TellomiNumberedCheck.touchSize,
         )
-        let inset = (Metrics.checkTouchSize - Metrics.checkVisualSize) / 2
-        checkCircle.frame = CGRect(x: inset, y: inset, width: Metrics.checkVisualSize, height: Metrics.checkVisualSize)
-        numberLabel.frame = checkCircle.bounds
         livePhotoBadge.sizeToFit()
         livePhotoBadge.frame.origin = CGPoint(x: 6, y: 6)
         durationLabel.sizeToFit()
@@ -148,23 +124,8 @@ final class TellomiPhotoPickerCell: UICollectionViewCell {
     }
 
     func setSelectionNumber(_ number: Int?, accentColor: UIColor, animated: Bool) {
-        let wasSelected = selectionNumber != nil
         selectionNumber = number
-        numberLabel.text = number.map { "\($0)" }
-        checkCircle.backgroundColor = number != nil ? accentColor : UIColor.black.withAlphaComponent(0.12)
-        checkButton.accessibilityTraits = number != nil ? [.button, .selected] : .button
-        checkButton.accessibilityValue = number.map {
-            String.nonPluralLocalizedStringWithFormat(
-                OWSLocalizedString("IMAGE_PICKER_TELLOMI_SELECTED_NUMBER_FORMAT", comment: "Accessibility value of a selected photo's check in the photo picker. Embeds {{ its place in the selection }}."),
-                OWSFormat.formatInt($0),
-            )
-        }
-        if animated, number != nil, !wasSelected {
-            checkCircle.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
-            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.55, initialSpringVelocity: 0) {
-                self.checkCircle.transform = .identity
-            }
-        }
+        check.setNumber(number, accentColor: accentColor, animated: animated)
     }
 
     /// m:ss；一小时以上 h:mm:ss。
@@ -177,11 +138,80 @@ final class TellomiPhotoPickerCell: UICollectionViewCell {
     }
 }
 
+/// 编号勾（P-8）：29 pt 的触摸区里一个 24 pt 的圆，白色 1.5 pt 描边 + 阴影；没选是半透明的空圈，选中填强调色并显示第几张，
+/// 选上时弹一下。选图网格的格子和「只看已选」的卡片共用。
+final class TellomiNumberedCheck: UIControl {
+
+    static let touchSize: CGFloat = 29
+    static let visualSize: CGFloat = 24
+    static let borderWidth: CGFloat = 1.5
+
+    private let circle = UIView()
+    private let numberLabel = UILabel()
+    private var number: Int?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        circle.isUserInteractionEnabled = false
+        circle.layer.cornerRadius = Self.visualSize / 2
+        circle.layer.borderWidth = Self.borderWidth
+        circle.layer.borderColor = UIColor.white.cgColor
+        circle.layer.shadowColor = UIColor.black.cgColor
+        circle.layer.shadowOpacity = 0.3
+        circle.layer.shadowRadius = 2
+        circle.layer.shadowOffset = .zero
+        addSubview(circle)
+
+        numberLabel.font = .monospacedDigitSystemFont(ofSize: 13, weight: .bold)
+        numberLabel.textColor = .white
+        numberLabel.textAlignment = .center
+        circle.addSubview(numberLabel)
+
+        isAccessibilityElement = true
+        accessibilityLabel = OWSLocalizedString("IMAGE_PICKER_TELLOMI_SELECT", comment: "Accessibility label for the numbered check on a photo in the photo picker.")
+        setNumber(nil, accentColor: .Signal.accent, animated: false)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let inset = (bounds.width - Self.visualSize) / 2
+        circle.frame = CGRect(x: inset, y: (bounds.height - Self.visualSize) / 2, width: Self.visualSize, height: Self.visualSize)
+        numberLabel.frame = circle.bounds
+    }
+
+    func setNumber(_ number: Int?, accentColor: UIColor, animated: Bool) {
+        let wasSelected = self.number != nil
+        self.number = number
+        numberLabel.text = number.map { "\($0)" }
+        circle.backgroundColor = number != nil ? accentColor : UIColor.black.withAlphaComponent(0.12)
+        accessibilityTraits = number != nil ? [.button, .selected] : .button
+        accessibilityValue = number.map {
+            String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString("IMAGE_PICKER_TELLOMI_SELECTED_NUMBER_FORMAT", comment: "Accessibility value of a selected photo's check in the photo picker. Embeds {{ its place in the selection }}."),
+                OWSFormat.formatInt($0),
+            )
+        }
+        if animated, number != nil, !wasSelected {
+            circle.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
+            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.55, initialSpringVelocity: 0) {
+                self.circle.transform = .identity
+            }
+        }
+    }
+
+    var numberTextForTesting: String? { numberLabel.text }
+}
+
 #if TESTABLE_BUILD
 
 extension TellomiPhotoPickerCell {
-    var checkFrameForTesting: CGRect { checkButton.frame }
-    var numberTextForTesting: String? { numberLabel.text }
+    var checkFrameForTesting: CGRect { check.frame }
+    var numberTextForTesting: String? { check.numberTextForTesting }
     var durationTextForTesting: String? { durationLabel.isHidden ? nil : durationLabel.text }
     var isShowingLivePhotoBadgeForTesting: Bool { !livePhotoBadge.isHidden }
     var livePhotoBadgeFrameForTesting: CGRect { livePhotoBadge.frame }

@@ -37,6 +37,9 @@ extension ConversationViewController {
             attachmentLimits: .currentLimits(),
             approvalDataSource: self,
             stickerSheetDelegate: self,
+            // 「只看已选」（P-3）铺会话的聊天背景、说明气泡用会话的颜色。
+            chatBackground: viewState.wallpaperViewBuilder?.build().asPreviewView(),
+            bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
         )
         picker.delegate = self
 

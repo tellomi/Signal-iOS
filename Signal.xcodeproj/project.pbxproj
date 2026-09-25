@@ -460,6 +460,7 @@
 		3496955E219B605E00DCFE74 /* PhotoLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3496955B219B605E00DCFE74 /* PhotoLibrary.swift */; };
 		239DBCA1027D85E16C11786A /* TellomiPhotoPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF6E064DDF3E1085083E438 /* TellomiPhotoPickerViewController.swift */; };
 		D6217F643104401FFA7CD61B /* TellomiPhotoPickerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B599009DE0559655534C804 /* TellomiPhotoPickerCell.swift */; };
+		DA66C4ABA2043F4C710F78AE /* TellomiPhotoPickerSelectedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7107933336E3B66B41937B57 /* TellomiPhotoPickerSelectedView.swift */; };
 		40B3651A6590416B1FB5DBF0 /* TellomiPhotoPickerLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0532E3135A6D469CEC78A953 /* TellomiPhotoPickerLibrary.swift */; };
 		349767E325B8744700ECE1B0 /* ManageStickersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349767E025B8744700ECE1B0 /* ManageStickersViewController.swift */; };
 		349767E425B8744700ECE1B0 /* StickerPackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349767E125B8744700ECE1B0 /* StickerPackViewController.swift */; };
@@ -4676,6 +4677,7 @@
 		3496955B219B605E00DCFE74 /* PhotoLibrary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoLibrary.swift; sourceTree = "<group>"; };
 		0BF6E064DDF3E1085083E438 /* TellomiPhotoPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiPhotoPickerViewController.swift; sourceTree = "<group>"; };
 		3B599009DE0559655534C804 /* TellomiPhotoPickerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiPhotoPickerCell.swift; sourceTree = "<group>"; };
+		7107933336E3B66B41937B57 /* TellomiPhotoPickerSelectedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiPhotoPickerSelectedView.swift; sourceTree = "<group>"; };
 		0532E3135A6D469CEC78A953 /* TellomiPhotoPickerLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiPhotoPickerLibrary.swift; sourceTree = "<group>"; };
 		349767E025B8744700ECE1B0 /* ManageStickersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ManageStickersViewController.swift; sourceTree = "<group>"; };
 		349767E125B8744700ECE1B0 /* StickerPackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StickerPackViewController.swift; sourceTree = "<group>"; };
@@ -9184,6 +9186,7 @@
 				3496955B219B605E00DCFE74 /* PhotoLibrary.swift */,
 				0BF6E064DDF3E1085083E438 /* TellomiPhotoPickerViewController.swift */,
 				3B599009DE0559655534C804 /* TellomiPhotoPickerCell.swift */,
+				7107933336E3B66B41937B57 /* TellomiPhotoPickerSelectedView.swift */,
 				0532E3135A6D469CEC78A953 /* TellomiPhotoPickerLibrary.swift */,
 				4C4AE69F224AF21900D4AF6F /* SendMediaNavigationController.swift */,
 			);
@@ -19053,6 +19056,7 @@
 				3496955E219B605E00DCFE74 /* PhotoLibrary.swift in Sources */,
 				239DBCA1027D85E16C11786A /* TellomiPhotoPickerViewController.swift in Sources */,
 				D6217F643104401FFA7CD61B /* TellomiPhotoPickerCell.swift in Sources */,
+				DA66C4ABA2043F4C710F78AE /* TellomiPhotoPickerSelectedView.swift in Sources */,
 				40B3651A6590416B1FB5DBF0 /* TellomiPhotoPickerLibrary.swift in Sources */,
 				887889A52476E999001B5FCF /* PinConfirmationViewController.swift in Sources */,
 				048D58362ED4FABB00F26237 /* PinDisappearingMessageViewController.swift in Sources */,
