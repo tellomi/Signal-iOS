@@ -309,6 +309,20 @@ class MessageReactionPicker: UIStackView {
         )
     }
 
+    /// Tellomi（交互审计 A-07）：把选中的表情交给「回应飞入」——返回它在窗口里的位置和字号，并把条上这一个藏起来，由飞的那个接着走。
+    func takeEmojiForFlyIn(at position: Int) -> ReactionFlyIn.Source? {
+        guard
+            buttonForEmoji.indices.contains(position),
+            let button = buttonForEmoji[position].emojiButton,
+            let window = button.window
+        else {
+            return nil
+        }
+        let frameInWindow = button.convert(button.bounds, to: window)
+        button.hideEmojiForFlyIn()
+        return ReactionFlyIn.Source(frameInWindow: frameInWindow, fontSize: button.emojiFontSize)
+    }
+
     func currentEmojiSet() -> [String] {
         buttonForEmoji.compactMap { button in
             switch button {
@@ -537,6 +551,13 @@ class MessageReactionPicker: UIStackView {
             didSet {
                 label.alpha = isHighlighted ? 0.7 : 1
             }
+        }
+
+        // Tellomi（交互审计 A-07）：给「回应飞入」用。用 isHidden 而不是 alpha，免得高亮状态变化又把它显示出来。
+        var emojiFontSize: CGFloat { label.font.pointSize }
+
+        func hideEmojiForFlyIn() {
+            label.isHidden = true
         }
 
         // MARK: - Layout
