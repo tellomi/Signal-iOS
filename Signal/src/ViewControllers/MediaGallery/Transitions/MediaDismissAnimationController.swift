@@ -140,6 +140,8 @@ extension MediaDismissAnimationController: UIViewControllerAnimatedTransitioning
         transitionView.layer.shadowOffset = CGSize(width: 0, height: 32)
         transitionView.layer.shadowRadius = 48
         transitionView.layer.shadowOpacity = 0
+        // Tellomi（交互审计 A-20）：拖动阶段尺寸不变，给阴影一个路径，免得跟手时每帧离屏渲染半径 48 的阴影。
+        transitionView.layer.shadowPath = UIBezierPath(rect: transitionView.bounds).cgPath
         clippingView.addSubview(transitionView)
         self.transitionView = transitionView
 
@@ -161,8 +163,6 @@ extension MediaDismissAnimationController: UIViewControllerAnimatedTransitioning
         fromMediaContext.mediaView.alpha = 0
         toMediaContext?.mediaView.alpha = 0
 
-        let duration = transitionDuration(using: transitionContext)
-
         let completion = {
             let destinationFrame: CGRect
             let destinationMediaViewShape: MediaViewShape
@@ -181,13 +181,25 @@ extension MediaDismissAnimationController: UIViewControllerAnimatedTransitioning
                 destinationMediaViewShape = fromMediaContext.mediaViewShape
             }
 
-            let animator = UIViewPropertyAnimator(
-                duration: duration,
-                springDamping: 1,
-                springResponse: 0.25,
+            // Tellomi（交互审计 A-20）：收尾用交互标准的 large 弹簧，并从松手速度出发；
+            // 原来是固定的 spring(1, 0.25)，松手那一下速度断档。
+            transitionView.layer.shadowPath = nil
+            let reduceMotion = TellomiMotion.isReduceMotionEnabled
+            let isFinishing = !transitionContext.transitionWasCancelled
+            let destinationInClipping = clippingView.convert(destinationFrame, from: containerView)
+            let remaining = CGVector(
+                dx: destinationInClipping.midX - transitionView.center.x,
+                dy: destinationInClipping.midY - transitionView.center.y,
+            )
+            let animator = TellomiMotion.animator(
+                TellomiMotion.large,
+                initialVelocity: isTransitionInteractive
+                    ? TellomiMotion.relativeVelocity(self.interactionController.releaseVelocity, remaining: remaining)
+                    : .zero,
+                reduceMotion: reduceMotion,
             )
             animator.addAnimations {
-                if transitionContext.transitionWasCancelled == false {
+                if isFinishing {
                     fromView.alpha = 0
                     backgroundView.backgroundColor = toMediaContext?.backgroundColor
 
@@ -198,9 +210,15 @@ extension MediaDismissAnimationController: UIViewControllerAnimatedTransitioning
                     }
                 }
 
-                transitionImageView?.shape = destinationMediaViewShape
-                transitionView.transform = .identity
-                transitionView.frame = clippingView.convert(destinationFrame, from: containerView)
+                if reduceMotion, isFinishing {
+                    // 减弱动态效果：不「飞」回缩略图，原地淡出，缩略图同时淡入（HIG：位移改淡入淡出）。
+                    transitionView.alpha = 0
+                    toMediaContext?.mediaView.alpha = 1
+                } else {
+                    transitionImageView?.shape = destinationMediaViewShape
+                    transitionView.transform = .identity
+                    transitionView.frame = destinationInClipping
+                }
                 transitionView.layer.shadowOpacity = 0
             }
             animator.addCompletion { _ in
