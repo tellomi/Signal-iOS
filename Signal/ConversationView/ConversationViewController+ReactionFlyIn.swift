@@ -10,12 +10,13 @@ import UIKit
 /// 回应飞入（tellomi/tellomi 交互审计 A-07）在会话页这一侧：什么时候起飞、落到哪。飞行本身见 [ReactionFlyIn]。
 ///
 /// 起飞要等三件事：菜单收完（收起期间聊天列表不落 load，消息也还是预览快照）、这条回应已经画在消息下方、
-/// 落点不再移动（菜单收起后键盘可能弹回来，带着整个列表往上走）。
+/// 落点不再跳动。取的是模型层坐标：键盘弹回之类的动画一开始模型值就到了终点，飞行和它同时收尾；
+/// 要防的是接连几次重新布局把格子挪来挪去，所以隔一帧取一次样就够了。
 extension ConversationViewController {
 
     /// 连续两次取到的落点相差不到这么多，就算停稳了。
     private static var reactionFlyInStillTolerance: CGFloat { 0.5 }
-    private static var reactionFlyInStillCheckInterval: TimeInterval { 0.08 }
+    private static var reactionFlyInStillCheckInterval: TimeInterval { 1.0 / 60 }
     private static var reactionFlyInStillCheckLimit: Int { 8 }
 
     func beginReactionFlyIn(messageUniqueId: String, emoji: String, source: ReactionFlyIn.Source) {
