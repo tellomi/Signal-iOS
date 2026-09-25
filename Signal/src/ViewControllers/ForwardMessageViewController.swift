@@ -813,3 +813,59 @@ private struct ForwardMessageContent {
         return componentState
     }
 }
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+extension ForwardMessageViewController {
+
+    /// 长按「收藏」：不开转发面板，照转发的内容（同一套检查与发送）直接发到「我的收藏」。发出去了回调 true。
+    static func tellomiSaveToSavedMessages(
+        itemViewModel: CVItemViewModelImpl,
+        completion: @escaping @MainActor (Bool) -> Void,
+    ) {
+        AssertIsOnMainThread()
+
+        let attachmentLimits = OutgoingAttachmentLimits.currentLimits()
+        let content: Content
+        let savedMessages: ConversationItem
+        do {
+            let built: (Content, ConversationItem?) = try SSKEnvironment.shared.databaseStorageRef.read { tx in
+                return (
+                    try Content.build(itemViewModel: itemViewModel, attachmentLimits: attachmentLimits, tx: tx),
+                    TellomiSavedMessagesConversationItem.build(tx: tx),
+                )
+            }
+            guard let item = built.1 else {
+                completion(false)
+                return
+            }
+            content = built.0
+            savedMessages = item
+        } catch {
+            ForwardMessageViewController.showAlertForForwardError(error: error, forwardedInteractionCount: 1)
+            completion(false)
+            return
+        }
+
+        let forwardController = ForwardMessageViewController(content: content, attachmentLimits: attachmentLimits)
+        forwardController.selection.add(savedMessages)
+        let delegate = TellomiSaveToSavedMessagesDelegate()
+        forwardController.forwardMessageDelegate = delegate
+
+        Task { @MainActor in
+            await forwardController._tryToSend()
+            // forwardMessageDelegate 是 weak，发完之前靠这里留住代理
+            completion(delegate.didComplete)
+        }
+    }
+}
+
+private final class TellomiSaveToSavedMessagesDelegate: ForwardMessageDelegate {
+    private(set) var didComplete = false
+
+    func forwardMessageFlowDidComplete(items: [ForwardMessageItem], recipientThreads: [TSThread]) {
+        didComplete = true
+    }
+
+    func forwardMessageFlowDidCancel() {}
+}

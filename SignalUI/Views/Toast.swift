@@ -147,7 +147,11 @@ public class ToastController: NSObject, ToastViewDelegate {
     func didTapToastView(_ toastView: ToastView) {
         Logger.debug("")
         self.dismissToastView()
+        tellomiOnTap?()
     }
+
+    /// Tellomi：点提示条时额外做的事（「已收藏，点击查看」打开「我的收藏」，#1174）。
+    public var tellomiOnTap: (() -> Void)?
 
     func didSwipeToastView(_ toastView: ToastView) {
         Logger.debug("")

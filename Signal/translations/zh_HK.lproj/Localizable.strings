@@ -2535,6 +2535,9 @@
 /* Context menu button title */
 "CONTEXT_MENU_FORWARD_MESSAGE" = "轉發";
 
+/* Tellomi (#1174): context menu button that saves a message into Saved Messages */
+"CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏";
+
 /* Context menu button title */
 "CONTEXT_MENU_PAYMENT_DETAILS" = "付款詳情";
 
@@ -4016,6 +4019,9 @@
 
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "訊息已傳送";
+
+/* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
+"FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "已收藏，輕觸查看";
 
 /* Indicates that the user can add a text message to forwarded messages. */
 "FORWARD_MESSAGE_TEXT_PLACEHOLDER" = "新增訊息";
@@ -5789,6 +5795,9 @@
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_MESSAGE" = "轉寄此訊息";
+
+/* Tellomi (#1174): accessibility label for saving a message into Saved Messages */
+"MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏到「我的收藏」";
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_SELECTED_MESSAGES" = "轉寄選取的訊息";

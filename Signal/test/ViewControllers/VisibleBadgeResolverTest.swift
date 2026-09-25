@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import LibSignalClient
 import XCTest
 
 import SignalServiceKit
@@ -271,5 +272,60 @@ class TellomiSavedMessagesNamingTest: XCTestCase {
     func testTheSettingsEntryUsesTheBookmarkAssetAndItShipsInTheApp() {
         XCTAssertEqual(Theme.iconName(.settingsTellomiSavedMessages, isDarkThemeEnabled: false), "tellomi-bookmark-resizable")
         XCTAssertNotNil(UIImage(named: "tellomi-bookmark-resizable"))
+    }
+}
+
+/// 长按「收藏」与转发面板置顶（需求 official-account-and-saved §3.2 第 3 条）。
+class TellomiSavedMessagesForwardTest: SignalBaseTest {
+
+    private func contact(_ address: SignalServiceAddress, _ name: String) -> ContactConversationItem {
+        return ContactConversationItem(
+            address: address,
+            isBlocked: false,
+            disappearingMessagesConfig: nil,
+            comparableName: ComparableDisplayName(address: address, displayName: .username(name), config: .current()),
+        )
+    }
+
+    private func addresses(_ recent: [RecentConversationItem]) -> [SignalServiceAddress] {
+        return recent.compactMap { item in
+            if case .contact(let contact) = item.backingItem {
+                return contact.address
+            }
+            return nil
+        }
+    }
+
+    func testSavedMessagesIsPinnedFirstAndListedOnlyOnce() {
+        let selfAddress = SignalServiceAddress(Aci.randomForTesting())
+        let buddy = SignalServiceAddress(Aci.randomForTesting())
+        let other = SignalServiceAddress(Aci.randomForTesting())
+
+        var recent = [
+            RecentConversationItem(backingItem: .contact(contact(buddy, "buddy"))),
+            RecentConversationItem(backingItem: .contact(contact(selfAddress, "me"))),
+        ]
+        var contacts = [contact(selfAddress, "me"), contact(other, "other")]
+
+        TellomiSavedMessagesConversationItem.pinFirst(contact(selfAddress, "me"), recent: &recent, contacts: &contacts)
+
+        XCTAssertEqual(addresses(recent), [selfAddress, buddy])
+        XCTAssertEqual(contacts.map(\.address), [other])
+    }
+
+    func testTheSaveStringsAreTranslatedAndOtherLanguagesFallBackToEnglish() {
+        func localizedString(_ key: String, _ localization: String) -> String? {
+            guard let path = Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: localization) else {
+                return nil
+            }
+            return NSDictionary(contentsOfFile: path)?[key] as? String
+        }
+        XCTAssertEqual(localizedString("CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE", "zh_CN"), "收藏")
+        XCTAssertEqual(localizedString("FORWARD_MESSAGE_TELLOMI_SAVED_TOAST", "zh_CN"), "已收藏，点击查看")
+        XCTAssertEqual(localizedString("CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE", "zh_TW"), "收藏")
+        XCTAssertNil(localizedString("CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE", "ja"))
+
+        XCTAssertEqual(TellomiSavedMessagesStrings.save, "Save")
+        XCTAssertEqual(TellomiSavedMessagesStrings.savedToast, "Saved to Saved Messages. Tap to view.")
     }
 }

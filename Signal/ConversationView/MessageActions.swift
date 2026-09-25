@@ -18,6 +18,7 @@ protocol MessageActionsDelegate: AnyObject {
     func messageActionsShowPaymentDetails(_ itemViewModel: CVItemViewModelImpl)
     func messageActionsEndPoll(_ itemViewModel: CVItemViewModelImpl)
     func messageActionsChangePinStatus(_ itemViewModel: CVItemViewModelImpl, pin: Bool)
+    func messageActionsTellomiSaveToSavedMessages(_ itemViewModel: CVItemViewModelImpl)
 }
 
 // MARK: -
@@ -111,6 +112,20 @@ enum MessageActionBuilder {
             contextMenuAttributes: [],
             block: { [weak delegate] _ in
                 delegate?.messageActionsForwardItem(itemViewModel)
+            },
+        )
+    }
+
+    /// Tellomi：长按「收藏」，不开转发面板、直接存进「我的收藏」（#1174）
+    static func tellomiSaveToSavedMessages(itemViewModel: CVItemViewModelImpl, delegate: MessageActionsDelegate) -> MessageAction {
+        return MessageAction(
+            .tellomiSave,
+            accessibilityLabel: TellomiSavedMessagesStrings.saveAccessibilityLabel,
+            accessibilityIdentifier: UIView.accessibilityIdentifier(containerName: "message_action", name: "tellomi_save_to_saved_messages"),
+            contextMenuTitle: TellomiSavedMessagesStrings.save,
+            contextMenuAttributes: [],
+            block: { [weak delegate] _ in
+                delegate?.messageActionsTellomiSaveToSavedMessages(itemViewModel)
             },
         )
     }
@@ -265,6 +280,10 @@ class MessageActions {
 
         if itemViewModel.canForwardMessage {
             actions.append(MessageActionBuilder.forwardMessage(itemViewModel: itemViewModel, delegate: delegate))
+            // Tellomi：「收藏」（#1174），「我的收藏」自己的会话里不显示
+            if !itemViewModel.thread.isNoteToSelf {
+                actions.append(MessageActionBuilder.tellomiSaveToSavedMessages(itemViewModel: itemViewModel, delegate: delegate))
+            }
         }
 
         let selectAction = MessageActionBuilder.selectMessage(itemViewModel: itemViewModel, delegate: delegate)
@@ -331,6 +350,10 @@ class MessageActions {
 
         if itemViewModel.canForwardMessage {
             actions.append(MessageActionBuilder.forwardMessage(itemViewModel: itemViewModel, delegate: delegate))
+            // Tellomi：「收藏」（#1174），「我的收藏」自己的会话里不显示
+            if !itemViewModel.thread.isNoteToSelf {
+                actions.append(MessageActionBuilder.tellomiSaveToSavedMessages(itemViewModel: itemViewModel, delegate: delegate))
+            }
         }
 
         if itemViewModel.canEditMessage, shouldAllowMessageSendActions {
@@ -379,6 +402,10 @@ class MessageActions {
 
         if itemViewModel.canForwardMessage {
             actions.append(MessageActionBuilder.forwardMessage(itemViewModel: itemViewModel, delegate: delegate))
+            // Tellomi：「收藏」（#1174），「我的收藏」自己的会话里不显示
+            if !itemViewModel.thread.isNoteToSelf {
+                actions.append(MessageActionBuilder.tellomiSaveToSavedMessages(itemViewModel: itemViewModel, delegate: delegate))
+            }
         }
 
         if itemViewModel.canEditMessage, shouldAllowMessageSendActions {
@@ -525,5 +552,26 @@ class MessageActions {
         let deleteAction = MessageActionBuilder.deleteMessage(itemViewModel: itemViewModel, delegate: delegate)
         let selectAction = MessageActionBuilder.selectMessage(itemViewModel: itemViewModel, delegate: delegate)
         return [deleteAction, selectAction]
+    }
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 「收藏」相关文案。只翻了 en / zh_CN / zh_HK / zh_TW；其它语言的表里没有这个键时回落英文（iOS 默认会直接显示键名）。
+enum TellomiSavedMessagesStrings {
+    private static func localized(_ key: String, english: String) -> String {
+        return Bundle.main.localizedString(forKey: key, value: english, table: nil)
+    }
+
+    static var save: String {
+        localized("CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE", english: "Save")
+    }
+
+    static var saveAccessibilityLabel: String {
+        localized("MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE", english: "Save to Saved Messages")
+    }
+
+    static var savedToast: String {
+        localized("FORWARD_MESSAGE_TELLOMI_SAVED_TOAST", english: "Saved to Saved Messages. Tap to view.")
     }
 }
