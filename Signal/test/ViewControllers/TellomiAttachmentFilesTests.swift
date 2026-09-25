@@ -344,6 +344,29 @@ final class TellomiAttachmentFilesTests: SignalBaseTest {
         XCTAssertEqual(TellomiFileTypeIcon.tint(forExtension: ""), .blue)
     }
 
+    // MARK: - Picked files (F-4)
+
+    /// F-4：系统选择器挑回来的文件变成要发的附件（按文件发，文件名跟着走）；超过服务端上限的不建（nil，会话页统一提示「文件太大」并写明上限）。
+    func testPickedFileOverTheServerLimitIsNotBuilt() async throws {
+        let config = RemoteConfig(clockSkew: 0, valueFlags: ["global.attachments.maxBytes": "8192"])
+        let limits = OutgoingAttachmentLimits(remoteConfig: config, callingCode: nil)
+        let maxBytes = limits.maxPlaintextBytes
+        XCTAssertLessThan(maxBytes, 8192, "上限读服务端下发的配置")
+
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let small = directory.appendingPathComponent("notes.txt")
+        try Data("hello".utf8).write(to: small)
+        let big = directory.appendingPathComponent("big.bin")
+        try Data(count: Int(maxBytes) + 1).write(to: big)
+
+        let attachment = try await ConversationViewController.tellomiBuildFileAttachment(url: small, limits: limits)
+        XCTAssertEqual(attachment?.mimeType, "text/plain")
+        XCTAssertEqual(attachment?.dataSource.sourceFilename, "notes.txt")
+        let tooLarge = try await ConversationViewController.tellomiBuildFileAttachment(url: big, limits: limits)
+        XCTAssertNil(tooLarge, "超过上限的不发")
+    }
+
     // MARK: - Scan (F-5)
 
     /// 扫描的几页合成一个 PDF，页数不变；文件名是扫描标题（去掉不能进文件名的字符）或「扫描」。
