@@ -476,3 +476,61 @@ extension CVTextViewConfig {
 }
 
 #endif
+
+/// Tellomi（#1205，需求 bubbles-and-motion 3.1）：气泡分组按发出时间，3 分钟内算一组；上面那条挂着表情回应时断开。
+class TellomiBubbleGroupingTest: SignalBaseTest {
+
+    private let sentAt: UInt64 = 1_790_000_000_000
+
+    private func incoming(sentAt: UInt64, receivedAt: UInt64, thread: TSThread) -> TSIncomingMessage {
+        let builder: TSIncomingMessageBuilder = .withDefaultValues(thread: thread, timestamp: sentAt, receivedAtTimestamp: receivedAt)
+        return builder.build()
+    }
+
+    /// 离线一阵再上线：隔了 10 分钟发的两条几乎同时收到。按收到时间会并成一组，按发出时间不会。
+    func testMessagesSentFarApartButReceivedTogetherAreNotGrouped() {
+        let thread = ContactThreadFactory().create()
+        let receivedAt = sentAt + 20 * UInt64.minuteInMs
+        let upper = incoming(sentAt: sentAt, receivedAt: receivedAt, thread: thread)
+        let lower = incoming(sentAt: sentAt + 10 * UInt64.minuteInMs, receivedAt: receivedAt + 1000, thread: thread)
+
+        XCTAssertFalse(CVItemViewState.tellomiCanClusterMessages(upper: upper, upperHasReactions: false, lower: lower))
+    }
+
+    /// 晚到的消息：一分钟内发的两条，隔了 10 分钟才收到后一条，仍是一组。
+    func testMessagesSentTogetherButReceivedApartAreGrouped() {
+        let thread = ContactThreadFactory().create()
+        let upper = incoming(sentAt: sentAt, receivedAt: sentAt + 1000, thread: thread)
+        let lower = incoming(sentAt: sentAt + UInt64.minuteInMs, receivedAt: sentAt + 10 * UInt64.minuteInMs, thread: thread)
+
+        XCTAssertTrue(CVItemViewState.tellomiCanClusterMessages(upper: upper, upperHasReactions: false, lower: lower))
+    }
+
+    func testThreeMinutesIsTheBoundary() {
+        let thread = ContactThreadFactory().create()
+        let upper = incoming(sentAt: sentAt, receivedAt: sentAt, thread: thread)
+        let justInside = incoming(sentAt: sentAt + 3 * UInt64.minuteInMs - 1, receivedAt: sentAt, thread: thread)
+        let atBoundary = incoming(sentAt: sentAt + 3 * UInt64.minuteInMs, receivedAt: sentAt, thread: thread)
+
+        XCTAssertTrue(CVItemViewState.tellomiCanClusterMessages(upper: upper, upperHasReactions: false, lower: justInside))
+        XCTAssertFalse(CVItemViewState.tellomiCanClusterMessages(upper: upper, upperHasReactions: false, lower: atBoundary))
+    }
+
+    /// 显示顺序和发出顺序不一致（下面那条发得更早）时按相差多久算。
+    func testOrderOfSendingDoesNotMatter() {
+        let thread = ContactThreadFactory().create()
+        let upper = incoming(sentAt: sentAt + UInt64.minuteInMs, receivedAt: sentAt, thread: thread)
+        let lower = incoming(sentAt: sentAt, receivedAt: sentAt + 1000, thread: thread)
+
+        XCTAssertTrue(CVItemViewState.tellomiCanClusterMessages(upper: upper, upperHasReactions: false, lower: lower))
+    }
+
+    /// 回应条挂在上面那条下面，和下一条之间断开。
+    func testReactionOnTheUpperMessageBreaksTheGroup() {
+        let thread = ContactThreadFactory().create()
+        let upper = incoming(sentAt: sentAt, receivedAt: sentAt, thread: thread)
+        let lower = incoming(sentAt: sentAt + 1000, receivedAt: sentAt + 1000, thread: thread)
+
+        XCTAssertFalse(CVItemViewState.tellomiCanClusterMessages(upper: upper, upperHasReactions: true, lower: lower))
+    }
+}
