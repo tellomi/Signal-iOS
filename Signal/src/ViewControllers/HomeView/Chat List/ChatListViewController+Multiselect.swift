@@ -383,7 +383,18 @@ extension ChatListViewController {
         )
         message = String.localizedStringWithFormat(messageFormat, selectedIndexPaths.count)
 
-        let alert = ActionSheetController(title: title, message: message)
+        // Tellomi：只选了「我的收藏」时换成说清楚的文案（#1174）
+        let savedMessagesConfirmation = db.read { tx in
+            TellomiSavedMessagesStrings.deleteConfirmation(
+                for: selectedIndexPaths.compactMap(tableDataSource.threadViewModel(forIndexPath:)).map(\.threadRecord),
+                hasLinkedDevices: DependenciesBridge.shared.deviceStore.hasLinkedDevices(tx: tx),
+            )
+        }
+
+        let alert = ActionSheetController(
+            title: savedMessagesConfirmation?.title ?? title,
+            message: savedMessagesConfirmation?.message ?? message,
+        )
         alert.addAction(ActionSheetAction(
             title: CommonStrings.deleteButton,
             style: .destructive,

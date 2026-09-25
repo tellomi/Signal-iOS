@@ -2562,8 +2562,17 @@
 /* Message for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE" = "此聊天將從你所有裝置上刪除。";
 
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when there are no linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES" = "「我的收藏」裡的內容會從這部裝置上刪除，無法復原。";
+
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when the account has linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES" = "「我的收藏」裡的內容會從這部裝置和已連結裝置上刪除，無法復原。";
+
 /* Title for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE" = "是否刪除聊天？";
+
+/* Tellomi (#1174): title of the confirmation shown before deleting Saved Messages (the chat with yourself) */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES" = "刪除「我的收藏」？";
 
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that dismisses the sheet without pasting the key. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_DO_NOT_SHARE_BUTTON_TITLE" = "切勿分享金鑰";

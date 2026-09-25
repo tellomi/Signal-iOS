@@ -574,4 +574,23 @@ enum TellomiSavedMessagesStrings {
     static var savedToast: String {
         localized("FORWARD_MESSAGE_TELLOMI_SAVED_TOAST", english: "Saved to Saved Messages. Tap to view.")
     }
+
+    /// 删除确认：只删「我的收藏」时说清楚删的是什么、已关联设备上的会不会一起删（需求 §3.2「删除」）。
+    /// 选了别的会话（或不止一个）返回 nil，照上游的文案。
+    static func deleteConfirmation(for threads: [TSThread], hasLinkedDevices: Bool) -> (title: String, message: String)? {
+        guard threads.count == 1, threads[0].isNoteToSelf else {
+            return nil
+        }
+        let title = localized("CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES", english: "Delete Saved Messages?")
+        let message = hasLinkedDevices
+            ? localized(
+                "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES",
+                english: "Everything in Saved Messages will be deleted from this device and your linked devices. This can't be undone.",
+            )
+            : localized(
+                "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES",
+                english: "Everything in Saved Messages will be deleted from this device. This can't be undone.",
+            )
+        return (title, message)
+    }
 }
