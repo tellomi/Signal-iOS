@@ -2442,6 +2442,78 @@ public class RegistrationCoordinatorTest {
         #expect(nextStep == .captchaChallenge)
     }
 
+    /// Tellomi（ADR-0070 P4）：推送挑战令牌在等待窗口之后才到，这时已经停在验证页上。
+    /// 真的导航控制器收到通知后要重新取下一步，协调器用这个令牌提交推送挑战，离开验证页，不能让用户卡在验证页上。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenLeavesTheCaptcha(testCase: TestCase) async throws {
+        let (coordinator, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationCaptchaViewController(presenter: navigationController)], animated: false)
+
+        // 推送晚到：服务端把推送挑战当作验证码已过，接着发码。
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        lateToken.resolve("a late pre-auth challenge token")
+
+        let deadline = Date().addingTimeInterval(10)
+        while sessionManager.latestChallengeFulfillment == nil, Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+        #expect(
+            await coordinator.nextStep() ==
+                .verificationCodeEntry(stubs.verificationCodeEntryState(mode: testCase.mode)),
+        )
+    }
+
+    /// Tellomi（ADR-0070 P4）反向：已经不在验证页上（这里停在加载页，比如已经往下走了），令牌晚到时导航控制器什么也不做。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenIgnoredAwayFromTheCaptcha(testCase: TestCase) async throws {
+        let (_, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationLoadingViewController(mode: .generic)], animated: false)
+
+        // 回应照样备好：万一导航控制器不该动却动了，这里会记下一次推送挑战，而不是让模拟对象从空队列取值崩掉。
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        lateToken.resolve("a late pre-auth challenge token")
+        try await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
+        #expect(sessionManager.latestChallengeFulfillment == nil)
+    }
+
+    /// 两条 P4 用例共用：会话同时要推送挑战和验证码，推送在 0.5 秒的等待窗口里没到 → 协调器给出验证页。
+    /// 返回协调器、一个真的导航控制器（它在 init 里订阅「令牌到了」的通知），以及之后用来让令牌晚到的 promise。
+    @MainActor
+    private func setUpTellomiCaptchaWaitingForLatePush(
+        _ testCase: TestCase,
+    ) async throws -> (RegistrationCoordinatorImpl, RegistrationNavigationController, GuaranteeFuture<String>) {
+        let coordinator = setupTest(testCase)
+        await setUpSessionPath(coordinator: coordinator, mode: testCase.mode)
+
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        let (challengeTokenPromise, challengeTokenFuture) = Guarantee<String>.pending()
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({ await challengeTokenPromise.awaitable() })
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session(
+            allowedToRequestCode: false,
+            requestedInformation: [.pushChallenge, .captcha],
+        )))
+        timeoutProviderMock.pushTokenMinWaitTime = 0.5
+        timeoutProviderMock.pushTokenTimeout = 2
+
+        let step = await coordinator.submitE164(Stubs.e164).awaitable()
+        try #require(step == .captchaChallenge)
+        #expect(sessionManager.latestChallengeFulfillment == nil)
+
+        return (coordinator, RegistrationNavigationController.withCoordinator(coordinator), challengeTokenFuture)
+    }
+
     @MainActor @Test(arguments: Self.testCases())
     func testSessionPath_pushChallengeFastResolution(testCase: TestCase) async {
         let coordinator = setupTest(testCase)
