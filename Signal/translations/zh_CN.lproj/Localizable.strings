@@ -189,6 +189,9 @@
 /* Tellomi (#1174): shown on the All Media links page when the chat has no messages with link previews */
 "ALL_MEDIA_TELLOMI_LINKS_EMPTY" = "还没有链接";
 
+/* Tellomi (#1174): placeholder of the search bar in Saved Messages' All Media; filters the current file type */
+"ALL_MEDIA_TELLOMI_SEARCH_PLACEHOLDER" = "搜文件名、说明文字和链接";
+
 /* Menu option to limit All Media view to displaying only GIFs */
 "ALL_MEDIA_FILTER_GIFS" = "GIF";
 

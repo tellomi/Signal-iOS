@@ -48,6 +48,24 @@ class AllMediaViewController: OWSViewController {
         if let tellomiInitialSegmentIndex {
             accessoriesHelper.tellomiSelectSegment(tellomiInitialSegmentIndex)
         }
+        tellomiInstallSearchIfSavedMessages()
+    }
+
+    /// Tellomi：「我的收藏」的所有媒体顶上有搜索栏，在当前这一段里按文字筛（#1174）。
+    private func tellomiInstallSearchIfSavedMessages() {
+        guard thread.isNoteToSelf else {
+            return
+        }
+        let searchController = UISearchController(searchResultsController: nil)
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchResultsUpdater = self
+        searchController.searchBar.placeholder = TellomiSavedCategory.localized(
+            "ALL_MEDIA_TELLOMI_SEARCH_PLACEHOLDER",
+            english: "Search file names, captions and links",
+        )
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
     }
 
     /// Tellomi：「链接」一段是一张盖在媒体网格上面的列表（#1174）。
@@ -57,6 +75,7 @@ class AllMediaViewController: OWSViewController {
                 return
             }
             let links = TellomiSavedLinksViewController(threadUniqueId: thread.uniqueId)
+            links.tellomiQuery = navigationItem.searchController?.searchBar.text
             addChild(links)
             view.addSubview(links.view)
             links.view.autoPinEdgesToSuperviewEdges()
@@ -115,6 +134,14 @@ enum TellomiSavedLinks {
         }
     }
 
+    /// 搜的时候：标题或网址包含这段字（不分大小写）；空白的查询都留下。
+    static func matches(_ item: Item, query: String?) -> Bool {
+        guard let query = query?.trimmingCharacters(in: .whitespacesAndNewlines), !query.isEmpty else {
+            return true
+        }
+        return (item.title?.localizedCaseInsensitiveContains(query) ?? false) || item.url.absoluteString.localizedCaseInsensitiveContains(query)
+    }
+
     /// 新的在上；链接预览里没有网址的跳过。
     static func items(threadUniqueId: String, tx: DBReadTransaction) -> [Item] {
         let sql = "SELECT uniqueId FROM \(interactionTable) WHERE uniqueThreadId = ? AND linkPreview IS NOT NULL ORDER BY id DESC"
@@ -144,6 +171,15 @@ final class TellomiSavedLinksViewController: OWSTableViewController2 {
 
     private let threadUniqueId: String
 
+    /// 「我的收藏」按类型搜：标题或网址包含这段字的留下。
+    var tellomiQuery: String? {
+        didSet {
+            if isViewLoaded, tellomiQuery != oldValue {
+                reloadLinks()
+            }
+        }
+    }
+
     init(threadUniqueId: String) {
         self.threadUniqueId = threadUniqueId
         super.init()
@@ -157,7 +193,7 @@ final class TellomiSavedLinksViewController: OWSTableViewController2 {
     func reloadLinks() {
         let items = SSKEnvironment.shared.databaseStorageRef.read { tx in
             TellomiSavedLinks.items(threadUniqueId: threadUniqueId, tx: tx)
-        }
+        }.filter { TellomiSavedLinks.matches($0, query: tellomiQuery) }
         let section = OWSTableSection()
         if items.isEmpty {
             section.add(.label(withText: TellomiSavedCategory.localized("ALL_MEDIA_TELLOMI_LINKS_EMPTY", english: "No links yet"), accessoryType: .none))
@@ -174,5 +210,15 @@ final class TellomiSavedLinksViewController: OWSTableViewController2 {
             ))
         }
         contents = OWSTableContents(sections: [section])
+    }
+}
+
+extension AllMediaViewController: UISearchResultsUpdating {
+
+    /// Tellomi：搜索栏的字变了，网格和链接列表一起筛（#1174）。
+    func updateSearchResults(for searchController: UISearchController) {
+        let query = searchController.searchBar.text
+        tileViewController.tellomiSearch(query)
+        tellomiLinksViewController?.tellomiQuery = query
     }
 }

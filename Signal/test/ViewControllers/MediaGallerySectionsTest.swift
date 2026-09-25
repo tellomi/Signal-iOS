@@ -1634,6 +1634,19 @@ class TellomiSavedCategoryTest: XCTestCase {
         XCTAssertEqual(changes, [true, false])
     }
 
+    func testLinksAreSearchedByTitleOrAddress() {
+        let item = TellomiSavedLinks.Item(
+            interactionUniqueId: "1",
+            url: URL(string: "https://tellomi.app/download")!,
+            title: "Tellomi — 越聊，越懂你。",
+            timestamp: 0,
+        )
+        XCTAssertTrue(TellomiSavedLinks.matches(item, query: nil))
+        XCTAssertTrue(TellomiSavedLinks.matches(item, query: "越懂"))
+        XCTAssertTrue(TellomiSavedLinks.matches(item, query: "DOWNLOAD"))
+        XCTAssertFalse(TellomiSavedLinks.matches(item, query: "发票"))
+    }
+
     func testTheWordsAreTranslated() {
         XCTAssertEqual(tellomiLocalizedString("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_MEDIA", "zh_CN"), "图片与视频")
         XCTAssertEqual(tellomiLocalizedString("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_VOICE", "zh_TW"), "語音")
