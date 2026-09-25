@@ -135,3 +135,38 @@ class ConversationViewControllerTest: SignalBaseTest {
         )
     }
 }
+
+/// Tellomi（tellomi/tellomi#1109，ADR-0058 §2）：滑动回复改成手指从右往左滑。
+class TellomiSwipeToReplyTest: XCTestCase {
+
+    func testThresholdIs45ForIncomingAnd60ForOutgoingAsInTelegram() {
+        XCTAssertEqual(CVComponentMessage.tellomiSwipeToReplyThreshold(isIncoming: true), 45)
+        XCTAssertEqual(CVComponentMessage.tellomiSwipeToReplyThreshold(isIncoming: false), 60)
+    }
+
+    func testBubbleFollowsTheFingerUpToTheThresholdThenRubberBands() {
+        XCTAssertEqual(CVComponentMessage.tellomiSwipeToReplyBubbleOffset(fingerOffset: 0, threshold: 45), 0)
+        XCTAssertEqual(CVComponentMessage.tellomiSwipeToReplyBubbleOffset(fingerOffset: -12, threshold: 45), 0)
+        XCTAssertEqual(CVComponentMessage.tellomiSwipeToReplyBubbleOffset(fingerOffset: 30, threshold: 45), 30)
+        XCTAssertEqual(CVComponentMessage.tellomiSwipeToReplyBubbleOffset(fingerOffset: 45, threshold: 45), 45)
+        // 过阈值 100：(1 - 1 / (100 × 0.4 / 100 + 1)) × 100 ≈ 28.57
+        XCTAssertEqual(CVComponentMessage.tellomiSwipeToReplyBubbleOffset(fingerOffset: 145, threshold: 45), 73.571, accuracy: 0.01)
+        let far = CVComponentMessage.tellomiSwipeToReplyBubbleOffset(fingerOffset: 10_000, threshold: 60)
+        XCTAssertGreaterThan(far, 155)
+        XCTAssertLessThanOrEqual(far, 180)
+    }
+
+    func testOnlyRightToLeftHorizontalPansBeginOnMessagesExceptAudioScrubbing() {
+        // 从右往左：回复
+        XCTAssertTrue(ConversationViewController.tellomiShouldBeginMessagePan(translation: CGPoint(x: -10, y: 2), isRTL: false, isScrubbingAudio: false))
+        // 从左往右：不接，留给系统返回
+        XCTAssertFalse(ConversationViewController.tellomiShouldBeginMessagePan(translation: CGPoint(x: 10, y: 2), isRTL: false, isScrubbingAudio: false))
+        // 拖语音进度两个方向都要
+        XCTAssertTrue(ConversationViewController.tellomiShouldBeginMessagePan(translation: CGPoint(x: 10, y: 2), isRTL: false, isScrubbingAudio: true))
+        // 纵向让给滚动
+        XCTAssertFalse(ConversationViewController.tellomiShouldBeginMessagePan(translation: CGPoint(x: -3, y: 8), isRTL: false, isScrubbingAudio: false))
+        // RTL 镜像
+        XCTAssertTrue(ConversationViewController.tellomiShouldBeginMessagePan(translation: CGPoint(x: 10, y: 2), isRTL: true, isScrubbingAudio: false))
+        XCTAssertFalse(ConversationViewController.tellomiShouldBeginMessagePan(translation: CGPoint(x: -10, y: 2), isRTL: true, isScrubbingAudio: false))
+    }
+}

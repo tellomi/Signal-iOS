@@ -80,10 +80,26 @@ extension ConversationViewController: UIGestureRecognizerDelegate {
             // Only allow the pan gesture to recognize horizontal panning,
             // to avoid conflicts with the conversation view scroll view.
             let translation = collectionViewPanGestureRecognizer.translation(in: view)
-            return abs(translation.x) > abs(translation.y)
+            return Self.tellomiShouldBeginMessagePan(
+                translation: translation,
+                isRTL: CurrentAppContext().isRTL,
+                isScrubbingAudio: findPanHandler(sender: collectionViewPanGestureRecognizer)?.panType == .scrubAudio,
+            )
         } else {
             return true
         }
+    }
+
+    /// Tellomi（tellomi/tellomi#1109）：回复改成手指从右往左滑（RTL 镜像）。往右的横滑除了拖语音进度，一律不接，
+    /// 让给系统返回（iOS 26 在内容上右滑也是返回；owner 2026-09-25 否掉过一版挡住右滑返回的横滑）。
+    static func tellomiShouldBeginMessagePan(translation: CGPoint, isRTL: Bool, isScrubbingAudio: Bool) -> Bool {
+        guard abs(translation.x) > abs(translation.y) else {
+            return false
+        }
+        if isScrubbingAudio {
+            return true
+        }
+        return isRTL ? translation.x > 0 : translation.x < 0
     }
 
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
