@@ -103,11 +103,16 @@ public class TellomiUpdateRequiredAppBlockingViewController: AppBlockingViewCont
                 comment: "Tellomi: Button in the confirmation after tapping 'Not now, just view my chats'. Leaves the 'update required' page without updating.",
             ),
             handler: { [weak self] _ in
-                self?.viewChatsOnly()
+                self?.confirmViewChatsOnly()
             },
         ))
         actionSheet.addAction(OWSActionSheets.cancelAction)
         presentActionSheet(actionSheet)
+    }
+
+    /// 确认框里点了「不更新」。单独拆出来，用例才能从页面这一步接起（`ActionSheetAction` 的 handler 在外面拿不到）。
+    func confirmViewChatsOnly() {
+        viewChatsOnly()
     }
 
     // MARK: - Lifecycle

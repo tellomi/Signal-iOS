@@ -75,14 +75,63 @@ final class TellomiUpdateRequiredTest: SignalBaseTest {
 
     // MARK: - Update channel
 
-    func testOnlyOurOwnAppStoreOrTestFlightListingCountsAsAnUpdateChannel() {
-        // 上游的 Signal 条目、Signal-iOS#23 之后的官网下载页（还没上架）都不算，所以现在 iOS 不会盖。
-        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://itunes.apple.com/us/app/signal-private-messenger/id874139669?mt=8")!))
-        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://apps.apple.com/app/signal-private-messenger/id874139669")!))
-        XCTAssertFalse(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://tellomi.app/download/")!))
+    func testOnlyTheChannelWeConfiguredCountsAsAnUpdateChannel() {
+        // taishi 审查 b15 启用前置 4：只认我们配的那一条（owner 2026-09-25：TestFlight 外部测试的公开链接），
+        // 不再「App Store / TestFlight 的地址、只要不是 Signal 的都算」。
+        let ourTestFlight = URL(string: "https://testflight.apple.com/join/AbCdEfGh")!
+        func hasUpdateChannel(_ url: String, ourChannel: URL?) -> Bool {
+            TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: url)!, ourChannel: ourChannel)
+        }
 
-        XCTAssertTrue(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: ourAppStoreListing))
-        XCTAssertTrue(TellomiUpdateRequiredMonitoringManager.hasUpdateChannel(appStoreUrl: URL(string: "https://testflight.apple.com/join/AbCdEfGh")!))
+        // 还没配渠道：什么都不算，iOS 不盖阻断页，只降成只读。
+        XCTAssertFalse(hasUpdateChannel("https://testflight.apple.com/join/AbCdEfGh", ourChannel: nil))
+        XCTAssertFalse(hasUpdateChannel(ourAppStoreListing.absoluteString, ourChannel: nil))
+
+        // 配了：只有那一条算。
+        XCTAssertTrue(hasUpdateChannel("https://testflight.apple.com/join/AbCdEfGh", ourChannel: ourTestFlight))
+        XCTAssertFalse(hasUpdateChannel("https://testflight.apple.com/join/SomeoneElse", ourChannel: ourTestFlight))
+        XCTAssertFalse(hasUpdateChannel("https://apps.apple.com/app/some-other-app/id1111111111", ourChannel: ourTestFlight))
+        XCTAssertFalse(hasUpdateChannel("https://itunes.apple.com/us/app/signal-private-messenger/id874139669?mt=8", ourChannel: ourTestFlight))
+        XCTAssertFalse(hasUpdateChannel("https://tellomi.app/download/", ourChannel: ourTestFlight))
+
+        // 以后上架：App Store 条目同样照这个规则配。
+        XCTAssertTrue(hasUpdateChannel(ourAppStoreListing.absoluteString, ourChannel: ourAppStoreListing))
+    }
+
+    func testViewChatsOnlyFromThePageUnblocksThisVersion() async throws {
+        // taishi 审查 b15 启用前置 2：「暂不更新，只看聊天记录」从页面的确认一路接到「不再盖」、记下这个版本。
+        // 走的是 WindowManager 里真的接线（makeUpdateRequiredBlockingViewController）和真的 MonitoringManager，只把窗口换成假的。
+        let suiteName = "TellomiUpdateRequiredTest-\(UUID().uuidString)"
+        let userDefaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { userDefaults.removePersistentDomain(forName: suiteName) }
+        let ourTestFlight = URL(string: "https://testflight.apple.com/join/AbCdEfGh")!
+        let host = FakeUpdateRequiredBlockHost()
+        let manager = TellomiUpdateRequiredMonitoringManager(
+            appExpiry: await serverRejectedAppExpiry(),
+            windowManager: host,
+            userDefaults: userDefaults,
+            isTellomiDeployment: true,
+            appStoreUrl: ourTestFlight,
+            updateChannelUrl: ourTestFlight,
+            currentAppVersion: "0.1.2.3",
+        )
+        manager.start()
+        XCTAssertTrue(host.isUpdateRequiredBlockActive, "the server turned this version away and there is a channel: the page covers the app")
+
+        let page = WindowManager.makeUpdateRequiredBlockingViewController(host: host)
+        page.confirmViewChatsOnly()
+
+        XCTAssertFalse(host.isUpdateRequiredBlockActive)
+        XCTAssertTrue(TellomiUpdateRequiredMonitoringManager.viewChatsOnlyChosen(userDefaults: userDefaults, currentAppVersion: "0.1.2.3"))
+        withExtendedLifetime(manager) {}
+    }
+
+    func testTheAppLockDoesNotPromptOverTheUpdatePage() {
+        // taishi 审查 b15 启用前置 3：阻断页盖着时不自动弹 Face ID / 密码框；收起后照常弹。
+        XCTAssertTrue(ScreenLockUI.shouldPresentAuthUI(desiredUIState: .screenLock, didLastUnlockAttemptFail: false, isUpdateRequiredBlockActive: false))
+        XCTAssertFalse(ScreenLockUI.shouldPresentAuthUI(desiredUIState: .screenLock, didLastUnlockAttemptFail: false, isUpdateRequiredBlockActive: true))
+        XCTAssertFalse(ScreenLockUI.shouldPresentAuthUI(desiredUIState: .screenLock, didLastUnlockAttemptFail: true, isUpdateRequiredBlockActive: false))
+        XCTAssertFalse(ScreenLockUI.shouldPresentAuthUI(desiredUIState: .none, didLastUnlockAttemptFail: false, isUpdateRequiredBlockActive: false))
     }
 
     // MARK: - "Not now, just view my chats"
@@ -221,4 +270,9 @@ final class TellomiUpdateRequiredTest: SignalBaseTest {
         let color = text.attribute(.foregroundColor, at: linkRange.location, effectiveRange: nil) as? UIColor
         XCTAssertEqual(color?.resolvedColor(with: light), UIColor.Signal.link.resolvedColor(with: light))
     }
+}
+
+private final class FakeUpdateRequiredBlockHost: TellomiUpdateRequiredBlockHost {
+    var isUpdateRequiredBlockActive = false
+    var updateRequiredViewChatsOnlyHandler: (@MainActor () -> Void)?
 }

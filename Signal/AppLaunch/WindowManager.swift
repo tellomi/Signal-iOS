@@ -31,7 +31,7 @@ extension UIWindow.Level {
     fileprivate static let _updateRequiredBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 3)
 }
 
-class WindowManager {
+class WindowManager: TellomiUpdateRequiredBlockHost {
 
     init() {
         AssertIsOnMainThread()
@@ -70,6 +70,7 @@ class WindowManager {
             AssertIsOnMainThread()
             guard isUpdateRequiredBlockActive != oldValue else { return }
             ensureWindowState()
+            NotificationCenter.default.post(name: .tellomiUpdateRequiredBlockDidChange, object: nil)
         }
     }
 
@@ -188,16 +189,21 @@ class WindowManager {
     private var screenBlockingWindow: UIWindow!
 
     // UIWindow.Level._updateRequiredBlocking（Tellomi，tellomi/tellomi#1139）
-    private lazy var updateRequiredBlockingViewController = TellomiUpdateRequiredAppBlockingViewController(
-        openUpdatePage: {
-            // 阻断页只在它指向我们自己的 App Store / TestFlight 条目时才会出现
-            // （TellomiUpdateRequiredMonitoringManager.hasUpdateChannel），不会把人送去装 Signal。
-            UIApplication.shared.open(TSConstants.appStoreUrl)
-        },
-        viewChatsOnly: { [weak self] in
-            self?.updateRequiredViewChatsOnlyHandler?()
-        },
-    )
+    private lazy var updateRequiredBlockingViewController = Self.makeUpdateRequiredBlockingViewController(host: self)
+
+    /// 拆成静态方法，是为了用例能走这里真的接线（taishi 审查 b15 启用前置 2）。
+    static func makeUpdateRequiredBlockingViewController(host: TellomiUpdateRequiredBlockHost) -> TellomiUpdateRequiredAppBlockingViewController {
+        return TellomiUpdateRequiredAppBlockingViewController(
+            openUpdatePage: {
+                // 阻断页只在 appStoreUrl 就是我们配的更新渠道时才会出现
+                // （TellomiUpdateRequiredMonitoringManager.hasUpdateChannel），不会把人送去装别的 App。
+                UIApplication.shared.open(TSConstants.appStoreUrl)
+            },
+            viewChatsOnly: { [weak host] in
+                host?.updateRequiredViewChatsOnlyHandler?()
+            },
+        )
+    }
 
     private lazy var updateRequiredBlockingWindow: UIWindow = {
         AssertIsOnMainThread()

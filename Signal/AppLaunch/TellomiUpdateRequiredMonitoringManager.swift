@@ -16,18 +16,36 @@ import UIKit
 /// - 用户在阻断页选了「暂不更新，只看聊天记录」，这个版本就不再盖；装上新版本，这个选择就作废。
 /// 连 Signal 官方服务时保持上游行为。
 class TellomiUpdateRequiredMonitoringManager {
-    private let appExpiry: AppExpiry
-    private let windowManager: WindowManager
-    private let userDefaults: UserDefaults
+    /// iOS 的更新渠道。owner 2026-09-25 定：用 TestFlight 外部测试的公开链接发给朋友（以后上架就是 App Store 条目）。
+    /// 链接到了填在这里，同时把 `TSConstants.appStoreUrl` 换成同一个地址：阻断页只在两者一致时才会出现（规则 3，见 `hasUpdateChannel`）。
+    /// 为 nil 时 iOS 不硬拦，只降成只读。放在这个文件而不放 TSConstants：那里 donationsEnabled 后面是别的分支插新常量的地方。
+    static let updateChannelUrl: URL? = nil
 
+    private let appExpiry: AppExpiry
+    private let windowManager: TellomiUpdateRequiredBlockHost
+    private let userDefaults: UserDefaults
+    private let isTellomiDeployment: Bool
+    private let appStoreUrl: URL
+    private let updateChannelUrl: URL?
+    private let currentAppVersion: String
+
+    /// 后面几个参数只为用例能把「出口」一路接起来（taishi 审查 b15 启用前置 2），App 里都用缺省值。
     init(
         appExpiry: AppExpiry,
-        windowManager: WindowManager,
+        windowManager: TellomiUpdateRequiredBlockHost,
         userDefaults: UserDefaults = CurrentAppContext().appUserDefaults(),
+        isTellomiDeployment: Bool = !TSConstants.isUsingProductionService,
+        appStoreUrl: URL = TSConstants.appStoreUrl,
+        updateChannelUrl: URL? = TellomiUpdateRequiredMonitoringManager.updateChannelUrl,
+        currentAppVersion: String = AppVersionImpl.shared.currentAppVersion,
     ) {
         self.appExpiry = appExpiry
         self.windowManager = windowManager
         self.userDefaults = userDefaults
+        self.isTellomiDeployment = isTellomiDeployment
+        self.appStoreUrl = appStoreUrl
+        self.updateChannelUrl = updateChannelUrl
+        self.currentAppVersion = currentAppVersion
     }
 
     func start() {
@@ -60,9 +78,9 @@ class TellomiUpdateRequiredMonitoringManager {
         windowManager.isUpdateRequiredBlockActive = Self.shouldBlock(
             appExpiry: appExpiry,
             now: Date(),
-            isTellomiDeployment: !TSConstants.isUsingProductionService,
-            hasUpdateChannel: Self.hasUpdateChannel(appStoreUrl: TSConstants.appStoreUrl),
-            viewChatsOnlyChosen: Self.viewChatsOnlyChosen(userDefaults: userDefaults, currentAppVersion: AppVersionImpl.shared.currentAppVersion),
+            isTellomiDeployment: isTellomiDeployment,
+            hasUpdateChannel: Self.hasUpdateChannel(appStoreUrl: appStoreUrl, ourChannel: updateChannelUrl),
+            viewChatsOnlyChosen: Self.viewChatsOnlyChosen(userDefaults: userDefaults, currentAppVersion: currentAppVersion),
         )
     }
 
@@ -70,7 +88,7 @@ class TellomiUpdateRequiredMonitoringManager {
     private func chooseViewChatsOnly() {
         AssertIsOnMainThread()
 
-        Self.recordViewChatsOnly(userDefaults: userDefaults, currentAppVersion: AppVersionImpl.shared.currentAppVersion)
+        Self.recordViewChatsOnly(userDefaults: userDefaults, currentAppVersion: currentAppVersion)
         updateIsBlocked()
     }
 
@@ -92,17 +110,15 @@ class TellomiUpdateRequiredMonitoringManager {
         return hasUpdateChannel && !viewChatsOnlyChosen
     }
 
-    /// 规则 3 的判据：「立即更新」打开的 `appStoreUrl` 是不是我们自己的 App Store / TestFlight 条目。
-    /// 上游是 Signal 的 App Store 条目，Signal-iOS#23 之后是官网下载页（还没上架），都不算，所以现在 iOS 不会盖阻断页。
-    /// 上架后把 `appStoreUrl` 换成 App Store 地址，这里自然成立；阻断页的按钮也就不可能把人送去装 Signal。
-    static func hasUpdateChannel(appStoreUrl: URL) -> Bool {
-        guard
-            let host = appStoreUrl.host?.lowercased(),
-            ["apps.apple.com", "itunes.apple.com", "testflight.apple.com"].contains(host)
-        else {
+    /// 规则 3 的判据：「立即更新」打开的 `appStoreUrl` 就是我们自己配的更新渠道（`updateChannelUrl`，
+    /// owner 2026-09-25 定为 TestFlight 外部测试的公开链接）。
+    /// 只认这一条（taishi 审查 b15 启用前置 4）：原来是「App Store / TestFlight 的地址、只要不是 Signal 的都算」，
+    /// 别的 App 的条目、别人的 TestFlight 邀请也会被当成渠道。没配（nil）时 iOS 不盖阻断页，按钮也就不可能把人送去装别的 App。
+    static func hasUpdateChannel(appStoreUrl: URL, ourChannel: URL?) -> Bool {
+        guard let ourChannel else {
             return false
         }
-        return !appStoreUrl.path.contains("id874139669")
+        return appStoreUrl == ourChannel
     }
 
     static let viewChatsOnlyVersionKey = "TellomiUpdateRequiredViewChatsOnlyVersion"
@@ -114,4 +130,16 @@ class TellomiUpdateRequiredMonitoringManager {
     static func recordViewChatsOnly(userDefaults: UserDefaults, currentAppVersion: String) {
         userDefaults.set(currentAppVersion, forKey: viewChatsOnlyVersionKey)
     }
+}
+
+/// 「必须更新」阻断页挂在哪里、出口交给谁。`WindowManager` 就是它；用例换成一个假的，
+/// 把「暂不更新，只看聊天记录」从页面一路接到「不再盖」（taishi 审查 b15 启用前置 2）。
+protocol TellomiUpdateRequiredBlockHost: AnyObject {
+    var isUpdateRequiredBlockActive: Bool { get set }
+    var updateRequiredViewChatsOnlyHandler: (@MainActor () -> Void)? { get set }
+}
+
+extension Notification.Name {
+    /// 阻断页盖上或收起。应用锁（`ScreenLockUI`）靠它在收起后照常弹 Face ID / 密码框。
+    static let tellomiUpdateRequiredBlockDidChange = Notification.Name("TellomiUpdateRequiredBlockDidChange")
 }
