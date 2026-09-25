@@ -97,6 +97,8 @@ public class ContextMenuReactionBarAccessory: ContextMenuTargetedPreviewAccessor
             case .emoji(let emoji):
                 let isRemoving = emoji == self.itemViewModel?.reactionState?.localUserEmoji
                 if let index = reactionPicker.currentEmojiSet().firstIndex(of: emoji) {
+                    // Tellomi（交互审计 A-07）：按住滑到表情上松手，和点按一样给一下触感。
+                    ImpactHapticFeedback.impactOccurred(style: .light)
                     didSelectReaction(reaction: emoji, isRemoving: isRemoving, inPosition: index)
                 }
             }
@@ -118,10 +120,10 @@ public class ContextMenuReactionBarAccessory: ContextMenuTargetedPreviewAccessor
             return
         }
 
+        // Tellomi（交互审计 A-07）：先写回应、再收起，不等回应条的 0.2 s 淡出播完。
+        didSelectReactionHandler?(message, reaction, isRemoving)
         reactionPicker.playDismissalAnimation(duration: 0.2) {
-            self.didSelectReactionHandler?(message, reaction, isRemoving)
             self.delegate?.contextMenuTargetedPreviewAccessoryRequestsDismissal(self, completion: { })
-
         }
     }
 
