@@ -653,6 +653,101 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(picker.selectedIdsForTesting, ["r3", "r0"])
     }
 
+    // MARK: - P-8 相机格
+
+    /// 「最近」左上角是一格宽、两行高（含中间 1 的间距）的相机实时取景，其它格子绕开它排；换到别的相册就没有。
+    @MainActor
+    func testCameraCellSpansTwoRowsInRecents() async throws {
+        let camera = FakeCamera(access: .authorized)
+        let hosted = host(camera: camera)
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+
+        let cameraFrame = try XCTUnwrap(picker.cameraFrameForTesting)
+        let first = frame(of: 0, in: picker)
+        XCTAssertEqual(cameraFrame.origin, .zero)
+        XCTAssertEqual(cameraFrame.size.width, first.size.width, accuracy: 0.01, "一格宽")
+        XCTAssertEqual(cameraFrame.size.height, first.size.height * 2 + 1, accuracy: 0.01, "两行高（含 1 的间距）")
+        // 前两行的第 0 列让给相机：第 0、1 张在第一行第 1、2 列，第 2、3 张在第二行，第 4 张回到第三行第 0 列。
+        XCTAssertEqual(first.minY, 0, accuracy: 0.01)
+        XCTAssertGreaterThan(first.minX, cameraFrame.maxX)
+        XCTAssertEqual(frame(of: 1, in: picker).minY, 0, accuracy: 0.01)
+        XCTAssertEqual(frame(of: 2, in: picker).minY, first.maxY + 1, accuracy: 0.01)
+        XCTAssertEqual(frame(of: 2, in: picker).minX, first.minX, accuracy: 0.01)
+        XCTAssertEqual(frame(of: 4, in: picker).minX, 0, accuracy: 0.01)
+        XCTAssertEqual(frame(of: 4, in: picker).minY, cameraFrame.maxY + 1, accuracy: 0.01)
+
+        let cell = try XCTUnwrap(picker.cameraCellForTesting)
+        XCTAssertTrue(cell.isShowingLivePreviewForTesting, "已授权：实时取景")
+        XCTAssertTrue(cell.isShowingCornerIconForTesting, "右上角小相机图标")
+        XCTAssertFalse(cell.isShowingPlaceholderForTesting)
+        XCTAssertGreaterThanOrEqual(camera.starts, 1, "露出来就取景")
+
+        let stopsBefore = camera.stops
+        picker.switchAlbumForTesting(title: "Screenshots")
+        picker.collectionViewForTesting.layoutIfNeeded()
+        XCTAssertNil(picker.cameraFrameForTesting, "只在「最近」里")
+        XCTAssertEqual(frame(of: 0, in: picker).origin, .zero)
+        XCTAssertGreaterThan(camera.stops, stopsBefore, "看不见就停")
+
+        let startsBefore = camera.starts
+        picker.switchAlbumForTesting(title: "Recents")
+        picker.collectionViewForTesting.layoutIfNeeded()
+        XCTAssertNotNil(picker.cameraFrameForTesting)
+        XCTAssertGreaterThan(camera.starts, startsBefore, "又露出来就重新取景")
+    }
+
+    /// 横屏 5 列：前两行每行 4 张在相机右边，第 8 张回到第三行第 0 列。
+    @MainActor
+    func testCameraCellInLandscape() async throws {
+        let hosted = host(width: 874, height: 402, camera: FakeCamera(access: .authorized))
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        let cameraFrame = try XCTUnwrap(picker.cameraFrameForTesting)
+        XCTAssertEqual(frame(of: 3, in: picker).minY, 0, accuracy: 0.01)
+        XCTAssertEqual(frame(of: 4, in: picker).minX, frame(of: 0, in: picker).minX, accuracy: 0.01)
+        XCTAssertEqual(frame(of: 8, in: picker).minX, 0, accuracy: 0.01)
+        XCTAssertEqual(frame(of: 8, in: picker).minY, cameraFrame.maxY + 1, accuracy: 0.01)
+    }
+
+    /// 相机权限没问过：这一格只放相机图标，不取景；点了交给会话页去开相机（权限由上游相机流程问）。
+    @MainActor
+    func testCameraNotDeterminedShowsIconAndTapOpensCamera() async throws {
+        let camera = FakeCamera(access: .notDetermined)
+        let hosted = host(camera: camera)
+        defer { hosted.tearDown() }
+        let cell = try XCTUnwrap(hosted.picker.cameraCellForTesting)
+        XCTAssertTrue(cell.isShowingPlaceholderForTesting)
+        XCTAssertFalse(cell.isShowingLivePreviewForTesting)
+        XCTAssertFalse(cell.isShowingCornerIconForTesting)
+
+        cell.tapForTesting()
+        XCTAssertEqual(hosted.delegate.cameraRequests, 1)
+    }
+
+    /// 没有相机或相机权限被拒：不挖这一格，第一张照片在左上角。
+    @MainActor
+    func testNoCameraCellWhenUnavailable() async throws {
+        let hosted = host(camera: FakeCamera(access: .unavailable))
+        defer { hosted.tearDown() }
+        XCTAssertNil(hosted.picker.cameraFrameForTesting)
+        XCTAssertNil(hosted.picker.cameraCellForTesting)
+        XCTAssertEqual(frame(of: 0, in: hosted.picker).origin, .zero)
+    }
+
+    /// 有选中时点相机：拍到的不回到这里的已选里，所以同 ✕ 先问「丢弃媒体」，不直接打开。
+    @MainActor
+    func testCameraTapWithSelectionAsksFirst() async throws {
+        let hosted = host(camera: FakeCamera(access: .authorized))
+        defer { hosted.tearDown() }
+        hosted.picker.tapCheckForTesting(itemIndex: 0)
+        try XCTUnwrap(hosted.picker.cameraCellForTesting).tapForTesting()
+
+        XCTAssertEqual(hosted.delegate.cameraRequests, 0)
+        let asked = await waitUntil { hosted.picker.presentedViewController is ActionSheetController }
+        XCTAssertTrue(asked)
+    }
+
     // MARK: - 截图
 
     @MainActor
@@ -701,6 +796,12 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             try save(render(preview.window), name: "picker-7-undo.png", width: width)
             preview.tearDown()
 
+            let withCamera = host(width: width, height: height, camera: FakeCamera(access: .authorized))
+            withCamera.picker.tapCheckForTesting(itemIndex: 1)
+            try await settle()
+            try save(render(withCamera.window), name: "picker-8-camera.png", width: width)
+            withCamera.tearDown()
+
             let landscape = host(width: height, height: width)
             landscape.picker.tapCheckForTesting(itemIndex: 2)
             try await settle()
@@ -733,6 +834,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         maxSelection: Int = 32,
         initialText: String? = nil,
         chatBackground: UIView? = nil,
+        camera: TellomiPhotoPickerCamera? = nil,
     ) -> Hosted {
         let delegate = RecordingPickerDelegate()
         let dataSource = FakeApprovalDataSource()
@@ -746,6 +848,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             approvalDataSource: dataSource,
             stickerSheetDelegate: nil,
             chatBackground: chatBackground,
+            camera: camera,
             maxSelection: maxSelection,
         )
         picker.delegate = delegate
@@ -956,11 +1059,16 @@ private final class RecordingPickerDelegate: TellomiPhotoPickerDelegate {
     }
 
     var cancels = 0
+    var cameraRequests = 0
     var sent = [Sent]()
     var bodies = [MessageBody?]()
 
     func photoPickerDidCancel(_ picker: TellomiPhotoPickerViewController) {
         cancels += 1
+    }
+
+    func photoPickerDidRequestCamera(_ picker: TellomiPhotoPickerViewController) {
+        cameraRequests += 1
     }
 
     func photoPicker(_ picker: TellomiPhotoPickerViewController, send approvedAttachments: ApprovedAttachments, messageBody: MessageBody?, separately: Bool) {
@@ -969,6 +1077,35 @@ private final class RecordingPickerDelegate: TellomiPhotoPickerDelegate {
 
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?) {
         bodies.append(messageBody)
+    }
+}
+
+/// 假相机：记下起停次数；「取景」是一块深色渐变（截图用）。
+private final class FakeCamera: TellomiPhotoPickerCamera {
+    let access: TellomiPhotoPickerCameraAccess
+    var starts = 0
+    var stops = 0
+
+    init(access: TellomiPhotoPickerCameraAccess) {
+        self.access = access
+    }
+
+    func makePreviewView() -> UIView {
+        let view = UIView()
+        let gradient = CAGradientLayer()
+        gradient.colors = [UIColor(rgbHex: 0x3A4F63).cgColor, UIColor(rgbHex: 0x14202B).cgColor]
+        gradient.frame = CGRect(x: 0, y: 0, width: 600, height: 1200)
+        view.layer.addSublayer(gradient)
+        view.clipsToBounds = true
+        return view
+    }
+
+    func startPreview() {
+        starts += 1
+    }
+
+    func stopPreview() {
+        stops += 1
     }
 }
 

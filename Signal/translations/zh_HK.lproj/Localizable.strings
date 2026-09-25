@@ -5038,6 +5038,9 @@
 /* Toast when trying to select more photos than allowed. Embeds {{ the maximum }}. */
 "IMAGE_PICKER_TELLOMI_AT_MOST_FORMAT" = "一次最多選 %@ 張";
 
+/* Accessibility label of the live camera cell at the start of the photo picker grid. */
+"IMAGE_PICKER_TELLOMI_CAMERA" = "相機";
+
 /* Placeholder of the caption field at the bottom of the photo picker. */
 "IMAGE_PICKER_TELLOMI_CAPTION_PLACEHOLDER" = "新增說明…";
 
