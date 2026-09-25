@@ -232,6 +232,7 @@
 		3402AA48271D9DCD0084CBAE /* StickerPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A95573271B510500B05242 /* StickerPickerView.swift */; };
 		3402AA49271D9DCD0084CBAE /* EditContactShareNameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9558D271B510500B05242 /* EditContactShareNameViewController.swift */; };
 		3402AA4A271D9DCD0084CBAE /* AttachmentApprovalViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9559C271B510500B05242 /* AttachmentApprovalViewController.swift */; };
+		7CC6F798EDC2DC8416523D9E /* AttachmentApprovalViewController+Tellomi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0FDCD6E87FA851258F210A /* AttachmentApprovalViewController+Tellomi.swift */; };
 		3402AA4B271D9DCD0084CBAE /* AttachmentApprovalToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9559D271B510500B05242 /* AttachmentApprovalToolbar.swift */; };
 		3402AA4D271D9DCD0084CBAE /* StickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9556F271B510500B05242 /* StickerView.swift */; };
 		3402AA4E271D9DCD0084CBAE /* ApprovalFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A9558E271B510500B05242 /* ApprovalFooterView.swift */; };
@@ -4800,6 +4801,7 @@
 		34A95599271B510500B05242 /* AttachmentPrepViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentPrepViewController.swift; sourceTree = "<group>"; };
 		34A9559B271B510500B05242 /* ApprovalRailCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalRailCellView.swift; sourceTree = "<group>"; };
 		34A9559C271B510500B05242 /* AttachmentApprovalViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentApprovalViewController.swift; sourceTree = "<group>"; };
+		4E0FDCD6E87FA851258F210A /* AttachmentApprovalViewController+Tellomi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AttachmentApprovalViewController+Tellomi.swift"; sourceTree = "<group>"; };
 		34A9559D271B510500B05242 /* AttachmentApprovalToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentApprovalToolbar.swift; sourceTree = "<group>"; };
 		34A9559E271B510500B05242 /* MediaCaptionToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaCaptionToolbar.swift; sourceTree = "<group>"; };
 		34A955A1271B510500B05242 /* VoiceMessageInterruptedDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMessageInterruptedDraft.swift; sourceTree = "<group>"; };
@@ -9567,6 +9569,7 @@
 				34A9559D271B510500B05242 /* AttachmentApprovalToolbar.swift */,
 				763D7DDC27E25DC8002EA7E6 /* AttachmentApprovalTopBar.swift */,
 				34A9559C271B510500B05242 /* AttachmentApprovalViewController.swift */,
+				4E0FDCD6E87FA851258F210A /* AttachmentApprovalViewController+Tellomi.swift */,
 				34A95598271B510500B05242 /* AttachmentItemCollection.swift */,
 				34A95599271B510500B05242 /* AttachmentPrepViewController.swift */,
 				34A9559E271B510500B05242 /* MediaCaptionToolbar.swift */,
@@ -18165,6 +18168,7 @@
 				3402AA4B271D9DCD0084CBAE /* AttachmentApprovalToolbar.swift in Sources */,
 				763D7DDD27E25DC8002EA7E6 /* AttachmentApprovalTopBar.swift in Sources */,
 				3402AA4A271D9DCD0084CBAE /* AttachmentApprovalViewController.swift in Sources */,
+				7CC6F798EDC2DC8416523D9E /* AttachmentApprovalViewController+Tellomi.swift in Sources */,
 				3402AA34271D9DCD0084CBAE /* AttachmentItemCollection.swift in Sources */,
 				665D9B452C111C6D00E73E94 /* AttachmentMultisend+OversizeText.swift in Sources */,
 				661566722BCEDD58003F1647 /* AttachmentMultisend.swift in Sources */,

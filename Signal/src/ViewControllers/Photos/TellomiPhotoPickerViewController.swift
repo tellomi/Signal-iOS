@@ -230,7 +230,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     private lazy var selectedView: TellomiPhotoPickerSelectedView = {
         let selectedView = TellomiPhotoPickerSelectedView(library: library, chatBackground: chatBackground, bubbleColor: bubbleColor)
         selectedView.onDeselect = { [weak self] id in self?.deselectInSelectedView(id) }
-        selectedView.onOpen = { [weak self] _ in self?.openSelectionForEditing() }
+        selectedView.onOpen = { [weak self] itemId in self?.openSelectionForEditing(startingAt: itemId) }
         selectedView.onReorder = { [weak self] ids in self?.applyReorder(ids) }
         selectedView.isHidden = true
         return selectedView
@@ -598,7 +598,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         if selectionNumber(for: item.id) == nil {
             guard setSelection(item: item, selected: true) else { return }
         }
-        openSelectionForEditing()
+        openSelectionForEditing(startingAt: item.id)
     }
 
     // MARK: - Selection
@@ -914,8 +914,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     }
 
     /// P-10：进上游的预览 / 编辑页（裁剪、涂鸦、文字、模糊、画质、一次性查看都在那里），盖在网格上面：
-    /// 在那里取消就回到网格、选中的都还在；在那里发送就照常发出。
-    private func openSelectionForEditing() {
+    /// 在那里取消就回到网格、选中的都还在；在那里发送就照常发出。点的是哪张，进来先看到哪张（上游默认从第一张开始）。
+    private func openSelectionForEditing(startingAt itemId: String) {
         let items = selectedIds.compactMap { selectedItems[$0] }
         guard !items.isEmpty, let approvalDataSource else { return }
         let messageBody = messageBodyForSending
@@ -931,6 +931,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
                 stickerSheetDelegate: self.stickerSheetDelegate,
             )
             approval.modalPresentationStyle = .overFullScreen
+            if let index = items.firstIndex(where: { $0.id == itemId }) {
+                (approval.viewControllers.first as? AttachmentApprovalViewController)?.tellomiShowItem(at: index)
+            }
             self.editingItems = zip(items, attachments).map { ($0.id, $1.rawValue) }
             self.present(approval, animated: true)
         }
