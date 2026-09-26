@@ -67,7 +67,24 @@ extension RegistrationCaptchaViewController: CaptchaViewDelegate {
     }
 
     func captchaViewDidFailToCompleteCaptcha(_ captchaView: CaptchaView) {
-        captchaView.loadCaptcha()
+        // Tellomi：上游在这里立刻重载。页面加载失败（网络不通、验证页打不开）时就变成无限静默重载，
+        // 用户只看到一个空白页、这一页又没有返回键。改成说清楚原因，让用户自己点「重试」（tellomi/tellomi#1209）。
+        let actionSheet = ActionSheetController(
+            title: OWSLocalizedString(
+                "REGISTRATION_NETWORK_ERROR_TITLE",
+                comment: "A network error occurred during registration, and an error is shown to the user. This is the title on that error sheet.",
+            ),
+            message: OWSLocalizedString(
+                "REGISTRATION_NETWORK_ERROR_BODY",
+                comment: "A network error occurred during registration, and an error is shown to the user. This is the body on that error sheet.",
+            ),
+        )
+        actionSheet.addAction(ActionSheetAction(title: CommonStrings.retryButton, style: .default) { _ in
+            captchaView.loadCaptcha()
+        })
+        // 这一页没有返回键：不能让用户把提示关掉、停在空白页上。
+        actionSheet.isCancelable = false
+        presentActionSheet(actionSheet)
     }
 }
 
