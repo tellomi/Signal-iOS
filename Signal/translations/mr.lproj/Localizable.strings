@@ -3776,7 +3776,7 @@
 "EMOJI_CATEGORY_TRAVEL_NAME" = "प्रवास आणि जागा";
 
 /* Full width label displayed when attempting to compose message */
-"EMPTY_CONTACTS_LABEL_LINE1" = "आपल्या कुठल्याही संपर्कांकडे Tellomi Tellomi नाही.";
+"EMPTY_CONTACTS_LABEL_LINE1" = "आपल्या कुठल्याही संपर्कांकडे Tellomi नाही.";
 
 /* Full width label displayed when attempting to compose message */
 "EMPTY_CONTACTS_LABEL_LINE2" = "आपण कुणाला आमंत्रित का करत नाही?";
