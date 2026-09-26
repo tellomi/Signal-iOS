@@ -15,8 +15,9 @@ class BaseQuickRestoreQRCodeViewController:
     private var provisioningSocketManager: ProvisioningSocketManager
     private var model: RotatingQRCodeView.Model
 
-    override init() {
-        self.provisioningSocketManager = ProvisioningSocketManager(linkType: .quickRestore)
+    /// Tellomi：socket 管理器可以从外面传进来（默认和上游一样自己 new 一个），单测才能换成不连网的替身。
+    init(provisioningSocketManager: ProvisioningSocketManager = ProvisioningSocketManager(linkType: .quickRestore)) {
+        self.provisioningSocketManager = provisioningSocketManager
         self.model = RotatingQRCodeView.Model(
             urlDisplayMode: .loading,
             onRefreshButtonPressed: { [weak provisioningSocketManager] in
