@@ -14,8 +14,8 @@ final class TellomiMotionTest: XCTestCase {
         XCTAssertEqual(TellomiMotion.press, .init(duration: 0.15, bounce: 0))
         XCTAssertEqual(TellomiMotion.release, .init(duration: 0.3, bounce: 0.3))
         XCTAssertEqual(TellomiMotion.snap, .init(duration: 0.3, bounce: 0.3))
-        XCTAssertEqual(TellomiMotion.move, .init(duration: 0.4, bounce: 0.15))
-        XCTAssertEqual(TellomiMotion.large, .init(duration: 0.45, bounce: 0.1))
+        XCTAssertEqual(TellomiMotion.move, .init(duration: 0.4, bounce: 0.3))
+        XCTAssertEqual(TellomiMotion.large, .init(duration: 0.45, bounce: 0.2))
         XCTAssertEqual(TellomiMotion.emphasis, .init(duration: 0.45, bounce: 0.4))
         XCTAssertEqual(TellomiMotion.scroll, .init(duration: 0.45, bounce: 0))
     }
@@ -24,6 +24,22 @@ final class TellomiMotionTest: XCTestCase {
     func testPressAndScrollAreCriticallyDamped() {
         XCTAssertEqual(TellomiMotion.press.dampingRatio, 1)
         XCTAssertEqual(TellomiMotion.scroll.dampingRatio, 1)
+    }
+
+    /// 「活泼」要看得出来（owner 2026-09-26）：菜单 / Sheet / 共享元素回弹约 5%，查看器约 1.5%，小元素与回应落定更弹。
+    /// 与 Android 的 `TellomiMotionTest` 用同一个过冲公式、同一组区间。
+    func testLivelyTokensVisiblyOvershoot() {
+        XCTAssertEqual(overshoot(TellomiMotion.move), 0.046, accuracy: 0.005)
+        XCTAssertEqual(overshoot(TellomiMotion.large), 0.015, accuracy: 0.002)
+        XCTAssertGreaterThan(overshoot(TellomiMotion.snap), 0.04)
+        XCTAssertGreaterThan(overshoot(TellomiMotion.release), 0.04)
+        XCTAssertGreaterThan(overshoot(TellomiMotion.emphasis), 0.09)
+    }
+
+    /// 欠阻尼弹簧从 0 到 1 的最大过冲比例：exp(−πζ / √(1 − ζ²))；ζ ≥ 1 时为 0。
+    private func overshoot(_ spring: TellomiMotion.Spring) -> Double {
+        let z = Double(spring.dampingRatio)
+        return z >= 1 ? 0 : exp(-Double.pi * z / (1 - z * z).squareRoot())
     }
 
     /// Apple `Spring` 文档的例子：(0.5 s, bounce 0.3) → stiffness ≈ 157.9、damping ≈ 17.6（质量 1）。

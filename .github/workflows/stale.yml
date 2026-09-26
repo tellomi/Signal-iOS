@@ -10,6 +10,8 @@ jobs:
       issues: write
       pull-requests: write
 
+    # Tellomi：fork 里不跑（上游的机器 / 规则，见 tellomi-ios-build.yml）
+    if: github.repository == 'signalapp/Signal-iOS'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/stale@v10
