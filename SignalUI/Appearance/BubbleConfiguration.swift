@@ -201,6 +201,9 @@ public struct BubbleConfiguration {
         /// 尾巴沿气泡侧边的高度。
         public static let height: CGFloat = 14
 
+        /// 红对照用：用例引用的常量先放上，排版还没用它。
+        public static let sideMargin: CGFloat = 6
+
         /// 气泡本体：整块去掉尾巴那一侧的 `extent`。
         public func bodyRect(in rect: CGRect) -> CGRect {
             var body = rect

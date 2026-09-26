@@ -1558,6 +1558,15 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         )
     }
 
+    /// 红对照用：签名和修复后一样，行为是改动前的——尾巴那一侧不多留。
+    static func tellomiTailSideSpace(
+        isIncoming: Bool,
+        followsAvatar: Bool,
+        margin: CGFloat,
+    ) -> (leading: CGFloat, afterAvatar: CGFloat, trailing: CGFloat) {
+        (leading: 0, afterAvatar: 0, trailing: 0)
+    }
+
     private var hInnerStackConfig: CVStackViewConfig {
         CVStackViewConfig(
             axis: .horizontal,
