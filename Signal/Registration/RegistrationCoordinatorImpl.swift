@@ -3088,6 +3088,17 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             self.db.write { self.resetSession($0) }
             return .showErrorSheet(.sessionInvalidated)
         case .serverFailure(let failureResponse):
+            // Tellomi：服务端只给部分地区发短信（见 `TSConstants.smsVerificationCallingCodes`）。首次注册时，
+            // 别的地区的号码不再先进空的验证码页、再弹「请稍后再试」（诱导反复重试）：丢掉这个会话，
+            // 回到手机号页，行内说明这个地区还没开放（tellomi/tellomi#1209）。
+            // 重新注册 / 换号时号码不能改或刚验证过，保持上游行为。
+            if case .registering = mode, !Self.canReceiveSmsVerificationCode(session.e164) {
+                inMemoryState.pendingCodeTransport = nil
+                db.write { self.resetSession($0) }
+                return .phoneNumberEntry(phoneNumberEntryState(
+                    validationError: .unsupportedRegion(.init(e164: session.e164)),
+                ))
+            }
             db.write { tx in
                 self.processSession(
                     session,
@@ -4904,6 +4915,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
     private enum RemoteValidationError {
         case invalidE164(RegistrationPhoneNumberViewState.ValidationError.InvalidE164)
         case rateLimited(RegistrationPhoneNumberViewState.ValidationError.RateLimited)
+        case unsupportedRegion(RegistrationPhoneNumberViewState.ValidationError.UnsupportedRegion)
 
         func asViewStateError() -> RegistrationPhoneNumberViewState.ValidationError {
             switch self {
@@ -4911,8 +4923,18 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 return .invalidE164(error)
             case let .rateLimited(error):
                 return .rateLimited(error)
+            case let .unsupportedRegion(error):
+                return .unsupportedRegion(error)
             }
         }
+    }
+
+    /// Tellomi：`TSConstants.smsVerificationCallingCodes` 为 nil（不限）或包含这个号码的国际区号时为 true。
+    static func canReceiveSmsVerificationCode(_ e164: E164) -> Bool {
+        guard let callingCodes = TSConstants.smsVerificationCallingCodes else {
+            return true
+        }
+        return callingCodes.contains { e164.stringValue.hasPrefix("+" + $0) }
     }
 
     private func phoneNumberEntryState(
@@ -4934,7 +4956,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         case .changingNumber(let state):
             var rateLimitedError: RegistrationPhoneNumberViewState.ValidationError.RateLimited?
             switch validationError {
-            case .none:
+            case .none, .unsupportedRegion:
+                // unsupportedRegion 只在首次注册时出现。
                 break
             case .rateLimited(let error):
                 rateLimitedError = error

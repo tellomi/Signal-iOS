@@ -165,6 +165,18 @@ class RegistrationVerificationViewController: OWSViewController {
         return result
     }()
 
+    /// Tellomi：输错验证码时的行内提示（上游用底部弹窗，还叫用户去「重新发送」——而每个会话只有 3 条短信额度；tellomi/tellomi#1209）。
+    private lazy var codeErrorLabel: UILabel = {
+        let label = UILabel()
+        label.font = .dynamicTypeSubheadlineClamped
+        label.textColor = .Signal.red
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.isHidden = true
+        label.accessibilityIdentifier = "registration.verification.codeErrorLabel"
+        return label
+    }()
+
     private lazy var helpButton: UIButton = {
         let button = UIButton(
             configuration: .mediumBorderless(title: OWSLocalizedString(
@@ -234,6 +246,7 @@ class RegistrationVerificationViewController: OWSViewController {
                 explanationLabel,
                 wrongNumberButton,
                 verificationCodeView,
+                codeErrorLabel,
                 helpButton,
                 .vStretchingSpacer(),
                 resendButtonsContainer,
@@ -317,7 +330,8 @@ class RegistrationVerificationViewController: OWSViewController {
         )
         updateButtonWithTimer(
             button: requestVoiceCodeButton,
-            date: state.nextCallDate,
+            // Tellomi：服务端没开语音时「呼叫我」是死路，直接不显示（tellomi/tellomi#1209）。
+            date: TSConstants.voiceVerificationAvailable ? state.nextCallDate : nil,
             enabledString: OWSLocalizedString(
                 "ONBOARDING_VERIFICATION_CALL_ME_BUTTON",
                 comment: "Label for button to perform verification with a phone call.",
@@ -385,21 +399,23 @@ class RegistrationVerificationViewController: OWSViewController {
         guard let newError, oldError != newError else { return }
         switch newError {
         case .invalidVerificationCode(let code):
-            let message = OWSLocalizedString(
-                "REGISTRATION_VERIFICATION_ERROR_INVALID_VERIFICATION_CODE",
-                comment: "During registration and re-registration, users may have to enter a code to verify ownership of their phone number. If they enter an invalid code, they will see this error message.",
-            )
             if verificationCodeView.verificationCode == code {
                 verificationCodeView.clear()
             }
-            OWSActionSheets.showActionSheet(title: nil, message: message)
+            showInlineCodeError(OWSLocalizedString(
+                "REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE",
+                comment: "Shown inline under the verification code field when the entered code is wrong.",
+            ))
 
         case .providerFailure(let isPermanent):
             let message: String
             if isPermanent {
+                // Tellomi：服务商判定永久失败时，上游这里说「请在几小时后重试」，会诱导用户反复重试；
+                // 改为说清只开放中国大陆 + 客服（tellomi/tellomi#1209）。大陆以外的号码走不到这里：
+                // 服务端对它们回的是 permanentFailure=false，首次注册时协调器直接把人送回手机号页。
                 message = OWSLocalizedString(
-                    "REGISTRATION_PROVIDER_FAILURE_MESSAGE_PERMANENT",
-                    comment: "Error shown if an SMS/call service provider is unable to send a verification code to the provided number.",
+                    "REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR",
+                    comment: "Error message when sending a verification code via SMS failed and no other way of sending the code is available.",
                 )
             } else {
                 message = OWSLocalizedString(
@@ -428,6 +444,18 @@ class RegistrationVerificationViewController: OWSViewController {
             OWSActionSheets.showActionSheet(title: title, message: message)
 
         case .failedInitialTransport(let failedTransport):
+            // Tellomi：服务端没开语音时，上游这里的「改用语音通话接收」是一条死路（tellomi/tellomi#1209）。
+            // 只说清发不出去；服务端只放行中国大陆号码时，别的地区也落在这里。
+            if case .sms = failedTransport, !TSConstants.voiceVerificationAvailable {
+                OWSActionSheets.showActionSheet(
+                    title: nil,
+                    message: OWSLocalizedString(
+                        "REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR",
+                        comment: "Error message when sending a verification code via SMS failed and no other way of sending the code is available.",
+                    ),
+                )
+                return
+            }
             let errorMessage: String
             let alternativeTransportButtonText: String
             let alternativeTransport: Registration.CodeTransport
@@ -544,10 +572,40 @@ class RegistrationVerificationViewController: OWSViewController {
     }
 }
 
+// MARK: - Tellomi：行内验证码错误
+
+extension RegistrationVerificationViewController {
+    private func showInlineCodeError(_ message: String) {
+        codeErrorLabel.text = message
+        codeErrorLabel.isHidden = false
+        verificationCodeView.setHasError(true)
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+        if !UIAccessibility.isReduceMotionEnabled {
+            let shake = CAKeyframeAnimation(keyPath: "transform.translation.x")
+            shake.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            shake.duration = 0.45
+            shake.values = [-12, 12, -9, 9, -5, 5, -2, 0]
+            verificationCodeView.layer.add(shake, forKey: "tellomi.codeError.shake")
+        }
+        UIAccessibility.post(notification: .announcement, argument: message)
+        // 提交时输入框会失去焦点；出错后直接让用户重输。
+        _ = verificationCodeView.becomeFirstResponder()
+    }
+
+    private func hideInlineCodeError() {
+        guard !codeErrorLabel.isHidden else { return }
+        codeErrorLabel.isHidden = true
+        verificationCodeView.setHasError(false)
+    }
+}
+
 // MARK: - RegistrationVerificationCodeViewDelegate
 
 extension RegistrationVerificationViewController: RegistrationVerificationCodeViewDelegate {
     func codeViewDidChange() {
+        if !verificationCodeView.verificationCode.isEmpty {
+            hideInlineCodeError()
+        }
         if verificationCodeView.isComplete {
             Logger.info("Submitting verification code")
             verificationCodeView.resignFirstResponder()
