@@ -469,6 +469,21 @@ class ProfileSettingsViewController: OWSTableViewController2 {
 
     // MARK: Username actions
 
+    /// Tellomi（tellomi/tellomi#1218 F-02）：首屏「我的二维码」卡。有用户名就弹二维码；
+    /// 注册时用户名是选填的，没有就先去设用户名；用户名或链接坏了走上游原来的修复流程。
+    func presentTellomiMyQRCode() {
+        switch localUsernameState {
+        case let .available(username, usernameLink):
+            presentUsernameLink(username: username, usernameLink: usernameLink)
+        case .linkCorrupted:
+            presentUsernameLinkCorruptedResolution()
+        case .usernameAndLinkCorrupted:
+            presentUsernameCorruptedResolution()
+        case .unset, nil:
+            presentUsernameSelection(currentUsername: nil, isAttemptingRecovery: false)
+        }
+    }
+
     func presentUsernameCorruptedResolution() {
         guard let localUsernameState else {
             return
