@@ -287,7 +287,13 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
         window.rootViewController = viewController
         window.makeKeyAndVisible()
-        defer { window.isHidden = true }
+        defer {
+            // Tellomi：用完把页面从窗口上摘干净，让它随用例释放（deinit 里停掉每秒一跳的 nowTimer）。只把窗口藏起来的话，
+            // 页面拿着键盘焦点留在内存里，定时器会在后面的用例之间（测试环境已拆）触发、碰到 SSKEnvironment 就崩。
+            viewController.view.endEditing(true)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
         window.layoutIfNeeded()
 
         let help = try XCTUnwrap(button(withIdentifier: "registration.verification.helpButton", in: viewController.view))
