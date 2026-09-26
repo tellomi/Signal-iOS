@@ -8778,8 +8778,8 @@
 /* Tellomi: section header in About Tellomi. */
 "SETTINGS_ABOUT_TELLOMI_SECTION_UPDATES" = "更新";
 
-/* Tellomi: row in About Tellomi that opens the source code on GitHub. */
-"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE" = "源代码";
+/* Tellomi: sentence at the top of the open source licenses page saying where to get the source code. Keep the web address as is. */
+"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE_NOTICE" = "Tellomi 以 GNU AGPLv3 发布；源代码可在 www.tellomi.app/source 获取。";
 
 /* Tellomi: row in About Tellomi that opens the list of system permissions the app uses. */
 "SETTINGS_ABOUT_TELLOMI_SYSTEM_PERMISSIONS" = "系统权限调用清单";
