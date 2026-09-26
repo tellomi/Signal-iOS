@@ -102,19 +102,15 @@ public extension Usernames.HashedUsername {
     ) throws -> GeneratedCandidates {
         do {
             let nicknameLengthRange = minNicknameLength...maxNicknameLength
-            if let desiredDiscriminator {
-                let username = try LibSignalUsername(nickname: nickname, discriminator: desiredDiscriminator, withValidLengthWithin: nicknameLengthRange)
-                return .init(candidates: [.init(libSignalUsername: username)])
-            }
-
-            let candidates: [Usernames.HashedUsername] = try LibSignalUsername.candidates(
-                from: nickname,
+            // Tellomi（tellomi/tellomi#1106 第二刀，ADR-0066 §六「生成」）：不指定判别位时只试 `<nickname>.01` 这一个候选。
+            // 上游 `LibSignalUsername.candidates(from:)` 随机一批；01–99 被服务端拒绝表挡住时会落到三位数，
+            // 名字就「换了个数字」成功了。判别位固定之后 hash 唯一 = nickname 唯一，被占 / 保留词都是 409。
+            let username = try LibSignalUsername(
+                nickname: nickname,
+                discriminator: desiredDiscriminator ?? TellomiLinks.fixedUsernameDiscriminator,
                 withValidLengthWithin: nicknameLengthRange,
-            ).map { candidate -> Usernames.HashedUsername in
-                return .init(libSignalUsername: candidate)
-            }
-
-            return GeneratedCandidates(candidates: candidates)
+            )
+            return .init(candidates: [.init(libSignalUsername: username)])
         } catch let error {
             if
                 let libSignalError = error as? SignalError,

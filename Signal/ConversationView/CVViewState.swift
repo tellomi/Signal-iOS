@@ -102,6 +102,9 @@ public class CVViewState: NSObject {
     public var scrollUpdateTimer: Timer?
     public var isWaitingForDeceleration = false
     public var highlightedMessageId: String?
+
+    /// Tellomi（交互审计 A-07）：选了回应、还在等聊天列表把它画出来的那一次「回应飞入」。
+    var pendingReactionFlyIn: ReactionFlyIn?
     public var focusedMessageId: String?
 
     public var actionOnOpen: ConversationViewAction = .none

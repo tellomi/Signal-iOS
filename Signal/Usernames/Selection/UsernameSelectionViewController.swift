@@ -69,6 +69,8 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
         case reservationRejected
         /// The reservation was rejected by the server due to rate limiting.
         case reservationRateLimited
+        /// Tellomi（tellomi/tellomi#1106 第四刀）：30 天改名冷却期内，还剩 `daysLeft` 天。
+        case reservationChangeCooldown(daysLeft: Int)
         /// The reservation failed due to a network error.
         case reservationFailedNetworkError
         /// The reservation failed, for an unknown reason.
@@ -102,6 +104,8 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
                 return "reservationRejected"
             case .reservationRateLimited:
                 return "reservationRateLimited"
+            case .reservationChangeCooldown:
+                return "reservationChangeCooldown"
             case .reservationFailedNetworkError:
                 return "reservationFailedNetworkError"
             case .reservationFailed:
@@ -399,6 +403,7 @@ private extension UsernameSelectionViewController {
                 .pending,
                 .reservationRejected,
                 .reservationRateLimited,
+                .reservationChangeCooldown,
                 .reservationFailedNetworkError,
                 .reservationFailed,
                 .tooShort,
@@ -418,11 +423,12 @@ private extension UsernameSelectionViewController {
     private func updateHeaderViewContent() {
         // If we are able to finalize a username (i.e., have a
         // reservation or deletion primed), we should display it.
+        // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：头部预览只是给人看，`.01` 结尾的去掉后缀，别的后缀完整显示
         let usernameDisplayText: String? = {
             switch self.currentUsernameState {
             case .noChangesToExisting:
                 if let existingUsername = self.existingUsername {
-                    return existingUsername.reassembled
+                    return TellomiLinks.displayUsername(existingUsername.reassembled)
                 }
 
                 return OWSLocalizedString(
@@ -430,13 +436,14 @@ private extension UsernameSelectionViewController {
                     comment: "When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty.",
                 )
             case let .caseOnlyChange(newUsername):
-                return newUsername.reassembled
+                return TellomiLinks.displayUsername(newUsername.reassembled)
             case let .reservationSuccessful(username, _):
-                return username.reassembled
+                return TellomiLinks.displayUsername(username.reassembled)
             case
                 .pending,
                 .reservationRejected,
                 .reservationRateLimited,
+                .reservationChangeCooldown,
                 .reservationFailedNetworkError,
                 .reservationFailed,
                 .tooShort,
@@ -470,6 +477,7 @@ private extension UsernameSelectionViewController {
         case
             .reservationRejected,
             .reservationRateLimited,
+            .reservationChangeCooldown,
             .reservationFailedNetworkError,
             .reservationFailed,
             .tooShort,
@@ -503,6 +511,16 @@ private extension UsernameSelectionViewController {
                 return OWSLocalizedString(
                     "USERNAME_SELECTION_RESERVATION_RATE_LIMITED_ERROR_MESSAGE",
                     comment: "An error message shown when the user has attempted too many username reservations.",
+                )
+            case let .reservationChangeCooldown(daysLeft):
+                // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：不再是泛泛的「尝试次数过多」（与 Desktop#2、Android 同一句）
+                return String.localizedStringWithFormat(
+                    OWSLocalizedString(
+                        "USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d",
+                        tableName: "PluralAware",
+                        comment: "Tellomi: error shown when the user changed their username less than 30 days ago and tries another one. Embeds {{ %d the number of days left, rounded up }}.",
+                    ),
+                    daysLeft,
                 )
             case .reservationFailedNetworkError:
                 return Usernames.RemoteMutationError.networkError.localizedDescription
@@ -578,18 +596,12 @@ private extension UsernameSelectionViewController {
     /// Update the contents of the footer text view for the current internal
     /// controller state.
     private func updateFooterTextViewContent() {
-        let content = NSAttributedString.make(
-            fromFormat: OWSLocalizedString(
-                "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT",
-                comment: "Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}.",
-            ),
-            attributedFormatArgs: [
-                .string(
-                    CommonStrings.learnMore,
-                    attributes: [.link: Constants.learnMoreLink],
-                ),
-            ],
-        ).styled(
+        // Tellomi（tellomi/tellomi#1106 第二刀）：上游写「用户名始终搭配一组数字」+「了解更多」讲数字后缀；
+        // 后缀隐藏了，换成说明用户名的用途（与 Android `UsernameEditFragment__tellomi_usernames_let_others_find_you` 同一句）。
+        let content = NSAttributedString(string: OWSLocalizedString(
+            "USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI",
+            comment: "Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead.",
+        )).styled(
             with: .font(.dynamicTypeCaption1Clamped),
             .color(Theme.secondaryTextAndIconColor),
         )
@@ -624,6 +636,7 @@ private extension UsernameSelectionViewController {
             .pending,
             .reservationRejected,
             .reservationRateLimited,
+            .reservationChangeCooldown,
             .reservationFailedNetworkError,
             .reservationFailed,
             .tooShort,
@@ -681,10 +694,15 @@ private extension UsernameSelectionViewController {
                 reservedUsername: reservedUsername,
             )
         } else {
+            // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：每次换名都会开始 30 天冷却，确认前就说清楚（与 Desktop#2、Android 同一句）
             OWSActionSheets.showConfirmationAlert(
-                message: OWSLocalizedString(
-                    "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE",
-                    comment: "A message explaining the side effects of changing your username.",
+                message: String.localizedStringWithFormat(
+                    OWSLocalizedString(
+                        "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d",
+                        tableName: "PluralAware",
+                        comment: "Tellomi: confirmation before replacing an existing username. Every change starts the rename cooldown. Embeds {{ %d the cooldown length in days (30) }}.",
+                    ),
+                    TellomiLinks.renameCooldownDays,
                 ),
                 proceedTitle: CommonStrings.continueButton,
                 proceedAction: { [weak self] _ in
@@ -764,6 +782,20 @@ private extension UsernameSelectionViewController {
     }
 }
 
+// MARK: - Tellomi
+
+extension UsernameSelectionViewController {
+    /// Tellomi（tellomi/tellomi#1106 第二刀）：「没改」「只改大小写 → 沿用原判别位」这两条上游捷径，只在原判别位就是 01 时走。
+    /// 带 `.57` 这类旧后缀的号输入同一个 nickname，要走正常预约拿 `nickname.01`——否则老数据永远改不成不带数字的
+    /// （ADR-0066 §六「老数据：设置页照普通改名流程即可改成不带数字的」；与 Android #17 同一条规则）。
+    static func existingUsernameForShortcuts(_ existingUsername: ParsedUsername?) -> ParsedUsername? {
+        guard let existingUsername, existingUsername.discriminator == TellomiLinks.fixedUsernameDiscriminator else {
+            return nil
+        }
+        return existingUsername
+    }
+}
+
 // MARK: - Text field events
 
 private extension UsernameSelectionViewController {
@@ -791,14 +823,16 @@ private extension UsernameSelectionViewController {
             return false
         }()
 
+        let existingUsernameWithFixedDiscriminator = Self.existingUsernameForShortcuts(existingUsername)
+
         if
             !hasEnteredNewCustomDiscriminator,
-            existingUsername?.nickname == nicknameFromTextField
+            existingUsernameWithFixedDiscriminator?.nickname == nicknameFromTextField
         {
             currentUsernameState = .noChangesToExisting
         } else if
             !hasEnteredNewCustomDiscriminator,
-            let existingUsername,
+            let existingUsername = existingUsernameWithFixedDiscriminator,
             let nicknameFromTextField,
             existingUsername.nickname.lowercased() == nicknameFromTextField.lowercased()
         {
@@ -957,6 +991,12 @@ private extension UsernameSelectionViewController {
                 logger.error("Reservation rate-limited.")
 
                 self.currentUsernameState = .reservationRateLimited
+            case .success(.changeCooldown(let retryAfter)):
+                logger.warn("Reservation refused: rename cooldown, retry after \(retryAfter)s.")
+
+                self.currentUsernameState = .reservationChangeCooldown(
+                    daysLeft: TellomiLinks.renameCooldownDaysLeft(retryAfter: retryAfter),
+                )
             case .networkError:
                 logger.error("Reservation failed due to a network error.")
 
@@ -997,9 +1037,12 @@ extension UsernameSelectionViewController: UITextFieldDelegate {
     }
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        guard let usernameTextField = textField as? UsernameTextField else { return true }
-        usernameTextField.discriminatorView.becomeFirstResponder()
-        return true
+        guard textField is UsernameTextField else { return true }
+        // Tellomi（tellomi/tellomi#1106 第二刀）：上游回车跳到数字栏；数字栏隐藏了，回车等同点「完成」（能点的时候）。
+        if doneBarButtonItem.isEnabled {
+            didTapDone()
+        }
+        return false
     }
 }
 
