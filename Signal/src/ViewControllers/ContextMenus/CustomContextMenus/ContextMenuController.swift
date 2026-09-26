@@ -363,6 +363,11 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
     private var animateOutPreviewFrame = CGRect.zero
     private let animationDuration = 0.4
     private let springDamping: CGFloat = 0.8
+    // Tellomi（tellomi/tellomi 交互审计 A-06）：收起从 0.4 s 缩到 0.25 s——菜单项要等收起播完才执行，
+    // 0.4 s 的等待在手感上就是「点了半天才动」。减弱动态效果时不缩放、不回弹。
+    private let animateOutDuration: TimeInterval = 0.25
+    private var reduceMotion: Bool { TellomiMotion.isReduceMotionEnabled }
+    private var effectiveSpringDamping: CGFloat { reduceMotion ? 1 : springDamping }
     private let springInitialVelocity: CGFloat = 1.0
 
     private let dismissButton = UIButton(type: .custom)
@@ -512,7 +517,7 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
         let shiftPreview = finalFrame != initialFrame
 
         // Match initial transform
-        if !presentImmediately {
+        if !presentImmediately, !reduceMotion {
             previewView.transform = CGAffineTransform.scale(0.95)
         }
 
@@ -544,7 +549,7 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
             UIView.animate(
                 withDuration: animationDuration,
                 delay: 0,
-                usingSpringWithDamping: springDamping,
+                usingSpringWithDamping: effectiveSpringDamping,
                 initialSpringVelocity: springInitialVelocity,
                 options: [.curveEaseInOut, .beginFromCurrentState],
                 animations: {
@@ -595,7 +600,7 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
         animationState = .animateOut
 
         dispatchGroup.enter()
-        UIView.animate(withDuration: animationDuration) {
+        UIView.animate(withDuration: animateOutDuration) {
             if self.renderBackgroundBlur {
                 self.blurView.effect = nil
                 self.blurView.backgroundColor = nil
@@ -621,9 +626,9 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
             let heightDelta = finalFrame.height - initialFrame.height
             dispatchGroup.enter()
             UIView.animate(
-                withDuration: animationDuration,
+                withDuration: animateOutDuration,
                 delay: 0,
-                usingSpringWithDamping: springDamping,
+                usingSpringWithDamping: 1,
                 initialSpringVelocity: springInitialVelocity,
                 options: [.curveEaseInOut, .beginFromCurrentState],
                 animations: {
@@ -647,7 +652,7 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
         // Animate in accessories
         for accessory in accessoryViews {
             dispatchGroup.enter()
-            accessory.animateOut(duration: animationDuration, previewWillShift: shiftPreview) {
+            accessory.animateOut(duration: animateOutDuration, previewWillShift: shiftPreview) {
                 dispatchGroup.leave()
             }
         }

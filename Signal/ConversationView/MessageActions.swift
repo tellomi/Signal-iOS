@@ -18,6 +18,7 @@ protocol MessageActionsDelegate: AnyObject {
     func messageActionsShowPaymentDetails(_ itemViewModel: CVItemViewModelImpl)
     func messageActionsEndPoll(_ itemViewModel: CVItemViewModelImpl)
     func messageActionsChangePinStatus(_ itemViewModel: CVItemViewModelImpl, pin: Bool)
+    func messageActionsTellomiSaveToSavedMessages(_ itemViewModel: CVItemViewModelImpl)
 }
 
 // MARK: -
@@ -111,6 +112,20 @@ enum MessageActionBuilder {
             contextMenuAttributes: [],
             block: { [weak delegate] _ in
                 delegate?.messageActionsForwardItem(itemViewModel)
+            },
+        )
+    }
+
+    /// Tellomi：长按「收藏」，不开转发面板、直接存进「我的收藏」（#1174）
+    static func tellomiSaveToSavedMessages(itemViewModel: CVItemViewModelImpl, delegate: MessageActionsDelegate) -> MessageAction {
+        return MessageAction(
+            .tellomiSave,
+            accessibilityLabel: TellomiSavedMessagesStrings.saveAccessibilityLabel,
+            accessibilityIdentifier: UIView.accessibilityIdentifier(containerName: "message_action", name: "tellomi_save_to_saved_messages"),
+            contextMenuTitle: TellomiSavedMessagesStrings.save,
+            contextMenuAttributes: [],
+            block: { [weak delegate] _ in
+                delegate?.messageActionsTellomiSaveToSavedMessages(itemViewModel)
             },
         )
     }
@@ -265,6 +280,10 @@ class MessageActions {
 
         if itemViewModel.canForwardMessage {
             actions.append(MessageActionBuilder.forwardMessage(itemViewModel: itemViewModel, delegate: delegate))
+            // Tellomi：「收藏」（#1174），「我的收藏」自己的会话里不显示
+            if !itemViewModel.thread.isNoteToSelf {
+                actions.append(MessageActionBuilder.tellomiSaveToSavedMessages(itemViewModel: itemViewModel, delegate: delegate))
+            }
         }
 
         let selectAction = MessageActionBuilder.selectMessage(itemViewModel: itemViewModel, delegate: delegate)
@@ -331,6 +350,10 @@ class MessageActions {
 
         if itemViewModel.canForwardMessage {
             actions.append(MessageActionBuilder.forwardMessage(itemViewModel: itemViewModel, delegate: delegate))
+            // Tellomi：「收藏」（#1174），「我的收藏」自己的会话里不显示
+            if !itemViewModel.thread.isNoteToSelf {
+                actions.append(MessageActionBuilder.tellomiSaveToSavedMessages(itemViewModel: itemViewModel, delegate: delegate))
+            }
         }
 
         if itemViewModel.canEditMessage, shouldAllowMessageSendActions {
@@ -379,6 +402,10 @@ class MessageActions {
 
         if itemViewModel.canForwardMessage {
             actions.append(MessageActionBuilder.forwardMessage(itemViewModel: itemViewModel, delegate: delegate))
+            // Tellomi：「收藏」（#1174），「我的收藏」自己的会话里不显示
+            if !itemViewModel.thread.isNoteToSelf {
+                actions.append(MessageActionBuilder.tellomiSaveToSavedMessages(itemViewModel: itemViewModel, delegate: delegate))
+            }
         }
 
         if itemViewModel.canEditMessage, shouldAllowMessageSendActions {
@@ -525,5 +552,45 @@ class MessageActions {
         let deleteAction = MessageActionBuilder.deleteMessage(itemViewModel: itemViewModel, delegate: delegate)
         let selectAction = MessageActionBuilder.selectMessage(itemViewModel: itemViewModel, delegate: delegate)
         return [deleteAction, selectAction]
+    }
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 「收藏」相关文案。只翻了 en / zh_CN / zh_HK / zh_TW；其它语言的表里没有这个键时回落英文（iOS 默认会直接显示键名）。
+enum TellomiSavedMessagesStrings {
+    private static func localized(_ key: String, english: String) -> String {
+        return Bundle.main.localizedString(forKey: key, value: english, table: nil)
+    }
+
+    static var save: String {
+        localized("CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE", english: "Save")
+    }
+
+    static var saveAccessibilityLabel: String {
+        localized("MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE", english: "Save to Saved Messages")
+    }
+
+    static var savedToast: String {
+        localized("FORWARD_MESSAGE_TELLOMI_SAVED_TOAST", english: "Saved to Saved Messages. Tap to view.")
+    }
+
+    /// 删除确认：只删「我的收藏」时说清楚删的是什么、已关联设备上的会不会一起删（需求 §3.2「删除」）。
+    /// 选了别的会话（或不止一个）返回 nil，照上游的文案。
+    static func deleteConfirmation(for threads: [TSThread], hasLinkedDevices: Bool) -> (title: String, message: String)? {
+        guard threads.count == 1, threads[0].isNoteToSelf else {
+            return nil
+        }
+        let title = localized("CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES", english: "Delete Saved Messages?")
+        let message = hasLinkedDevices
+            ? localized(
+                "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES",
+                english: "Everything in Saved Messages will be deleted from this device and your linked devices. This can't be undone.",
+            )
+            : localized(
+                "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES",
+                english: "Everything in Saved Messages will be deleted from this device. This can't be undone.",
+            )
+        return (title, message)
     }
 }

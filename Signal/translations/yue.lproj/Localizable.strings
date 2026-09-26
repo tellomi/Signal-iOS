@@ -2609,7 +2609,7 @@
 "CONVERSATION_SETTINGS_ARCHIVE_CHAT" = "封存聊天";
 
 /* Footer for the 'attributes access' section in conversation settings view with pinned messages added. */
-"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "揀選邊個可以編輯個谷名、相、描述、自動銷毀訊息計時器同埋置頂訊息。";
+"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "揀選邊個可以編輯個谷名、相、描述、限時訊息計時器同埋置頂訊息。";
 
 /* Footer string for a contact's badges in conversation settings */
 "CONVERSATION_SETTINGS_BADGES_FOOTER" = "擔當 Tellomi 後援，為您嘅個人資料添一枚襟章。撳一下啲襟章知多啲。";
@@ -3254,7 +3254,7 @@
 "DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "㩒一下下面嘅「同你部新裝置配對」";
 
 /* table cell label in conversation settings */
-"DISAPPEARING_MESSAGES" = "過眼雲煙訊息";
+"DISAPPEARING_MESSAGES" = "限時訊息";
 
 /* Info Message when added to a group which has enabled disappearing messages. Embeds {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
 "DISAPPEARING_MESSAGES_CONFIGURATION_GROUP_EXISTING_FORMAT" = "呢個聊天入面嘅訊息會喺 %1$@ 後自動銷毀。";
@@ -3281,7 +3281,7 @@
 "DISAPPEARING_MESSAGES_HOURS" = "個鐘";
 
 /* Accessibility label for disappearing messages */
-"DISAPPEARING_MESSAGES_LABEL" = "過眼雲煙訊息設定";
+"DISAPPEARING_MESSAGES_LABEL" = "限時訊息設定";
 
 /* The unit for a number of minutes */
 "DISAPPEARING_MESSAGES_MINUTES" = "分鐘";
@@ -3470,7 +3470,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_CONFIRMATION_SCREEN_TITLE" = "確認捐款";
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
-"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "呢個聊天已經開咗「自動銷毀訊息」功能。你嘅捐款訊息會喺 %1$@ 之後自動銷毀。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "呢個聊天已經開咗「限時訊息」功能。你嘅捐款訊息會喺 %1$@ 之後消失。";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "單次捐款";
@@ -6707,10 +6707,10 @@
 "OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomi 即將停止支援你部機嘅 iOS 版本。想繼續用 Tellomi 嘅話，請你喺 %1$@ 之前換部新啲嘅機。";
 
 /* Info Message when another user disabled disappearing messages. Embeds {{name of other user}}. */
-"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 已停用過眼雲煙訊息。";
+"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 已停用限時訊息。";
 
 /* Info Message when another user enabled disappearing messages. Embeds {{name of other user}} and {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
-"OTHER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 已將過眼雲煙訊息倒數設定為 %2$@。";
+"OTHER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 已將限時訊息倒數設定為 %2$@。";
 
 /* Label warning the user that the Signal service may be down. */
 "OUTAGE_WARNING" = "Tellomi 發生技術問題。我哋現正搶修，務求儘快回復服務。";
@@ -7469,10 +7469,10 @@
 "PINNED_SECTION_TITLE" = "置頂";
 
 /* Body for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當過眼雲煙訊息喺倒數完同埋喺聊天度剔走嗰陣，系統會將訊息取消置頂。";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當限時訊息喺倒數完同埋喺聊天度剔走嗰陣，系統會將訊息取消置頂。";
 
 /* Title for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "將過眼雲煙訊息置頂";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "將限時訊息置頂";
 
 /* Action text for PIN megaphone when user doesn't have a PIN */
 "PINS_MEGAPHONE_ACTION" = "建立 PIN 碼";
@@ -8951,10 +8951,10 @@
 "SETTINGS_DELETE_HISTORYLOG_CONFIRMATION_SECONDARY_TITLE" = "真係要刪除所有聊天紀錄？";
 
 /* Label for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES" = "過眼雲煙訊息";
+"SETTINGS_DISAPPEARING_MESSAGES" = "限時訊息";
 
 /* Explanation for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為所有由你發起嘅新聊天設定「自動銷毀訊息」預設時限。";
+"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為所有由你發起嘅新聊天設定「限時訊息」預設時限。";
 
 /* Title for the 'donate to signal' link in settings. */
 "SETTINGS_DONATE" = "課金 Tellomi";
@@ -10391,7 +10391,7 @@
 "SYSTEM_MESSAGE_ACTION_VERIFY_SAFETY_NUMBER" = "驗證";
 
 /* Indicator that the default disappearing message timer will be applied when you send a message. Embeds {default disappearing message time} */
-"SYSTEM_MESSAGE_DEFAULT_DISAPPEARING_MESSAGE_TIMER_FORMAT" = "當您發送訊息畀人嘅時候，過眼雲煙訊息倒數將會設定為 %1$@。";
+"SYSTEM_MESSAGE_DEFAULT_DISAPPEARING_MESSAGE_TIMER_FORMAT" = "當您發送訊息畀人嘅時候，限時訊息倒數將會設定為 %1$@。";
 
 /* Indicator warning about an unknown contact thread */
 "SYSTEM_MESSAGE_UNKNOWN_THREAD_REVIEW_CAREFULLY_WARNING" = "要金睛火眼睇清楚啲請求";
@@ -10586,10 +10586,10 @@
 "UNKNOWN_USER" = "未知";
 
 /* Info Message when an unknown user disabled disappearing messages. */
-"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "過眼雲煙訊息已停用。";
+"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限時訊息已停用。";
 
 /* Info Message when an unknown user enabled disappearing messages. Embeds {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
-"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "過眼雲煙訊息倒數已設定為 %1$@。";
+"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限時訊息倒數已設定為 %1$@。";
 
 /* Indicates an unknown or unrecognizable value. */
 "UNKNOWN_VALUE" = "未知";
@@ -10952,10 +10952,10 @@
 "YOU_DELETED_THIS_MESSAGE" = "你刪除咗呢個訊息";
 
 /* Info Message when you disabled disappearing messages. */
-"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您已停用過眼雲煙訊息。";
+"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您已停用限時訊息。";
 
 /* alert body shown when trying to use features in the app before completing registration-related setup. */
 "YOU_MUST_COMPLETE_ONBOARDING_BEFORE_PROCEEDING" = "繼續之前，您必須先完成設定。";
 
 /* Info Message when you update disappearing messages duration. Embeds a {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
-"YOU_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您已將過眼雲煙訊息倒數設定為 %1$@。";
+"YOU_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您已將限時訊息倒數設定為 %1$@。";
