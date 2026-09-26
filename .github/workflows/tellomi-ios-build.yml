@@ -1,0 +1,141 @@
+# Tellomi：手动触发的 iOS 编译 + 指定用例。
+# 给没有 Mac 的会话（taishi）验 iOS 改动用：在 GitHub 的标准 macOS 机器上
+#   1. 取 tellomi/libsignal（Podfile 按 ../../libsignal 引用）编出模拟器用的 libsignal_ffi.a；
+#   2. 取要验的 Signal-iOS 分支，pod install（Tellomi 的 Podfile 把 LibSignalClient 改成了本地路径）；
+#   3. build-for-testing，再按需 test-without-building 跑指定的用例类。
+# 公开仓库用标准机器不计费。只在 tellomi/Signal-iOS 里跑。
+
+name: Tellomi iOS build (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "要编的 Signal-iOS 分支或提交"
+        required: true
+      tests:
+        description: "要跑的用例，空格分隔，例如 SignalTests/TellomiForwardGridTests；留空只编不跑"
+        required: false
+        default: ""
+      libsignal_ref:
+        description: "tellomi/libsignal 的分支或 tag（iOS 钉的是 0.102.0）"
+        required: false
+        default: "tellomi-0.102.0"
+      simulator:
+        description: "模拟器机型"
+        required: false
+        default: "iPhone 17 Pro"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tellomi-ios-build-${{ github.event.inputs.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build (and test)
+    if: github.repository == 'tellomi/Signal-iOS'
+    runs-on: macos-26
+    timeout-minutes: 330
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app
+      INPUT_REF: ${{ github.event.inputs.ref }}
+      INPUT_TESTS: ${{ github.event.inputs.tests }}
+      INPUT_SIMULATOR: ${{ github.event.inputs.simulator }}
+      DERIVED_DATA: ${{ github.workspace }}/dd
+      LOG_DIR: ${{ github.workspace }}/logs
+
+    steps:
+      - name: Xcode and simulators
+        run: |
+          mkdir -p "$LOG_DIR"
+          xcodebuild -version
+          xcrun simctl list runtimes
+          xcrun simctl list devices available | grep -F "$INPUT_SIMULATOR" || {
+            echo "::error::找不到模拟器 $INPUT_SIMULATOR"; xcrun simctl list devices available; exit 1; }
+
+      - name: Checkout Signal-iOS
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.ref }}
+          path: clients/ios
+          submodules: recursive
+
+      - name: Checkout tellomi/libsignal
+        uses: actions/checkout@v6
+        with:
+          repository: tellomi/libsignal
+          ref: ${{ github.event.inputs.libsignal_ref }}
+          path: libsignal
+
+      - name: Cache libsignal build
+        uses: actions/cache@v4
+        with:
+          path: |
+            libsignal/target/aarch64-apple-ios-sim/release/libsignal_ffi.a
+          key: libsignal-ffi-ios-sim-${{ hashFiles('libsignal/Cargo.lock', 'libsignal/rust/**/*.rs', 'libsignal/rust/**/Cargo.toml', 'libsignal/rust-toolchain') }}
+
+      - name: Build libsignal_ffi for the simulator
+        working-directory: libsignal
+        run: |
+          if [ -f target/aarch64-apple-ios-sim/release/libsignal_ffi.a ]; then
+            echo "从缓存取到 libsignal_ffi.a，跳过编译"
+            exit 0
+          fi
+          brew list protobuf >/dev/null 2>&1 || brew install protobuf
+          rustup show active-toolchain || rustup show
+          rustup target add aarch64-apple-ios-sim
+          CARGO_BUILD_TARGET=aarch64-apple-ios-sim swift/build_ffi.sh --release 2>&1 | tee "$LOG_DIR/libsignal-ffi.log"
+          ls -la target/aarch64-apple-ios-sim/release/libsignal_ffi.a
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: clients/ios
+          bundler-cache: true
+
+      - name: Pods
+        working-directory: clients/ios
+        run: |
+          Pods/SignalRingRTC/bin/set-up-for-cocoapods
+          bundle exec pod install 2>&1 | tee "$LOG_DIR/pod-install.log"
+
+      - name: Build for testing
+        working-directory: clients/ios
+        run: |
+          set -o pipefail
+          NSUnbufferedIO=YES xcodebuild build-for-testing \
+            -workspace Signal.xcworkspace -scheme Signal -configuration Debug \
+            -sdk iphonesimulator -destination "platform=iOS Simulator,name=$INPUT_SIMULATOR" \
+            -derivedDataPath "$DERIVED_DATA" \
+            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee "$LOG_DIR/build-for-testing.log" | grep -E "error:|warning: .*Tellomi|\*\* (TEST )?BUILD" || true
+          grep -q "\*\* TEST BUILD SUCCEEDED \*\*" "$LOG_DIR/build-for-testing.log"
+
+      - name: Run tests
+        if: github.event.inputs.tests != ''
+        working-directory: clients/ios
+        run: |
+          set -o pipefail
+          ONLY=()
+          for t in $INPUT_TESTS; do ONLY+=("-only-testing:$t"); done
+          NSUnbufferedIO=YES xcodebuild test-without-building \
+            -workspace Signal.xcworkspace -scheme Signal -configuration Debug \
+            -sdk iphonesimulator -destination "platform=iOS Simulator,name=$INPUT_SIMULATOR" \
+            -derivedDataPath "$DERIVED_DATA" \
+            "${ONLY[@]}" \
+            -testLanguage en -testRegion US -collect-test-diagnostics never \
+            -resultBundlePath "$LOG_DIR/Tests.xcresult" \
+            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 \
+            2>&1 | tee "$LOG_DIR/tests.log" | grep -E "Test Case .*(passed|failed)|error:|Executed [0-9]+ test|\*\* TEST" || true
+          grep -q "\*\* TEST EXECUTE SUCCEEDED \*\*" "$LOG_DIR/tests.log"
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: tellomi-ios-build-logs
+          path: logs
+          retention-days: 7
