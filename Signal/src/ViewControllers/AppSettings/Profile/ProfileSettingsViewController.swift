@@ -347,7 +347,8 @@ class ProfileSettingsViewController: OWSTableViewController2 {
             customCellBlock: {
                 let cell = OWSTableItem.buildCell(
                     icon: .profileUsername,
-                    itemName: username,
+                    // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：`.01` 结尾的去掉后缀显示，别的后缀完整显示
+                    itemName: TellomiLinks.displayUsername(username),
                     accessoryType: .disclosureIndicator,
                 )
 
@@ -555,7 +556,7 @@ class ProfileSettingsViewController: OWSTableViewController2 {
                     "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_FORMAT",
                     comment: "A message asking the user if they are sure they want to remove their username and explaining what will happen. Embeds {{ the user's current username }}.",
                 ),
-                currentUsername,
+                TellomiLinks.displayUsername(currentUsername), // Tellomi（#1106 第三刀）
             ),
             proceedTitle: OWSLocalizedString(
                 "PROFILE_SETTINGS_USERNAME_DELETION_USERNAME_ACTION_TITLE",
