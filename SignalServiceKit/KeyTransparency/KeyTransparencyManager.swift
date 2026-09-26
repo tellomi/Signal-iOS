@@ -544,6 +544,9 @@ public struct KeyTransparencyStore {
     private let cronStore: CronStore
     private let kvStore: NewKeyValueStore
     private let selfCheckCronInterval: TimeInterval
+    /// Tellomi：用户没选过时 KT 开不开，看 `keyTransparencyAvailable`。App 里（`init()`）就是 `TSConstants.shared`；
+    /// 单测按用例给——上游用例跑上游档，Tellomi 用例跑没有 KT 服务的档（见 KeyTransparencyManagerTest）。
+    private let tsConstants: TSConstantsProtocol
 
     public init() {
         let selfCheckCronInterval: TimeInterval = if BuildFlags.KeyTransparency.conservativeSelfCheck {
@@ -552,13 +555,14 @@ public struct KeyTransparencyStore {
             .week
         }
 
-        self.init(selfCheckCronInterval: selfCheckCronInterval)
+        self.init(selfCheckCronInterval: selfCheckCronInterval, tsConstants: TSConstants.shared)
     }
 
-    init(selfCheckCronInterval: TimeInterval) {
+    init(selfCheckCronInterval: TimeInterval, tsConstants: TSConstantsProtocol) {
         self.cronStore = CronStore(uniqueKey: .keyTransparencySelfCheck)
         self.kvStore = NewKeyValueStore(collection: "KeyTransparency")
         self.selfCheckCronInterval = selfCheckCronInterval
+        self.tsConstants = tsConstants
     }
 
     // MARK: - Opt-out
@@ -570,7 +574,7 @@ public struct KeyTransparencyStore {
         // （owner 2026-09-22 的 iPhone 日志）。所以默认关，形状与 svrEnclaveAvailable / cdsiAvailable
         // 一致；以后真上 KT 把 TSConstants 那个常量翻回 true 即可。用户显式开过的以用户的选择为准。
         let userChoice = kvStore.fetchValue(Bool.self, forKey: KVStoreKeys.isEnabled, tx: tx)
-        return userChoice ?? TSConstants.keyTransparencyAvailable
+        return userChoice ?? tsConstants.keyTransparencyAvailable
     }
 
     fileprivate func setIsEnabled(_ isEnabled: Bool, tx: DBWriteTransaction) {

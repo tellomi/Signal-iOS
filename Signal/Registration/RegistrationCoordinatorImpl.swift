@@ -1883,7 +1883,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             // 服务端的 `POST v2/svr/auth/check` 仍然会回 200（它只查凭证，不查 enclave），
             // 所以客户端会以为「能恢复」，向一个从来没设过 PIN 的用户要 PIN（#964 的第二处）。
             // 跳过这两条，让它落到会话验证码那条路上——也就是上游 RRP 被拒之后的正常出口。
-            if TSConstants.svrEnclaveAvailable {
+            // 读 deps.tsConstants 而不是全局的 TSConstants：单测要能按用例指定部署档。
+            if deps.tsConstants.svrEnclaveAvailable {
                 if let credential = inMemoryState.svrAuthCredential {
                     // If we have a validated SVR auth credential, try using that
                     // to recover the SVR master key to register.
@@ -2112,7 +2113,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         // 重新注册走 registrationRecoveryPassword 这条路时再问一次 PIN，
         // 唯一的出口藏在「需要协助?」弹窗底部的「跳过 PIN 码」，普通用户会以为账号丢了（#964）。
         // 返回 nil = 不问 PIN，直接拿磁盘上的恢复密码去注册；服务端不认就照上游落回会话验证码那条路。
-        guard TSConstants.svrEnclaveAvailable else { return nil }
+        guard deps.tsConstants.svrEnclaveAvailable else { return nil }
 
         // Don't bother with gathering the PIN if now if we already have an AEP
         // and we're going through a restore path
@@ -3995,7 +3996,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         // 这一页没有跳过入口，用户就卡死在这里。把它当作「已跳过」——用的是上游自己的
         // hasSkippedPinEntry / hasGivenUpTryingToRestoreWithSVR，不碰 enclave。
         // 见 docs/signal/ENCLAVES.md 与 TSConstantsProtocol.svrEnclaveAvailable。
-        if !TSConstants.svrEnclaveAvailable {
+        if !deps.tsConstants.svrEnclaveAvailable {
             if !persistedState.hasSkippedPinEntry {
                 logger.info("No SVR enclave in this deployment; skipping PIN entry.")
                 // 这里在 Task 里，必须用 awaitableWrite：同步 db.write 会撞
