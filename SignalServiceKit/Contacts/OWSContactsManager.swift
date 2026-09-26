@@ -95,15 +95,12 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
         guard isEditingAllowed else {
             return .notAllowed
         }
-        switch systemContactsFetcher.rawAuthorizationStatus {
-        case .notDetermined:
-            owsFailDebug("should have called `requestOnce` before checking authorization status.")
-            fallthrough
-        case .denied, .restricted:
-            return .notAuthorized
-        case .authorized, .limited:
-            return .authorized
-        }
+        return Self.tellomiEditingAuthorization(isEditingAllowed: true, status: systemContactsFetcher.rawAuthorizationStatus)
+    }
+
+    /// Tellomi（tellomi/tellomi#1112、#1240）：「添加到通讯录」这类编辑入口，还没决定时先问系统（`ContactsViewHelper.checkEditAuthorization`）。
+    public var tellomiShouldRequestContactsBeforeEditing: Bool {
+        return Self.tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: isEditingAllowed, status: systemContactsFetcher.rawAuthorizationStatus)
     }
 
     /// Must call `requestSystemContactsOnce` before accessing this method
@@ -205,14 +202,24 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
         return userInitiated || status != .notDetermined
     }
 
-    /// 先红用的桩：下一个提交换成真的判断。
+    /// Tellomi（tellomi/tellomi#1112、#1240）：注册不再要通讯录之后，「还没决定」是新用户的常态。「添加到通讯录 / 新建联系人 /
+    /// 加到已有联系人」本身就是用户主动操作，遇到它先问系统，不能直接弹「去 iOS 设置里打开」——App 从没问过，设置里没有这个开关。
     static func tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: Bool, status: RawContactAuthorizationStatus) -> Bool {
-        return false
+        return isEditingAllowed && status == .notDetermined
     }
 
-    /// 先红用的桩：下一个提交换成真的判断。
+    /// 编辑权限。Tellomi：「还没决定」是正常状态，当作没授权（上游在这里断言：上游主设备注册时问过，走不到这里）；
+    /// 编辑入口先看 `tellomiShouldRequestContactsBeforeEditing`，还没决定时先问系统，不会落到「去设置里打开」。
     static func tellomiEditingAuthorization(isEditingAllowed: Bool, status: RawContactAuthorizationStatus) -> ContactAuthorizationForEditing {
-        return .notAllowed
+        guard isEditingAllowed else {
+            return .notAllowed
+        }
+        switch status {
+        case .notDetermined, .denied, .restricted:
+            return .notAuthorized
+        case .authorized, .limited:
+            return .authorized
+        }
     }
 
     /// Ensure's the app has the latest contacts, but won't prompt the user for contact

@@ -117,12 +117,26 @@ public extension ContactsViewHelper {
     }
 
     func checkEditAuthorization(
-        performWhenAllowed: () -> Void,
+        performWhenAllowed: @escaping () -> Void,
         presentErrorFrom viewController: UIViewController,
     ) {
         AssertIsOnMainThread()
 
-        switch SSKEnvironment.shared.contactManagerImplRef.editingAuthorization {
+        let contactsManager = SSKEnvironment.shared.contactManagerImplRef
+        // Tellomi（tellomi/tellomi#1112、#1240）：注册不再要通讯录，新用户这里常是「还没决定」。「添加到通讯录」本身就是用户
+        // 主动操作，这时先问系统；问完按结果再走一遍（拒了才弹「去设置里打开」，那时设置里已经有这个开关）。
+        // 系统没弹框就回来了（比如 App 在后台）时状态仍是「还没决定」，这次就什么都不做，不会来回绕。
+        if contactsManager.tellomiShouldRequestContactsBeforeEditing {
+            contactsManager.requestSystemContactsOnce(userInitiated: true) { [weak viewController] _ in
+                guard let viewController, !contactsManager.tellomiShouldRequestContactsBeforeEditing else {
+                    return
+                }
+                self.checkEditAuthorization(performWhenAllowed: performWhenAllowed, presentErrorFrom: viewController)
+            }
+            return
+        }
+
+        switch contactsManager.editingAuthorization {
         case .notAllowed:
             Self.presentContactAccessNotAllowedAlert(from: viewController)
         case .notAuthorized:
