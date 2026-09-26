@@ -307,19 +307,12 @@ struct CVItemModelBuilder: CVItemBuilding {
         itemViewState.previousUIMode = viewStateSnapshot.previousUIMode
 
         func canClusterMessages(_ left: ItemBuilder, _ right: ItemBuilder) -> Bool {
-            let leftTime = left.interaction.receivedAtTimestamp
-            let rightTime = right.interaction.receivedAtTimestamp
-            if rightTime < leftTime {
-                // Ensure left was received first.
-                return canClusterMessages(right, left)
-            }
-            if left.componentState.reactions != nil {
-                // Don't cluster message if the earlier message has a reaction.
-                return false
-            }
-            let maxClusterTimeDifferenceMs = UInt64.minuteInMs * 3
-            let elapsedMs = rightTime - leftTime
-            return elapsedMs < maxClusterTimeDifferenceMs
+            // Tellomi（#1205）：left 是显示在上面的那条（调用方传的是 previousItem / item、item / nextItem）
+            return CVItemViewState.tellomiCanClusterMessages(
+                upper: left.interaction,
+                upperHasReactions: left.componentState.reactions != nil,
+                lower: right.interaction,
+            )
         }
 
         if let outgoingMessage = interaction as? TSOutgoingMessage {
@@ -407,22 +400,11 @@ struct CVItemModelBuilder: CVItemBuilding {
             }
 
             if thread.isGroupThread {
-                // Show the sender name for incoming group messages unless
-                // the previous message has the same sender name and
-                // no "date break" separates us.
-                var shouldShowSenderName = true
+                // Tellomi（#1205）：名字只在一组的第一条上，和分组同一规则（同一个人、3 分钟内、没被表情回应断开）；
+                // 上游只看上一条是不是同一个人，隔了很久的同一个人也不再显示名字。
+                let shouldShowSenderName = itemViewState.isFirstInCluster
                 let authorName = displayNameCache.displayName(address: incomingSenderAddress, transaction: transaction)
                 itemViewState.accessibilityAuthorName = authorName
-
-                if
-                    let previousItem,
-                    let previousIncomingMessage = previousItem.interaction as? TSIncomingMessage
-                {
-                    let previousIncomingSenderAddress = previousIncomingMessage.authorAddress
-                    owsAssertDebug(previousIncomingSenderAddress.isValid)
-
-                    shouldShowSenderName = incomingSenderAddress != previousIncomingSenderAddress
-                }
 
                 var memberLabel: String?
                 if
@@ -450,17 +432,9 @@ struct CVItemModelBuilder: CVItemBuilding {
                     )
                 }
 
-                // Show the sender avatar for incoming group messages unless
-                // the next message has the same sender avatar and
-                // no "date break" separates us.
-                itemViewState.shouldShowSenderAvatar = true
-                if
-                    let nextItem,
-                    let nextIncomingMessage = nextItem.interaction as? TSIncomingMessage
-                {
-                    let nextIncomingSenderAddress: SignalServiceAddress = nextIncomingMessage.authorAddress
-                    itemViewState.shouldShowSenderAvatar = incomingSenderAddress != nextIncomingSenderAddress
-                }
+                // Tellomi（#1205）：头像只在一组的最后一条旁边，和尾巴同一条（和分组同一规则）；
+                // 上游只看下一条是不是同一个人。
+                itemViewState.shouldShowSenderAvatar = itemViewState.isLastInCluster
             } else {
                 // In a 1:1 thread, we can avoid cluttering up voiceover string with the recipient's
                 // full name. Group thread's will continue to read off the full name.
@@ -826,5 +800,26 @@ class DisplayNameCache {
 
     func displayName(address: SignalServiceAddress, transaction: DBReadTransaction) -> String {
         return _displayName(for: address, tx: transaction).resolvedValue(useShortNameIfAvailable: false)
+    }
+}
+
+// MARK: - Tellomi
+
+extension CVItemViewState {
+
+    /// Tellomi（#1205，需求 bubbles-and-motion 3.1）：上下相邻的两条（`upper` 显示在上面）能不能并成一组。
+    /// 调用方已确认是同一个人，中间没有日期分隔、未读线、系统消息（它们是单独的条目，本来就断组）。
+    ///
+    /// - 按**发出时间**相差不到 3 分钟。上游按本机收到的时间：离线一阵再上线时，补收的消息收到时间挤在一起，
+    ///   会把隔了几小时发的消息并成一组；反过来，晚到的消息又会和刚发的那条断开。Android 本来就按发出时间。
+    /// - 上面那条挂着表情回应时断开：回应条挂在它下面，和下一条之间要留出组间距。
+    static func tellomiCanClusterMessages(upper: TSInteraction, upperHasReactions: Bool, lower: TSInteraction) -> Bool {
+        if upperHasReactions {
+            return false
+        }
+        let upperTime = upper.timestamp
+        let lowerTime = lower.timestamp
+        let elapsedMs = upperTime > lowerTime ? upperTime - lowerTime : lowerTime - upperTime
+        return elapsedMs < UInt64.minuteInMs * 3
     }
 }
