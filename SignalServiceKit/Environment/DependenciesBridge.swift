@@ -133,7 +133,9 @@ public class DependenciesBridge {
     public let interactionStore: InteractionStore
     public let keyTransparencyManager: KeyTransparencyManager
     public let lastVisibleInteractionStore: LastVisibleInteractionStore
-    public let libsignalNet: LibSignalClient.Net
+    /// Tellomi（#1056 第三刀）：`Net` 只放在 provider 里；`libsignalNet` 每次现取，外部读者不用改。
+    public let libsignalNetProvider: TellomiNetProvider
+    public var libsignalNet: LibSignalClient.Net { libsignalNetProvider.current }
     public let linkAndSyncManager: LinkAndSyncManager
     public let linkPreviewManager: LinkPreviewManager
     public let linkPreviewSettingStore: LinkPreviewSettingStore
@@ -286,7 +288,7 @@ public class DependenciesBridge {
         interactionStore: InteractionStore,
         keyTransparencyManager: KeyTransparencyManager,
         lastVisibleInteractionStore: LastVisibleInteractionStore,
-        libsignalNet: LibSignalClient.Net,
+        libsignalNetProvider: TellomiNetProvider,
         linkAndSyncManager: LinkAndSyncManager,
         linkPreviewManager: LinkPreviewManager,
         linkPreviewSettingStore: LinkPreviewSettingStore,
@@ -437,7 +439,7 @@ public class DependenciesBridge {
         self.interactionStore = interactionStore
         self.keyTransparencyManager = keyTransparencyManager
         self.lastVisibleInteractionStore = lastVisibleInteractionStore
-        self.libsignalNet = libsignalNet
+        self.libsignalNetProvider = libsignalNetProvider
         self.linkAndSyncManager = linkAndSyncManager
         self.linkPreviewManager = linkPreviewManager
         self.linkPreviewSettingStore = linkPreviewSettingStore

@@ -17,8 +17,12 @@ public protocol UsernameApiClient {
     /// - Parameter attemptId
     /// An ID for this attempt, to later disambiguate between multiple
     /// potentially-overlapping attempts.
+    ///
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：带 `chatServiceAuth`，注册资料页用注册拿到的凭证显式认证
+    /// （账号已建好、本机注册还没完成，隐式认证取不到凭证）；不带的版本在下面的扩展里，等于传 `.implicit()`。
     func reserveUsernameCandidates(
         usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
     ) async throws -> Usernames.ApiClientReservationResult
 
     /// Confirms the given username, which must have previously been reserved.
@@ -68,6 +72,14 @@ public protocol UsernameApiClient {
     /// - SeeAlso
     /// ``Usernames.UsernameLink`` and ``UsernameLinkManager``.
     func getUsernameLink(handle: UUID, entropy: Data) async throws -> LibSignalClient.Username?
+}
+
+public extension UsernameApiClient {
+    func reserveUsernameCandidates(
+        usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+    ) async throws -> Usernames.ApiClientReservationResult {
+        return try await reserveUsernameCandidates(usernameCandidates: usernameCandidates, chatServiceAuth: .implicit())
+    }
 }
 
 public extension Usernames {

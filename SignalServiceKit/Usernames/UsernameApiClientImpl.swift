@@ -27,10 +27,12 @@ public class UsernameApiClientImpl: UsernameApiClient {
 
     public func reserveUsernameCandidates(
         usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
     ) async throws -> Usernames.ApiClientReservationResult {
-        let request = OWSRequestFactory.reserveUsernameRequest(
+        var request = OWSRequestFactory.reserveUsernameRequest(
             usernameHashes: usernameCandidates.candidateHashes,
         )
+        request.auth = .identified(chatServiceAuth)
 
         do {
             let response = try await performRequest(request: request)
