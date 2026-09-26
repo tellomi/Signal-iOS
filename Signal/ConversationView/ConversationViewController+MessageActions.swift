@@ -166,11 +166,16 @@ extension ConversationViewController: ContextMenuInteractionDelegate {
         // Add reaction bar if necessary
         if thread.canSendReactionToThread, shouldShowReactionPickerForInteraction(contextInteraction.itemViewModel.interaction) {
             let reactionBarAccessory = ContextMenuReactionBarAccessory(thread: self.thread, itemViewModel: contextInteraction.itemViewModel)
-            reactionBarAccessory.didSelectReactionHandler = { [weak self] (message: TSMessage, reaction: String, isRemoving: Bool) in
+            reactionBarAccessory.didSelectReactionHandler = { [weak self] (message: TSMessage, reaction: String, isRemoving: Bool, flyInSource: ReactionFlyIn.Source?) in
 
-                guard self != nil else {
+                guard let self else {
                     owsFailDebug("conversationViewController was unexpectedly nil")
                     return
+                }
+
+                // Tellomi（交互审计 A-07）：表情先在原处拿起来，等回应画出来再飞过去。
+                if let flyInSource {
+                    self.beginReactionFlyIn(messageUniqueId: message.uniqueId, emoji: reaction, source: flyInSource)
                 }
 
                 SSKEnvironment.shared.databaseStorageRef.asyncWrite { transaction in
@@ -238,6 +243,9 @@ extension ConversationViewController: ContextMenuInteractionDelegate {
         }
 
         collectionViewActiveContextMenuInteraction = nil
+
+        // Tellomi（交互审计 A-07）：菜单收完了；回应要是已经画出来，就在这里起飞。
+        landPendingReactionFlyInIfPossible()
     }
 
     public func shouldShowReactionPickerForInteraction(_ interaction: TSInteraction) -> Bool {

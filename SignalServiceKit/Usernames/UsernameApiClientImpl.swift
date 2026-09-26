@@ -27,10 +27,12 @@ public class UsernameApiClientImpl: UsernameApiClient {
 
     public func reserveUsernameCandidates(
         usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
     ) async throws -> Usernames.ApiClientReservationResult {
-        let request = OWSRequestFactory.reserveUsernameRequest(
+        var request = OWSRequestFactory.reserveUsernameRequest(
             usernameHashes: usernameCandidates.candidateHashes,
         )
+        request.auth = .identified(chatServiceAuth)
 
         do {
             let response = try await performRequest(request: request)
@@ -77,7 +79,8 @@ public class UsernameApiClientImpl: UsernameApiClient {
                 // Either way, the reservation has been rejected.
                 return .rejected
             case 429:
-                return .rateLimited
+                // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：改名冷却也是 429，靠天级的 Retry-After 和限流桶分开
+                return Self.reservationResultForRateLimit(retryAfter: error.httpResponseHeaders?.retryAfterTimeInterval)
             default:
                 throw OWSAssertionError("Unexpected status code: \(statusCode)!")
             }
@@ -185,5 +188,18 @@ public class UsernameApiClientImpl: UsernameApiClient {
         try await chatConnectionManager.withUnauthService(.usernames) {
             try await $0.lookUpUsernameLink(handle, entropy: entropy)
         }
+    }
+}
+
+// MARK: - Tellomi
+
+extension UsernameApiClientImpl {
+    /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 分成改名冷却和普通限流。
+    /// confirm 的 429 不判冷却（与 Desktop 相同），照上游当限流。
+    static func reservationResultForRateLimit(retryAfter: TimeInterval?) -> Usernames.ApiClientReservationResult {
+        if let retryAfter, TellomiLinks.isRenameCooldown(retryAfter: retryAfter) {
+            return .changeCooldown(retryAfter: retryAfter)
+        }
+        return .rateLimited
     }
 }

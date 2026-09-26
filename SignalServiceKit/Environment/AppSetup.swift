@@ -218,22 +218,30 @@ extension AppSetup.GlobalsContinuation {
 
         // Tellomi: 自建服务端的域名与根证书编译在 libsignal 的 Rust 里，客户端侧覆盖不了，
         // 只能走 customServer 入口；`customServerChatHostname` 为 nil 时保持上游行为。
-        let libsignalNet: Net
-        if let customServerHostname = TSConstants.customServerChatHostname {
-            libsignalNet = Net(
-                customServerHostname: customServerHostname,
-                userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
-                buildVariant: BuildFlags.netBuildVariant,
-                remoteConfig: remoteConfig.netConfig(),
-            )
-        } else {
-            libsignalNet = Net(
-                env: TSConstants.isUsingProductionService ? .production : .staging,
-                userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
-                buildVariant: BuildFlags.netBuildVariant,
-                remoteConfig: remoteConfig.netConfig(),
-            )
-        }
+        // Tellomi（#1056 第三刀）：`Net` 只放在 provider 里，下面各处一律传 provider、用的时候现取，
+        // 以后切区时换掉 provider 里这一份就够了（不留本地变量，免得哪个闭包把第一个 `Net` 一直捕获着）。
+        let libsignalNetProvider = TellomiNetProvider(
+            region: TellomiRegions.current(),
+            net: {
+                if let customServerHostname = TSConstants.customServerChatHostname {
+                    return Net(
+                        customServerHostname: customServerHostname,
+                        chatPort: TellomiRegions.chatPort(for: TellomiRegions.active()),
+                        userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+                        buildVariant: BuildFlags.netBuildVariant,
+                        remoteConfig: remoteConfig.netConfig(),
+                    )
+                }
+                return Net(
+                    env: TSConstants.isUsingProductionService ? .production : .staging,
+                    userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+                    buildVariant: BuildFlags.netBuildVariant,
+                    remoteConfig: remoteConfig.netConfig(),
+                )
+            }(),
+        )
+        // 装上以后，TSConstants 的端点、内容代理、uptime、调试日志都按它的区取（和 Net 同一个原子状态）
+        libsignalNetProvider.install()
 
         let cron = Cron(
             appVersion: appVersion.currentAppVersion4,
@@ -272,7 +280,7 @@ extension AppSetup.GlobalsContinuation {
 
         let networkManager = testDependencies.networkManager ?? NetworkManager(
             appReadiness: appReadiness,
-            libsignalNet: libsignalNet,
+            netProvider: libsignalNetProvider,
         )
         let whoAmIManager = WhoAmIManagerImpl(networkManager: networkManager)
 
@@ -281,7 +289,7 @@ extension AppSetup.GlobalsContinuation {
             appReadiness: appReadiness,
             dateProvider: dateProvider,
             db: db,
-            net: libsignalNet,
+            netProvider: libsignalNetProvider,
             networkManager: networkManager,
             remoteConfigProvider: remoteConfigProvider,
             tsAccountManager: tsAccountManager,
@@ -337,7 +345,25 @@ extension AppSetup.GlobalsContinuation {
             preKeyStore: preKeyStore,
             sessionStore: sessionStore,
         )
-        let signalService = testDependencies.signalService ?? OWSSignalService(libsignalNet: libsignalNet)
+        let signalService = testDependencies.signalService ?? OWSSignalService(netProvider: libsignalNetProvider)
+        // Tellomi（#1056 第三刀）：接上切区时建、配新 Net 的两步。USE_PRODUCTION（上游服务器）不分区，不接。
+        if TSConstants.customServerChatHostname != nil {
+            libsignalNetProvider.setRebuild(TellomiNetProvider.Rebuild(
+                makeNet: { region in
+                    Net(
+                        customServerHostname: region.grpcChatHost,
+                        chatPort: TellomiRegions.chatPort(for: region),
+                        userAgent: HttpHeaders.userAgentHeaderValueSignalIos,
+                        buildVariant: BuildFlags.netBuildVariant,
+                        remoteConfig: remoteConfigProvider.currentConfig().netConfig(),
+                    )
+                },
+                configure: { [weak signalService] net in
+                    SignalProxy.applyProxySettings(to: net, appReadiness: appReadiness)
+                    net.setCensorshipCircumventionEnabled(signalService?.isCensorshipCircumventionActive ?? false)
+                },
+            ))
+        }
         let signalServiceAddressCache = SignalServiceAddressCache()
         let storageServiceManager = testDependencies.storageServiceManager ?? StorageServiceManagerImpl(
             appReadiness: appReadiness,
@@ -559,7 +585,7 @@ extension AppSetup.GlobalsContinuation {
             clockSkewManager: clockSkewManager,
             db: db,
             inactivePrimaryDeviceStore: inactivePrimaryDeviceStore,
-            libsignalNet: libsignalNet,
+            netProvider: libsignalNetProvider,
         )
 
         let backupRequestManager = BackupRequestManagerImpl(
@@ -1654,7 +1680,7 @@ extension AppSetup.GlobalsContinuation {
                 storyStore: backupStoryStore,
                 threadStore: backupThreadStore,
             ),
-            libsignalNet: libsignalNet,
+            libsignalNetProvider: libsignalNetProvider,
             localStorage: accountKeyStore,
             localRecipientArchiver: BackupArchiveLocalRecipientArchiver(
                 avatarDefaultColorManager: avatarDefaultColorManager,
@@ -1887,7 +1913,7 @@ extension AppSetup.GlobalsContinuation {
             interactionStore: interactionStore,
             keyTransparencyManager: keyTransparencyManager,
             lastVisibleInteractionStore: lastVisibleInteractionStore,
-            libsignalNet: libsignalNet,
+            libsignalNetProvider: libsignalNetProvider,
             linkAndSyncManager: linkAndSyncManager,
             linkPreviewManager: linkPreviewManager,
             linkPreviewSettingStore: linkPreviewSettingStore,
@@ -1993,7 +2019,7 @@ extension AppSetup.GlobalsContinuation {
             remoteAttestationAuthFetcher: remoteAttestationAuthFetcher,
             tsAccountManager: tsAccountManager,
             udManager: udManager,
-            libsignalNet: libsignalNet,
+            netProvider: libsignalNetProvider,
             tsConstants: tsConstants,
         )
         let localUserLeaveGroupJobQueue = LocalUserLeaveGroupJobQueue(
@@ -2092,7 +2118,7 @@ extension AppSetup.GlobalsContinuation {
             appReadiness: appReadiness,
             authCredentialStore: authCredentialStore,
             dependenciesBridge: dependenciesBridge,
-            libsignalNet: libsignalNet,
+            libsignalNetProvider: libsignalNetProvider,
             sskEnvironment: sskEnvironment,
             backgroundTask: backgroundTask,
             authCredentialManager: authCredentialManager,
@@ -2114,7 +2140,7 @@ extension AppSetup {
         fileprivate let appReadiness: AppReadiness
         fileprivate let authCredentialStore: AuthCredentialStore
         public let dependenciesBridge: DependenciesBridge
-        fileprivate let libsignalNet: Net
+        fileprivate let libsignalNetProvider: TellomiNetProvider
         fileprivate let remoteConfigManager: RemoteConfigManager
         public let sskEnvironment: SSKEnvironment
         fileprivate let backgroundTask: OWSBackgroundTask
@@ -2130,7 +2156,7 @@ extension AppSetup {
             appReadiness: AppReadiness,
             authCredentialStore: AuthCredentialStore,
             dependenciesBridge: DependenciesBridge,
-            libsignalNet: Net,
+            libsignalNetProvider: TellomiNetProvider,
             sskEnvironment: SSKEnvironment,
             backgroundTask: OWSBackgroundTask,
             authCredentialManager: any AuthCredentialManager,
@@ -2141,7 +2167,7 @@ extension AppSetup {
             self.appReadiness = appReadiness
             self.authCredentialStore = authCredentialStore
             self.dependenciesBridge = dependenciesBridge
-            self.libsignalNet = libsignalNet
+            self.libsignalNetProvider = libsignalNetProvider
             self.sskEnvironment = sskEnvironment
             self.backgroundTask = backgroundTask
             self.authCredentialManager = authCredentialManager
@@ -2168,7 +2194,7 @@ extension AppSetup.DataMigrationContinuation {
             appReadiness: self.appReadiness,
             authCredentialStore: self.authCredentialStore,
             dependenciesBridge: self.dependenciesBridge,
-            libsignalNet: self.libsignalNet,
+            libsignalNetProvider: self.libsignalNetProvider,
             sskEnvironment: self.sskEnvironment,
         )
     }
@@ -2182,7 +2208,7 @@ extension AppSetup {
         private let appReadiness: AppReadiness
         private let authCredentialStore: AuthCredentialStore
         public let dependenciesBridge: DependenciesBridge
-        private let libsignalNet: Net
+        private let libsignalNetProvider: TellomiNetProvider
         private let sskEnvironment: SSKEnvironment
 
         @MainActor private var didRunLaunchTasks = false
@@ -2192,14 +2218,14 @@ extension AppSetup {
             appReadiness: AppReadiness,
             authCredentialStore: AuthCredentialStore,
             dependenciesBridge: DependenciesBridge,
-            libsignalNet: Net,
+            libsignalNetProvider: TellomiNetProvider,
             sskEnvironment: SSKEnvironment,
         ) {
             self.appContext = appContext
             self.appReadiness = appReadiness
             self.authCredentialStore = authCredentialStore
             self.dependenciesBridge = dependenciesBridge
-            self.libsignalNet = libsignalNet
+            self.libsignalNetProvider = libsignalNetProvider
             self.sskEnvironment = sskEnvironment
         }
     }
@@ -2225,7 +2251,12 @@ extension AppSetup.FinalContinuation {
                 dependenciesBridge.tsAccountManager.warmCaches(tx: tx)
                 return sskEnvironment.remoteConfigManagerRef.warmCaches(tx: tx)
             }
-            libsignalNet.setRemoteConfig(remoteConfig.netConfig(), buildVariant: BuildFlags.netBuildVariant)
+            libsignalNetProvider.current.setRemoteConfig(remoteConfig.netConfig(), buildVariant: BuildFlags.netBuildVariant)
+            // Tellomi（#1056 第三刀）：NSE 跨多条通知存活，每条都走这里。主 App 这期间切了区（记在 app group），就跟着换。
+            // 这时 NSE 没有打开的连接：上一条通知已经 stopAndWaitBeforeSuspending，这一条还没 start。
+            if appContext.isNSE {
+                libsignalNetProvider.adoptStoredRegionIfChanged()
+            }
         }
 
         // Warm (or re-warm) all of the caches. In theory, every cache is

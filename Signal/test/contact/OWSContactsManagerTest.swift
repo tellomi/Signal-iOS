@@ -227,6 +227,30 @@ class OWSContactsManagerTest: SignalBaseTest {
         }
     }
 
+    /// Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：只能拿用户名兜底时，`.01` 结尾的去掉后缀显示（保留原大小写），
+    /// 别的后缀完整显示——`kaixin.57` 必须显示成 `kaixin.57`，不能冒充 `kaixin`。
+    func testGetDisplayNamesWithTellomiUsernames() {
+        let acis = [Aci.randomForTesting(), Aci.randomForTesting(), Aci.randomForTesting()]
+        let addresses = acis.map { SignalServiceAddress($0) }
+
+        dbV2.write { transaction in
+            mockUsernameLookupMananger.saveUsername("kaixin.01", forAci: acis[0], transaction: transaction)
+            mockUsernameLookupMananger.saveUsername("KaiXin.01", forAci: acis[1], transaction: transaction)
+            mockUsernameLookupMananger.saveUsername("kaixin.57", forAci: acis[2], transaction: transaction)
+        }
+
+        // Prevent default fake names from being used.
+        (SSKEnvironment.shared.profileManagerRef as! OWSFakeProfileManager).fakeUserProfiles = [:]
+
+        dbV2.read { transaction in
+            let contactsManager = SSKEnvironment.shared.contactManagerRef as! OWSContactsManager
+            let actual = contactsManager.displayNames(for: addresses, tx: transaction).map { $0.resolvedValue() }
+            XCTAssertEqual(actual, ["kaixin", "KaiXin", "kaixin.57"])
+            // 只改显示：存的仍是完整用户名
+            XCTAssertEqual(mockUsernameLookupMananger.fetchUsername(forAci: acis[0], transaction: transaction), "kaixin.01")
+        }
+    }
+
     func testGetDisplayNamesUnknown() {
         let addresses = [SignalServiceAddress.randomForTesting(), SignalServiceAddress.randomForTesting()]
 

@@ -4,7 +4,6 @@
 //
 
 import Foundation
-public import LibSignalClient
 
 /// A ContactDiscoveryManager coordinates CDS lookup requests.
 ///
@@ -110,7 +109,7 @@ public final class ContactDiscoveryManagerImpl: ContactDiscoveryManager {
         remoteAttestationAuthFetcher: RemoteAttestationAuthFetcher,
         tsAccountManager: TSAccountManager,
         udManager: OWSUDManager,
-        libsignalNet: Net,
+        netProvider: TellomiNetProvider,
         tsConstants: TSConstantsProtocol,
     ) {
         self.init(
@@ -123,7 +122,7 @@ public final class ContactDiscoveryManagerImpl: ContactDiscoveryManager {
                 remoteAttestationAuthFetcher: remoteAttestationAuthFetcher,
                 tsAccountManager: tsAccountManager,
                 udManager: udManager,
-                libsignalNet: libsignalNet,
+                netProvider: netProvider,
             ),
             tsConstants: tsConstants,
         )
