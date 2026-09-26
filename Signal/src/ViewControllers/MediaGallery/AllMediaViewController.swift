@@ -124,8 +124,11 @@ enum TellomiSavedLinks {
 
     private static let interactionTable = "model_TSInteraction"
 
+    /// 带链接预览、不是编辑过的旧版本、不是群快拍回复（和上游「所有媒体」的 InteractionFinder 条件一致）。
+    private static let linkCondition = "uniqueThreadId = ? AND linkPreview IS NOT NULL AND editState IS NOT \(TSEditState.pastRevision.rawValue) AND isGroupStoryReply IS NOT 1"
+
     static func hasAny(threadUniqueId: String, tx: DBReadTransaction) -> Bool {
-        let sql = "SELECT EXISTS(SELECT 1 FROM \(interactionTable) WHERE uniqueThreadId = ? AND linkPreview IS NOT NULL)"
+        let sql = "SELECT EXISTS(SELECT 1 FROM \(interactionTable) WHERE \(linkCondition))"
         do {
             return try Bool.fetchOne(tx.database, sql: sql, arguments: [threadUniqueId]) ?? false
         } catch {
@@ -144,7 +147,7 @@ enum TellomiSavedLinks {
 
     /// 新的在上；链接预览里没有网址的跳过。
     static func items(threadUniqueId: String, tx: DBReadTransaction) -> [Item] {
-        let sql = "SELECT uniqueId FROM \(interactionTable) WHERE uniqueThreadId = ? AND linkPreview IS NOT NULL ORDER BY id DESC"
+        let sql = "SELECT uniqueId FROM \(interactionTable) WHERE \(linkCondition) ORDER BY id DESC"
         let uniqueIds: [String]
         do {
             uniqueIds = try String.fetchAll(tx.database, sql: sql, arguments: [threadUniqueId])
