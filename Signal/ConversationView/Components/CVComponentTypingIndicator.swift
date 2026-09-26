@@ -270,3 +270,18 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
         }
     }
 }
+
+// MARK: - Tellomi 用例钩子
+
+extension CVComponentTypingIndicator.CVComponentViewTypingIndicator {
+    /// 气泡本体（不含尾巴外扩）在 `view` 里的排版位置
+    func tellomiBubbleFrameForTesting(in view: UIView) -> CGRect {
+        innerStackView.convert(innerStackView.bounds, to: view)
+    }
+
+    /// 头像在 `view` 里的位置；单聊不带头像时为 nil
+    func tellomiAvatarFrameForTesting(in view: UIView) -> CGRect? {
+        guard avatarView.superview != nil else { return nil }
+        return avatarView.convert(avatarView.bounds, to: view)
+    }
+}

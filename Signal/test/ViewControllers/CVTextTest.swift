@@ -757,6 +757,41 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         XCTAssertEqual(content.minX - avatar.maxX, 8 + 6, accuracy: 0.5, "群里对方的离头像：avatar \(avatar) content \(content)")
     }
 
+    /// 「正在输入」气泡也带尾巴（a52），离屏幕边、离头像和对方的消息一样
+    @MainActor
+    func testTheirTypingBubbleStarts16Plus6FromTheScreenEdgeInA1to1Chat() throws {
+        register()
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let typing = TypingIndicatorInteraction(threadUniqueId: thread.uniqueId, timestamp: NSDate.ows_millisecondTimeStamp(), address: SignalServiceAddress(otherAci))
+
+        let cell = try renderCell(typing, in: thread)
+        let typingView = try XCTUnwrap(cell.componentView as? CVComponentTypingIndicator.CVComponentViewTypingIndicator)
+        let bubble = typingView.tellomiBubbleFrameForTesting(in: cell)
+        XCTAssertNil(typingView.tellomiAvatarFrameForTesting(in: cell), "单聊不带头像")
+        XCTAssertEqual(bubble.minX, 16 + 6, accuracy: 0.5, "单聊里打字气泡离屏幕左边：\(bubble)")
+    }
+
+    @MainActor
+    func testTheirTypingBubbleStarts8Plus6AfterTheAvatarInAGroup() throws {
+        register()
+        let otherAci = self.otherAci
+        let thread = write { tx in
+            try! GroupManager.createGroupForTests(
+                members: [LocalIdentifiers.forUnitTests.aciAddress, SignalServiceAddress(otherAci)],
+                shouldInsertInfoMessage: true,
+                name: "Typing margin",
+                transaction: tx,
+            )
+        }
+        let typing = TypingIndicatorInteraction(threadUniqueId: thread.uniqueId, timestamp: NSDate.ows_millisecondTimeStamp(), address: SignalServiceAddress(otherAci))
+
+        let cell = try renderCell(typing, in: thread)
+        let typingView = try XCTUnwrap(cell.componentView as? CVComponentTypingIndicator.CVComponentViewTypingIndicator)
+        let bubble = typingView.tellomiBubbleFrameForTesting(in: cell)
+        let avatar = try XCTUnwrap(typingView.tellomiAvatarFrameForTesting(in: cell), "群里打字气泡带头像")
+        XCTAssertEqual(bubble.minX - avatar.maxX, 8 + 6, accuracy: 0.5, "群里打字气泡离头像：avatar \(avatar) bubble \(bubble)")
+    }
+
     // MARK: -
 
     private func register() {
@@ -768,9 +803,16 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         }
     }
 
-    /// 同 `MockConversationView`：会话页样式单独渲染一条，放进 `CVCellView` 排版
     @MainActor
     private func render(_ interaction: TSInteraction, in thread: TSThread) throws -> (CVCellView, CVComponentMessage.CVComponentViewMessage) {
+        let cell = try renderCell(interaction, in: thread)
+        let messageView = try XCTUnwrap(cell.componentView as? CVComponentMessage.CVComponentViewMessage)
+        return (cell, messageView)
+    }
+
+    /// 同 `MockConversationView`：会话页样式单独渲染一条，放进 `CVCellView` 排版
+    @MainActor
+    private func renderCell(_ interaction: TSInteraction, in thread: TSThread) throws -> CVCellView {
         let viewWidth = self.viewWidth
         let renderItem = try XCTUnwrap(read { tx -> CVRenderItem? in
             let conversationStyle = ConversationStyle(
@@ -797,8 +839,7 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         cell.configure(renderItem: renderItem, componentDelegate: componentDelegate)
         cell.frame = CGRect(origin: .zero, size: CGSize(width: viewWidth, height: renderItem.cellMeasurement.cellSize.height))
         cell.layoutIfNeeded()
-        let messageView = try XCTUnwrap(cell.componentView as? CVComponentMessage.CVComponentViewMessage)
-        return (cell, messageView)
+        return cell
     }
 
     private var componentDelegates: [UIView] = []
