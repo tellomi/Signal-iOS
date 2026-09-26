@@ -23,6 +23,8 @@ class HomeTabBarController: UITabBarController {
         case chatList = 0
         case calls = 1
         case stories = 2
+        /// Tellomi：联系人一级 Tab（#1108），底栏是 通话 · 聊天 · 联系人 ·（快拍）。rawValue 不等于屏幕上的下标，下标看 `displayedTabs`。
+        case contacts = 3
 
         var title: String {
             switch self {
@@ -41,6 +43,11 @@ class HomeTabBarController: UITabBarController {
                     "STORIES_TITLE",
                     comment: "Title for the stories view.",
                 )
+            case .contacts:
+                return OWSLocalizedString(
+                    "HOME_VIEW_TELLOMI_CONTACTS_TAB_TITLE",
+                    comment: "Tellomi (#1108): title of the Contacts tab and its list.",
+                )
             }
         }
 
@@ -52,6 +59,8 @@ class HomeTabBarController: UITabBarController {
                 return UIImage(named: "tab-calls")
             case .stories:
                 return UIImage(named: "tab-stories")
+            case .contacts:
+                return UIImage(named: "person-circle-28")
             }
         }
 
@@ -63,6 +72,8 @@ class HomeTabBarController: UITabBarController {
                 return UIImage(named: "tab-calls")
             case .stories:
                 return UIImage(named: "tab-stories")
+            case .contacts:
+                return UIImage(named: "person-circle-28")
             }
         }
 
@@ -82,6 +93,8 @@ class HomeTabBarController: UITabBarController {
                 return "calls"
             case .stories:
                 return "stories"
+            case .contacts:
+                return "contacts"
             }
         }
     }
@@ -98,6 +111,13 @@ class HomeTabBarController: UITabBarController {
     lazy var callsListViewController = CallsListViewController()
     lazy var callsListNavController = OWSNavigationController(rootViewController: callsListViewController)
     lazy var callsListTabBarItem = Tabs.calls.tabBarItem
+
+    lazy var contactsViewController = TellomiContactsViewController()
+    lazy var contactsNavController = OWSNavigationController(rootViewController: contactsViewController)
+    lazy var contactsTabBarItem = Tabs.contacts.tabBarItem
+
+    /// Tellomi：现在底栏上的 Tab，按显示顺序（#1108）。选中哪个 Tab 按它在这里的下标算，不再用 rawValue。
+    private(set) var displayedTabs: [Tabs] = []
 
     // There are two things going on here that require this code. The first is a stored property can't
     // conditionally include itself with an @available property, so some type erasing hoops need to be
@@ -122,8 +142,18 @@ class HomeTabBarController: UITabBarController {
     }
 
     var selectedHomeTab: Tabs {
-        get { Tabs(rawValue: selectedIndex) ?? .chatList }
-        set { selectedIndex = newValue.rawValue }
+        get { Self.tab(atIndex: selectedIndex, in: displayedTabs) }
+        set { selectedIndex = Self.index(of: newValue, in: displayedTabs) }
+    }
+
+    /// Tellomi：下标对应哪个 Tab；对不上时当作聊天（#1108）。
+    static func tab(atIndex index: Int, in tabs: [Tabs]) -> Tabs {
+        return tabs[safe: index] ?? .chatList
+    }
+
+    /// Tellomi：某个 Tab 在底栏上的下标；它不在底栏上时退回聊天（#1108）。
+    static func index(of tab: Tabs, in tabs: [Tabs]) -> Int {
+        return tabs.firstIndex(of: tab) ?? tabs.firstIndex(of: .chatList) ?? 0
     }
 
     var owsTabBar: OWSTabBar? {
@@ -148,6 +178,8 @@ class HomeTabBarController: UITabBarController {
         let areStoriesEnabled = SSKEnvironment.shared.databaseStorageRef.read { StoryManager.areStoriesEnabled(transaction: $0) }
 
         updateTabBars(areStoriesEnabled: areStoriesEnabled)
+        // Tellomi：通话排在最前面，打开 App 仍停在聊天（#1108）
+        selectedHomeTab = Self.initialTab
 
         AppEnvironment.shared.badgeManager.addObserver(self)
         storyBadgeCountManager.beginObserving(observer: self)
@@ -168,7 +200,8 @@ class HomeTabBarController: UITabBarController {
     }
 
     private func updateTabBars(areStoriesEnabled: Bool) {
-        let newTabs = tabsToShow(areStoriesEnabled: areStoriesEnabled)
+        let newTabs = Self.tabsToShow(areStoriesEnabled: areStoriesEnabled)
+        displayedTabs = newTabs
         if #available(iOS 18, *), UIDevice.current.isIPad {
             self.tabs = newTabs.map(uiTab(for:))
         } else {
@@ -203,11 +236,17 @@ class HomeTabBarController: UITabBarController {
             return (callsListNavController, callsListTabBarItem)
         case .stories:
             return (storiesNavController, storiesTabBarItem)
+        case .contacts:
+            return (contactsNavController, contactsTabBarItem)
         }
     }
 
-    private func tabsToShow(areStoriesEnabled: Bool) -> [Tabs] {
-        var tabs = [Tabs.chatList, Tabs.calls]
+    /// Tellomi：打开 App 停在哪个 Tab（#1108）。和底栏顺序无关：通话排第一，打开仍是聊天。
+    static let initialTab: Tabs = .chatList
+
+    /// Tellomi：通话 · 聊天 · 联系人 ·（快拍）（#1108，owner 2026-09-26 定，两端一样）。
+    static func tabsToShow(areStoriesEnabled: Bool) -> [Tabs] {
+        var tabs = [Tabs.calls, Tabs.chatList, Tabs.contacts]
         if areStoriesEnabled {
             tabs.append(Tabs.stories)
         }
@@ -338,7 +377,7 @@ extension HomeTabBarController: StoryBadgeCountObserver {
                 return lhsX < rhsX
             }
         }
-        let badgeView = sortedBadgeViews[safe: Tabs.stories.rawValue]
+        let badgeView = sortedBadgeViews[safe: Self.index(of: .stories, in: displayedTabs)]
         badgeView?.layer.transform = CATransform3DIdentity
         let xOffset: CGFloat = CurrentAppContext().isRTL ? 0 : -5
         badgeView?.layer.transform = CATransform3DMakeTranslation(xOffset, 1, 1)
@@ -351,6 +390,9 @@ extension HomeTabBarController: UITabBarControllerDelegate {
         if selectedViewController == viewController {
             let tableView: UITableView
             switch selectedHomeTab {
+            case .contacts:
+                // Tellomi：联系人页的列表在选人控件里，不做回到顶部（#1108）
+                return true
             case .chatList:
                 tableView = chatListViewController.tableView
             case .stories:

@@ -5043,6 +5043,9 @@
 /* Placeholder text for search bar which filters conversations. */
 "HOME_VIEW_CONVERSATION_SEARCHBAR_PLACEHOLDER" = "Search";
 
+/* Tellomi (#1108): title of the Contacts tab and its list. */
+"HOME_VIEW_TELLOMI_CONTACTS_TAB_TITLE" = "Contacts";
+
 /* A prefix indicating that a message preview is a draft */
 "HOME_VIEW_DRAFT_PREFIX" = "Draft: ";
 

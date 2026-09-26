@@ -46,6 +46,13 @@ public class RecipientPickerViewController: OWSViewController, OWSNavigationChil
     public var shouldShowNewGroup = false
     public var findByPhoneNumberButtonTitle: String?
     public var searchBarPlaceholderTitle: String?
+    /// Tellomi：「按用户名查找」下面再放的几行入口（联系人 Tab 的扫码、邀请，#1108），搜索时不显示。
+    public var tellomiExtraStaticItems: [OWSTableItem] = []
+    /// Tellomi：不引导去开通讯录权限（联系人 Tab 在没有 CDSI 的构建里，#1108）：顶部不放权限提醒 / 用途说明，
+    /// 一个人都没有时只说一句「没有联系人」。
+    public var tellomiHidesContactAccessReminder = false
+    /// Tellomi：一个人都没有时也不换成整页的「没有联系人」大图（联系人 Tab，#1108），顶部那几行入口一直看得到。
+    public var tellomiSkipsNoContactsView = false
 
     // MARK: Signal Connections
 
@@ -308,7 +315,7 @@ public class RecipientPickerViewController: OWSViewController, OWSNavigationChil
 
         // App is killed and restarted when the user changes their contact
         // permissions, so no need to "observe" anything to re-render this.
-        if let reminderSection = contactAccessReminderSection() {
+        if !tellomiHidesContactAccessReminder, let reminderSection = contactAccessReminderSection() {
             tableContents.add(reminderSection)
         }
 
@@ -381,6 +388,10 @@ public class RecipientPickerViewController: OWSViewController, OWSNavigationChil
                     },
                 ))
             }
+        }
+
+        if !isSearching {
+            tellomiExtraStaticItems.forEach { staticSection.add($0) }
         }
 
         if staticSection.itemCount > 0 {
@@ -725,6 +736,9 @@ extension RecipientPickerViewController {
     /// prevented Signal from accessing their contacts, we don't show the
     /// special UX and instead allow the banner to be visible.
     private func shouldNoContactsModeBeActive() -> Bool {
+        if tellomiSkipsNoContactsView {
+            return false
+        }
         switch SSKEnvironment.shared.contactManagerImplRef.syncingAuthorization {
         case .denied, .restricted:
             // Return false so `contactAccessReminderSection` is invoked.
@@ -917,6 +931,10 @@ extension RecipientPickerViewController {
 extension RecipientPickerViewController {
     private func contactsSection() -> [OWSTableSection] {
         guard !signalConnections.isEmpty else {
+            if tellomiHidesContactAccessReminder, SSKEnvironment.shared.contactManagerImplRef.syncingAuthorization != .authorized {
+                // Tellomi：不放权限提醒时，一个人都没有也要说一句「没有联系人」，不留一片空白（#1108）
+                return [OWSTableSection(items: [noContactsTableItem()])]
+            }
             return [noContactsTableSection()]
         }
 
