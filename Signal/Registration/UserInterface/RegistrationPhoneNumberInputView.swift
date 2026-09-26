@@ -211,6 +211,9 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
                 in: replacementString,
                 currentCountry: country,
                 phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef,
+            ) ?? Self.tellomiFullPhoneNumber(
+                inField: ((textField.text ?? "") as NSString).replacingCharacters(in: range, with: replacementString),
+                phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef,
             )
         {
             country = phoneNumber.country
@@ -277,35 +280,74 @@ extension RegistrationPhoneNumberInputView: UITextFieldDelegate {
         return true
     }
 
-    /// Tellomi：把一段文字当完整号码解析——「+86 138 0013 8000」「0086 138…」，或者以当前区号开头、
-    /// 去掉区号后恰好是这个国家本地号码长度的「8613800138000」。都不是就返回 nil，按普通输入处理。
+    /// Tellomi：把一段文字当完整号码解析——「+86 138 0013 8000」「0086 138…」，或者以当前区号开头、位数对得上的「8613800138000」；
+    /// 去掉前缀后必须是有效号码。都不是就返回 nil，按普通输入处理。Android 的 PhoneNumberEntryViewModel.tellomiFullNumberInserted 是同一套规则。
     static func tellomiFullPhoneNumber(
         in text: String,
         currentCountry: PhoneNumberCountry,
         phoneNumberUtil: PhoneNumberUtil,
     ) -> RegistrationPhoneNumber? {
-        let compact = text.filter { !$0.isWhitespace && !"-()".contains($0) }
+        // 只留开头的「+」和数字：从通讯录 / 电话复制的号码两头可能带 U+202D / U+202C，中间可能有不断行连字符、点（taishi 审查 b12 疑问 1）。
+        // 全角「＋」和全角数字先换成半角：filteredAsE164 只认 ASCII，会把它们丢掉（taishi 审查 b20 不阻塞 1）。
+        let compact = Self.tellomiHalfWidth(text).filteredAsE164
         let international: String
         if compact.hasPrefix("+") {
             international = compact
         } else if compact.hasPrefix("00") {
             international = "+" + compact.dropFirst(2)
         } else {
+            // 以区号开头的一串：去掉区号后的位数要等于当前地区示例号码的有效位数（不含长途前缀，台湾是 9 位而不是本国格式的 10 位）。
+            // DE / AT / FI 这类号码长度不固定的地区，以区号数字开头的本地号码去掉「区号」后常常也有效，只看有效会被静默改成另一个号码。
+            // libphonenumber 不认的地区（UM / IC / EA / CQ 等）先换成同区号、认得的地区再取示例，和上游 TextFieldFormatting 一样（taishi 审查 b12 不阻塞 5）。
             let callingCode = String(currentCountry.plusPrefixedCallingCode.dropFirst())
+            let regionForParsing = phoneNumberUtil.countryCodeForParsing(fromCountryCode: currentCountry.countryCode)
             guard
-                compact.allSatisfy({ $0.isASCII && $0.isNumber }),
                 compact.hasPrefix(callingCode),
-                let example = phoneNumberUtil.exampleNationalNumber(forCountryCode: currentCountry.countryCode),
-                compact.count - callingCode.count == example.filter({ $0.isASCII && $0.isNumber }).count
+                compact.count - callingCode.count == phoneNumberUtil.tellomiExampleNationalSignificantNumberLength(forCountryCode: regionForParsing)
             else {
                 return nil
             }
             international = "+" + compact
         }
-        guard let e164 = E164(international) else {
+        // 去掉前缀后还得是有效号码，和 Android 同一道闸：「8613800138」「0013 8000 1234」这种片段不当完整号码拆。
+        guard let e164 = E164(international), phoneNumberUtil.isValidNumber(e164) else {
             return nil
         }
         return RegistrationPhoneNumberParser(phoneNumberUtil: phoneNumberUtil).parseE164(e164)
+    }
+
+    /// Tellomi：插进来的那一段本身不算完整号码，但插进去以后整框以「00」开头、去掉 00 是有效号码（例如在已有号码前面补「0086」），
+    /// 也按「+」处理。Android 的 PhoneNumberEntryViewModel.tellomiFullNumberInserted 后半段是同一条。
+    static func tellomiFullPhoneNumber(
+        inField fieldText: String,
+        phoneNumberUtil: PhoneNumberUtil,
+    ) -> RegistrationPhoneNumber? {
+        let compact = Self.tellomiHalfWidth(fieldText).filteredAsE164
+        guard
+            compact.hasPrefix("00"),
+            let e164 = E164("+" + compact.dropFirst(2)),
+            phoneNumberUtil.isValidNumber(e164)
+        else {
+            return nil
+        }
+        return RegistrationPhoneNumberParser(phoneNumberUtil: phoneNumberUtil).parseE164(e164)
+    }
+
+    /// Tellomi：全角「＋」（U+FF0B）换成「+」，全角数字（U+FF10–FF19）换成 ASCII 数字，别的原样留着。
+    /// 中文输入法打出来的、从网页复制的号码常带全角字符；Android 这边的 isDigit() 本来就认全角数字，两端对齐。
+    static func tellomiHalfWidth(_ text: String) -> String {
+        var scalars = String.UnicodeScalarView()
+        for scalar in text.unicodeScalars {
+            switch scalar.value {
+            case 0xFF0B:
+                scalars.append("+")
+            case 0xFF10...0xFF19:
+                scalars.append(Unicode.Scalar(scalar.value - 0xFF10 + 0x30) ?? scalar)
+            default:
+                scalars.append(scalar)
+            }
+        }
+        return String(scalars)
     }
 
     private func formatNationalNumber(input: String) -> String {
