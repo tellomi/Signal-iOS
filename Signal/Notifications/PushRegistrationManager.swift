@@ -66,7 +66,16 @@ public class PushRegistrationManager: NSObject, PKPushRegistryDelegate {
         timeOutEventually: Bool = false,
     ) async throws -> ApnRegistrationId {
         Logger.info("")
-        await self.registerUserNotificationSettings()
+        // Tellomi（tellomi/tellomi#1112、#1218 F-01）：上游在这里无条件 requestAuthorization，于是注册中途拿令牌时
+        // 系统通知框会直接弹出来（没有说明、也不在用户做相关操作时）。通知授权改由首屏说明页的「继续」去问
+        // （`TellomiNotificationPrimer`）；还没问过（.notDetermined）时这里只拿令牌、不弹框。
+        // iOS 10 起 APNs 令牌（含注册用的静默推送挑战）不依赖用户授权；上面那条「必须先注册设置才给令牌」的注释是 iOS 8 时代的。
+        // 已经问过的（允许 / 拒绝）照上游：requestAuthorization 不会再弹框，只会把通知分类登记上。
+        if await self.needsNotificationAuthorization() {
+            Logger.info("Notification authorization not determined yet; fetching push token without prompting.")
+        } else {
+            await self.registerUserNotificationSettings()
+        }
 
 #if targetEnvironment(simulator)
         if TSConstants.isUsingProductionService {
