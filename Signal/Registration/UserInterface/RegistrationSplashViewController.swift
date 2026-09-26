@@ -75,16 +75,13 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         ])
 
         // Welcome text.
-        let titleText = {
-            if TSConstants.isUsingProductionService {
-                return OWSLocalizedString(
-                    "ONBOARDING_SPLASH_TITLE",
-                    comment: "Title of the 'onboarding splash' view.",
-                )
-            } else {
-                return "Internal Staging Build\n\(AppVersionImpl.shared.currentAppVersion)"
-            }
-        }()
+        // Tellomi：上游按「是不是 Signal 生产服务」决定标题，非生产显示「Internal Staging Build + 版本号」。
+        // Tellomi 的所有构建都连自建服务端（TSConstants 永远走 staging 那一档），于是每个对外的包首屏都是这行英文调试串。
+        // 版本号在「设置 → 帮助」里有，这里一律用正式标题（tellomi/tellomi#1209）。
+        let titleText = OWSLocalizedString(
+            "ONBOARDING_SPLASH_TITLE",
+            comment: "Title of the 'onboarding splash' view.",
+        )
         let titleLabel = UILabel.titleLabelForRegistration(text: titleText)
 
         // Tellomi：上游这里是「Signal 是一个非营利组织」。整行去掉，不做替换——
