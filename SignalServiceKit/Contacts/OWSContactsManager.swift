@@ -95,15 +95,12 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
         guard isEditingAllowed else {
             return .notAllowed
         }
-        switch systemContactsFetcher.rawAuthorizationStatus {
-        case .notDetermined:
-            owsFailDebug("should have called `requestOnce` before checking authorization status.")
-            fallthrough
-        case .denied, .restricted:
-            return .notAuthorized
-        case .authorized, .limited:
-            return .authorized
-        }
+        return Self.tellomiEditingAuthorization(isEditingAllowed: true, status: systemContactsFetcher.rawAuthorizationStatus)
+    }
+
+    /// Tellomi（tellomi/tellomi#1112、#1240）：「添加到通讯录」这类编辑入口，还没决定时先问系统（`ContactsViewHelper.checkEditAuthorization`）。
+    public var tellomiShouldRequestContactsBeforeEditing: Bool {
+        return Self.tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: isEditingAllowed, status: systemContactsFetcher.rawAuthorizationStatus)
     }
 
     /// Must call `requestSystemContactsOnce` before accessing this method
@@ -113,8 +110,9 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
         }
         switch systemContactsFetcher.rawAuthorizationStatus {
         case .notDetermined:
-            owsFailDebug("should have called `requestOnce` before checking authorization status.")
-            fallthrough
+            // Tellomi（tellomi/tellomi#1240）：注册不再要通讯录之后，「还没决定」是正常状态（上游在这里断言）。
+            // 当作没有授权；选人页另外判断出「还没决定」，先说明用途 +「允许访问」。
+            return .denied
         case .denied:
             return .denied
         case .restricted:
@@ -177,7 +175,12 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
 
     // Request systems contacts and start syncing changes. The user will see an alert
     // if they haven't previously.
-    public func requestSystemContactsOnce(completion: (((any Error)?) -> Void)? = nil) {
+    //
+    // Tellomi（tellomi/tellomi#1240、#1112）：注册流程不再要通讯录之后，这里就是「第一次」申请的地方。
+    // 只有用户在选人页看过用途、点了「允许访问」（`userInitiated: true`）才弹系统框；其余自动调用（打开聊天、
+    // 新建会话 / 群组、选人页加载、查看联系人卡片）在还没决定时什么也不做。已经决定过的照上游（授权了就载入通讯录）。
+    // 隐私政策修订稿（#1239）§6：「注册时不申请；只有在联系人等页面了解用途后主动允许时才申请」。
+    public func requestSystemContactsOnce(userInitiated: Bool = false, completion: (((any Error)?) -> Void)? = nil) {
         AssertIsOnMainThread()
 
         guard isSyncingAllowed else {
@@ -187,7 +190,36 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
             }
             return
         }
+        guard Self.tellomiMayRequestSystemContacts(userInitiated: userInitiated, status: systemContactsFetcher.rawAuthorizationStatus) else {
+            completion?(nil)
+            return
+        }
         systemContactsFetcher.requestOnce(completion: completion)
+    }
+
+    /// Tellomi（tellomi/tellomi#1240）：还没决定时只有用户主动点「允许访问」才去问系统；决定过的照上游。
+    static func tellomiMayRequestSystemContacts(userInitiated: Bool, status: RawContactAuthorizationStatus) -> Bool {
+        return userInitiated || status != .notDetermined
+    }
+
+    /// Tellomi（tellomi/tellomi#1112、#1240）：注册不再要通讯录之后，「还没决定」是新用户的常态。「添加到通讯录 / 新建联系人 /
+    /// 加到已有联系人」本身就是用户主动操作，遇到它先问系统，不能直接弹「去 iOS 设置里打开」——App 从没问过，设置里没有这个开关。
+    static func tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: Bool, status: RawContactAuthorizationStatus) -> Bool {
+        return isEditingAllowed && status == .notDetermined
+    }
+
+    /// 编辑权限。Tellomi：「还没决定」是正常状态，当作没授权（上游在这里断言：上游主设备注册时问过，走不到这里）；
+    /// 编辑入口先看 `tellomiShouldRequestContactsBeforeEditing`，还没决定时先问系统，不会落到「去设置里打开」。
+    static func tellomiEditingAuthorization(isEditingAllowed: Bool, status: RawContactAuthorizationStatus) -> ContactAuthorizationForEditing {
+        guard isEditingAllowed else {
+            return .notAllowed
+        }
+        switch status {
+        case .notDetermined, .denied, .restricted:
+            return .notAuthorized
+        case .authorized, .limited:
+            return .authorized
+        }
     }
 
     /// Ensure's the app has the latest contacts, but won't prompt the user for contact

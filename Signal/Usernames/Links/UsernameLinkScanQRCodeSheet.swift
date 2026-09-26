@@ -62,4 +62,25 @@ extension UsernameLinkScanDelegate where Self: RecipientPickerDelegate & Recipie
             }
         }
     }
+
+    /// Tellomi（tellomi/tellomi#947）：扫到裸用户名码，与上面扫到用户名链接同一个结果（选中这个人）。
+    func plainUsernameScanned(_ username: String) {
+        dismiss(animated: true) { [self] in
+            Task { @MainActor in
+                guard
+                    let aci = await UsernameQuerier().queryForUsername(
+                        username: username,
+                        fromViewController: self,
+                    )
+                else {
+                    return
+                }
+
+                recipientPicker(
+                    recipientPicker,
+                    didSelectRecipient: .for(address: SignalServiceAddress(aci)),
+                )
+            }
+        }
+    }
 }

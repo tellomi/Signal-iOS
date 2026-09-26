@@ -51,6 +51,8 @@ public enum RegistrationPhoneNumberViewState: Equatable {
         case invalidInput(InvalidInput)
         case invalidE164(InvalidE164)
         case rateLimited(RateLimited)
+        /// Tellomi：服务端发不了这个地区的短信验证码（tellomi/tellomi#1209）。
+        case unsupportedRegion(UnsupportedRegion)
 
         /// The user typed something that couldn't be parsed.
         public struct InvalidInput: Equatable {
@@ -68,6 +70,11 @@ public enum RegistrationPhoneNumberViewState: Equatable {
             let expiration: Date
             let e164: E164
         }
+
+        /// The server can't send verification codes to numbers from this region.
+        public struct UnsupportedRegion: Equatable {
+            let e164: E164
+        }
     }
 }
 
@@ -81,6 +88,8 @@ extension RegistrationPhoneNumberViewState.ValidationError {
             return error.warningLabelText()
         case let .rateLimited(error):
             return error.warningLabelText(dateProvider: dateProvider)
+        case let .unsupportedRegion(error):
+            return error.warningLabelText()
         }
     }
 }
@@ -137,5 +146,19 @@ extension RegistrationPhoneNumberViewState.ValidationError.RateLimited {
 
         let durationString = retryAfterFormatter.string(from: Date(timeIntervalSinceReferenceDate: timeRemaining))
         return String.nonPluralLocalizedStringWithFormat(rateLimitFormat, durationString)
+    }
+}
+
+extension RegistrationPhoneNumberViewState.ValidationError.UnsupportedRegion {
+
+    func canSubmit(e164: E164?) -> Bool {
+        return e164 != self.e164
+    }
+
+    func warningLabelText() -> String {
+        return OWSLocalizedString(
+            "ONBOARDING_PHONE_NUMBER_UNSUPPORTED_REGION_WARNING",
+            comment: "Label under the phone number field when verification codes can't be sent to numbers from the entered region.",
+        )
     }
 }

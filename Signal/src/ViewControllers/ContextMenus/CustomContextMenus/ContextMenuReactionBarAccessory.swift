@@ -4,12 +4,14 @@
 //
 
 public import SignalServiceKit
+import SignalUI
 import UIKit
 
 public class ContextMenuReactionBarAccessory: ContextMenuTargetedPreviewAccessory, MessageReactionPickerDelegate {
     public let thread: TSThread
     public let itemViewModel: CVItemViewModelImpl?
-    public var didSelectReactionHandler: ((TSMessage, String, Bool) -> Void)? // = {(message: TSMessage, reaction: String, isRemoving: Bool) -> Void in }
+    /// (message, reaction, isRemoving, flyInSource)。Tellomi（交互审计 A-07）加了第四个参数：回应飞入的起点，不飞时是 nil。
+    var didSelectReactionHandler: ((TSMessage, String, Bool, ReactionFlyIn.Source?) -> Void)?
 
     private var reactionPicker: MessageReactionPicker
     private var highlightHoverGestureRecognizer: UIGestureRecognizer?
@@ -97,6 +99,8 @@ public class ContextMenuReactionBarAccessory: ContextMenuTargetedPreviewAccessor
             case .emoji(let emoji):
                 let isRemoving = emoji == self.itemViewModel?.reactionState?.localUserEmoji
                 if let index = reactionPicker.currentEmojiSet().firstIndex(of: emoji) {
+                    // Tellomi（交互审计 A-07）：按住滑到表情上松手，和点按一样给一下触感。
+                    ImpactHapticFeedback.impactOccurred(style: .light)
                     didSelectReaction(reaction: emoji, isRemoving: isRemoving, inPosition: index)
                 }
             }
@@ -118,10 +122,14 @@ public class ContextMenuReactionBarAccessory: ContextMenuTargetedPreviewAccessor
             return
         }
 
-        reactionPicker.playDismissalAnimation(duration: 0.2) {
-            self.didSelectReactionHandler?(message, reaction, isRemoving)
-            self.delegate?.contextMenuTargetedPreviewAccessoryRequestsDismissal(self, completion: { })
+        // Tellomi（交互审计 A-07）：选中的表情从条上飞到消息的回应胶囊上；撤回回应、减弱动态效果时不飞。
+        let reduceMotion = MainActor.assumeIsolated { TellomiMotion.isReduceMotionEnabled }
+        let flyInSource = isRemoving || reduceMotion ? nil : reactionPicker.takeEmojiForFlyIn(at: position)
 
+        // Tellomi（交互审计 A-07）：先写回应、再收起，不等回应条的 0.2 s 淡出播完。
+        didSelectReactionHandler?(message, reaction, isRemoving, flyInSource)
+        reactionPicker.playDismissalAnimation(duration: 0.2) {
+            self.delegate?.contextMenuTargetedPreviewAccessoryRequestsDismissal(self, completion: { })
         }
     }
 
@@ -135,7 +143,7 @@ public class ContextMenuReactionBarAccessory: ContextMenuTargetedPreviewAccessor
 
         self.delegate?.contextMenuTargetedPreviewAccessoryRequestsEmojiPicker(for: message, accessory: self) { emojiString in
             let isRemoving = emojiString == self.itemViewModel?.reactionState?.localUserEmoji
-            self.didSelectReactionHandler?(message, emojiString, isRemoving)
+            self.didSelectReactionHandler?(message, emojiString, isRemoving, nil)
             self.delegate?.contextMenuTargetedPreviewAccessoryRequestsDismissal(self, completion: { })
         }
     }

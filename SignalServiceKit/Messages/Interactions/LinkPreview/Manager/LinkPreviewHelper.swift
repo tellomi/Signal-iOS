@@ -12,7 +12,8 @@ public enum LinkPreviewHelper {
             return Self.stickerPackShareDomain(forUrl: url)
         }
         if PossibleGroupInviteLinkUrl.parseFrom(url) != nil {
-            return "signal.org"
+            // Tellomi（tellomi/tellomi#1113）：群邀请卡片上显示的域名，上游写死 signal.org
+            return TellomiLinks.host
         }
         return url.host
     }
