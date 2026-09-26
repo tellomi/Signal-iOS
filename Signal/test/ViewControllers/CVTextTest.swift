@@ -732,29 +732,23 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         XCTAssertEqual(content.minX, 16 + 6, accuracy: 0.5, "单聊里对方的离屏幕左边：\(content)")
     }
 
-    @MainActor
-    func testTheirBubbleStarts8Plus6AfterTheAvatarInAGroup() throws {
-        register()
-        let otherAci = self.otherAci
-        let thread = write { tx in
-            try! GroupManager.createGroupForTests(
-                members: [LocalIdentifiers.forUnitTests.aciAddress, SignalServiceAddress(otherAci)],
-                shouldInsertInfoMessage: true,
-                name: "Tail margin",
-                transaction: tx,
-            )
-        }
-        let message = write { tx in
-            let factory = IncomingMessageFactory()
-            factory.threadCreator = { _ in thread }
-            factory.authorAciBuilder = { _ in otherAci }
-            return factory.create(transaction: tx)
-        }
+    /// 群里对方的消息：e 加在头像和气泡之间（8 → 14）。单测环境渲染不了群里的头像——`AvatarBuilder` 把
+    /// `contactManagerRef` 强转成 `OWSContactsManager`，测试里是 `FakeContactsManager`，会崩——所以这里测排版参数，
+    /// 群里的实际排版需上设备。
+    func testInAGroupTheExtraSpaceGoesBetweenTheAvatarAndTheBubble() {
+        let margin = BubbleConfiguration.Tail.sideMargin
+        let group = CVComponentMessage.tellomiTailSideSpace(isIncoming: true, followsAvatar: true, margin: margin)
+        XCTAssertEqual(ConversationStyle.messageStackSpacing + group.afterAvatar, 8 + 6, "头像和气泡之间")
+        XCTAssertEqual(group.leading, 0)
+        XCTAssertEqual(group.trailing, 0)
 
-        let (cell, messageView) = try render(message, in: thread)
-        let content = messageView.tellomiContentFrameForTesting(in: cell)
-        let avatar = try XCTUnwrap(messageView.tellomiAvatarFrameForTesting(in: cell), "群里对方的消息带头像")
-        XCTAssertEqual(content.minX - avatar.maxX, 8 + 6, accuracy: 0.5, "群里对方的离头像：avatar \(avatar) content \(content)")
+        let oneToOne = CVComponentMessage.tellomiTailSideSpace(isIncoming: true, followsAvatar: false, margin: margin)
+        XCTAssertEqual(oneToOne.leading, 6, "单聊加在最前面")
+        XCTAssertEqual(oneToOne.afterAvatar, 0)
+
+        let mine = CVComponentMessage.tellomiTailSideSpace(isIncoming: false, followsAvatar: false, margin: margin)
+        XCTAssertEqual(mine.trailing, 6, "我发的加在最后面")
+        XCTAssertEqual(mine.leading + mine.afterAvatar, 0)
     }
 
     /// 「正在输入」气泡也带尾巴（a52），离屏幕边、离头像和对方的消息一样
