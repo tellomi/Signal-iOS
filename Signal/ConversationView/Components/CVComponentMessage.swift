@@ -1559,20 +1559,35 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
     }
 
     private var hInnerStackConfig: CVStackViewConfig {
-        // Tellomi：尾巴那一侧的外边距。对方发的尾巴在左下：带头像时加在头像和气泡之间，单聊（没头像）加在最前面；我发的加在最后面
-        let tailMargin = tellomiTailSideMargin
-        let tailFollowsAvatar = isIncoming && hasSenderAvatarLayout && senderAvatar != nil
+        let tailSpace = Self.tellomiTailSideSpace(
+            isIncoming: isIncoming,
+            followsAvatar: isIncoming && hasSenderAvatarLayout && senderAvatar != nil,
+            margin: tellomiTailSideMargin,
+        )
         return CVStackViewConfig(
             axis: .horizontal,
             alignment: .bottom,
-            spacing: ConversationStyle.messageStackSpacing + (tailFollowsAvatar ? tailMargin : 0),
+            spacing: ConversationStyle.messageStackSpacing + tailSpace.afterAvatar,
             layoutMargins: UIEdgeInsets(
                 top: 0,
-                leading: isIncoming && !tailFollowsAvatar ? tailMargin : 0,
+                leading: tailSpace.leading,
                 bottom: 0,
-                trailing: isIncoming ? 0 : tailMargin,
+                trailing: tailSpace.trailing,
             ),
         )
+    }
+
+    /// Tellomi：尾巴那一侧多留的 [margin] 放在哪。对方发的尾巴在左下：带头像时加在头像和气泡之间，
+    /// 单聊（没头像）加在最前面；我发的加在最后面。
+    static func tellomiTailSideSpace(
+        isIncoming: Bool,
+        followsAvatar: Bool,
+        margin: CGFloat,
+    ) -> (leading: CGFloat, afterAvatar: CGFloat, trailing: CGFloat) {
+        guard isIncoming else {
+            return (leading: 0, afterAvatar: 0, trailing: margin)
+        }
+        return followsAvatar ? (leading: 0, afterAvatar: margin, trailing: 0) : (leading: margin, afterAvatar: 0, trailing: 0)
     }
 
     /// Tellomi（规范 #1204 第 2 节最后一条，owner 2026-09-26 定照规范加）：气泡在尾巴那一侧多留 `Tail.sideMargin`，
