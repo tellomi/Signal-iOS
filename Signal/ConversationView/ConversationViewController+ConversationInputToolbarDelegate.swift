@@ -1072,4 +1072,17 @@ extension ConversationViewController {
     func tellomiChooseFromLibraryWithNativePicker() {
         chooseFromLibraryWithNativePicker()
     }
+
+    /// Tellomi（tellomi/tellomi#1121）：附件发出去之后要不要清掉聊天输入框（`sendAttachments` 用）。
+    /// 桩（先红）：先照上游现在的判断（不看 `clearsDraft`），下一个提交接上。
+    static func tellomiClearsInputAfterSending(_ approvedAttachments: ApprovedAttachments, clearsDraft: Bool) -> Bool {
+        if
+            approvedAttachments.attachments.count == 1,
+            let attachment = approvedAttachments.attachments.first,
+            attachment.rawValue.isBorderless
+        {
+            return false
+        }
+        return true
+    }
 }

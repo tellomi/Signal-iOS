@@ -367,6 +367,35 @@ final class TellomiAttachmentFilesTests: SignalBaseTest {
         XCTAssertNil(tooLarge, "超过上限的不发")
     }
 
+    // MARK: - Draft (F-4、F-5、F-7、F-8)
+
+    /// 从「文件」页发东西，不清聊天输入框里还没发的草稿：文件页的说明从来不是那段草稿（点一行 / 系统选择器 / 扫描都没有说明，
+    /// 多选的说明是文件页自己的输入框）。上游 `sendAttachments` 每发成一条就清输入框，于是「输入框里打了字 →「+」→ 文件 → 点一个文件」，
+    /// 那段字既没发出去也没了。Android 同一功能（`ConversationFragment.sendSlidesInOrder`）传的是 `clearCompose = false`。
+    /// 文件页的两处发送都传 `clearsDraft: false`；会话页别的发送照上游：发出去就清（草稿当说明一起发出去了），贴纸样子的单个无边框附件不清。
+    @MainActor
+    func testSendingFromTheFilesPageKeepsTheChatDraft() async throws {
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let limits = OutgoingAttachmentLimits.currentLimits()
+        func pickedFile(_ name: String) async throws -> PreviewableAttachment {
+            let url = directory.appendingPathComponent(name)
+            try Data("hello".utf8).write(to: url)
+            let attachment = try await ConversationViewController.tellomiBuildFileAttachment(url: url, limits: limits)
+            return try XCTUnwrap(attachment)
+        }
+
+        let notes = try await pickedFile("notes.txt")
+        let files = ApprovedAttachments(nonViewOnceAttachments: [notes], imageQuality: .standard)
+        XCTAssertFalse(ConversationViewController.tellomiClearsInputAfterSending(files, clearsDraft: false), "文件页发的：输入框里的草稿留着")
+        XCTAssertTrue(ConversationViewController.tellomiClearsInputAfterSending(files, clearsDraft: true), "别的发送照上游：发出去就清")
+
+        let stickerLike = try await pickedFile("sticker.txt")
+        stickerLike.rawValue.isBorderless = true
+        let sticker = ApprovedAttachments(nonViewOnceAttachments: [stickerLike], imageQuality: .standard)
+        XCTAssertFalse(ConversationViewController.tellomiClearsInputAfterSending(sticker, clearsDraft: true), "照上游：贴纸样子的单个无边框附件不清")
+    }
+
     // MARK: - Scan (F-5)
 
     /// 扫描的几页合成一个 PDF，页数不变；文件名是扫描标题（去掉不能进文件名的字符）或「扫描」。
