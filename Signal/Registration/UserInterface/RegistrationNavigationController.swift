@@ -19,6 +19,25 @@ public class RegistrationNavigationController: OWSNavigationController {
     private init(coordinator: RegistrationCoordinator) {
         self.coordinator = coordinator
         super.init()
+        // 只收自己这个协调器发的（它发的时候 object: self）：同一进程里有别的注册流程时（并行跑的用例），
+        // 别人的令牌到了不能让这里替自己的协调器取下一步。
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(tellomiPreAuthChallengeTokenDidArrive),
+            name: RegistrationCoordinatorImpl.tellomiPreAuthChallengeTokenDidArriveNotification,
+            object: coordinator as AnyObject,
+        )
+    }
+
+    /// Tellomi（ADR-0070 P4）：推送挑战令牌晚于等待窗口才到。还停在验证页上的话就重新取下一步，
+    /// 协调器会先用这个令牌提交推送挑战，验证页随之离开；不在验证页（已经往下走了）就什么也不做。
+    @objc
+    private func tellomiPreAuthChallengeTokenDidArrive() {
+        guard topViewController is RegistrationCaptchaViewController, !isLoading else {
+            return
+        }
+        logger.info("Push challenge token arrived while showing the captcha; continuing with it")
+        pushNextController(Guarantee.wrapAsync { await self.coordinator.nextStep() })
     }
 
     override public func viewDidLoad() {
