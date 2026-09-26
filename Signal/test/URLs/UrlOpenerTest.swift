@@ -170,6 +170,7 @@ class UrlOpenerTest: XCTestCase {
             minNicknameLength: 3,
             maxNicknameLength: 20,
             desiredDiscriminator: nil,
+            enforcingLetterFirst: true,
         )) { error in
             XCTAssertEqual(error as? Usernames.HashedUsername.CandidateGenerationError, .nicknameTooLong)
         }
