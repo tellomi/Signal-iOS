@@ -443,3 +443,50 @@ private class MockDownloadSession: BaseOWSURLSessionMock {
         return try await performDownloadSource!(request.url!)
     }
 }
+
+// MARK: - Tellomi
+
+/// Tellomi：没有自己的引导故事，不去下载。updates.tellomi.app 上的清单是 `{"version":0,"languages":{}}`：
+/// 上游按 String 解码 version 失败，每次启动都报错、重试；version 改成字符串也没用——languages 为空时
+/// `StoryManifest.filenames(for:or:)` 抛 OWSAssertionError（调试包在 owsFailDebug 断住）。
+class TellomiOnboardingStoryTest: SSKBaseTest {
+
+    private class MockMessageProcessor: SystemStoryManager.Shims.MessageProcessor {
+        func waitForFetchingAndProcessing() async throws(CancellationError) {
+        }
+    }
+
+    private var mockSignalService: OWSSignalServiceMock {
+        return SSKEnvironment.shared.signalServiceRef as! OWSSignalServiceMock
+    }
+
+    @MainActor
+    func testTheOnboardingStoryIsNeverFetched() async throws {
+        SSKEnvironment.shared.databaseStorageRef.write { tx in
+            (DependenciesBridge.shared.registrationStateChangeManager as! RegistrationStateChangeManagerImpl).registerForTests(
+                localIdentifiers: .forUnitTests,
+                tx: tx,
+            )
+        }
+        mockSignalService.mockUrlSessionBuilder = { _, _, _ in
+            let mockSession = MockDownloadSession()
+            mockSession.performRequestSource = { url in
+                XCTFail("不该去取引导故事的清单：\(url)")
+                throw OWSAssertionError("onboarding manifest requested")
+            }
+            mockSession.performDownloadSource = { url in
+                XCTFail("不该去下载引导故事的图片：\(url)")
+                throw OWSAssertionError("onboarding image requested")
+            }
+            return mockSession
+        }
+        let manager = SystemStoryManager(
+            appReadiness: AppReadinessMock(),
+            fileSystem: OnboardingStoryManagerFilesystemMock.self,
+            messageProcessor: MockMessageProcessor(),
+            storyMessageFactory: OnboardingStoryManagerStoryMessageFactoryMock.self,
+        )
+
+        try await manager.enqueueOnboardingStoryDownload().value
+    }
+}
