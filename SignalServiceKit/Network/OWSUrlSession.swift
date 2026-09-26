@@ -193,6 +193,10 @@ public class OWSURLSession: OWSURLSessionProtocol {
         if !ignoreAppExpiry, DependenciesBridge.shared.appExpiry.isExpired(now: Date()) {
             throw AppExpiredError()
         }
+        // Tellomi：同意跨境之前，URLSession 这一路也一个请求都不发（tellomi/tellomi#1133）。
+        guard !TellomiCrossBorderConsent.blocksNetwork else {
+            throw OWSHTTPError.networkFailure(.genericFailure)
+        }
 
         let request = prepareRequest(request: request)
         let requestConfig = self.requestConfig(requestUrl: request.url!)
@@ -417,6 +421,10 @@ public class OWSURLSession: OWSURLSessionProtocol {
         guard !appExpiry.isExpired(now: Date()) else {
             throw AppExpiredError()
         }
+        // Tellomi：同意跨境之前，URLSession 这一路也一个请求都不发（tellomi/tellomi#1133）。
+        guard !TellomiCrossBorderConsent.blocksNetwork else {
+            throw OWSHTTPError.networkFailure(.genericFailure)
+        }
 
         var httpHeaders = rawRequest.headers
         try rawRequest.applyAuth(to: &httpHeaders, socketAuth: nil)
@@ -481,6 +489,10 @@ public class OWSURLSession: OWSURLSessionProtocol {
         if !ignoreAppExpiry, DependenciesBridge.shared.appExpiry.isExpired(now: Date()) {
             throw AppExpiredError()
         }
+        // Tellomi：同意跨境之前，URLSession 这一路也一个请求都不发（tellomi/tellomi#1133）。
+        guard !TellomiCrossBorderConsent.blocksNetwork else {
+            throw OWSHTTPError.networkFailure(.genericFailure)
+        }
 
         let request = prepareRequest(request: request)
         let requestConfig = requestConfig(requestUrl: request.url!)
@@ -515,6 +527,10 @@ public class OWSURLSession: OWSURLSessionProtocol {
         let appExpiry = DependenciesBridge.shared.appExpiry
         if appExpiry.isExpired(now: Date()) {
             throw AppExpiredError()
+        }
+        // Tellomi：同意跨境之前，URLSession 这一路也一个请求都不发（tellomi/tellomi#1133）。
+        guard !TellomiCrossBorderConsent.blocksNetwork else {
+            throw OWSHTTPError.networkFailure(.genericFailure)
         }
 
         let requestConfig = self.requestConfig(requestUrl: requestUrl)

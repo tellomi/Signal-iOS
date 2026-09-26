@@ -39,6 +39,7 @@ public class AppEnvironment: NSObject {
     private(set) var callLinkProfileKeySharingManager: CallLinkProfileKeySharingManager!
     private(set) var callService: CallService!
     private var clockSkewMonitoringManager: ClockSkewMonitoringManager!
+    private var crossBorderConsentMonitoringManager: TellomiCrossBorderConsentMonitoringManager!
     private(set) var experienceUpgradeManager: ExperienceUpgradeManager!
     private(set) var groupSendEndorsementExpirationJob: GroupSendEndorsementExpirationJob!
     private(set) var lowDiskSpaceManager: LowDiskSpaceManager!
@@ -143,6 +144,7 @@ public class AppEnvironment: NSObject {
             clockSkewManager: DependenciesBridge.shared.clockSkewManager,
             windowManager: windowManagerRef,
         )
+        self.crossBorderConsentMonitoringManager = TellomiCrossBorderConsentMonitoringManager(windowManager: windowManagerRef)
 
         self.tellomiUpdateRequiredMonitoringManager = TellomiUpdateRequiredMonitoringManager(
             appExpiry: DependenciesBridge.shared.appExpiry,
@@ -356,6 +358,7 @@ public class AppEnvironment: NSObject {
             self.badgeManager.startObservingChanges(in: DependenciesBridge.shared.databaseChangeObserver)
             self.appIconBadgeUpdater.startObserving()
             self.clockSkewMonitoringManager.start()
+            self.crossBorderConsentMonitoringManager.start()
             self.lowDiskSpaceMonitoringManager.start()
             self.tellomiUpdateRequiredMonitoringManager.start()
         }

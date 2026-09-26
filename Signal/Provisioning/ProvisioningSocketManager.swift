@@ -245,6 +245,12 @@ class ProvisioningSocketManager: ProvisioningConnectionListener {
     /// A provisioning URL containing information about the now-opened
     /// provisioning socket.
     func openNewProvisioningSocket() async throws -> URL {
+        // Tellomi（tellomi/tellomi#1133）：这是 libsignal 直连，不经过 OWSChatConnection / OWSURLSession 的跨境闸，
+        // 这里补同一道：没同意跨境就不连。
+        guard !TellomiCrossBorderConsent.blocksNetwork else {
+            throw OWSHTTPError.networkFailure(.genericFailure)
+        }
+
         let libsignalNet = DependenciesBridge.shared.libsignalNet
 
         let ourKeyPair = IdentityKeyPair.generate()
