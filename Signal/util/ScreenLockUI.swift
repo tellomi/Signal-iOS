@@ -165,6 +165,13 @@ class ScreenLockUI {
             name: ScreenLock.ScreenLockDidChange,
             object: nil,
         )
+        // Tellomi（tellomi/tellomi#1139）：阻断页收起后照常弹 Face ID / 密码框（见 shouldPresentAuthUI）。
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(screenLockDidChange),
+            name: .tellomiUpdateRequiredBlockDidChange,
+            object: nil,
+        )
 
         // Hide the screen blocking window until "app is ready" to
         // avoid blocking the loading view.
@@ -237,9 +244,26 @@ class ScreenLockUI {
         updateScreenBlockingWindowWithUIState(desiredUIState)
 
         // Show the "iOS auth UI to unlock" if necessary.
-        if desiredUIState == .screenLock, !didLastUnlockAttemptFail {
+        if
+            Self.shouldPresentAuthUI(
+                desiredUIState: desiredUIState,
+                didLastUnlockAttemptFail: didLastUnlockAttemptFail,
+                isUpdateRequiredBlockActive: AppEnvironment.shared.windowManagerRef.isUpdateRequiredBlockActive,
+            )
+        {
             tryToPresentAuthUIToUnlockScreenLock()
         }
+    }
+
+    /// Tellomi（tellomi/tellomi#1139，taishi 审查 b15 启用前置 3）：「必须更新」阻断页盖着时不自动弹 Face ID / 密码框。
+    /// 阻断页在应用锁之上、不显示私人内容，弹出来只会挡住「立即更新」。选了「只看聊天记录」收起阻断页后，
+    /// `tellomiUpdateRequiredBlockDidChange` 会让这里再判断一次，照常弹。
+    static func shouldPresentAuthUI(
+        desiredUIState: ScreenLockViewController.UIState,
+        didLastUnlockAttemptFail: Bool,
+        isUpdateRequiredBlockActive: Bool,
+    ) -> Bool {
+        return desiredUIState == .screenLock && !didLastUnlockAttemptFail && !isUpdateRequiredBlockActive
     }
 
     private func clearAuthUIWhenActive() {
