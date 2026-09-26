@@ -38,6 +38,7 @@ public class ToastController: NSObject, ToastViewDelegate {
     ) {
         let toastView = ToastView()
         toastView.text = self.toastText
+        toastView.tellomiEmphasize(tellomiBoldTexts)
         toastView.image = self.toastIcon
         toastView.delegate = self
         self.toastView = toastView
@@ -153,6 +154,9 @@ public class ToastController: NSObject, ToastViewDelegate {
     /// Tellomi：点提示条时额外做的事（「已收藏，点击查看」打开「我的收藏」，#1174）。
     public var tellomiOnTap: (() -> Void)?
 
+    /// Tellomi：提示条里要加粗的片段（「已转发给 **小林**」，#1259）。
+    public var tellomiBoldTexts: [String] = []
+
     func didSwipeToastView(_ toastView: ToastView) {
         Logger.debug("")
         self.dismissToastView()
@@ -201,6 +205,24 @@ class ToastView: UIView {
             imageView.isHiddenInStackView = (image == nil)
         }
     }
+
+    /// Tellomi（#1259）：把文字里的这些片段加粗
+    func tellomiEmphasize(_ boldTexts: [String]) {
+        guard !boldTexts.isEmpty, let text = label.text, let font = label.font else {
+            return
+        }
+        let attributedText = NSMutableAttributedString(string: text, attributes: [.font: font])
+        let boldFont = font.semibold()
+        for boldText in boldTexts where !boldText.isEmpty {
+            let range = (text as NSString).range(of: boldText)
+            if range.location != NSNotFound {
+                attributedText.addAttribute(.font, value: boldFont, range: range)
+            }
+        }
+        label.attributedText = attributedText
+    }
+
+    var tellomiAttributedTextForTesting: NSAttributedString? { label.attributedText }
 
     weak var delegate: ToastViewDelegate?
 

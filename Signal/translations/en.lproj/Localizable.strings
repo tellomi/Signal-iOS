@@ -4053,6 +4053,45 @@
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "Messages sent";
 
+/* Tellomi: placeholder of the message field that is sent before the forwarded content. */
+"FORWARD_MESSAGE_TELLOMI_GRID_COMMENT_PLACEHOLDER" = "Add a message…";
+
+/* Tellomi: separator between selected chat names in the forward grid subtitle. */
+"FORWARD_MESSAGE_TELLOMI_GRID_NAME_SEPARATOR" = ", ";
+
+/* Tellomi: section title of matching chats in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CHATS" = "Chats";
+
+/* Tellomi: section title of matching contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CONTACTS" = "Contacts";
+
+/* Tellomi: section title of matching groups in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_GROUPS" = "Groups";
+
+/* Tellomi: section title of recent contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_RECENT" = "Recent";
+
+/* Tellomi: toast when trying to select more chats than allowed. Embeds {{the limit}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SELECTION_LIMIT_%d" = "You can select up to %d chats";
+
+/* Tellomi: toast after forwarding to three or more chats. Embeds {{first chat name}} and {{total number of chats}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_MANY_%@_%d" = "Forwarded to %2$d chats, including %1$@";
+
+/* Tellomi: toast after forwarding to one chat. Embeds {{chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_ONE_%@" = "Forwarded to %@";
+
+/* Tellomi: toast after forwarding to Saved Messages only. Embeds {{Saved Messages}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_SAVED_%@" = "Forwarded to %@";
+
+/* Tellomi: toast after forwarding to two chats. Embeds {{first chat name}} and {{second chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_TWO_%@_%@" = "Forwarded to %1$@ and %2$@";
+
+/* Tellomi: accessibility label of the share button in the forward grid. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SHARE_TO_OTHER_APPS" = "Share to Other Apps";
+
+/* Tellomi: subtitle of the forward grid before any chat is selected. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SUBTITLE" = "Select chats";
+
 /* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
 "FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "Saved to Saved Messages. Tap to view.";
 
