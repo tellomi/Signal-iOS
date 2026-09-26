@@ -536,7 +536,9 @@ private extension UsernameSelectionViewController {
                     Constants.minNicknameCodepointLength,
                 )
             case .tooLong:
-                owsFail("This should be impossible from the UI, as we limit the text field length.")
+                // Tellomi（#1181）：输入框上限放宽到现有昵称长度后，这一支第一次走得到——21 位到现有长度之间的新名字，
+                // libsignal 在本地就判 nicknameTooLong。上游这里是 owsFail（fatalError，正式包也闪退）。
+                return Self.tellomiTooLongErrorText(maxNicknameLength: Constants.maxNicknameCodepointLength)
             case .cannotStartWithDigit:
                 return OWSLocalizedString(
                     "USERNAME_SELECTION_CANNOT_START_WITH_DIGIT_ERROR_MESSAGE",
@@ -794,6 +796,27 @@ extension UsernameSelectionViewController {
         }
         return existingUsername
     }
+
+    /// Tellomi（ADR-0066 §六；#1181）：输入框的长度上限取「新名字的上限」（远程配置 `global.nicknames.max` = 20）与
+    /// 「现有昵称的长度」中较大的。上限改成 20 之前建的 21–32 位用户名，输入框里一开始就超长，而 `TextFieldHelper`
+    /// 对超长的串拒绝任何单字符改动——既改不了大小写，也没法逐个删字，只能整串清掉。只改大小写本来就不预约、不受 20 位
+    /// 限制（caseOnlyChange 捷径）。别的改动得到的是一个新名字：超过 20 位时 libsignal 在本地判 nicknameTooLong，
+    /// 页面显示「至多 20 个字符」（`.tooLong`，见 `tellomiTooLongErrorText`），删到 20 位才开始预约。
+    static func tellomiMaxNicknameInputLength(existingUsername: ParsedUsername?, configuredMax: UInt32) -> Int {
+        return max(Int(configuredMax), existingUsername?.nickname.unicodeScalars.count ?? 0)
+    }
+
+    /// Tellomi（#1181）：新名字超过上限时的文案，和 Desktop 的 `icu:ProfileEditor--username--check-character-max-plural` 同一句。
+    static func tellomiTooLongErrorText(maxNicknameLength: UInt32) -> String {
+        return String.localizedStringWithFormat(
+            OWSLocalizedString(
+                "USERNAME_SELECTION_TOO_LONG_ERROR_MESSAGE_TELLOMI_%d",
+                tableName: "PluralAware",
+                comment: "Tellomi: error shown when the user has typed a username longer than the maximum. Embeds {{ %d the maximum character count }}.",
+            ),
+            maxNicknameLength,
+        )
+    }
 }
 
 // MARK: - Text field events
@@ -1032,7 +1055,10 @@ extension UsernameSelectionViewController: UITextFieldDelegate {
             textField,
             shouldChangeCharactersInRange: range,
             replacementString: string,
-            maxUnicodeScalarCount: Int(Constants.maxNicknameCodepointLength),
+            maxUnicodeScalarCount: Self.tellomiMaxNicknameInputLength(
+                existingUsername: existingUsername,
+                configuredMax: Constants.maxNicknameCodepointLength,
+            ),
         )
     }
 
