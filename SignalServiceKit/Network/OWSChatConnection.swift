@@ -117,6 +117,12 @@ public class OWSChatConnection {
             name: .clockSkewShouldBlockConnectionsDidChange,
             object: nil,
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(crossBorderConsentDidChange),
+            name: TellomiCrossBorderConsent.didChangeNotification,
+            object: nil,
+        )
     }
 
     // MARK: -
@@ -246,6 +252,10 @@ public class OWSChatConnection {
     fileprivate func _canOpenWebSocketError() -> (any Error)? {
         guard !appExpiry.isExpired(now: Date()) else {
             return AppExpiredError()
+        }
+        // Tellomi：同意跨境之前，已注册 / 未注册两种连接都不开（tellomi/tellomi#1133）。
+        guard !TellomiCrossBorderConsent.blocksNetwork else {
+            return OWSHTTPError.networkFailure(.genericFailure)
         }
         guard !clockSkewManager.shouldBlockConnections else {
             return ClockSkewError()
@@ -396,6 +406,13 @@ public class OWSChatConnection {
 
     @objc
     private func clockSkewShouldBlockConnectionsDidChange(_ notification: NSNotification) {
+        AssertIsOnMainThread()
+
+        updateCanOpenWebSocket()
+    }
+
+    @objc
+    private func crossBorderConsentDidChange(_ notification: NSNotification) {
         AssertIsOnMainThread()
 
         updateCanOpenWebSocket()
