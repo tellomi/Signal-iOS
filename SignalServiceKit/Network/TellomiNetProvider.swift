@@ -235,6 +235,8 @@ public enum TellomiRegionDrill {
             await log("start", provider)
             for step in 1...count {
                 try? await Task.sleep(nanoseconds: UInt64(interval * TimeInterval(NSEC_PER_SEC)))
+                // 切之前记一次：这时的连接状态就是在当前区里稳定下来的样子（切之后那行只看得到「正在连」）
+                await log("before switch \(step)/\(count) on \(provider.activeRegion.id.rawValue)", provider)
                 let target = regions.first { $0 != provider.activeRegion.id } ?? regions[0]
                 do {
                     try provider.switchTo(target)
