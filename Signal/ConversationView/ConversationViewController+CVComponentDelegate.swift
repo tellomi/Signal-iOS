@@ -633,7 +633,18 @@ extension ConversationViewController: CVComponentDelegate {
         self.handleUrl(url)
     }
 
-    func handleUrl(_ url: URL) {
+    func handleUrl(_ originalUrl: URL) {
+        // Tellomi（tellomi/tellomi#1114）：先按 Tellomi 形状分流，与 UrlOpener 同一套规则（见 tellomiInAppRoute）。
+        // 上游这里不认 tell.cc / tellomi:// 新形状，全部落到最后的 UIApplication.shared.open：跳 Safari → 落地页 →「打开」再绕回 App。
+        let url: URL
+        switch Self.tellomiInAppRoute(for: originalUrl) {
+        case .plainUsername(let username):
+            didTapTellomiPlainUsername(username)
+            return
+        case .url(let routedUrl):
+            url = routedUrl
+        }
+
         if StickerPackInfo.isStickerPackShare(url) {
             if let stickerPackInfo = StickerPackInfo.parseStickerPackShare(url) {
                 didTapStickerPack(stickerPackInfo)
@@ -668,7 +679,43 @@ extension ConversationViewController: CVComponentDelegate {
             return
         }
 
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        // Tellomi（#1114）：谁都不认的交给系统时打开原链接，不是换算后的 signal.* 旧形状
+        UIApplication.shared.open(originalUrl, options: [:], completionHandler: nil)
+    }
+
+    /// Tellomi（tellomi/tellomi#1114）：聊天里点到的链接怎么走。
+    enum TellomiInAppRoute: Equatable {
+        /// `tell.cc/<用户名>`、`tell.cc/u#u/<用户名>`：上游没有等价物，直接查人
+        case plainUsername(String)
+        /// 其余交给上游的解析器：Tellomi 新形状（`tell.cc/{u,g,s,call}`、`tellomi://`）已换算成旧形状，别的链接原样
+        case url(URL)
+    }
+
+    /// 与 `UrlOpener.parseOpenableUrl`（从 App 外面打开的入口）同一套规则：先认用户名，再换算成旧形状。
+    static func tellomiInAppRoute(for url: URL) -> TellomiInAppRoute {
+        if let username = TellomiLinks.plainUsername(in: url) {
+            return .plainUsername(username)
+        }
+        return .url(TellomiLinks.legacyEquivalent(of: url))
+    }
+
+    /// 与 UrlOpener 的 `.plainUsername` 一样：查到就打开会话，查不到由 UsernameQuerier 提示。
+    private func didTapTellomiPlainUsername(_ username: String) {
+        Task {
+            guard
+                let aci = await UsernameQuerier().queryForUsername(
+                    username: username,
+                    fromViewController: self,
+                )
+            else {
+                return
+            }
+
+            SignalApp.shared.presentConversationForAddress(
+                SignalServiceAddress(aci),
+                animated: true,
+            )
+        }
     }
 
     public func didTapContactShare(_ contactShare: ContactShareViewModel) {
