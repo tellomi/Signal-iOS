@@ -357,6 +357,44 @@ final class TellomiForwardGridTests: SignalBaseTest {
         XCTAssertLessThanOrEqual(grid.cardFrameForTesting.minY, hosted.window.safeAreaInsets.top + 8, "展开到状态栏下方")
     }
 
+    /// F-4（taishi 审查 #70）：标题区贴顶以后，底下滚过去的格子不能从标题区透出来——标题区自己铺卡片底色；上面两个角跟卡片一样圆。
+    @MainActor
+    func testTheTitleAreaHidesTheGridScrolledUnderIt() async throws {
+        register()
+        for index in 0..<60 {
+            makeContactChat("好友\(index)")
+        }
+        let hosted = try host()
+        let grid = hosted.grid
+        let collectionView = grid.collectionViewForTesting
+        let metrics = grid.metricsForTesting
+
+        // 第二行第二格：头像圆心在格子里 (中线, 4 + 30)。滚到这一圈正好落在贴顶的标题区中间（标题区高 64）
+        let item = IndexPath(item: metrics.columns + 1, section: 0)
+        let cellFrame = try XCTUnwrap(collectionView.layoutAttributesForItem(at: item)?.frame)
+        let avatarCenterY = cellFrame.minY + 4 + 30
+        collectionView.contentOffset.y = avatarCenterY - 32
+        collectionView.layoutIfNeeded()
+        try await settle()
+        XCTAssertEqual(grid.headerFrameInCardForTesting.minY, 0, accuracy: 0.5, "标题区贴在卡片顶端")
+
+        // 头像圆环上、字母以外的一点（圆心左边 22）：在标题区里，也不在标题、副标题、两个按钮上
+        let ringPoint = collectionView.convert(CGPoint(x: cellFrame.midX - 22, y: avatarCenterY), to: hosted.window)
+        let image = render(hosted.window)
+        let card = components(TellomiForwardGridViewController.Colors.card, traits: grid.traitCollection)
+        let underHeader = pixel(image, at: ringPoint)
+        XCTAssertLessThan(
+            distance(underHeader, card),
+            0.04,
+            "标题区里看到的是底下格子的头像（\(underHeader)），应当是卡片底色（\(card)）",
+        )
+
+        // 卡片左上角外侧那一点是压暗层，不是方角的标题区
+        let cardFrame = grid.cardFrameForTesting
+        let corner = pixel(image, at: CGPoint(x: cardFrame.minX + 1, y: cardFrame.minY + 1))
+        XCTAssertGreaterThan(distance(corner, card), 0.1, "标题区上面两个角要和卡片一样是圆的（\(corner)）")
+    }
+
     /// F-9：点 🔍 进搜索态——空查询是最近联系人一排；在搜索里勾一个，回到网格、插在「我的收藏」之后并保持选中。
     @MainActor
     func testSearchShowsRecentContactsAndAPickedChatLandsAfterSavedMessages() throws {
@@ -413,6 +451,29 @@ final class TellomiForwardGridTests: SignalBaseTest {
         grid.typeSearchForTesting("Saved")
         XCTAssertFalse(grid.isNoResultsVisibleForTesting)
         XCTAssertEqual(grid.searchSectionIdsForTesting, [[savedMessagesId]])
+    }
+
+    /// F-9（taishi 审查 #70：搜索态比设计低 50 pt）：进搜索态以后卡片展开到状态栏下方，搜索框就在卡片顶端，不被系统往下挪。
+    @MainActor
+    func testSearchKeepsTheSearchFieldAtTheTopOfTheCard() async throws {
+        register()
+        for index in 0..<20 {
+            makeContactChat("好友\(index)")
+        }
+        let hosted = try host()
+        let grid = hosted.grid
+        let collectionView = grid.collectionViewForTesting
+
+        grid.tapSearchButtonForTesting()
+        try await settle()
+        hosted.window.layoutIfNeeded()
+
+        let card = grid.cardFrameForTesting
+        let field = grid.searchFieldFrameInWindowForTesting
+        let state = "offset \(collectionView.contentOffset.y) inset \(collectionView.contentInset.top) card \(card) header \(grid.headerFrameInCardForTesting) field \(field) safeTop \(hosted.window.safeAreaInsets.top) firstResponder \(grid.isSearchFieldFirstResponderForTesting)"
+        XCTAssertEqual(card.minY, hosted.window.safeAreaInsets.top + 8, accuracy: 0.5, "搜索态卡片展开到状态栏下方：\(state)")
+        XCTAssertEqual(grid.headerFrameInCardForTesting.minY, 0, accuracy: 0.5, "搜索框所在的标题区贴在卡片顶端：\(state)")
+        XCTAssertEqual(field.minY, card.minY + 14, accuracy: 0.5, "搜索框离卡片顶 14：\(state)")
     }
 
     /// F-3 / F-10：右上角「分享到其他 App」只在内容能分享时出现，点它交给系统分享面板。
@@ -784,6 +845,57 @@ final class TellomiForwardGridTests: SignalBaseTest {
         format.scale = 3
         return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+    }
+
+    /// 截图里一点（窗口坐标）的颜色，按 sRGB 取分量
+    private func pixel(_ image: UIImage, at point: CGPoint) -> RGB {
+        guard let cgImage = image.cgImage, let space = CGColorSpace(name: CGColorSpace.sRGB) else {
+            return RGB(red: -1, green: -1, blue: -1)
+        }
+        let x = Int((point.x * image.scale).rounded(.down))
+        let y = Int((point.y * image.scale).rounded(.down))
+        var bytes = [UInt8](repeating: 0, count: 4)
+        bytes.withUnsafeMutableBytes { buffer in
+            guard
+                let context = CGContext(
+                    data: buffer.baseAddress,
+                    width: 1,
+                    height: 1,
+                    bitsPerComponent: 8,
+                    bytesPerRow: 4,
+                    space: space,
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+                )
+            else {
+                return
+            }
+            // 把要取的那一个像素挪到 1×1 画布的原点（CG 的 y 从下往上）
+            context.draw(cgImage, in: CGRect(x: -x, y: y - cgImage.height + 1, width: cgImage.width, height: cgImage.height))
+        }
+        return RGB(red: CGFloat(bytes[0]) / 255, green: CGFloat(bytes[1]) / 255, blue: CGFloat(bytes[2]) / 255)
+    }
+
+    private func components(_ color: UIColor, traits: UITraitCollection) -> RGB {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        color.resolvedColor(with: traits).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        return RGB(red: red, green: green, blue: blue)
+    }
+
+    private func distance(_ lhs: RGB, _ rhs: RGB) -> CGFloat {
+        max(abs(lhs.red - rhs.red), abs(lhs.green - rhs.green), abs(lhs.blue - rhs.blue))
+    }
+
+    private struct RGB: CustomStringConvertible {
+        let red: CGFloat
+        let green: CGFloat
+        let blue: CGFloat
+
+        var description: String {
+            String(format: "rgb(%.3f, %.3f, %.3f)", red, green, blue)
         }
     }
 

@@ -1227,4 +1227,11 @@ extension TellomiForwardGridViewController {
     var headerFrameInCardForTesting: CGRect {
         headerView.frame.offsetBy(dx: 0, dy: -collectionView.contentOffset.y)
     }
+
+    /// 搜索框（圆角底）在窗口里的位置
+    var searchFieldFrameInWindowForTesting: CGRect {
+        searchFieldBackground.convert(searchFieldBackground.bounds, to: nil)
+    }
+
+    var isSearchFieldFirstResponderForTesting: Bool { searchField.isFirstResponder }
 }
