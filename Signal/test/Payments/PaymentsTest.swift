@@ -78,4 +78,32 @@ class PaymentsTest: SignalBaseTest {
             paymentsDisabledRegions: ["1", "234"],
         ))
     }
+
+    // Tellomi：付款在 Tellomi 构建里永远不可用，不看服务端（tellomi/tellomi#1233）。
+    // 场景：已注册的 +86 号码，服务端下发的禁用地区里没有 86——上游会放行。
+    func test_tellomi_paymentsStayOffWhenRemoteConfigAllowsRegion() {
+        let remoteConfigManager = SSKEnvironment.shared.remoteConfigManagerRef as! StubbableRemoteConfigManager
+        remoteConfigManager._currentConfig = RemoteConfig(
+            clockSkew: 0,
+            valueFlags: ["global.payments.disabledRegions": "98,963,53,850,7"],
+        )
+        SSKEnvironment.shared.databaseStorageRef.write { tx in
+            (DependenciesBridge.shared.registrationStateChangeManager as! RegistrationStateChangeManagerImpl).registerForTests(
+                localIdentifiers: .init(
+                    aci: .init(fromUUID: UUID()),
+                    pni: .init(fromUUID: UUID()),
+                    e164: .init("+8613800138000")!,
+                ),
+                tx: tx,
+            )
+        }
+        let paymentsHelper = SSKEnvironment.shared.paymentsHelperRef
+
+        // 前提：上游的地区判断确实放行了这个号码，否则下面几条测不出东西。
+        XCTAssertTrue(paymentsHelper.hasValidPhoneNumberForPayments)
+
+        XCTAssertTrue(paymentsHelper.isKillSwitchActive)
+        XCTAssertFalse(paymentsHelper.canEnablePayments)
+        XCTAssertFalse(SUIEnvironment.shared.paymentsRef.shouldShowPaymentsUI)
+    }
 }
