@@ -3300,6 +3300,7 @@
 		D9B1A8BF2FB7B69200CE5FD3 /* FailIfThrowsRecordCursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B1A8BE2FB7B68C00CE5FD3 /* FailIfThrowsRecordCursor.swift */; };
 		D9B2268F301BF9F10078C200 /* AppBlockingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B2268E301BF9ED0078C200 /* AppBlockingViewController.swift */; };
 		D9B22691301BF9F10078C200 /* ClockSkewAppBlockingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B22690301BF9F10078C200 /* ClockSkewAppBlockingViewController.swift */; };
+		D1139A000000000000000002 /* TellomiUpdateRequiredAppBlockingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1139A000000000000000001 /* TellomiUpdateRequiredAppBlockingViewController.swift */; };
 		D9B2E1182E748E1900A823E4 /* OWSByteCountFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B2E1172E748DFB00A823E4 /* OWSByteCountFormatStyle.swift */; };
 		D9B8541229137C150058F97B /* JobRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B8541129137C150058F97B /* JobRecord.swift */; };
 		D9B95A9629E6830B00D7CB95 /* JobRecordTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B95A9429E682E900D7CB95 /* JobRecordTest.swift */; };
@@ -3317,6 +3318,7 @@
 		D9C0DE022E3F0A0100C0DE01 /* DonationReceiptCredentialResultCodableTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C0DE012E3F0A0100C0DE01 /* DonationReceiptCredentialResultCodableTest.swift */; };
 		D9C0DE122E3F0A0100C0DE11 /* PendingMonthlyIDEALDonationCodableTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C0DE112E3F0A0100C0DE11 /* PendingMonthlyIDEALDonationCodableTest.swift */; };
 		D9C15C010000000000000003 /* ClockSkewMonitoringManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C15C010000000000000002 /* ClockSkewMonitoringManager.swift */; };
+		D1139A000000000000000004 /* TellomiUpdateRequiredMonitoringManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1139A000000000000000003 /* TellomiUpdateRequiredMonitoringManager.swift */; };
 		D9C15C020000000000000003 /* ClockSkewManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C15C020000000000000002 /* ClockSkewManagerTest.swift */; };
 		D9C2D77E299D750200D79715 /* UsernameEducationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C2D77D299D750200D79715 /* UsernameEducationManager.swift */; };
 		D9C2D780299EC11400D79715 /* CreateUsernameMegaphone.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9C2D77F299EC11400D79715 /* CreateUsernameMegaphone.swift */; };
@@ -3813,6 +3815,7 @@
 		F9B652C328D8E3DF006914CA /* DatabaseRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B652C228D8E3DF006914CA /* DatabaseRecovery.swift */; };
 		F9B93CDC28E1FE3500B3F8A0 /* SignalProxyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B93CDB28E1FE3500B3F8A0 /* SignalProxyTest.swift */; };
 		F9B93CE028E246D900B3F8A0 /* AppDelegateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B93CDF28E246D900B3F8A0 /* AppDelegateTest.swift */; };
+		D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1139A000000000000000005 /* TellomiUpdateRequiredTest.swift */; };
 		F9BC0A2527FB8E730085B23D /* AppSettingsViewsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BC0A2427FB8E730085B23D /* AppSettingsViewsUtil.swift */; };
 		F9C57FAD28E5F1E2001D3596 /* MockSSKEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C57FAC28E5F1E2001D3596 /* MockSSKEnvironment.swift */; };
 		F9C5C89F289451B900548EEE /* SignalServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9C5C897289451B900548EEE /* SignalServiceKit.framework */; };
@@ -7723,6 +7726,7 @@
 		D9B1A8BE2FB7B68C00CE5FD3 /* FailIfThrowsRecordCursor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailIfThrowsRecordCursor.swift; sourceTree = "<group>"; };
 		D9B2268E301BF9ED0078C200 /* AppBlockingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBlockingViewController.swift; sourceTree = "<group>"; };
 		D9B22690301BF9F10078C200 /* ClockSkewAppBlockingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockSkewAppBlockingViewController.swift; sourceTree = "<group>"; };
+		D1139A000000000000000001 /* TellomiUpdateRequiredAppBlockingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiUpdateRequiredAppBlockingViewController.swift; sourceTree = "<group>"; };
 		D9B2E1172E748DFB00A823E4 /* OWSByteCountFormatStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OWSByteCountFormatStyle.swift; sourceTree = "<group>"; };
 		D9B8541129137C150058F97B /* JobRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobRecord.swift; sourceTree = "<group>"; };
 		D9B91D8D2B17E2A600BCB11A /* GroupCallRecordRingUpdateDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupCallRecordRingUpdateDelegate.swift; sourceTree = "<group>"; };
@@ -7741,6 +7745,7 @@
 		D9C0DE012E3F0A0100C0DE01 /* DonationReceiptCredentialResultCodableTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationReceiptCredentialResultCodableTest.swift; sourceTree = "<group>"; };
 		D9C0DE112E3F0A0100C0DE11 /* PendingMonthlyIDEALDonationCodableTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingMonthlyIDEALDonationCodableTest.swift; sourceTree = "<group>"; };
 		D9C15C010000000000000002 /* ClockSkewMonitoringManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockSkewMonitoringManager.swift; sourceTree = "<group>"; };
+		D1139A000000000000000003 /* TellomiUpdateRequiredMonitoringManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiUpdateRequiredMonitoringManager.swift; sourceTree = "<group>"; };
 		D9C15C020000000000000002 /* ClockSkewManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockSkewManagerTest.swift; sourceTree = "<group>"; };
 		D9C2D777299B07D300D79715 /* Usernames+BetterIdentifierChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Usernames+BetterIdentifierChecker.swift"; sourceTree = "<group>"; };
 		D9C2D77D299D750200D79715 /* UsernameEducationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameEducationManager.swift; sourceTree = "<group>"; };
@@ -8261,6 +8266,7 @@
 		F9B652C228D8E3DF006914CA /* DatabaseRecovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseRecovery.swift; sourceTree = "<group>"; };
 		F9B93CDB28E1FE3500B3F8A0 /* SignalProxyTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalProxyTest.swift; sourceTree = "<group>"; };
 		F9B93CDF28E246D900B3F8A0 /* AppDelegateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateTest.swift; sourceTree = "<group>"; };
+		D1139A000000000000000005 /* TellomiUpdateRequiredTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiUpdateRequiredTest.swift; sourceTree = "<group>"; };
 		F9BC0A2427FB8E730085B23D /* AppSettingsViewsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsViewsUtil.swift; sourceTree = "<group>"; };
 		F9BC9C6428B7C00A0077D442 /* OutgoingGroupUpdateMessageTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutgoingGroupUpdateMessageTest.swift; sourceTree = "<group>"; };
 		F9C45D9329CB93E200B2CD2D /* UIStackView+SignalUITest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIStackView+SignalUITest.swift"; sourceTree = "<group>"; };
@@ -10048,6 +10054,7 @@
 				880D902F2481E617003D2B14 /* SignalApp.swift */,
 				6698FC13297F38BB004EFC30 /* ViewControllerContext.swift */,
 				76616C9C2A266A05005F7001 /* WindowManager.swift */,
+				D1139A000000000000000003 /* TellomiUpdateRequiredMonitoringManager.swift */,
 			);
 			path = AppLaunch;
 			sourceTree = "<group>";
@@ -12008,6 +12015,7 @@
 				34B3F8951E8DF1B90035BE1A /* ViewControllers */,
 				34BEDB0F21C41E71007B0EAE /* views */,
 				F9B93CDF28E246D900B3F8A0 /* AppDelegateTest.swift */,
+				D1139A000000000000000005 /* TellomiUpdateRequiredTest.swift */,
 				4C83AC4123C55D9C00D4F2E6 /* SignalBaseTest.swift */,
 			);
 			path = test;
@@ -14321,6 +14329,7 @@
 			children = (
 				D9B2268E301BF9ED0078C200 /* AppBlockingViewController.swift */,
 				D9B22690301BF9F10078C200 /* ClockSkewAppBlockingViewController.swift */,
+				D1139A000000000000000001 /* TellomiUpdateRequiredAppBlockingViewController.swift */,
 			);
 			path = AppBlocking;
 			sourceTree = "<group>";
@@ -18255,6 +18264,7 @@
 				3402AA9D271D9E180084CBAE /* CircleView.swift in Sources */,
 				76BC91EC2F883C0000BE569B /* CircularProgressView.swift in Sources */,
 				D9B22691301BF9F10078C200 /* ClockSkewAppBlockingViewController.swift in Sources */,
+				D1139A000000000000000002 /* TellomiUpdateRequiredAppBlockingViewController.swift in Sources */,
 				34A954E0271B4F3E00B05242 /* ColorOrGradient+SignalUI.swift in Sources */,
 				34A954E2271B4F3E00B05242 /* ColorOrGradientSwatchView.swift in Sources */,
 				76A2EB1228B57AEE00A29C24 /* ColorPickerBar.swift in Sources */,
@@ -18713,6 +18723,7 @@
 				887B380825F0355700685845 /* ChatsSettingsViewController.swift in Sources */,
 				D9680CF32DBB0B2D005DD5BE /* ChooseBackupPlanViewController.swift in Sources */,
 				D9C15C010000000000000003 /* ClockSkewMonitoringManager.swift in Sources */,
+				D1139A000000000000000004 /* TellomiUpdateRequiredMonitoringManager.swift in Sources */,
 				34E95C1B269F4F1B004807EC /* CLVLoader.swift in Sources */,
 				34E95C22269F4F4F004807EC /* CLVRenderState.swift in Sources */,
 				34E95C25269F4F4F004807EC /* CLVTableDataSource.swift in Sources */,
@@ -19367,6 +19378,7 @@
 			files = (
 				6675F65129261E0C007A311E /* APNSRotationStoreTest.swift in Sources */,
 				F9B93CE028E246D900B3F8A0 /* AppDelegateTest.swift in Sources */,
+				D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */,
 				F9B3A92F293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift in Sources */,
 				50B6BCB42AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift in Sources */,
 				D962FC432E149ECF004DB623 /* BackupAttachmentDownloadTrackerTest.swift in Sources */,
