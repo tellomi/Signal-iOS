@@ -38,7 +38,7 @@ final class AlbumViewerScreenshotTests: XCTestCase {
                     groupV2Updates: MockGroupV2Updates(),
                     groupsV2: MockGroupsV2(),
                     messageSender: FakeMessageSender(),
-                    networkManager: OWSFakeNetworkManager(appReadiness: appReadiness, libsignalNet: nil),
+                    networkManager: OWSFakeNetworkManager(appReadiness: appReadiness, netProvider: nil),
                     paymentsCurrencies: MockPaymentsCurrencies(),
                     paymentsHelper: MockPaymentsHelper(),
                     pendingReceiptRecorder: NoopPendingReceiptRecorder(),
