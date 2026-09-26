@@ -514,14 +514,18 @@ final class TellomiAttachmentFilesTests: SignalBaseTest {
 
     private func makeFiles(_ count: Int) -> [TellomiRecentFile] {
         let extensions = ["pdf", "zip", "xlsx", "docx", "pptx", "txt", "csv"]
-        return (0..<count).map { index in
-            TellomiRecentFile(
+        // Xcode 26.6 的类型检查器对这一整个闭包里的字面量算式会超时：闭包写明类型，每个值先单独算好
+        return (0..<count).map { (index: Int) -> TellomiRecentFile in
+            let fileName: String = "第 \(index + 1) 季度报告（最终版）.\(extensions[index % extensions.count])"
+            let byteCount: UInt64 = UInt64((index + 1) * 700 * 1_024)
+            let sentSeconds: TimeInterval = 1_790_000_000 - Double(index) * 5_400
+            return TellomiRecentFile(
                 id: "f\(index)",
                 attachmentRowId: Int64(index),
                 messageRowId: Int64(index),
-                fileName: "第 \(index + 1) 季度报告（最终版）.\(extensions[index % extensions.count])",
-                byteCount: UInt64((index + 1) * 700 * 1_024),
-                sentAt: Date(timeIntervalSince1970: 1_790_000_000 - Double(index) * 5_400),
+                fileName: fileName,
+                byteCount: byteCount,
+                sentAt: Date(timeIntervalSince1970: sentSeconds),
                 isOnDevice: index != 4,
             )
         }
