@@ -1388,6 +1388,22 @@ extension ChatListViewController {
         case accountSettings
     }
 
+    /// Tellomi（tellomi/tellomi#1193）：远端备份不做时（`TSConstants.remoteBackupsEnabled`），哪些备份页还能开：
+    /// 远端页不开；落地页只在有本地备份的构建里开（正式构建里它等于远端页）；本地备份照旧。
+    static func tellomiCanOpenBackupSettings(page: ShowAppSettingsMode.BackupSettingsPage) -> Bool {
+        if TSConstants.remoteBackupsEnabled {
+            return true
+        }
+        switch page {
+        case .remote:
+            return false
+        case .landingPage:
+            return BuildFlags.LocalFileBackups.settingsUI
+        case .local:
+            return true
+        }
+    }
+
     func showAppSettings(mode: ShowAppSettingsMode? = nil, completion: (() -> Void)? = nil) {
         AssertIsOnMainThread()
 
@@ -1434,6 +1450,12 @@ extension ChatListViewController {
             internalCompletion = { profile.presentAvatarSettingsView() }
 
         case .backups(let page):
+            // Tellomi（tellomi/tellomi#1193）：megaphone、首屏提示、通知等各处「去备份」都汇到这里。远端备份不做时不开远端页，
+            // 只停在设置首页（这里的 break 跳出外层 switch mode）；本地备份照旧。
+            guard Self.tellomiCanOpenBackupSettings(page: page) else {
+                Logger.warn("Remote backups are disabled; opening settings without the backups page.")
+                break
+            }
             let backupSettingsVC: UIViewController
             switch page {
             case .landingPage:
