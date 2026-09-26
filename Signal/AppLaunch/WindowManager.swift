@@ -25,9 +25,13 @@ extension UIWindow.Level {
 
     // In front of the status bar and CallView
     fileprivate static let _screenBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 2)
+
+    // Tellomi（tellomi/tellomi#1139）：「必须更新」在最前面，连应用锁也盖住（需求 3.4：未解锁也能先更新，
+    // 阻断页不显示任何私人内容；Telegram iOS 的 .update 层同样排在 .passcode 之上）。
+    fileprivate static let _updateRequiredBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 3)
 }
 
-class WindowManager {
+class WindowManager: TellomiUpdateRequiredBlockHost {
 
     init() {
         AssertIsOnMainThread()
@@ -51,6 +55,7 @@ class WindowManager {
         case callViewWindow: true
         case clockSkewBlockingWindow: true
         case screenBlockingWindow: true
+        case updateRequiredBlockingWindow: true
         default: false
         }
     }
@@ -58,6 +63,19 @@ class WindowManager {
     var captchaWindow: UIWindow {
         return shouldShowCallView ? callViewWindow : rootWindow
     }
+
+    /// Tellomi（tellomi/tellomi#1139）：为真时用「必须更新」阻断页盖住整个 App（由 `TellomiUpdateRequiredMonitoringManager` 设置）。
+    var isUpdateRequiredBlockActive: Bool = false {
+        didSet {
+            AssertIsOnMainThread()
+            guard isUpdateRequiredBlockActive != oldValue else { return }
+            ensureWindowState()
+            NotificationCenter.default.post(name: .tellomiUpdateRequiredBlockDidChange, object: nil)
+        }
+    }
+
+    /// Tellomi：阻断页上确认了「暂不更新，只看聊天记录」（owner 2026-09-24 规则 1）。
+    var updateRequiredViewChatsOnlyHandler: (@MainActor () -> Void)?
 
     var isScreenBlockActive: Bool = false {
         didSet {
@@ -79,6 +97,10 @@ class WindowManager {
         for window in [rootWindow!, callViewWindow, clockSkewBlockingWindow, screenBlockingWindow!] {
             guard window.frame != desiredFrame else { continue }
             window.frame = desiredFrame
+        }
+        // Tellomi（tellomi/tellomi#1139）
+        if updateRequiredBlockingWindow.frame != desiredFrame {
+            updateRequiredBlockingWindow.frame = desiredFrame
         }
     }
 
@@ -166,6 +188,39 @@ class WindowManager {
     // UIWindow.Level._screenBlocking() if active.
     private var screenBlockingWindow: UIWindow!
 
+    // UIWindow.Level._updateRequiredBlocking（Tellomi，tellomi/tellomi#1139）
+    private lazy var updateRequiredBlockingViewController = Self.makeUpdateRequiredBlockingViewController(host: self)
+
+    /// 拆成静态方法，是为了用例能走这里真的接线（taishi 审查 b15 启用前置 2）。
+    static func makeUpdateRequiredBlockingViewController(host: TellomiUpdateRequiredBlockHost) -> TellomiUpdateRequiredAppBlockingViewController {
+        return TellomiUpdateRequiredAppBlockingViewController(
+            openUpdatePage: {
+                // 阻断页只在 appStoreUrl 就是我们配的更新渠道时才会出现
+                // （TellomiUpdateRequiredMonitoringManager.hasUpdateChannel），不会把人送去装别的 App。
+                UIApplication.shared.open(TSConstants.appStoreUrl)
+            },
+            viewChatsOnly: { [weak host] in
+                host?.updateRequiredViewChatsOnlyHandler?()
+            },
+        )
+    }
+
+    private lazy var updateRequiredBlockingWindow: UIWindow = {
+        AssertIsOnMainThread()
+        guard let rootWindow else {
+            owsFail("rootWindow is nil")
+        }
+
+        let window = OWSWindow(frame: rootWindow.bounds)
+        window.windowLevel = ._updateRequiredBlocking
+        window.isHidden = true
+        window.isOpaque = true
+        window.backgroundColor = Theme.launchScreenBackgroundColor
+        window.rootViewController = updateRequiredBlockingViewController
+
+        return window
+    }()
+
     // MARK: Window State
 
     private func ensureWindowState() {
@@ -176,6 +231,26 @@ class WindowManager {
         // window level and are shown/hidden as necessary.
         //
         // Note that we always "hide" before we "show".
+
+        // Tellomi（tellomi/tellomi#1139）：「必须更新」照上游两个阻断窗口（应用锁、时钟偏差）的写法，先把根窗口和通话窗口藏起来，
+        // 免得会话列表在下面继续显示、被旁白读到（taishi 审查 b15 要改 2）。锁窗口照旧按 isScreenBlockActive 处理，
+        // 所以选了「只看聊天记录」、收起阻断页以后，锁上着就先看到应用锁。
+        // 通话中先不盖（上游的时钟偏差页也排在通话后面），挂断后 ensureWindowState 会再盖上。
+        if isUpdateRequiredBlockActive, !hasCall {
+            if isScreenBlockActive {
+                ensureScreenBlockWindowShown()
+            } else {
+                ensureScreenBlockWindowHidden()
+            }
+            ensureRootWindowHidden()
+            ensureReturnToCallWindowHidden()
+            ensureCallViewWindowHidden()
+            ensureClockSkewBlockWindowHidden()
+            ensureUpdateRequiredBlockWindowShown()
+            return
+        }
+        ensureUpdateRequiredBlockWindowHidden()
+
         if isScreenBlockActive {
             ensureScreenBlockWindowShown()
             ensureRootWindowHidden()
@@ -214,6 +289,25 @@ class WindowManager {
 
             ensureCallViewWindowHidden()
         }
+    }
+
+    private func ensureUpdateRequiredBlockWindowShown() {
+        AssertIsOnMainThread()
+
+        if updateRequiredBlockingWindow.isHidden {
+            Logger.info("showing update required window.")
+        }
+
+        updateRequiredBlockingWindow.makeKeyAndVisible()
+    }
+
+    private func ensureUpdateRequiredBlockWindowHidden() {
+        AssertIsOnMainThread()
+
+        guard !updateRequiredBlockingWindow.isHidden else { return }
+
+        Logger.info("hiding update required window.")
+        updateRequiredBlockingWindow.isHidden = true
     }
 
     private func ensureRootWindowShown() {

@@ -30,6 +30,8 @@ class CLVViewState {
     let localFileBackupExportProgressView: CLVLocalFileBackupExportProgressView
     let settingsButtonCreator: ChatListSettingsButtonState
     let proxyButtonCreator: ChatListProxyButtonCreator
+    /// Tellomi（tellomi/tellomi#1218 F-04）
+    let connectionTitleObserver: ChatListConnectionTitleObserver
 
     let spoilerAnimationManager: SpoilerAnimationManager
 
@@ -139,6 +141,7 @@ class CLVViewState {
         self.localFileBackupExportProgressView = CLVLocalFileBackupExportProgressView()
         self.settingsButtonCreator = ChatListSettingsButtonState()
         self.proxyButtonCreator = ChatListProxyButtonCreator(chatConnectionManager: DependenciesBridge.shared.chatConnectionManager)
+        self.connectionTitleObserver = ChatListConnectionTitleObserver()
     }
 
     func configure() {

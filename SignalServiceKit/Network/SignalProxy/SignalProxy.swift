@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import LibSignalClient
 
 public extension Notification.Name {
     static let isSignalProxyReadyDidChange = Notification.Name("isSignalProxyReadyDidChange")
@@ -145,24 +146,37 @@ public class SignalProxy: NSObject {
     private static func updateLibSignalProxy() {
         let networkManager = SSKEnvironment.shared.networkManagerRef
         if isEnabled {
-            if let (proxyHost, proxyPort) = host.flatMap({ ProxyClient.parseHost($0) }) {
-                if let libsignalNet = networkManager.libsignalNet {
-                    Logger.info("Applying signal proxy settings to libsignal Net.")
-                    do {
-                        try libsignalNet.setProxy(host: proxyHost, port: proxyPort)
-                        Logger.info("Applied signal proxy settings to libsignal Net.")
-                    } catch {
-                        owsFailDebug("failed to set proxy on libsignal-net (need better validation)")
-                        // This will poison the Net instance, failing all new connections,
-                        // until a valid proxy is set or cleared.
-                    }
-                }
-            } else {
-                // We can't print the invalid host in the logs, because that's private!
-                owsFailDebug("failed to parse previously-validated proxy host")
+            if let libsignalNet = networkManager.libsignalNet {
+                applyInAppProxy(to: libsignalNet)
             }
         } else {
             networkManager.resetLibsignalNetProxySettings()
+        }
+    }
+
+    /// Tellomi（#1056 第三刀）：把代理设置配到指定的 `Net` 上。切区时新建的 `Net` 要在换上之前配好，不能等它成为当前的那个。
+    static func applyProxySettings(to libsignalNet: Net, appReadiness: AppReadiness) {
+        if isEnabled {
+            applyInAppProxy(to: libsignalNet)
+        } else {
+            NetworkManager.resetLibsignalNetProxySettings(libsignalNet, appReadiness: appReadiness)
+        }
+    }
+
+    private static func applyInAppProxy(to libsignalNet: Net) {
+        if let (proxyHost, proxyPort) = host.flatMap({ ProxyClient.parseHost($0) }) {
+            Logger.info("Applying signal proxy settings to libsignal Net.")
+            do {
+                try libsignalNet.setProxy(host: proxyHost, port: proxyPort)
+                Logger.info("Applied signal proxy settings to libsignal Net.")
+            } catch {
+                owsFailDebug("failed to set proxy on libsignal-net (need better validation)")
+                // This will poison the Net instance, failing all new connections,
+                // until a valid proxy is set or cleared.
+            }
+        } else {
+            // We can't print the invalid host in the logs, because that's private!
+            owsFailDebug("failed to parse previously-validated proxy host")
         }
     }
 

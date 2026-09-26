@@ -1591,6 +1591,11 @@ class StorageServiceAccountRecordUpdater: StorageServiceRecordUpdater {
                 )
             }
         } else {
+            // Tellomi（ADR-0066 §6.2）：本机原来有用户名、同步下来的没有 = 别的设备删了。记下时间，保留期内再设名前提醒「也算改名」
+            // （与 Android `StorageSyncHelper` 合并 AccountRecord 处同一判法）。同步时刻晚于删除时刻，只会多提示，不会漏。
+            if !localUsernameManager.usernameState(tx: transaction).isExplicitlyUnset {
+                TellomiUsernameHold.recordDeletion(tx: transaction)
+            }
             localUsernameManager.clearLocalUsername(tx: transaction)
         }
 
