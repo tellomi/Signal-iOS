@@ -101,7 +101,8 @@ extension RegistrationCoordinatorImpl {
             )
         }
 
-        private static func handleCreateAccountResponse(
+        // Tellomi（tellomi/tellomi#1266）：不再 private，单测直接喂服务端的注册回包，核 `reregistration` 带进了身份。
+        static func handleCreateAccountResponse(
             authPassword: String,
             statusCode: Int,
             retryAfterHeader: TimeInterval?,
@@ -125,6 +126,7 @@ extension RegistrationCoordinatorImpl {
                     e164: response.e164,
                     hasPreviouslyUsedSVR: response.hasPreviouslyUsedSVR,
                     authPassword: authPassword,
+                    isReregistration: response.reregistration,
                 ))
 
             case .deviceTransferPossible:

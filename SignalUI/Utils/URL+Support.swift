@@ -42,7 +42,9 @@ extension URL {
         }
     }
 
+    /// Tellomi：上游把每一处「了解更多」拼到 support.signal.org 的具体文章——那边写的是 Signal，大陆通常打不开。
+    /// tellomi.app 还没有逐篇的帮助文章，先统一落到帮助首页；逐篇文章等帮助中心（tellomi/tellomi#1209）。
     private static func supportArticle(_ slug: String) -> URL {
-        self.init(string: "https://support.signal.org/hc/articles/\(slug)")!
+        return URL.Support.generic
     }
 }

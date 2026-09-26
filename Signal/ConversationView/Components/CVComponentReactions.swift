@@ -132,5 +132,10 @@ public class CVComponentReactions: CVComponentBase, CVComponent, CVAccessibility
             reactionCountsView.reset()
         }
 
+        /// Tellomi（交互审计 A-07）：回应飞入的落点。
+        func emojiLabel(for emoji: String) -> UILabel? {
+            reactionCountsView.emojiLabel(for: emoji)
+        }
+
     }
 }

@@ -50,7 +50,7 @@ enum TellomiViewerGlass {
         var configuration = buttonConfiguration()
         configuration.image = image
         configuration.contentInsets = .init(margin: 10)
-        let button = UIButton(configuration: configuration, primaryAction: action)
+        let button = TellomiViewerMenuButton(configuration: configuration, primaryAction: action)
         if let menu {
             button.menu = menu
             button.showsMenuAsPrimaryAction = true
@@ -67,4 +67,33 @@ enum TellomiViewerGlass {
         barButtonItem.menu = menu
         return barButtonItem
     }
+}
+
+/// Tellomi（#1257）：查看器顶栏的圆钮。带菜单的（「···」）记下菜单开着没有——播放中自动收起控件时，菜单开着就不收（同 Telegram 的 isShowingContextMenu）。
+final class TellomiViewerMenuButton: UIButton {
+    private(set) var isMenuVisible = false
+
+    override func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        willDisplayMenuFor configuration: UIContextMenuConfiguration,
+        animator: UIContextMenuInteractionAnimating?,
+    ) {
+        super.contextMenuInteraction(interaction, willDisplayMenuFor: configuration, animator: animator)
+        isMenuVisible = true
+    }
+
+    override func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        willEndFor configuration: UIContextMenuConfiguration,
+        animator: UIContextMenuInteractionAnimating?,
+    ) {
+        super.contextMenuInteraction(interaction, willEndFor: configuration, animator: animator)
+        isMenuVisible = false
+    }
+
+#if TESTABLE_BUILD
+    func setMenuVisibleForTesting(_ isVisible: Bool) {
+        isMenuVisible = isVisible
+    }
+#endif
 }

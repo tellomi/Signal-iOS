@@ -53,7 +53,19 @@ class ProvisioningQRCodeViewController: ProvisioningBaseViewController, Provisio
         qrCodeViewHostingContainer.didMove(toParent: self)
 
         provisioningQRCodeViewModel.updateURLDisplayMode(.loading)
-        provisioningSocketManager.start()
+        // Tellomi（tellomi/tellomi#1133）：provisioning socket 是 libsignal 直连服务端，不经过跨境的两道闸。
+        // 没同意跨境就先不开：viewDidAppear 出告知，同意之后 reset() 再开。
+        if TellomiCrossBorderConsent.hasAgreed {
+            provisioningSocketManager.start()
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        // Tellomi（tellomi/tellomi#1133）：iPad 未注册启动、`.relinking`、号码页「关联此设备」都不经过注册欢迎页，
+        // 最后都到这一页。关联要连服务端（provisioning socket + verifySecondaryDevice），没同意跨境就在这里先出告知。
+        guard !TellomiCrossBorderConsent.hasAgreed else { return }
+        presentTellomiCrossBorderNotice { [weak self] in self?.reset() }
     }
 
     override func viewWillDisappear(_ animated: Bool) {

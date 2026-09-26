@@ -27,15 +27,6 @@ public protocol QuotedReplyManager {
         tx: DBReadTransaction,
     ) -> DraftQuotedReplyModel?
 
-    /// Tellomi（tellomi/tellomi#1257）：回复相册里指定的某一张（查看器里的「回复」）。引用在协议里仍指向整条消息，
-    /// 引用缩略图用这一张；`preferredAttachmentId` 为 nil 或不在这条消息里时同上游（第一张）。
-    func buildDraftQuotedReply(
-        originalMessage: TSMessage,
-        preferredAttachmentId: Attachment.IDType?,
-        loadNormalizedImage: (CGImageSource, CGFloat) -> CGImage?,
-        tx: DBReadTransaction,
-    ) -> DraftQuotedReplyModel?
-
     func buildDraftQuotedReplyForEditing(
         quotedReplyMessage: TSMessage,
         quotedReply: TSQuotedMessage,
@@ -58,18 +49,6 @@ public protocol QuotedReplyManager {
         outgoingMessage: TSOutgoingMessage,
         tx: DBReadTransaction,
     ) throws -> SSKProtoDataMessageQuote
-}
-
-extension QuotedReplyManager {
-    /// 不认指定附件的实现（例如测试替身）按上游默认处理。
-    public func buildDraftQuotedReply(
-        originalMessage: TSMessage,
-        preferredAttachmentId: Attachment.IDType?,
-        loadNormalizedImage: (CGImageSource, CGFloat) -> CGImage?,
-        tx: DBReadTransaction,
-    ) -> DraftQuotedReplyModel? {
-        return buildDraftQuotedReply(originalMessage: originalMessage, loadNormalizedImage: loadNormalizedImage, tx: tx)
-    }
 }
 
 // MARK: -
@@ -326,12 +305,8 @@ class QuotedReplyManagerImpl: QuotedReplyManager {
         }
 
         let thumbnailAttachmentInfo: OWSAttachmentInfo?
-        let thumbnailDataSource: QuotedReplyAttachmentDataSource?
-        if let (info, albumItemSource) = albumItemQuoteThumbnail(originalMessage: originalMessage, quoteProto: quoteProto, tx: tx) {
-            // Tellomi（#1257）：回复的是相册里的某一张——用对方带来的那一张的缩略图，而不是本地相册的第一张
-            thumbnailAttachmentInfo = info
-            thumbnailDataSource = .notFoundLocallyAttachment(albumItemSource)
-        } else if
+        let thumbnailOriginalAttachmentSource: QuotedReplyAttachmentDataSource.OriginalAttachmentSource?
+        if
             let (info, attachmentSource) = quotedReplyAttachmentInfo(
                 originalMessage: originalMessage,
                 quoteProto: quoteProto,
@@ -339,10 +314,10 @@ class QuotedReplyManagerImpl: QuotedReplyManager {
             )
         {
             thumbnailAttachmentInfo = info
-            thumbnailDataSource = attachmentSource.map { .originalAttachment($0) }
+            thumbnailOriginalAttachmentSource = attachmentSource
         } else {
             thumbnailAttachmentInfo = nil
-            thumbnailDataSource = nil
+            thumbnailOriginalAttachmentSource = nil
         }
 
         if
@@ -366,61 +341,8 @@ class QuotedReplyManagerImpl: QuotedReplyManager {
                 isTargetMessageViewOnce: false,
                 isPoll: isPoll,
             ),
-            thumbnailDataSource: thumbnailDataSource,
+            thumbnailDataSource: thumbnailOriginalAttachmentSource.map { .originalAttachment($0) },
         )
-    }
-
-    /// Tellomi（tellomi/tellomi#1257）：对方在查看器里回复了相册里的某一张。协议里引用只指向整条消息，
-    /// 对方带的缩略图是那一张；本地找到原消息时上游一律取第一张，两边看到的就不一样。
-    /// 被引用的是相册（≥ 2 个图片 / 视频）且对方带了缩略图时，改用对方带来的那张（和本地没有原消息时同一条路）。
-    private func albumItemQuoteThumbnail(
-        originalMessage: TSMessage,
-        quoteProto: SSKProtoDataMessageQuote,
-        tx: DBReadTransaction,
-    ) -> (OWSAttachmentInfo, QuotedReplyAttachmentDataSource.NotFoundLocallyAttachmentSource)? {
-        guard
-            let originalMessageRowId = originalMessage.sqliteRowId,
-            let quotedAttachment = quoteProto.attachments.first,
-            let thumbnailProto = quotedAttachment.thumbnail
-        else {
-            return nil
-        }
-        let albumMediaCount = attachmentStore
-            .fetchReferencedAttachments(for: .messageBodyAttachment(messageRowId: originalMessageRowId), tx: tx)
-            .filter { MimeTypeUtil.isSupportedVisualMediaMimeType($0.attachment.mimeType) }
-            .count
-        guard albumMediaCount >= 2 else {
-            return nil
-        }
-        let mimeType: String = quotedAttachment.contentType?.nilIfEmpty ?? MimeType.applicationOctetStream.rawValue
-        let renderingFlag: AttachmentReference.RenderingFlag = .fromProto(thumbnailProto)
-        return (
-            OWSAttachmentInfo(
-                originalAttachmentMimeType: mimeType,
-                originalAttachmentSourceFilename: quotedAttachment.fileName,
-                originalAttachmentRenderingFlag: renderingFlag,
-            ),
-            QuotedReplyAttachmentDataSource.NotFoundLocallyAttachmentSource(
-                thumbnailPointerProto: thumbnailProto,
-                originalAttachmentMimeType: mimeType,
-                originalAttachmentRenderingFlag: renderingFlag,
-            ),
-        )
-    }
-
-    /// Tellomi（#1257）：查看器里「回复」的那一张在这条消息里的引用。
-    private func preferredAttachmentReference(
-        originalMessageRowId: Int64,
-        preferredAttachmentId: Attachment.IDType?,
-        tx: DBReadTransaction,
-    ) -> AttachmentReference? {
-        guard let preferredAttachmentId else {
-            return nil
-        }
-        return attachmentStore
-            .fetchReferencedAttachments(for: .messageBodyAttachment(messageRowId: originalMessageRowId), tx: tx)
-            .first { $0.attachment.id == preferredAttachmentId }?
-            .reference
     }
 
     private func quotedReplyAttachmentInfo(
@@ -474,20 +396,6 @@ class QuotedReplyManagerImpl: QuotedReplyManager {
 
     func buildDraftQuotedReply(
         originalMessage: TSMessage,
-        loadNormalizedImage: (CGImageSource, CGFloat) -> CGImage?,
-        tx: DBReadTransaction,
-    ) -> DraftQuotedReplyModel? {
-        return buildDraftQuotedReply(
-            originalMessage: originalMessage,
-            preferredAttachmentId: nil,
-            loadNormalizedImage: loadNormalizedImage,
-            tx: tx,
-        )
-    }
-
-    func buildDraftQuotedReply(
-        originalMessage: TSMessage,
-        preferredAttachmentId: Attachment.IDType?,
         loadNormalizedImage: (CGImageSource, CGFloat) -> CGImage?,
         tx: DBReadTransaction,
     ) -> DraftQuotedReplyModel? {
@@ -598,11 +506,7 @@ class QuotedReplyManagerImpl: QuotedReplyManager {
 
         if
             let originalMessageRowId = originalMessage.sqliteRowId,
-            let attachmentRef = preferredAttachmentReference(
-                originalMessageRowId: originalMessageRowId,
-                preferredAttachmentId: preferredAttachmentId,
-                tx: tx,
-            ) ?? attachmentStore.attachmentToUseInQuote(originalMessageRowId: originalMessageRowId, tx: tx),
+            let attachmentRef = attachmentStore.attachmentToUseInQuote(originalMessageRowId: originalMessageRowId, tx: tx),
             let attachment = attachmentStore.fetch(id: attachmentRef.attachmentRowId, tx: tx)
         {
             if

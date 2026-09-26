@@ -108,7 +108,8 @@ class ExpirationNagView: ReminderView {
         if osExpirationDate < now {
             return .osExpired(canUpgrade: device.canUpgrade(to: osExpiry.minimumIosMajorVersion))
         }
-        // If the app expires before the OS, warn about that (within 10 days).
+        // If the app expires before the OS, warn about that (within 14 days).
+        // Tellomi（tellomi/tellomi#1142，需求第 3.6 节）：到期前 14 天开始提示（上游 10 天），与 Android 一致。
         if appExpiry.expirationDate < osExpirationDate {
             if appExpiry.expirationDate < now {
                 return .appExpired
@@ -116,7 +117,7 @@ class ExpirationNagView: ReminderView {
             if daysUntilAppExpiry <= 0 {
                 return .appWillExpireToday
             }
-            if daysUntilAppExpiry <= 10 {
+            if daysUntilAppExpiry <= 14 {
                 return .appWillExpireSoon(appExpiry.expirationDate)
             }
         }
@@ -133,9 +134,12 @@ class ExpirationNagView: ReminderView {
 
 private extension String {
     static var appExpired: String {
+        // Tellomi（#1143 需求 3.4，taishi 审查包 11）：服务端判定（499）时并没有过期，横幅不说「已过期」，
+        // 改说「需要更新才能继续收发消息」，两种情况都成立；和 Android 只读横幅同一句。
         return OWSLocalizedString(
-            "EXPIRATION_ERROR",
-            comment: "Label notifying the user that the app has expired.",
+            "EXPIRATION_ERROR_TELLOMI",
+            value: "Update Tellomi to keep sending and receiving messages.",
+            comment: "Tellomi: Conversation list banner when this version can no longer send or receive (the server rejects it, or the build expired). Says an update is needed rather than 'expired', since a server-side block is not an expiry.",
         )
     }
 
