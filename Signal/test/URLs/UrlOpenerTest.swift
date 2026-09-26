@@ -130,6 +130,47 @@ class UrlOpenerTest: XCTestCase {
         }
     }
 
+    /// Tellomi（ADR-0066 §6.2）：删除框和「删后再设」确认框的两条复数文案，四种语言都要在顶层查得到，参数位置也要对：
+    /// 第 1 个参数是改名冷却天数（决定单复数），用户名、保留天数按位置取。冷却天数故意给 7、保留天数给 30，位置错了就看得出来。
+    func testTellomiUsernameHoldStringsResolveInEveryLocale() throws {
+        let deleteKey = "PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d"
+        let setAfterDeleteKey = "USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d"
+        let expected: [String: (delete: String, setAfterDelete: String)] = [
+            "en": (
+                "This will remove your username and disable your QR code and link. “kaixin” stays reserved for you for 30 days; if you set a username during that time, you won’t be able to change it again for 7 days. Are you sure?",
+                "You deleted your username less than 30 days ago, so setting one now counts as a change: you won’t be able to change it again for 7 days. Are you sure?",
+            ),
+            "zh_CN": (
+                "这样做将会删除你的用户名，并使你的二维码和链接失效。“kaixin”会为你保留 30 天；这期间再设置用户名，之后 7 天内不能再改。确定要删除吗？",
+                "你在 30 天内删除过用户名，现在设置也算一次更改：之后 7 天内不能再改。确定要继续吗？",
+            ),
+            "zh_HK": (
+                "這將刪除你的用戶名稱及停用你的二維碼和連結。「kaixin」會為你保留 30 天；這期間再設定用戶名稱，之後 7 天內不能再更改。你確定嗎？",
+                "你在 30 天內刪除過用戶名稱，現在設定也算一次更改：之後 7 天內不能再更改。你確定嗎？",
+            ),
+            "zh_TW": (
+                "這將刪除你的用戶名稱及停用你的二維碼和連結。「kaixin」會為你保留 30 天；這期間再設定用戶名稱，之後 7 天內不能再更改。你確定嗎？",
+                "你在 30 天內刪除過用戶名稱，現在設定也算一次更改：之後 7 天內不能再更改。你確定嗎？",
+            ),
+        ]
+        for (localization, texts) in expected {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: localization, ofType: "lproj"), localization)
+            let bundle = try XCTUnwrap(Bundle(path: path), localization)
+            let deleteFormat = bundle.localizedString(forKey: deleteKey, value: nil, table: "PluralAware")
+            XCTAssertEqual(String.localizedStringWithFormat(deleteFormat, 7, "kaixin", 30), texts.delete, localization)
+            let setAfterDeleteFormat = bundle.localizedString(forKey: setAfterDeleteKey, value: nil, table: "PluralAware")
+            XCTAssertEqual(String.localizedStringWithFormat(setAfterDeleteFormat, 7, 30), texts.setAfterDelete, localization)
+        }
+
+        // 英文单数：冷却 1 天时是「1 day」
+        let enPath = try XCTUnwrap(Bundle.main.path(forResource: "en", ofType: "lproj"))
+        let en = try XCTUnwrap(Bundle(path: enPath))
+        XCTAssertTrue(
+            String.localizedStringWithFormat(en.localizedString(forKey: setAfterDeleteKey, value: nil, table: "PluralAware"), 1, 30)
+                .hasSuffix("you won’t be able to change it again for 1 day. Are you sure?"),
+        )
+    }
+
     /// tellomi/tellomi#1106 第二刀：选用户名页「没改 / 只改大小写」的捷径只认原判别位是 01 的；`.57` 这类旧号同名也要重新预约 `.01`。
     func testTellomiUsernameShortcutsOnlyForFixedDiscriminator() {
         let fixed = Usernames.ParsedUsername(rawUsername: "kaixin.01")
