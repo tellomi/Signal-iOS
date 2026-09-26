@@ -212,6 +212,22 @@ extension ConversationViewController: MessageActionsDelegate {
         inputToolbar.beginEditingMessage()
     }
 
+    /// Tellomi（tellomi/tellomi#1257）：查看器里「回复」——草稿由查看器建好（`MediaPageViewController.buildReplyDraft`），
+    /// 回到会话后放进输入栏，同长按回复。
+    func populateReply(withDraft quotedReply: DraftQuotedReplyModel) {
+        AssertIsOnMainThread()
+
+        guard let inputToolbar else {
+            return
+        }
+
+        self.uiMode = .normal
+
+        inputToolbar.editTarget = nil
+        inputToolbar.quotedReplyDraft = quotedReply
+        inputToolbar.beginEditingMessage()
+    }
+
     func messageActionsForwardItem(_ itemViewModel: CVItemViewModelImpl) {
         AssertIsOnMainThread()
 

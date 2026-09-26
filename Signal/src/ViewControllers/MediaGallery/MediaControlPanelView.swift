@@ -3,12 +3,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import CoreMedia
 import SignalServiceKit
 import SignalUI
 
 protocol MediaControlPanelDelegate: GalleryRailViewDelegate {
     func mediaControlPanelDidRequestForwardMedia(_ panel: MediaControlPanelView)
-    func mediaControlPanelDidRequestShareMedia(_ panel: MediaControlPanelView)
+    /// Tellomi（#1257，照 Telegram）：底栏右边的删除（分享挪进了右上角「···」）。
+    func mediaControlPanelDidRequestDeleteMedia(_ panel: MediaControlPanelView)
+    /// Tellomi（#1257，照 Telegram）：底栏中间的齿轮（只有视频有），从它上方弹出倍速面板。
+    func mediaControlPanel(_ panel: MediaControlPanelView, didRequestPlaybackSpeedMenuFrom sourceView: UIView)
+    /// Tellomi（#1257）：在本组缩略条上点或拖选中了某一张。
+    func mediaControlPanel(_ panel: MediaControlPanelView, didSelectAlbumItem item: MediaGalleryItem)
 }
 
 /// Bottom panel for full-screen media viewer.
@@ -18,6 +24,10 @@ protocol MediaControlPanelDelegate: GalleryRailViewDelegate {
 /// • Share and Forward buttons when in portrait orientation.
 /// • interactive video player playback bar (hidden for photos).
 /// • video playback controls (play/pause, rewind, fast forward) (hidden for photos).
+///
+/// Tellomi（tellomi/tellomi#1257，owner 2026-09-25「多个视频点开时完全参考 Telegram 的设计」）：底栏改成 转发 · 倍速（只有视频）· 删除，
+/// 分享挪进右上角「···」；播放 / 暂停、±15 挪到屏幕正中（MediaVideoCenterControlsView），这里只留进度胶囊；
+/// 拖进度条时在拇指上方显示那一帧（MediaVideoScrubPreviewView）。
 class MediaControlPanelView: UIView {
 
     private let mediaGallery: MediaGallery
@@ -108,15 +118,21 @@ class MediaControlPanelView: UIView {
 
     // Third from the top area.
     private let thumbnailStripArea = UILayoutGuide()
-    private lazy var thumbnailStrip: GalleryRailView = {
-        let view = GalleryRailView()
-        view.delegate = delegate
-        view.itemSize = 40
-        view.layoutMargins.top = 0
-        view.layoutMargins.bottom = 6
-        view.isScrollEnabled = false
+    // Tellomi（#1257，owner 2026-09-25）：可以拖动切换、每换一张轻震、带「k / N」的本组缩略条（替换只能点的 GalleryRailView）。
+    private lazy var thumbnailStrip: MediaAlbumScrubberView = {
+        let view = MediaAlbumScrubberView()
+        view.onItemSelected = { [weak self] index in
+            self?.didSelectAlbumItem(at: index)
+        }
         return view
     }()
+
+    private func didSelectAlbumItem(at index: Int) {
+        guard let items = currentMediaAlbum?.items, items.indices.contains(index) else {
+            return
+        }
+        delegate?.mediaControlPanel(self, didSelectAlbumItem: items[index])
+    }
 
     // Bottom area.
     // Not visible in landscape (`compact` vertical size class).
@@ -139,7 +155,7 @@ class MediaControlPanelView: UIView {
     // This controls how large the bottom button is. Insets are added to 24x24 button icons.
     private static let buttonContentInset: CGFloat = if #available(iOS 26, *) { 10 } else { 8 }
     private lazy var buttonForwardMedia: UIButton = {
-        let configuration: UIButton.Configuration = if #available(iOS 26, *) { .glass() } else { .plain() }
+        let configuration: UIButton.Configuration = if #available(iOS 26, *) { TellomiViewerGlass.buttonConfiguration() } else { .plain() }
         let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
             self?.didPressForward()
         })
@@ -149,22 +165,69 @@ class MediaControlPanelView: UIView {
         return button
     }()
 
-    private lazy var buttonShareMedia: UIButton = {
-        let configuration: UIButton.Configuration = if #available(iOS 26, *) { .glass() } else { .plain() }
+    private lazy var buttonDeleteMedia: UIButton = {
+        let configuration: UIButton.Configuration = if #available(iOS 26, *) { TellomiViewerGlass.buttonConfiguration() } else { .plain() }
         let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
-            self?.didPressShare()
+            self?.didPressDelete()
         })
-        button.configuration?.image = Theme.iconImage(.buttonShare)
+        button.configuration?.image = Theme.iconImage(.buttonDelete)
         button.configuration?.contentInsets = .init(margin: Self.buttonContentInset)
+        button.accessibilityLabel = OWSLocalizedString(
+            "MEDIA_VIEWER_DELETE_MEDIA_ACTION",
+            comment: "Context menu item in media viewer. Refers to deleting currently displayed photo/video.",
+        )
         return button
     }()
+
+    private lazy var buttonPlaybackSpeed: UIButton = {
+        let configuration: UIButton.Configuration = if #available(iOS 26, *) { TellomiViewerGlass.buttonConfiguration() } else { .plain() }
+        let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
+            self?.didPressPlaybackSpeed()
+        })
+        button.configuration?.image = UIImage(imageLiteralResourceName: "settings")
+        button.configuration?.contentInsets = .init(margin: Self.buttonContentInset)
+        button.accessibilityLabel = OWSLocalizedString(
+            "MEDIA_VIEWER_TELLOMI_PLAYBACK_SPEED",
+            comment: "Accessibility label for the playback speed (gear) button in the video viewer.",
+        )
+        return button
+    }()
+
+    /// 倍速不是 1x 时齿轮右上角的「1.5x」角标（照 Telegram 与 Android）。
+    private lazy var playbackSpeedBadge: UILabel = {
+        let label = UILabel()
+        label.font = .monospacedDigitSystemFont(ofSize: 10, weight: .bold)
+        label.textColor = .Signal.background
+        label.backgroundColor = .Signal.label
+        label.textAlignment = .center
+        label.layer.cornerRadius = 7
+        label.clipsToBounds = true
+        label.isUserInteractionEnabled = false
+        label.isHidden = true
+        return label
+    }()
+
+    /// 这次查看器里的倍速（由 MediaPageViewController 设），只用来画角标。
+    var playbackSpeed: Float = 1 {
+        didSet {
+            updatePlaybackSpeedBadge()
+        }
+    }
+
+    private func updatePlaybackSpeedBadge() {
+        let showBadge = abs(playbackSpeed - 1) > 0.05 && !buttonPlaybackSpeed.isHidden
+        playbackSpeedBadge.isHidden = !showBadge
+        playbackSpeedBadge.text = showBadge ? " \(MediaPlaybackSpeedMenuView.formatSpeed(playbackSpeed)) " : nil
+        buttonPlaybackSpeed.accessibilityValue = MediaPlaybackSpeedMenuView.formatSpeed(playbackSpeed)
+    }
+
+    private lazy var scrubPreview = MediaVideoScrubPreviewView()
 
     // Convenience method to create a "regular" glass effect that is interactive.
     @available(iOS 26, *)
     private func interactiveGlassEffect() -> UIVisualEffect? {
-        let glassEffect = UIGlassEffect(style: .regular)
-        glassEffect.isInteractive = true
-        return glassEffect
+        // Tellomi（#1257）：深色玻璃（TellomiViewerGlass）。
+        TellomiViewerGlass.effect()
     }
 
     // MARK: Layout
@@ -330,7 +393,9 @@ class MediaControlPanelView: UIView {
         captionView.translatesAutoresizingMaskIntoConstraints = false
         thumbnailStrip.translatesAutoresizingMaskIntoConstraints = false
         buttonForwardMedia.translatesAutoresizingMaskIntoConstraints = false
-        buttonShareMedia.translatesAutoresizingMaskIntoConstraints = false
+        buttonDeleteMedia.translatesAutoresizingMaskIntoConstraints = false
+        buttonPlaybackSpeed.translatesAutoresizingMaskIntoConstraints = false
+        playbackSpeedBadge.translatesAutoresizingMaskIntoConstraints = false
 
         // These are hidden initially.
         // Video player controls are created on demand.
@@ -359,7 +424,12 @@ class MediaControlPanelView: UIView {
 
         contentView.addSubview(thumbnailStrip)
         contentView.addSubview(buttonForwardMedia)
-        contentView.addSubview(buttonShareMedia)
+        contentView.addSubview(buttonDeleteMedia)
+        contentView.addSubview(buttonPlaybackSpeed)
+        contentView.addSubview(playbackSpeedBadge)
+        // 预览帧要画到面板上沿以外（进度胶囊上方），挂在面板本身（不裁剪）而不是模糊背景里。
+        addSubview(scrubPreview)
+        buttonPlaybackSpeed.isHidden = true
 
         // Constraints with non-required priority allow us to shrink height of the corresponding layout guide
         // to zero while keeping height of the UI elements intact. Combined with setting element's alpha to `0` or `1`
@@ -383,23 +453,38 @@ class MediaControlPanelView: UIView {
             thumbnailStrip.trailingAnchor.constraint(equalTo: thumbnailStripArea.trailingAnchor),
             thumbnailStrip.bottomAnchor.constraint(equalTo: thumbnailStripArea.bottomAnchor),
 
-            buttonShareMedia.topAnchor.constraint(equalTo: buttonArea.topAnchor),
-            buttonShareMedia.widthAnchor.constraint(equalTo: buttonShareMedia.heightAnchor),
-            buttonShareMedia.leadingAnchor.constraint(equalTo: buttonArea.leadingAnchor),
-            {
-                let constraint = buttonShareMedia.bottomAnchor.constraint(equalTo: buttonArea.bottomAnchor)
-                constraint.priority = .defaultHigh + 100
-                return constraint
-            }(),
-
+            // Tellomi（#1257，照 Telegram）：转发在左、删除在右、倍速齿轮在中间。
             buttonForwardMedia.topAnchor.constraint(equalTo: buttonArea.topAnchor),
             buttonForwardMedia.widthAnchor.constraint(equalTo: buttonForwardMedia.heightAnchor),
-            buttonForwardMedia.trailingAnchor.constraint(equalTo: buttonArea.trailingAnchor),
+            buttonForwardMedia.leadingAnchor.constraint(equalTo: buttonArea.leadingAnchor),
             {
                 let constraint = buttonForwardMedia.bottomAnchor.constraint(equalTo: buttonArea.bottomAnchor)
                 constraint.priority = .defaultHigh + 100
                 return constraint
             }(),
+
+            buttonDeleteMedia.topAnchor.constraint(equalTo: buttonArea.topAnchor),
+            buttonDeleteMedia.widthAnchor.constraint(equalTo: buttonDeleteMedia.heightAnchor),
+            buttonDeleteMedia.trailingAnchor.constraint(equalTo: buttonArea.trailingAnchor),
+            {
+                let constraint = buttonDeleteMedia.bottomAnchor.constraint(equalTo: buttonArea.bottomAnchor)
+                constraint.priority = .defaultHigh + 100
+                return constraint
+            }(),
+
+            buttonPlaybackSpeed.topAnchor.constraint(equalTo: buttonArea.topAnchor),
+            buttonPlaybackSpeed.widthAnchor.constraint(equalTo: buttonPlaybackSpeed.heightAnchor),
+            buttonPlaybackSpeed.centerXAnchor.constraint(equalTo: buttonArea.centerXAnchor),
+            {
+                let constraint = buttonPlaybackSpeed.bottomAnchor.constraint(equalTo: buttonArea.bottomAnchor)
+                constraint.priority = .defaultHigh + 100
+                return constraint
+            }(),
+
+            playbackSpeedBadge.heightAnchor.constraint(equalToConstant: 14),
+            playbackSpeedBadge.widthAnchor.constraint(greaterThanOrEqualTo: playbackSpeedBadge.heightAnchor),
+            playbackSpeedBadge.centerXAnchor.constraint(equalTo: buttonPlaybackSpeed.trailingAnchor, constant: -8),
+            playbackSpeedBadge.centerYAnchor.constraint(equalTo: buttonPlaybackSpeed.topAnchor, constant: 8),
         ])
 
         // TODO: Add "Read More"
@@ -518,34 +603,6 @@ class MediaControlPanelView: UIView {
         animator.startAnimation()
     }
 
-    // MARK: Media Rail
-
-    private static var galleryCellConfiguration: GalleryRailCellConfiguration = {
-        // On iOS 26 selected thumbnail doesn't have a border, but instead
-        // it has some extra space around it. Similar to what Photos app does.
-        let borderColor: UIColor
-        let borderWidth: CGFloat
-        let extraPadding: CGFloat
-        if #available(iOS 26, *) {
-            borderColor = .clear
-            borderWidth = 0
-            extraPadding = 8
-        } else {
-            borderColor = .white
-            borderWidth = 2
-            extraPadding = 0
-        }
-        return GalleryRailCellConfiguration(
-            cornerRadius: 6,
-            itemBorderWidth: 0,
-            itemBorderColor: nil,
-            focusedItemBorderWidth: borderWidth,
-            focusedItemBorderColor: borderColor,
-            focusedItemOverlayColor: nil,
-            focusedItemExtraPadding: extraPadding,
-        )
-    }()
-
     // Thumbnail strip is shown for albums (>1 media in one message):
     // iOS 26: all interface orientations.
     // Pre-iOS 26: portrait orientations only (`regular` vertical size class).
@@ -600,6 +657,7 @@ class MediaControlPanelView: UIView {
         }
 
         let videoPlaybackProgressView = PlayerProgressView()
+        videoPlaybackProgressView.delegate = self
         videoPlaybackProgressView.isHidden = true
         videoPlaybackProgressView.translatesAutoresizingMaskIntoConstraints = false
         if let captionAndMediaControlsGlassBackgroundView {
@@ -624,10 +682,10 @@ class MediaControlPanelView: UIView {
         videoPlayerControlsConstraintsPortrait += portraitConstraints
 
         // Landscape constraints.
-        let videoPlaybackControlView = getOrCreateVideoPlaybackControlView()
+        // Tellomi（#1257）：播放 / 暂停挪到了屏幕正中，横屏时进度胶囊也占满整行。
         let landscapeConstraints = [
             videoPlaybackProgressView.topAnchor.constraint(equalTo: videoPlayerControlsArea.topAnchor),
-            videoPlaybackProgressView.leadingAnchor.constraint(equalTo: videoPlaybackControlView.trailingAnchor, constant: 16),
+            videoPlaybackProgressView.leadingAnchor.constraint(equalTo: videoPlayerControlsArea.leadingAnchor),
             videoPlaybackProgressView.trailingAnchor.constraint(equalTo: videoPlayerControlsArea.trailingAnchor),
             videoPlaybackProgressView.bottomAnchor.constraint(equalTo: videoPlayerControlsArea.bottomAnchor),
         ]
@@ -666,7 +724,6 @@ class MediaControlPanelView: UIView {
 
         // If item is not downloaded, disable share/forward
         let canForward = (item.referencedAttachment.asReferencedStream != nil)
-        buttonShareMedia.isEnabled = canForward
         buttonForwardMedia.isEnabled = canForward
 
         var animator: UIViewPropertyAnimator?
@@ -679,30 +736,27 @@ class MediaControlPanelView: UIView {
         }
 
         // Create video playback controls if necessary.
+        // Tellomi（#1257）：播放 / 暂停、±15 在屏幕正中（MediaVideoCenterControlsView），这里只建进度胶囊。
         if let videoPlayer, item.isVideo {
             self.videoPlayer = videoPlayer
 
-            let playerControlsView = getOrCreateVideoPlaybackControlView()
-            playerControlsView.updateWithMediaItem(item)
-            playerControlsView.updateStatusWithPlayer(videoPlayer)
-
             let playerProgressView = getOrCreateVideoPlaybackProgressView()
             playerProgressView.videoPlayer = videoPlayer
+            scrubPreview.configure(attachmentStream: item.referencedAttachment.asReferencedStream?.attachmentStream)
         } else {
             self.videoPlayer = nil
+            scrubPreview.configure(attachmentStream: nil)
         }
+        updateBottomButtonsLayout()
 
         // Animate caption view and video player progress bar together.
         updateCaptionAndVideoControls(using: animator)
 
         // Don't update thumbnail strip if we're going to hide it - for better visual experience.
-        if showThumbnailStrip {
-            thumbnailStrip.configureCellViews(
-                itemProvider: currentMediaAlbum!,
-                focusedItem: item,
-                cellViewBuilder: { _ in
-                    return GalleryRailCellView(configuration: Self.galleryCellConfiguration)
-                },
+        if showThumbnailStrip, let album = currentMediaAlbum {
+            thumbnailStrip.setItems(
+                album.items,
+                selected: album.items.firstIndex(of: item) ?? 0,
                 animated: animated && thumbnailStrip.isHidden == false,
             )
         }
@@ -1035,18 +1089,39 @@ class MediaControlPanelView: UIView {
 
     private func updateBottomButtonsLayout() {
         buttonForwardMedia.isHidden = isVerticallyCompactLayout
-        buttonShareMedia.isHidden = isVerticallyCompactLayout
+        buttonDeleteMedia.isHidden = isVerticallyCompactLayout
+        buttonPlaybackSpeed.isHidden = isVerticallyCompactLayout || videoPlayer == nil
         buttonAreaZeroHeightConstraint.isActive = isVerticallyCompactLayout
+        updatePlaybackSpeedBadge()
     }
 
     // MARK: Bottom buttons
 
-    private func didPressShare() {
-        delegate?.mediaControlPanelDidRequestShareMedia(self)
+    private func didPressDelete() {
+        delegate?.mediaControlPanelDidRequestDeleteMedia(self)
     }
 
     private func didPressForward() {
         delegate?.mediaControlPanelDidRequestForwardMedia(self)
+    }
+
+    private func didPressPlaybackSpeed() {
+        delegate?.mediaControlPanel(self, didRequestPlaybackSpeedMenuFrom: buttonPlaybackSpeed)
+    }
+}
+
+// Tellomi（#1257，owner 2026-09-25，照 Telegram）：拖进度条时在拇指上方画那一帧，松手淡出。
+extension MediaControlPanelView: PlayerProgressViewDelegate {
+
+    func playerProgressViewDidStartScrubbing(_ playerProgressBar: PlayerProgressView) {}
+
+    func playerProgressView(_ playerProgressView: PlayerProgressView, scrubbedToTime time: CMTime) {
+        let pillTop = playerProgressView.convert(playerProgressView.bounds, to: self).minY
+        scrubPreview.show(at: time, thumbCenterX: playerProgressView.thumbCenterX(in: self), pillTop: pillTop)
+    }
+
+    func playerProgressView(_ playerProgressView: PlayerProgressView, didFinishScrubbingAtTime time: CMTime, shouldResumePlayback: Bool) {
+        scrubPreview.hide()
     }
 }
 
@@ -1101,3 +1176,26 @@ extension MediaControlPanelView: VideoPlaybackControlViewDelegate {
         videoPlayer.restorePlaybackRate()
     }
 }
+
+#if TESTABLE_BUILD
+
+extension MediaControlPanelView {
+    var albumScrubberForTesting: MediaAlbumScrubberView { thumbnailStrip }
+    var progressViewForTesting: PlayerProgressView? { videoPlaybackProgressView }
+    var scrubPreviewForTesting: MediaVideoScrubPreviewView { scrubPreview }
+    var playbackSpeedButtonForTesting: UIButton { buttonPlaybackSpeed }
+    var deleteButtonForTesting: UIButton { buttonDeleteMedia }
+    var playbackSpeedBadgeTextForTesting: String? {
+        playbackSpeedBadge.isHidden ? nil : playbackSpeedBadge.text?.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// 底栏从左到右、看得见的按钮的读屏名称。
+    var visibleBottomButtonLabelsForTesting: [String] {
+        [buttonForwardMedia, buttonPlaybackSpeed, buttonDeleteMedia]
+            .filter { !$0.isHidden }
+            .sorted { $0.frame.minX < $1.frame.minX }
+            .map { $0.accessibilityLabel ?? "" }
+    }
+}
+
+#endif

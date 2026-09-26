@@ -487,6 +487,9 @@
 		34A4D88F267A402100A794E7 /* ConversationViewController+Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A4D88E267A402100A794E7 /* ConversationViewController+Notifications.swift */; };
 		34A6C28021E503E700B5B12E /* OWSImagePickerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A6C27F21E503E600B5B12E /* OWSImagePickerController.swift */; };
 		34A8B3512190A40E00218A25 /* CVMediaAlbumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A8B3502190A40E00218A25 /* CVMediaAlbumView.swift */; };
+		494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */; };
+		3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */; };
+		C32B37A061F91F34FE339395 /* AlbumCarouselGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */; };
 		34A954B2271A471300B05242 /* SignalUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; };
 		34A954BD271A471300B05242 /* SignalUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; };
 		34A954BE271A471300B05242 /* SignalUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -1592,6 +1595,11 @@
 		76A2EB1028B578B800A29C24 /* MediaTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2EB0F28B578B800A29C24 /* MediaTextView.swift */; };
 		76A2EB1228B57AEE00A29C24 /* ColorPickerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */; };
 		76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */; };
+		4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */; };
+		CF008600BED0E24E78FCD199 /* TellomiViewerGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */; };
+		06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */; };
+		EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */; };
+		5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */; };
 		76BA0DF02A29B27100751107 /* ChatListViewController+Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BA0DEF2A29B27100751107 /* ChatListViewController+Search.swift */; };
 		76BB06FA29AD84DB00978856 /* MediaItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BB06F929AD84DB00978856 /* MediaItemViewController.swift */; };
 		76BC91EC2F883C0000BE569B /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D8C232F72029100DA82B8 /* CircularProgressView.swift */; };
@@ -4705,6 +4713,9 @@
 		34A4D88E267A402100A794E7 /* ConversationViewController+Notifications.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+Notifications.swift"; sourceTree = "<group>"; };
 		34A6C27F21E503E600B5B12E /* OWSImagePickerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSImagePickerController.swift; sourceTree = "<group>"; };
 		34A8B3502190A40E00218A25 /* CVMediaAlbumView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVMediaAlbumView.swift; sourceTree = "<group>"; };
+		5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumCarouselGeometryTest.swift; sourceTree = "<group>"; };
+		8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumViewerScreenshotTests.swift; sourceTree = "<group>"; };
+		DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumCarouselGeometry.swift; sourceTree = "<group>"; };
 		34A954A8271A471200B05242 /* SignalUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SignalUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		34A954B1271A471300B05242 /* SignalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		34A954CA271B4BE600B05242 /* ShareViewDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShareViewDelegate.swift; sourceTree = "<group>"; };
@@ -5898,6 +5909,11 @@
 		76A2EB0F28B578B800A29C24 /* MediaTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaTextView.swift; sourceTree = "<group>"; };
 		76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerBar.swift; sourceTree = "<group>"; };
 		76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaControlPanelView.swift; sourceTree = "<group>"; };
+		0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAlbumScrubberView.swift; sourceTree = "<group>"; };
+		41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiViewerGlass.swift; sourceTree = "<group>"; };
+		98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlaybackSpeedMenuView.swift; sourceTree = "<group>"; };
+		C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoCenterControlsView.swift; sourceTree = "<group>"; };
+		1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoScrubPreviewView.swift; sourceTree = "<group>"; };
 		76BA0DEF2A29B27100751107 /* ChatListViewController+Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatListViewController+Search.swift"; sourceTree = "<group>"; };
 		76BB06F929AD84DB00978856 /* MediaItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaItemViewController.swift; sourceTree = "<group>"; };
 		76C87F18181EFCE600C4ACAB /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
@@ -9666,6 +9682,8 @@
 				F99D2C8A2926F0DD00748CCB /* DonationPaymentDetailsViewControllerTest.swift */,
 				45C845AE291467F7005F6EA5 /* JournalingOrderedDictionaryTests.swift */,
 				4585B4A4291B39F9003A8F8E /* MediaGalleryCollectionViewUpdaterTest.swift */,
+				5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */,
+				8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */,
 				1700E33A28B5684C0073D949 /* MediaGallerySectionsTest.swift */,
 				50D879692A16D2C20031345D /* MessageLoaderBatchTest.swift */,
 				4C2A538B23C5462300D28CD8 /* MessageLoaderTest.swift */,
@@ -9729,6 +9747,7 @@
 				768FC7B32F316CEF00707F72 /* CVDimmableView.swift */,
 				764B479A2F4FB076008C6337 /* CVLinkPreviewView.swift */,
 				34A8B3502190A40E00218A25 /* CVMediaAlbumView.swift */,
+				DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */,
 				3488F9352191CC4000E524CC /* CVMediaView.swift */,
 				04A5736A2E4CF1BD0019651F /* CVPollView.swift */,
 				3470C8732554926200F5847C /* CVQuotedMessageView.swift */,
@@ -9806,6 +9825,11 @@
 				45C845AC291466C0005F6EA5 /* JournalingOrderedDictionary.swift */,
 				4CA46F4B219CCC630038ABDE /* MediaCaptionView.swift */,
 				76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */,
+				0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */,
+				41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */,
+				98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */,
+				C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */,
+				1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */,
 				452EC6DE205E9E30000E787C /* MediaGallery.swift */,
 				45DDD06629C1365100FD9670 /* MediaGalleryAccessoriesHelper.swift */,
 				7622B3B12A4510D7000E31DA /* MediaGalleryCellItem.swift */,
@@ -18753,6 +18777,7 @@
 				348815B325503BAA00D4F4C4 /* CVLoader.swift in Sources */,
 				3470C8772555883600F5847C /* CVLoadRequest.swift in Sources */,
 				34A8B3512190A40E00218A25 /* CVMediaAlbumView.swift in Sources */,
+				C32B37A061F91F34FE339395 /* AlbumCarouselGeometry.swift in Sources */,
 				348EE28E25B897BF00814FC2 /* CVMediaCache.swift in Sources */,
 				3488F9362191CC4000E524CC /* CVMediaView.swift in Sources */,
 				348815C8255346A500D4F4C4 /* CVNode.swift in Sources */,
@@ -18947,6 +18972,11 @@
 				45E5A6991F61E6DE001E4A8A /* MarqueeLabel.swift in Sources */,
 				4CA46F4C219CCC630038ABDE /* MediaCaptionView.swift in Sources */,
 				76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */,
+				4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */,
+				CF008600BED0E24E78FCD199 /* TellomiViewerGlass.swift in Sources */,
+				06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */,
+				EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */,
+				5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */,
 				76FCCDBC27AB8FBE00BAA7F0 /* MediaControls.swift in Sources */,
 				4CD675BE22E7BE35008010D2 /* MediaDismissAnimationController.swift in Sources */,
 				346C19E125ACE9AE00061D3A /* MediaDownloadSettingsViewController.swift in Sources */,
@@ -19317,6 +19347,8 @@
 				45C845AF291467F7005F6EA5 /* JournalingOrderedDictionaryTests.swift in Sources */,
 				45360B911F952AA900FA666C /* MarqueeLabel.swift in Sources */,
 				4585B4A5291B39F9003A8F8E /* MediaGalleryCollectionViewUpdaterTest.swift in Sources */,
+				494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */,
+				3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */,
 				1700E33B28B5684C0073D949 /* MediaGallerySectionsTest.swift in Sources */,
 				50D8796A2A16D2C20031345D /* MessageLoaderBatchTest.swift in Sources */,
 				4C2A538C23C5462300D28CD8 /* MessageLoaderTest.swift in Sources */,

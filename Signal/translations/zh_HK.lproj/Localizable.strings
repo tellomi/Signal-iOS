@@ -26,6 +26,7 @@
 
 /* Accessibility label for media. */
 "ACCESSIBILITY_LABEL_MEDIA" = "媒體";
+"ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_ITEM_FORMAT" = "第 %1$@ 項，共 %2$@ 項";
 
 /* Accessibility label for stickers. */
 "ACCESSIBILITY_LABEL_STICKER" = "貼圖";
@@ -5762,6 +5763,20 @@
 
 /* Context menu item in media viewer. Refers to saving currently displayed photo/video to the Photos app. */
 "MEDIA_VIEWER_SAVE_MEDIA_ACTION" = "儲存";
+"MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT" = "全部 %@ 項";
+"MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT" = "全部 %@ 張圖片";
+"MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT" = "全部 %@ 段影片";
+"MEDIA_VIEWER_TELLOMI_PAUSE" = "暫停";
+"MEDIA_VIEWER_TELLOMI_PLAY" = "播放";
+"MEDIA_VIEWER_TELLOMI_PLAYBACK_SPEED" = "播放速度";
+"MEDIA_VIEWER_TELLOMI_REPLY_ACTION" = "回覆";
+"MEDIA_VIEWER_TELLOMI_SHARE_ACTION" = "分享";
+"MEDIA_VIEWER_TELLOMI_SKIP_BACK" = "倒轉 15 秒";
+"MEDIA_VIEWER_TELLOMI_SKIP_FORWARD" = "快轉 15 秒";
+"MEDIA_VIEWER_TELLOMI_SPEED" = "速度";
+"MEDIA_VIEWER_TELLOMI_SPEED_NORMAL" = "正常";
+"MEDIA_VIEWER_TELLOMI_THIS_PHOTO" = "這張圖片";
+"MEDIA_VIEWER_TELLOMI_THIS_VIDEO" = "這段影片";
 
 /* button title to snooze a megaphone */
 "MEGAPHONE_REMIND_LATER" = "稍後提醒我";
