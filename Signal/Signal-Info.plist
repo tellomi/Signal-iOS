@@ -78,8 +78,6 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>Tellomi needs to use Apple Music to play media attachments.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_sgnl-new-device._tcp</string>

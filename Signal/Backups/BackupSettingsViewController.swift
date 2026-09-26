@@ -618,6 +618,8 @@ class BackupSettingsViewController:
         initialPlanSelection: BackupEnablingManager.PlanSelection?,
         shouldShowWelcomeToBackupsSheet: Bool,
     ) async {
+        // Tellomi（tellomi/tellomi#1193）：选择方案页（页脚「Signal 是一个非营利性平台」）不加载。见 TSConstants.remoteBackupsEnabled
+        guard TSConstants.remoteBackupsEnabled else { return }
         do throws(SheetDisplayableError) {
             let chooseBackupPlanViewController: ChooseBackupPlanViewController = try await .load(
                 fromViewController: self,

@@ -27,6 +27,10 @@ class MediaGalleryAccessoriesHelper {
     private var footerBarBottomConstraint: NSLayoutConstraint?
     weak var viewController: MediaGalleryPrimaryViewController?
 
+    /// Tellomi：选中 / 离开「链接」一段时通知宿主（AllMediaViewController 叠上 / 撤下链接列表，#1174）。
+    var tellomiLinksSelectionChanged: ((Bool) -> Void)?
+    private(set) var tellomiIsShowingLinks = false
+
     private enum Layout {
         case list
         case grid
@@ -74,7 +78,10 @@ class MediaGalleryAccessoriesHelper {
             AllMediaCategory.photoVideo,
             AllMediaCategory.audio,
             AllMediaCategory.otherFiles,
-        ].map { $0.titleString }
+        ].map { $0.titleString } + [
+            // Tellomi：iOS 原来没有「链接」，补在最后（#1174）
+            TellomiSavedCategory.localized("ALL_MEDIA_FILE_TYPE_TELLOMI_LINKS", english: "Links"),
+        ]
         let segmentedControl = UISegmentedControl(items: items)
         segmentedControl.backgroundColor = .clear
         segmentedControl.selectedSegmentIndex = 0
@@ -92,7 +99,7 @@ class MediaGalleryAccessoriesHelper {
 
         headerView.sizeToFit()
         var frame = headerView.frame
-        frame.size.width += CGFloat(AllMediaCategory.allCases.count) * 20.0
+        frame.size.width += CGFloat(AllMediaCategory.allCases.count + 1) * 20.0 // Tellomi：多了「链接」一段
         headerView.frame = frame
         viewController.navigationItem.titleView = headerView
 
@@ -392,6 +399,9 @@ class MediaGalleryAccessoriesHelper {
         guard let viewController else { return }
 
         footerBarState = {
+            if tellomiIsShowingLinks {
+                return .hidden
+            }
             if isInBatchSelectMode {
                 return .selection
             }
@@ -553,7 +563,27 @@ class MediaGalleryAccessoriesHelper {
         return AllMediaCategory(rawValue: headerView.selectedSegmentIndex) ?? .defaultValue
     }
 
+    /// Tellomi：从「我的收藏」的分类点进来时，一开始停在对应的一段（#1174）。
+    func tellomiSelectSegment(_ index: Int) {
+        guard index >= 0, index < headerView.numberOfSegments, index != headerView.selectedSegmentIndex else {
+            return
+        }
+        headerView.selectedSegmentIndex = index
+        segmentedControlValueChanged(headerView)
+    }
+
     private func segmentedControlValueChanged(_ sender: UISegmentedControl) {
+        // Tellomi：「链接」一段不是附件，由宿主叠一张链接列表（#1174）
+        let showsLinks = sender.selectedSegmentIndex == TellomiSavedCategory.linksSegmentIndex
+        if showsLinks != tellomiIsShowingLinks {
+            tellomiIsShowingLinks = showsLinks
+            tellomiLinksSelectionChanged?(showsLinks)
+            updateFooterBarState()
+        }
+        if showsLinks {
+            return
+        }
+
         guard let mediaCategory = AllMediaCategory(rawValue: sender.selectedSegmentIndex) else {
             owsFailDebug("Invalid segment index")
             return
