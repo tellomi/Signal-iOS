@@ -4030,6 +4030,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "请输入带有一个点和一组匹配数字的用户名。";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "输入对方的用户名。";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "用户名";
 
@@ -8211,11 +8214,50 @@
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "关于个人资料隐私";
 
+/* During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field. */
+"REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI" = "名字";
+
+/* During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting. */
+"REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI" = "你的手机号默认不对任何人显示。";
+
 /* During registration, users set up their profile. This is the subtitle on the screen where this is done. It tells users about the privacy of their profile. A \"learn more\" link will be added to the end of this string. */
 "REGISTRATION_PROFILE_SETUP_SUBTITLE" = "个人资料对您发送消息的对象、联系人及群组可见。";
 
 /* During registration, users set up their profile. This is the title on the screen where this is done. */
 "REGISTRATION_PROFILE_SETUP_TITLE" = "设置个人资料";
+
+/* Tellomi: registration username is being checked with the server. */
+"REGISTRATION_PROFILE_USERNAME_CHECKING_TELLOMI" = "正在检查…";
+
+/* Tellomi: registration username could not be checked because of a network or server error. */
+"REGISTRATION_PROFILE_USERNAME_CHECK_FAILED_TELLOMI" = "暂时查不到，稍后再试";
+
+/* Tellomi: registration username contains characters other than letters, numbers and underscores. */
+"REGISTRATION_PROFILE_USERNAME_INVALID_CHARACTERS_TELLOMI" = "只能用字母、数字和下划线";
+
+/* Tellomi: registration username is taken or reserved. */
+"REGISTRATION_PROFILE_USERNAME_NOT_AVAILABLE_TELLOMI" = "这个用户名不可用";
+
+/* Tellomi: during registration, placeholder of the optional username field below the name field. */
+"REGISTRATION_PROFILE_USERNAME_PLACEHOLDER_TELLOMI" = "用户名（选填）";
+
+/* Tellomi: registration username does not start with a letter. */
+"REGISTRATION_PROFILE_USERNAME_START_WITH_LETTER_TELLOMI" = "需要以字母开头";
+
+/* Tellomi: registration username is longer than 20 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_LONG_TELLOMI" = "最多 20 个字符";
+
+/* Tellomi: registration username reservation was rate limited for less than an hour. */
+"REGISTRATION_PROFILE_USERNAME_TOO_MANY_ATTEMPTS_TELLOMI" = "尝试次数过多，请稍后再试";
+
+/* Tellomi: registration username is shorter than 3 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_SHORT_TELLOMI" = "至少 3 个字符";
+
+/* Tellomi: label before the suggested usernames when the one typed is not available. */
+"REGISTRATION_PROFILE_USERNAME_TRY_TELLOMI" = "可以试试：";
+
+/* Tellomi: registration username is available. Embeds {{ the link, like tell.cc/kaixin }}. */
+"REGISTRATION_PROFILE_USERNAME_YOUR_LINK_TELLOMI" = "你的链接：%@";
 
 /* Error shown if an SMS/call service provider is unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_PERMANENT" = "我们无法给您的手机号码发送短信。请在几小时后重试。";
@@ -10833,6 +10875,9 @@
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@不是一个有效的用户名。请确认您输入了完整的用户名和与之匹配的一组数字。";
 
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ 不是有效的用户名。";
+
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "用户名无效";
 
@@ -10859,6 +10904,9 @@
 
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "用户名始终搭配一组数字。 %1$@";
+
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "别人可以通过用户名找到你、给你发消息，不需要知道你的手机号。";
 
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "选择您的用户名";
