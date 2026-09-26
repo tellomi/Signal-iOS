@@ -599,6 +599,42 @@ class TellomiRegionsTest: XCTestCase {
         XCTAssertEqual(TellomiRegions.resolve(storedId: "cn", profiles: TellomiRegions.processProfiles), global)
     }
 
+    func testTheRealCnDomainCanNotBeTheTestRegion() {
+        // 测试区是「开着的假 CN」：域名填成 tellomi.cn 本身（或它的子域）就等于在测试构建里把真 CN 打开，
+        // 而 CN 关着的时候 tellomi.cn 下一个请求都不许发（契约第四节，App 备案）
+        for cnDomain in ["tellomi.cn", "TELLOMI.CN", "Tellomi.Cn", "chat.tellomi.cn", "a.b.tellomi.cn"] {
+            XCTAssertEqual(TellomiRegions.testRegionProfiles(environment: [testDomainKey: cnDomain]), TellomiRegions.all, cnDomain)
+        }
+        // 只是长得像的别的域不受影响
+        XCTAssertTrue(TellomiRegions.testRegionProfiles(environment: [testDomainKey: "nottellomi.cn"])[1].enabled)
+        XCTAssertTrue(TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.cn.test"])[1].enabled)
+    }
+
+    func testSwitchingToTheTestRegionDoesNotRecordCnInTheAppGroup() throws {
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        XCTAssertTrue(TellomiRegions.isTestRegion(profiles[1]))
+        // 包里的区（包括将来开着的真 CN）都不算测试区
+        XCTAssertFalse(TellomiRegions.isTestRegion(global))
+        XCTAssertFalse(TellomiRegions.isTestRegion(TellomiRegionProfile(copying: cn, enabled: true)))
+
+        let (provider, _) = makeSwitchableProvider(profiles: profiles)
+        let defaults = TestUtils.userDefaults()
+        let store = TellomiRegionStore(userDefaults: { defaults })
+        let intoTest = Date(timeIntervalSince1970: 1_790_000_000)
+        XCTAssertTrue(try provider.switchTo(.cn, store: store, now: intoTest))
+        XCTAssertEqual(provider.activeRegion, profiles[1])
+        // 测试区借用 cn 的 id：不记进 app group（否则这台测试机以后装上真开 CN 的包会直接落到 CN），
+        // 只记切区时间（选路器的驻留照常从这次切区算）
+        XCTAssertNil(store.storedRegionId())
+        XCTAssertEqual(store.lastSwitchAt(), intoTest)
+
+        // 切回包里的区照常记
+        let backToGlobal = Date(timeIntervalSince1970: 1_790_000_600)
+        XCTAssertTrue(try provider.switchTo(.global, store: store, now: backToGlobal))
+        XCTAssertEqual(store.storedRegionId(), "global")
+        XCTAssertEqual(store.lastSwitchAt(), backToGlobal)
+    }
+
     // MARK: 测试区可以指定端口（TELLOMI_TEST_REGION_PORT）
 
     private let testPortKey = TellomiRegions.testRegionPortKey

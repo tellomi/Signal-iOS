@@ -122,7 +122,7 @@ public final class TellomiNetProvider: Sendable {
         self.rebuild.set(rebuild)
     }
 
-    /// 切到另一个区：建新 `Net` → 配好代理和审查规避开关 → 记进 app group（主 App 才记）→ 原子换上 → 通知聊天连接重连。
+    /// 切到另一个区：建新 `Net` → 配好代理和审查规避开关 → 记进 app group（主 App 才记；测试区只记切区时间）→ 原子换上 → 通知聊天连接重连。
     ///
     /// 不认识的区、关着的区直接报错，**在建 `Net` 之前**，不查 DNS、不建连接（判据 4 在切换器这一层）。
     /// 跟生效区相同就什么都不做，返回 false。旧 `Net` 进退役区，`retireDelay` 之后在专用队列上放掉。
@@ -146,7 +146,13 @@ public final class TellomiNetProvider: Sendable {
             let newNet = rebuild.makeNet(target)
             // 先配好再换上：换上的那一刻就可能有新连接，没配代理就会直连（用户开着应用内代理时是泄漏）
             rebuild.configure(newNet)
-            store?.record(id, at: now)
+            if TellomiRegions.isTestRegion(target) {
+                // 测试区借用 cn 的 id：记进 app group 的话，这台测试机以后装上真开 CN 的包会直接落到 CN。
+                // 只记切区时间（选路器的驻留照常从这次切区算），记住的区不动。
+                store?.recordSwitchTime(at: now)
+            } else {
+                store?.record(id, at: now)
+            }
             let oldGeneration = generation
             return (replace(net: newNet, region: target), oldGeneration)
         }
