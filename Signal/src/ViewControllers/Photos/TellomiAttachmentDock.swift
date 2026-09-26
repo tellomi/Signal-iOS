@@ -6,18 +6,24 @@
 import SignalServiceKit
 import SignalUI
 
-/// Tellomi（tellomi/tellomi#1115）：附件 Sheet 底部的 dock——相册 · 文件 · 位置 · 投票 · 联系人（owner 2026-09-23 定；GIF 挪到表情面板）。
-/// 图标、文案用 Signal 自己原来附件面板那一套（只有「相册」是新词），不用 Telegram 的任何图标。
+/// Tellomi（tellomi/tellomi#1115）：附件 Sheet 底部的 dock——相册 · 文件 · 位置 · 投票 · 联系人（owner 2026-09-23 定），
+/// 最后临时加回一格 GIF（owner 2026-09-26 定：「+」改成 Sheet 后原来附件面板打不开了，面板上的 GIF 键是 iPhone 上唯一的 GIF 入口；
+/// GIF 以后挪到表情面板 #1012，那边做好之前先放在这里）。
+/// 图标、文案用 Signal 自己原来附件面板那一套（只有「相册」是新词），不用 Telegram 的任何图标（Telegram 的附件菜单里本来就没有 GIF）。
 enum TellomiAttachmentDockItem: CaseIterable {
     case gallery
     case file
     case location
     case poll
     case contact
+    case gif
 
-    /// 附件 Sheet 的 dock 实际列出哪几格（会话页用）。
-    /// 桩（先红）：先照旧列全部五格，下一个提交按 `RemoteConfig.current.isGifAvailable` 加上 GIF。
-    static var attachmentSheetItems: [TellomiAttachmentDockItem] { allCases }
+    /// 附件 Sheet 的 dock 实际列出哪几格（会话页用）：GIF 只在这个部署能用 GIF 时列（#1078 `isGifAvailable`，同上游附件面板
+    /// `AttachmentFormatPickerView`）——大陆包 provider = none，入口一起关，包里才没有连境外内容代理的地方。
+    static var attachmentSheetItems: [TellomiAttachmentDockItem] {
+        let isGifAvailable = RemoteConfig.current.isGifAvailable
+        return allCases.filter { $0 != .gif || isGifAvailable }
+    }
 
     var title: String {
         switch self {
@@ -31,6 +37,8 @@ enum TellomiAttachmentDockItem: CaseIterable {
             return OWSLocalizedString("ATTACHMENT_KEYBOARD_POLL", comment: "A button to select a poll from the Attachment Keyboard")
         case .contact:
             return OWSLocalizedString("ATTACHMENT_KEYBOARD_CONTACT", comment: "A button to select a contact from the Attachment Keyboard")
+        case .gif:
+            return OWSLocalizedString("ATTACHMENT_KEYBOARD_GIF", comment: "A button to select a GIF from the Attachment Keyboard")
         }
     }
 
@@ -41,6 +49,7 @@ enum TellomiAttachmentDockItem: CaseIterable {
         case .location: return "location-28"
         case .poll: return "poll-28"
         case .contact: return "person-circle-28"
+        case .gif: return "gif-28"
         }
     }
 }
