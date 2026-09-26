@@ -1821,14 +1821,15 @@ class PhotoCaptureViewController: OWSViewController, OWSNavigationChildControlle
                     "PHOTO_CAPTURE_USERNAME_QR_CODE_FOUND_TITLE_FORMAT",
                     comment: "Title for sheet presented from photo capture view indicating that a username QR code was found. Embeds {{username}}.",
                 ),
-                username,
+                // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：`.01` 结尾的去掉后缀显示，别的后缀完整显示；打开会话用的是 aci
+                TellomiLinks.displayUsername(username),
             ),
             message: String.nonPluralLocalizedStringWithFormat(
                 OWSLocalizedString(
                     "PHOTO_CAPTURE_USERNAME_QR_CODE_FOUND_MESSAGE_FORMAT",
                     comment: "Message for a sheet presented from photo capture view indicating that a username QR code was found. Embeds {{username}}.",
                 ),
-                username,
+                TellomiLinks.displayUsername(username),
             ),
             proceedTitle: OWSLocalizedString(
                 "PHOTO_CAPTURE_USERNAME_QR_CODE_FOUND_CTA",

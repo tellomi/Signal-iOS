@@ -1,5 +1,5 @@
 //
-// Copyright 2026 Tellomi
+// Copyright 2026 重庆半格智能科技有限公司
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
@@ -95,19 +95,71 @@ public enum TellomiLinks {
         options: [.caseInsensitive],
     )
     /// 裸形状 `tell.cc/<username>`（owner 要的、用户会去分享的 t.me 式；与 Android 对齐）。第一段路径不能是命名空间里的保留字。
+    /// 用户名是带后缀的旧形状，或 3–32 位、首字符为字母 / 下划线的裸 nickname（tellomi/tellomi#1106，ADR-0066）。
     private static let bareUsernamePattern = try! NSRegularExpression(
-        pattern: "^(?:https|tellomi)://tell\\.cc/([a-zA-Z0-9_]+\\.[0-9]+)/?(?:[?#].*)?$",
+        pattern: "^(?:https|tellomi)://tell\\.cc/([a-zA-Z0-9_]+\\.[0-9]+|[a-zA-Z_][a-zA-Z0-9_]{2,31})/?(?:[?#].*)?$",
         options: [.caseInsensitive],
     )
 
-    /// `{https,tellomi}://tell.cc/u#u/<username>` 或 `{https,tellomi}://tell.cc/<username>` 里的明文用户名（如 `ceshi.57`），
-    /// 不是这两种形状返回 nil。裸形状要求用户名带 `.<数字>` 判别位（Signal 用户名的固定形状），所以不会和 `/u` `/g` `/s` `/call` `/i` 撞。
+    /// ADR-0066：Tellomi 新建用户名时判别位固定为 `01`，界面只露 nickname。
+    public static let fixedUsernameDiscriminator = "01"
+
+    /// 用户输入 / 链接里的名字 → 协议层的完整用户名（与 Android `TellomiUsernames.toProtocolUsername` 同一套规则）：
+    /// 去掉首尾空白和前导 `@`；**没有 `.` 就补 `.01`**（`kaixin` → `kaixin.01`）；已带后缀的原样保留（`kaixin.57` 这类旧账号按全名找）。
+    /// 不做合法性校验：不合法的交给 `Usernames.HashedUsername` / 服务端去拒。
+    public static func protocolUsername(_ input: String) -> String {
+        var trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("@") {
+            trimmed.removeFirst()
+        }
+        return trimmed.contains(".") ? trimmed : "\(trimmed).\(fixedUsernameDiscriminator)"
+    }
+
+    /// 协议层的完整用户名 → 界面上显示的样子（与 Android `TellomiUsernames.toDisplayUsername` 同一套规则，ADR-0066 §六「显示」）：
+    /// **只有 `.01` 结尾的去掉后缀**（`kaixin.01` → `kaixin`，保留原大小写）；别的后缀**完整显示**（`kaixin.57` 原样）——
+    /// §九的反向用例：别人用 `kaixin.57` 注册，官方客户端必须显示 `kaixin.57`，不能显示成 `kaixin`，否则就是冒充。
+    /// 只用在给人看的字符串上；存储、查找、链接、hash 仍用完整用户名。
+    public static func displayUsername(_ username: String) -> String {
+        let suffix = ".\(fixedUsernameDiscriminator)"
+        guard username.hasSuffix(suffix) else {
+            return username
+        }
+        return String(username.dropLast(suffix.count))
+    }
+
+    /// ADR-0066 §6.2：换用户名之后 30 天内不能再换（服务端 `USERNAME_CHANGE_COOLDOWN`，tellomi/Signal-Server#4；首次设置不计）。
+    /// 只用在改名前的提醒；还剩多久永远以服务端 429 的 `Retry-After` 为准。
+    public static let renameCooldownDays = 30
+
+    /// reserve 回 429 时分辨「改名冷却」和普通限流：限流桶（`usernameReserve`，100 次 / 15 分钟）的 `Retry-After` 是秒级，
+    /// 冷却的是天级，**超过一小时就是冷却**。与 Desktop `isRenameCooldown`、Android `TellomiUsernames.isRenameCooldown` 同一条线。
+    public static func isRenameCooldown(retryAfter: TimeInterval) -> Bool {
+        return retryAfter > 3600
+    }
+
+    /// 冷却还剩几天：向上取整、至少 1（刚改完的 `Retry-After` 2591999 秒是 30 天，还剩两小时是 1 天）。三端同一算法。
+    public static func renameCooldownDaysLeft(retryAfter: TimeInterval) -> Int {
+        return max(1, Int((retryAfter / 86400).rounded(.up)))
+    }
+
+    /// tell.cc 的一级路径与预留路径（ADR-0066 §五：都进了用户名保留词）。1–2 位的已被长度规则挡住，列全是为了和 ADR 一一对得上。
+    private static let reservedFirstLevelPaths: Set<String> = ["u", "g", "s", "call", "i", "m", "e", "a", "app", "b"]
+
+    /// `{https,tellomi}://tell.cc/u#u/<username>` 或 `{https,tellomi}://tell.cc/<username>` 里的用户名，不是这两种形状返回 nil。
+    ///
+    /// **返回的总是协议层的完整用户名**（tellomi/tellomi#1106）：裸 nickname 补 `.01`（`tell.cc/kaixin` → `kaixin.01`），
+    /// 已带后缀的原样（`ceshi.57`），调用方可以直接拿去查。原来靠「必须带 `.<数字>`」挡保留路径，放开裸 nickname 之后改成：
+    /// 1–2 位的 `/u` `/g` `/s` `/i` … 被长度规则挡住；3 位以上的 `call`、`app` 显式排除（大小写不敏感）。
     public static func plainUsername(in url: URL) -> String? {
         let s = url.absoluteString
         for pattern in [plainUsernamePattern, bareUsernamePattern] {
             if let m = pattern.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
                let r = Range(m.range(at: 1), in: s) {
-                return String(s[r])
+                let raw = String(s[r])
+                if !raw.contains("."), reservedFirstLevelPaths.contains(raw.lowercased()) {
+                    return nil
+                }
+                return protocolUsername(raw)
             }
         }
         return nil

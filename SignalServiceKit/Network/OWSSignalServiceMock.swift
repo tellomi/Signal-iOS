@@ -49,6 +49,9 @@ public class OWSSignalServiceMock: OWSSignalServiceProtocol {
 
     public var mockCDNUrlSessionBuilder: ((_ cdnNumber: UInt32) -> BaseOWSURLSessionMock)?
 
+    /// Tellomi（#1056 第三刀）：记下每次要的 CDN 地址，测试用来核「钉住开始时的区」。
+    public private(set) var requestedCdnBaseUrls = [URL]()
+
     public func sharedUrlSessionForCdn(cdnNumber: UInt32) async -> OWSURLSessionProtocol {
         let baseUrl: URL
         switch cdnNumber {
@@ -59,7 +62,11 @@ public class OWSSignalServiceMock: OWSSignalServiceProtocol {
         default:
             baseUrl = URL(string: TSConstants.textSecureCDN2ServerURL)!
         }
+        return await sharedUrlSessionForCdn(cdnNumber: cdnNumber, baseUrl: baseUrl)
+    }
 
+    public func sharedUrlSessionForCdn(cdnNumber: UInt32, baseUrl: URL) async -> OWSURLSessionProtocol {
+        requestedCdnBaseUrls.append(baseUrl)
         return mockCDNUrlSessionBuilder?(cdnNumber) ?? BaseOWSURLSessionMock(
             endpoint: OWSURLSessionEndpoint(
                 baseUrl: baseUrl,
