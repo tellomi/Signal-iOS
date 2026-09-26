@@ -371,4 +371,32 @@ class OWSContactsManagerTest: SignalBaseTest {
             XCTAssertEqual(actual, expected)
         }
     }
+
+    /// Tellomi（tellomi/tellomi#1240）：还没决定要不要给通讯录时，只有用户在选人页点了「允许访问」才去问系统；
+    /// 打开聊天、新建会话、选人页加载这些自动调用一律不弹框。决定过的照上游。
+    func testTellomiContactsPromptOnlyWhenUserInitiated() {
+        XCTAssertFalse(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .notDetermined))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: true, status: .notDetermined))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .authorized))
+        XCTAssertTrue(OWSContactsManager.tellomiMayRequestSystemContacts(userInitiated: false, status: .denied))
+    }
+
+    /// Tellomi（tellomi/tellomi#1112、#1240）：注册不再要通讯录之后，「还没决定」是新用户的常态。「添加到通讯录 / 新建联系人 /
+    /// 加到已有联系人」这些编辑入口遇到它，要先问系统（本身就是用户主动操作），不能直接弹「去 iOS 设置里打开」——
+    /// App 从没问过，系统设置里根本没有这个开关。决定过的照上游；关联设备不能编辑。
+    func testTellomiEditingAsksForContactsWhileNotDetermined() {
+        XCTAssertTrue(OWSContactsManager.tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: true, status: .notDetermined))
+        XCTAssertFalse(OWSContactsManager.tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: false, status: .notDetermined))
+        for decided in [RawContactAuthorizationStatus.denied, .restricted, .authorized, .limited] {
+            XCTAssertFalse(OWSContactsManager.tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: true, status: decided), "\(decided)")
+        }
+
+        // 还没决定按「没授权」算（上游在这里断言），编辑入口先走上面那条去问系统
+        XCTAssertEqual(OWSContactsManager.tellomiEditingAuthorization(isEditingAllowed: true, status: .notDetermined), .notAuthorized)
+        XCTAssertEqual(OWSContactsManager.tellomiEditingAuthorization(isEditingAllowed: true, status: .denied), .notAuthorized)
+        XCTAssertEqual(OWSContactsManager.tellomiEditingAuthorization(isEditingAllowed: true, status: .restricted), .notAuthorized)
+        XCTAssertEqual(OWSContactsManager.tellomiEditingAuthorization(isEditingAllowed: true, status: .authorized), .authorized)
+        XCTAssertEqual(OWSContactsManager.tellomiEditingAuthorization(isEditingAllowed: true, status: .limited), .authorized)
+        XCTAssertEqual(OWSContactsManager.tellomiEditingAuthorization(isEditingAllowed: false, status: .authorized), .notAllowed)
+    }
 }

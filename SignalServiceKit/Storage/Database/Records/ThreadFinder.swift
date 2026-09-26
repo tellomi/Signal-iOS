@@ -259,6 +259,12 @@ public class ThreadFinder {
         contactThread: TSContactThread,
         transaction tx: DBReadTransaction,
     ) -> Bool {
+        // Tellomi（owner 2026-09-26）：「我的收藏」（自己的会话）不套默认限时——收藏的东西不该到时自己消失；
+        // 用户在收藏里手动开限时照旧可以。
+        if contactThread.isNoteToSelf {
+            return false
+        }
+
         let dmConfigurationStore = DependenciesBridge.shared.disappearingMessagesConfigurationStore
 
         // Make sure the universal timer is enabled.

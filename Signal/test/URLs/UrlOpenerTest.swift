@@ -111,6 +111,25 @@ class UrlOpenerTest: XCTestCase {
         XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 7200), 1)
     }
 
+    /// tellomi/tellomi#1106 第四刀：两条复数文案必须在 `PluralAware.stringsdict` 的**顶层**。
+    /// 嵌进上一条的 dict 里时 `plutil -lint` 照样通过，运行时却查不到键、界面上直接显示键名（taishi 审查 2026-09-24）。
+    /// 四种语言各查一遍：测试进程只跑英文，只查当前语言会漏掉中文三份。
+    func testTellomiRenameCooldownPluralStringsResolveInEveryLocale() throws {
+        let keys = [
+            "USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d",
+            "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d",
+        ]
+        for localization in ["en", "zh_CN", "zh_HK", "zh_TW"] {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: localization, ofType: "lproj"), localization)
+            let bundle = try XCTUnwrap(Bundle(path: path), localization)
+            for key in keys {
+                let format = bundle.localizedString(forKey: key, value: nil, table: "PluralAware")
+                XCTAssertNotEqual(format, key, "\(localization): \(key)")
+                XCTAssertTrue(String.localizedStringWithFormat(format, 30).contains("30"), "\(localization): \(key)")
+            }
+        }
+    }
+
     /// tellomi/tellomi#1106 第二刀：选用户名页「没改 / 只改大小写」的捷径只认原判别位是 01 的；`.57` 这类旧号同名也要重新预约 `.01`。
     func testTellomiUsernameShortcutsOnlyForFixedDiscriminator() {
         let fixed = Usernames.ParsedUsername(rawUsername: "kaixin.01")
