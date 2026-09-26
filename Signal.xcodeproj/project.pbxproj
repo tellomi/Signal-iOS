@@ -3678,6 +3678,7 @@
 		F9426255289B1B5500460798 /* UnfairLockTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94261E8289B1B5400460798 /* UnfairLockTest.swift */; };
 		F9426256289B1B5500460798 /* NSData+ImageTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94261E9289B1B5400460798 /* NSData+ImageTest.swift */; };
 		F9426259289B1B5500460798 /* RemoteConfigManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94261EC289B1B5400460798 /* RemoteConfigManagerTests.swift */; };
+		B71117AACF800BB0F2B9EC9E /* TellomiRegionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33BB9C1F4C8FD507AB78F99B /* TellomiRegionsTest.swift */; };
 		F942625B289B1B5500460798 /* OWSFormatTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94261EE289B1B5400460798 /* OWSFormatTest.swift */; };
 		F942625D289B1B5500460798 /* RefineryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94261F0289B1B5400460798 /* RefineryTest.swift */; };
 		F942625F289B1B5500460798 /* LRUCacheTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94261F2289B1B5400460798 /* LRUCacheTest.swift */; };
@@ -4103,6 +4104,7 @@
 		F9C5CE62289453B400548EEE /* NoopNotificationPresenterImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5CB92289453B200548EEE /* NoopNotificationPresenterImpl.swift */; };
 		F9C5CE66289453B400548EEE /* MockKeychainStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5CB96289453B200548EEE /* MockKeychainStorage.swift */; };
 		F9C5CE67289453B400548EEE /* TSConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5CB97289453B200548EEE /* TSConstants.swift */; };
+		8FD4BD34758B509567EECB27 /* TellomiRegions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1128035A7686C61004822736 /* TellomiRegions.swift */; };
 		F9C5CE68289453B400548EEE /* OWSVerificationState.h in Headers */ = {isa = PBXBuildFile; fileRef = F9C5CB99289453B200548EEE /* OWSVerificationState.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F9C5CE6E289453B400548EEE /* OWSRecipientIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5CB9F289453B200548EEE /* OWSRecipientIdentity.swift */; };
 		F9C5CE72289453B400548EEE /* GroupMembership.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5CBA4289453B200548EEE /* GroupMembership.swift */; };
@@ -8100,6 +8102,7 @@
 		F94261E8289B1B5400460798 /* UnfairLockTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnfairLockTest.swift; sourceTree = "<group>"; };
 		F94261E9289B1B5400460798 /* NSData+ImageTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSData+ImageTest.swift"; sourceTree = "<group>"; };
 		F94261EC289B1B5400460798 /* RemoteConfigManagerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteConfigManagerTests.swift; sourceTree = "<group>"; };
+		33BB9C1F4C8FD507AB78F99B /* TellomiRegionsTest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TellomiRegionsTest.swift; sourceTree = "<group>"; };
 		F94261EE289B1B5400460798 /* OWSFormatTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSFormatTest.swift; sourceTree = "<group>"; };
 		F94261F0289B1B5400460798 /* RefineryTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RefineryTest.swift; sourceTree = "<group>"; };
 		F94261F2289B1B5400460798 /* LRUCacheTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LRUCacheTest.swift; sourceTree = "<group>"; };
@@ -8534,6 +8537,7 @@
 		F9C5CB92289453B200548EEE /* NoopNotificationPresenterImpl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoopNotificationPresenterImpl.swift; sourceTree = "<group>"; };
 		F9C5CB96289453B200548EEE /* MockKeychainStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockKeychainStorage.swift; sourceTree = "<group>"; };
 		F9C5CB97289453B200548EEE /* TSConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TSConstants.swift; sourceTree = "<group>"; };
+		1128035A7686C61004822736 /* TellomiRegions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TellomiRegions.swift; sourceTree = "<group>"; };
 		F9C5CB99289453B200548EEE /* OWSVerificationState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OWSVerificationState.h; sourceTree = "<group>"; };
 		F9C5CB9F289453B200548EEE /* OWSRecipientIdentity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSRecipientIdentity.swift; sourceTree = "<group>"; };
 		F9C5CBA4289453B200548EEE /* GroupMembership.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupMembership.swift; sourceTree = "<group>"; };
@@ -11369,6 +11373,7 @@
 				F9C5CB45289453B200548EEE /* RemoteConfigManager.swift */,
 				50E642C829E4E9CD00566D5D /* SSKEnvironment.swift */,
 				F9C5CB97289453B200548EEE /* TSConstants.swift */,
+				1128035A7686C61004822736 /* TellomiRegions.swift */,
 			);
 			path = Environment;
 			sourceTree = "<group>";
@@ -14772,6 +14777,7 @@
 				F908AA7728CB894400472E68 /* PngChunkerTest.swift */,
 				F94261F0289B1B5400460798 /* RefineryTest.swift */,
 				F94261EC289B1B5400460798 /* RemoteConfigManagerTests.swift */,
+				33BB9C1F4C8FD507AB78F99B /* TellomiRegionsTest.swift */,
 				502346782DB03DEB0029DB97 /* SetDequeTest.swift */,
 				508F05A62FA294DD004B96E5 /* SoundsTest.swift */,
 				F9613CDD2981F15700894B55 /* SqliteUtilTest.swift */,
@@ -20498,6 +20504,7 @@
 				F9C5CC5D289453B300548EEE /* TSCall.m in Sources */,
 				D91AC93E2B6337B200814975 /* TSCall.swift in Sources */,
 				F9C5CE67289453B400548EEE /* TSConstants.swift in Sources */,
+				8FD4BD34758B509567EECB27 /* TellomiRegions.swift in Sources */,
 				661170CA2ABA522200A1B16D /* TSContactThread.swift in Sources */,
 				D93086292C61672E008E3A27 /* TSErrorMessage+Builder.swift in Sources */,
 				F9C5CBE1289453B300548EEE /* TSErrorMessage+SDS.swift in Sources */,
@@ -20821,6 +20828,7 @@
 				6600F351298C8BC900B1EDB7 /* RegistrationRequestFactoryTest.swift in Sources */,
 				6600F367298D9D1100B1EDB7 /* RegistrationSessionManagerTest.swift in Sources */,
 				F9426259289B1B5500460798 /* RemoteConfigManagerTests.swift in Sources */,
+				B71117AACF800BB0F2B9EC9E /* TellomiRegionsTest.swift in Sources */,
 				F945FE4D298481EA00C835C7 /* RingrtcFieldTrialsTest.swift in Sources */,
 				F942624E289B1B5500460798 /* SDSDatabaseStorageObservationTest.swift in Sources */,
 				F942624B289B1B5500460798 /* SDSDatabaseStorageTest.swift in Sources */,
