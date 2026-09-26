@@ -47,7 +47,8 @@ public struct GroupInviteLink: Hashable {
 
         let protoBase64Url = protoData.asBase64Url
 
-        let urlString = "https://signal.group/#\(protoBase64Url)"
+        // Tellomi（tellomi/tellomi#1113）：发出 `https://tell.cc/g#…`（与 Desktop 相同）；解析两种都认（parseFrom 里先换算）
+        let urlString = "https://\(TellomiLinks.host)\(TellomiLinks.Path.group)#\(protoBase64Url)"
         return URL(string: urlString).owsFailUnwrap("must be able to construct URL")
     }
 
