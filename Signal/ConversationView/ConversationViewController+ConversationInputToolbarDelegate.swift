@@ -478,6 +478,12 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
         takePictureOrVideo()
     }
 
+    public func attachmentSheetButtonPressed() {
+        AssertIsOnMainThread()
+
+        presentTellomiAttachmentSheet()
+    }
+
     public func photosButtonPressed() {
         AssertIsOnMainThread()
 
@@ -1059,5 +1065,11 @@ extension ConversationViewController {
     /// Tellomi（tellomi/tellomi#1261 P-8）：选图面板的相机格从面板上面打开相机（上面的 `takePictureOrVideo` 在 private 扩展里）。
     func tellomiTakePictureOrVideo(presenter: UIViewController, sendMediaNavDelegate: SendMediaNavDelegate) {
         takePictureOrVideo(presenter: presenter, sendMediaNavDelegate: sendMediaNavDelegate)
+    }
+
+    /// Tellomi（tellomi/tellomi#1115）：没有照片权限时附件 Sheet 占位里的「照片」走上游的系统选择器
+    /// （上面的 `chooseFromLibraryWithNativePicker` 在 private 扩展里）。
+    func tellomiChooseFromLibraryWithNativePicker() {
+        chooseFromLibraryWithNativePicker()
     }
 }

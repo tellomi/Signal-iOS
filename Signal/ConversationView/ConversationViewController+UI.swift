@@ -467,6 +467,8 @@ public extension ConversationViewController {
         inputToolbar.showStickerKeyboard()
     }
 
+    /// Tellomi（#1115）：上游在取消位置 / 文件 / 联系人 / 相机 / GIF 之后都「回到附件面板」；附件面板现在是 Sheet，
+    /// 所以这里改成弹 Sheet（同 Telegram：从附件菜单进去的页面取消了回到附件菜单）。
     func openAttachmentKeyboard() {
         AssertIsOnMainThread()
 
@@ -474,11 +476,11 @@ public extension ConversationViewController {
             owsFailDebug("InputToolbar not yet ready.")
             return
         }
-        guard let inputToolbar else {
+        guard inputToolbar != nil else {
             return
         }
 
-        inputToolbar.showAttachmentKeyboard()
+        presentTellomiAttachmentSheetWhenPossible()
     }
 
     func openGifSearch() {

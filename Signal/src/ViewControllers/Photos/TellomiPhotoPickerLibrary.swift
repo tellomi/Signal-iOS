@@ -31,6 +31,8 @@ struct TellomiPhotoPickerAlbum: Hashable {
 protocol TellomiPhotoPickerLibrary: AnyObject {
     /// 「照片」权限是「有限」时网格顶上出横幅（P-7）。
     var isAccessLimited: Bool { get }
+    /// Tellomi（#1115）：用户拒绝了 / 系统限制了照片权限。附件 Sheet 照样打开（dock 里别的格子还要用），网格处显示去「设置」的说明。
+    var isAccessDenied: Bool { get }
 
     func albums() -> [TellomiPhotoPickerAlbum]
     func itemCount(in album: TellomiPhotoPickerAlbum) -> Int
@@ -71,6 +73,13 @@ final class TellomiSystemPhotoLibrary: NSObject, TellomiPhotoPickerLibrary, PHPh
 
     deinit {
         PHPhotoLibrary.shared().unregisterChangeObserver(self)
+    }
+
+    var isAccessDenied: Bool {
+        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
+        case .denied, .restricted: return true
+        default: return false
+        }
     }
 
     var isAccessLimited: Bool {
