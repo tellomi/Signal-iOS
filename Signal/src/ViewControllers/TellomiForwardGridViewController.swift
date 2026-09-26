@@ -210,6 +210,7 @@ final class TellomiForwardGridViewController: UIViewController {
         buildHeader()
         headerView.layer.zPosition = 100
         collectionView.addSubview(headerView)
+        cardClipView.addSubview(searchBarView)
 
         let outsideTap = UITapGestureRecognizer(target: self, action: #selector(didTapOutside))
         outsideTap.cancelsTouchesInView = false
@@ -270,6 +271,11 @@ final class TellomiForwardGridViewController: UIViewController {
     // MARK: - 搭界面
 
     private func buildHeader() {
+        // 标题区自己铺卡片底色、上面两个角和卡片一样圆：贴顶以后格子从它下面滚过去，不能透出来（taishi 审查 #70）
+        headerView.backgroundColor = Colors.card
+        headerView.layer.cornerRadius = Metrics.cornerRadius
+        headerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+
         titleLabel.text = OWSLocalizedString("FORWARD_MESSAGE_TITLE", comment: "Title for the 'forward message(s)' view.")
         titleLabel.font = .systemFont(ofSize: 17, weight: .semibold)
         titleLabel.textColor = UIColor.Signal.label
@@ -324,8 +330,12 @@ final class TellomiForwardGridViewController: UIViewController {
         searchCancelButton.addTarget(self, action: #selector(didTapSearchCancel), for: .touchUpInside)
         searchBarView.addSubview(searchCancelButton)
 
+        // 搜索栏固定在卡片顶、不放进滚动视图：搜索框在集合视图的 contentInset.top 那一块里时，成为第一响应者会被
+        // 系统当成「被挡住」往下滚 50（taishi 审查 #70：搜索态比设计低 50 pt）。搜索态本来也不跟着结果滚。
+        searchBarView.backgroundColor = Colors.card
+        searchBarView.layer.cornerRadius = Metrics.cornerRadius
+        searchBarView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         searchBarView.isHidden = true
-        headerView.addSubview(searchBarView)
     }
 
     private func buildCommentBar() {
@@ -708,7 +718,7 @@ final class TellomiForwardGridViewController: UIViewController {
         titleLabel.frame = CGRect(x: floor((width - textWidth) / 2), y: 13, width: textWidth, height: 22)
         subtitleLabel.frame = CGRect(x: floor((width - textWidth) / 2), y: 36, width: textWidth, height: 18)
 
-        searchBarView.frame = headerView.bounds
+        searchBarView.frame = CGRect(x: 0, y: 0, width: width, height: Metrics.titleAreaHeight)
         let cancelSize = searchCancelButton.sizeThatFits(CGSize(width: 200, height: 44))
         let cancelWidth = ceil(cancelSize.width)
         searchCancelButton.frame = CGRect(x: width - 12 - cancelWidth, y: 14, width: cancelWidth, height: 36)
