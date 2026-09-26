@@ -1006,15 +1006,24 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
 
     // MARK: - 附件 Sheet（#1115）
 
-    /// dock = 相册 · 文件 · 位置 · 投票 · 联系人（owner 2026-09-23 定），「相册」选中；没选照片时在，选了让位给说明 + 发送，取消选择又回来。
+    /// dock = 相册 · 文件 · 位置 · 投票 · 联系人（owner 2026-09-23 定），GIF 开着时最后再加一格 GIF（owner 2026-09-26 定临时加回：
+    /// 「+」改成 Sheet 后附件面板打不开了，面板上的 GIF 键是 iPhone 上唯一的 GIF 入口；表情面板 #1012 做好之前先放在 dock 里）。
+    /// 「相册」选中；没选照片时在，选了让位给说明 + 发送，取消选择又回来。
     @MainActor
-    func testDockShowsFiveItemsAndGivesWayToTheSendBar() async throws {
-        let hosted = host(dockItems: TellomiAttachmentDockItem.allCases)
+    func testDockShowsTheItemsAndGivesWayToTheSendBar() async throws {
+        try setRemoteConfig(["global.gifSearch": "true"])
+        XCTAssertTrue(RemoteConfig.current.isGifAvailable)
+        let hosted = host(dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+        defer { hosted.tearDown() }
         let picker = hosted.picker
         let dock = try XCTUnwrap(picker.dockForTesting)
-        XCTAssertEqual(dock.items, [.gallery, .file, .location, .poll, .contact])
+        XCTAssertEqual(dock.items.map(\.title), ["Gallery", "File", "Location", "Poll", "Contact", "GIF"])
+        XCTAssertEqual(
+            dock.items.map(\.imageName),
+            ["album-tilt-28", "file-28", "location-28", "poll-28", "person-circle-28", "gif-28"],
+            "图标都是 Signal 自己的（GIF 用上游附件面板 GIF 键那一个）",
+        )
         XCTAssertEqual(dock.selectedItem, .gallery)
-        XCTAssertEqual(dock.items.map(\.title), ["Gallery", "File", "Location", "Poll", "Contact"])
         XCTAssertTrue(picker.isDockShownForTesting)
         XCTAssertFalse(picker.isSendBarShownForTesting)
         XCTAssertGreaterThanOrEqual(picker.gridBottomInsetForTesting, TellomiAttachmentDock.height, "网格底部让出 dock")
@@ -1028,6 +1037,20 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertFalse(picker.isSendBarShownForTesting)
     }
 
+    /// GIF 关着（上游开关 `global.gifSearch` 关了，或者这个部署没有 GIF 源 `global.gif.provider = none`，大陆包）：dock 里没有 GIF，
+    /// 同上游附件面板（`AttachmentFormatPickerView`，#1078 `isGifAvailable`）——入口一起关，包里才不会有连境外内容代理的地方。
+    @MainActor
+    func testDockHasNoGifWhenGifIsUnavailable() throws {
+        for flags in [["global.gif.provider": "none"], ["global.gifSearch": "false"]] {
+            try setRemoteConfig(flags)
+            XCTAssertFalse(RemoteConfig.current.isGifAvailable, "\(flags)")
+            let hosted = host(dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+            defer { hosted.tearDown() }
+            let dock = try XCTUnwrap(hosted.picker.dockForTesting)
+            XCTAssertEqual(dock.items.map(\.title), ["Gallery", "File", "Location", "Poll", "Contact"], "\(flags)")
+        }
+    }
+
     /// 旧的整页打开（不是从「+」进来）没有 dock。
     @MainActor
     func testNoDockWithoutDockItems() {
@@ -1036,15 +1059,19 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertFalse(picker.isDockShownForTesting)
     }
 
-    /// 点「文件 / 位置 / 投票 / 联系人」交给会话页（它先收起 Sheet 再打开对应页面）；点「相册」只是回到网格顶上，不交出去。
+    /// 点「文件 / 位置 / 投票 / 联系人 / GIF」交给会话页（它先收起 Sheet 再打开对应页面，GIF 是上游的 GIF 选择器）；
+    /// 点「相册」只是回到网格顶上，不交出去。
     @MainActor
     func testDockTapsReachTheDelegateExceptGallery() throws {
-        let hosted = host(dockItems: TellomiAttachmentDockItem.allCases)
+        try setRemoteConfig(["global.gifSearch": "true"])
+        let hosted = host(dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+        defer { hosted.tearDown() }
         let dock = try XCTUnwrap(hosted.picker.dockForTesting)
-        for item in [TellomiAttachmentDockItem.file, .location, .poll, .contact, .gallery] {
+        for item in dock.items where item != .gallery {
             dock.tapForTesting(item)
         }
-        XCTAssertEqual(hosted.delegate.dockSelections, [.file, .location, .poll, .contact])
+        dock.tapForTesting(.gallery)
+        XCTAssertEqual(hosted.delegate.dockSelections.map(\.title), ["File", "Location", "Poll", "Contact", "GIF"])
     }
 
     /// 重复点「相册」：Sheet 从收起展开到全屏（同 Telegram 重复点当前格），不交给会话页。
@@ -1063,26 +1090,51 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         hosted.window.isHidden = true
     }
 
-    /// 拒绝了照片权限：Sheet 照样能用，网格换成一句去「设置」的说明（上游同一句）+「设置」「相机」（照 Telegram 的占位）；
-    /// 相机格不在网格里（说明不压在它上面）；没有相机就只有「设置」；有权限时不出现。
+    /// 拒绝了照片权限：Sheet 照样能用，网格换成一句去「设置」的说明（上游同一句）+「照片」（系统选择器，见下一条）「设置」「相机」
+    /// （设置、相机照 Telegram 的占位）；相机格不在网格里（说明不压在它上面）；没有相机就没有「相机」；有权限时不出现。
     @MainActor
     func testNoPhotoAccessShowsTheSettingsHint() async throws {
         let denied = FakePhotoLibrary()
         denied.isAccessDenied = true
+        let photos = OWSLocalizedString("ATTACHMENT_KEYBOARD_PHOTOS", comment: "")
         let hosted = host(library: denied, camera: FakeCamera(access: .authorized), dockItems: TellomiAttachmentDockItem.allCases)
         try await settle()
         let picker = hosted.picker
         XCTAssertTrue(picker.isNoAccessHintShownForTesting)
         XCTAssertEqual(picker.noAccessHintTextForTesting, OWSLocalizedString("ATTACHMENT_KEYBOARD_NO_PHOTO_ACCESS", comment: ""))
-        XCTAssertEqual(picker.noAccessButtonTitlesForTesting, [CommonStrings.openSystemSettingsButton, OWSLocalizedString("CAMERA_BUTTON_LABEL", comment: "")])
+        XCTAssertEqual(picker.noAccessButtonTitlesForTesting, [photos, CommonStrings.openSystemSettingsButton, OWSLocalizedString("CAMERA_BUTTON_LABEL", comment: "")])
         XCTAssertNil(picker.cameraFrameForTesting, "相机格不在网格里")
         picker.tapNoAccessCameraForTesting()
         XCTAssertEqual(hosted.delegate.cameraRequests, 1, "占位里的「相机」走相机格同一条路")
         XCTAssertTrue(picker.isDockShownForTesting, "没权限也能用 dock 的别的格子")
         hosted.window.isHidden = true
 
-        XCTAssertEqual(host(library: denied, dockItems: TellomiAttachmentDockItem.allCases).picker.noAccessButtonTitlesForTesting, [CommonStrings.openSystemSettingsButton])
+        XCTAssertEqual(host(library: denied, dockItems: TellomiAttachmentDockItem.allCases).picker.noAccessButtonTitlesForTesting, [photos, CommonStrings.openSystemSettingsButton])
         XCTAssertFalse(host(dockItems: TellomiAttachmentDockItem.allCases).picker.isNoAccessHintShownForTesting)
+    }
+
+    /// 拒绝了照片权限，占位里照样有「照片」（上游附件面板上打开整个相册的那个键，同一个词）：点了交给会话页，
+    /// 由它收起 Sheet 再弹上游的系统选择器——不要照片权限就能选、能发（系统选择器取消了回到 Sheet）。
+    /// 已发布的《系统权限调用清单》（TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2）写的是：「如果您拒绝照片读取权限，附件面板仍然提供
+    /// “全部相册”入口，通过系统选择器完成选择与发送，不需要该权限」。有没有相机都在。
+    @MainActor
+    func testNoPhotoAccessStillOffersTheSystemPicker() async throws {
+        let denied = FakePhotoLibrary()
+        denied.isAccessDenied = true
+        let photos = OWSLocalizedString("ATTACHMENT_KEYBOARD_PHOTOS", comment: "")
+        XCTAssertEqual(photos, "Photos")
+        let cameras: [TellomiPhotoPickerCamera?] = [FakeCamera(access: .authorized), nil]
+        for camera in cameras {
+            let hosted = host(library: denied, camera: camera, dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+            defer { hosted.tearDown() }
+            try await settle()
+            XCTAssertTrue(hosted.picker.isNoAccessHintShownForTesting)
+            XCTAssertEqual(hosted.picker.noAccessButtonTitlesForTesting.first, photos, "占位里第一个就是「照片」（有相机：\(camera != nil)）")
+            hosted.picker.tapNoAccessButtonForTesting(title: photos)
+            XCTAssertEqual(hosted.delegate.systemPickerRequests, 1, "交给会话页开系统选择器（有相机：\(camera != nil)）")
+            XCTAssertEqual(hosted.delegate.cameraRequests, 0)
+            XCTAssertTrue(hosted.delegate.dockSelections.isEmpty)
+        }
     }
 
     /// 附件 Sheet 两档：先停在半屏（聊天露在上面、变暗），往上拖到全屏；网格滚到顶再往上拖就展开。
@@ -1258,6 +1310,12 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         try await Task.sleep(nanoseconds: 500_000_000)
     }
 
+    /// 换掉 `RemoteConfig.current`（会话页按它决定 dock 里有没有 GIF，#1078 `isGifAvailable`）；每条用例重建环境，不串到别的用例。
+    private func setRemoteConfig(_ valueFlags: [String: String]) throws {
+        let manager = try XCTUnwrap(SSKEnvironment.shared.remoteConfigManagerRef as? StubbableRemoteConfigManager)
+        manager._currentConfig = RemoteConfig(clockSkew: 0, valueFlags: valueFlags)
+    }
+
     private func toastTexts(in view: UIView) -> [String] {
         var texts = [String]()
         if let toast = view as? ToastView, let text = toast.text {
@@ -1431,12 +1489,17 @@ private final class RecordingPickerDelegate: TellomiPhotoPickerDelegate {
 
     var cancels = 0
     var cameraRequests = 0
+    var systemPickerRequests = 0
     var sent = [Sent]()
     var bodies = [MessageBody?]()
     var dockSelections = [TellomiAttachmentDockItem]()
 
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {
         dockSelections.append(item)
+    }
+
+    func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController) {
+        systemPickerRequests += 1
     }
 
     func photoPickerDidCancel(_ picker: TellomiPhotoPickerViewController) {

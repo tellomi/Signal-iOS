@@ -15,6 +15,10 @@ enum TellomiAttachmentDockItem: CaseIterable {
     case poll
     case contact
 
+    /// 附件 Sheet 的 dock 实际列出哪几格（会话页用）。
+    /// 桩（先红）：先照旧列全部五格，下一个提交按 `RemoteConfig.current.isGifAvailable` 加上 GIF。
+    static var attachmentSheetItems: [TellomiAttachmentDockItem] { allCases }
+
     var title: String {
         switch self {
         case .gallery:

@@ -1542,10 +1542,20 @@ extension TellomiPhotoPickerViewController {
     var isDockShownForTesting: Bool { dock.map { !$0.isHidden } ?? false }
     var isNoAccessHintShownForTesting: Bool { !noAccessView.isHidden }
     var noAccessHintTextForTesting: String? { (noAccessView as? UIStackView)?.arrangedSubviews.compactMap { ($0 as? UILabel)?.text }.first }
-    var noAccessButtonTitlesForTesting: [String] { [noAccessSettingsButton, noAccessCameraButton].filter { !$0.isHidden }.compactMap { $0.configuration?.title } }
+    /// 占位里露着的按钮，按排列的先后。
+    private var noAccessButtonsForTesting: [UIButton] {
+        let rows = (noAccessView as? UIStackView)?.arrangedSubviews.compactMap { $0 as? UIStackView } ?? []
+        return rows.flatMap { $0.arrangedSubviews }.compactMap { $0 as? UIButton }.filter { !$0.isHidden }
+    }
+
+    var noAccessButtonTitlesForTesting: [String] { noAccessButtonsForTesting.compactMap { $0.configuration?.title } }
 
     func tapNoAccessCameraForTesting() {
         noAccessCameraButton.sendActions(for: .primaryActionTriggered)
+    }
+
+    func tapNoAccessButtonForTesting(title: String) {
+        noAccessButtonsForTesting.first { $0.configuration?.title == title }?.sendActions(for: .primaryActionTriggered)
     }
 
     var gridBottomInsetForTesting: CGFloat { collectionView.contentInset.bottom }
