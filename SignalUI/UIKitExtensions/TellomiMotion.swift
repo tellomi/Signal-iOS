@@ -43,10 +43,10 @@ public enum TellomiMotion {
     public static let release = Spring(duration: 0.3, bounce: 0.3)
     /// 小元素出现 / 消失、胶囊、角标。
     public static let snap = Spring(duration: 0.3, bounce: 0.3)
-    /// 菜单、Sheet 落档、共享元素、列表补位。
-    public static let move = Spring(duration: 0.4, bounce: 0.15)
-    /// 整屏级：查看器开合。
-    public static let large = Spring(duration: 0.45, bounce: 0.1)
+    /// 菜单、Sheet 落档、共享元素、列表补位。回弹约 5%，看得出来（owner 2026-09-26 定「明显回弹，两端一致」，与 Android `Move` 同一个回弹）。
+    public static let move = Spring(duration: 0.4, bounce: 0.3)
+    /// 整屏级：查看器开合。回弹约 1.5%，与 Android `Large` 同一个回弹。
+    public static let large = Spring(duration: 0.45, bounce: 0.2)
     /// 回应落定、一次性成功。
     public static let emphasis = Spring(duration: 0.45, bounce: 0.4)
     /// 滚动位置（跳转、回到底部）。滚动位置永远不回弹。
