@@ -3743,6 +3743,7 @@
 		F962B38A293F9F1F00765BD8 /* CRC32.swift in Sources */ = {isa = PBXBuildFile; fileRef = F962B389293F9F1F00765BD8 /* CRC32.swift */; };
 		F962B38C293F9F9F00765BD8 /* CRC32Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = F962B38B293F9F9F00765BD8 /* CRC32Test.swift */; };
 		F963164B291AE06C00218FB7 /* ScrubbingLogFormatterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F963164A291AE06C00218FB7 /* ScrubbingLogFormatterTest.swift */; };
+		7681202F04045ABC9A19F37C /* TellomiLogoutWordingTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B91481F2467077322FF39DD /* TellomiLogoutWordingTest.swift */; };
 		F963F816292D1B5B007DBBBD /* UIButton+SignalUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F963F815292D1B5B007DBBBD /* UIButton+SignalUI.swift */; };
 		F963F818292D7E53007DBBBD /* FormattedNumberField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F963F817292D7E53007DBBBD /* FormattedNumberField.swift */; };
 		F964D2A529770180003C39DA /* BadgeGiftingConfirmationViewController+Paypal.swift in Sources */ = {isa = PBXBuildFile; fileRef = F964D2A429770180003C39DA /* BadgeGiftingConfirmationViewController+Paypal.swift */; };
@@ -8171,6 +8172,7 @@
 		F962B38B293F9F9F00765BD8 /* CRC32Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRC32Test.swift; sourceTree = "<group>"; };
 		F962FF4829AD0C7C00AFA397 /* ScrubbingLogFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrubbingLogFormatter.swift; sourceTree = "<group>"; };
 		F963164A291AE06C00218FB7 /* ScrubbingLogFormatterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrubbingLogFormatterTest.swift; sourceTree = "<group>"; };
+		4B91481F2467077322FF39DD /* TellomiLogoutWordingTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLogoutWordingTest.swift; sourceTree = "<group>"; };
 		F963F815292D1B5B007DBBBD /* UIButton+SignalUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIButton+SignalUI.swift"; sourceTree = "<group>"; };
 		F963F817292D7E53007DBBBD /* FormattedNumberField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattedNumberField.swift; sourceTree = "<group>"; };
 		F963F819292DA8E2007DBBBD /* FormattedNumberFieldTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattedNumberFieldTest.swift; sourceTree = "<group>"; };
@@ -12011,6 +12013,7 @@
 				F93461BA291ED2B000366682 /* PaymentDetailsValidityTest.swift */,
 				349D21E7268E044700D98870 /* QRCodeParserTest.swift */,
 				F963164A291AE06C00218FB7 /* ScrubbingLogFormatterTest.swift */,
+				4B91481F2467077322FF39DD /* TellomiLogoutWordingTest.swift */,
 				F9844C482867936400B16DD4 /* SignalMeTest.swift */,
 				88F5FA9528EF7E02007AA1BF /* StorySharingTests.swift */,
 				98D599BA464A712488390768 /* TellomiLocalizationTest.swift */,
@@ -19390,6 +19393,7 @@
 				040507152F8063AB0078B769 /* RemoteReleaseNotesFetchingManagerTests.swift in Sources */,
 				F5C80FA22BE3F29F0028F76D /* RTCIceServerFetcherTest.swift in Sources */,
 				F963164B291AE06C00218FB7 /* ScrubbingLogFormatterTest.swift in Sources */,
+				7681202F04045ABC9A19F37C /* TellomiLogoutWordingTest.swift in Sources */,
 				505C2ED92997422D00C23FB2 /* SelfSignedIdentityTest.swift in Sources */,
 				1704690A25D4C326000793D8 /* SignalAttachmentTest.swift in Sources */,
 				4C83AC4223C55D9C00D4F2E6 /* SignalBaseTest.swift in Sources */,
