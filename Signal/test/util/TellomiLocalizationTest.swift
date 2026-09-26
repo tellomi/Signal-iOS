@@ -233,7 +233,7 @@ final class TellomiLocalizationTest: XCTestCase {
 /// 只管点名这个功能的字符串：英文原文讲 disappearing message 的，中文三种语言里都不许再出现旧称。
 final class TellomiDisappearingMessagesTermTest: XCTestCase {
 
-    private static let featureName = ["zh_CN": "限时消息", "zh_HK": "限時訊息", "zh_TW": "限時訊息"]
+    private static let featureName = ["zh_CN": "限时消息", "zh_HK": "限時訊息", "zh_TW": "限時訊息", "yue": "限時訊息"]
     private static let oldNames = ["阅后即焚", "閱後即焚", "自動銷毀", "訊息銷毀", "銷毀的訊息", "過眼雲煙"]
 
     func testTheFeatureHasTheSameNameEverywhere() throws {
