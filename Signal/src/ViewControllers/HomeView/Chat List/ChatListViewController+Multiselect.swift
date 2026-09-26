@@ -383,7 +383,19 @@ extension ChatListViewController {
         )
         message = String.localizedStringWithFormat(messageFormat, selectedIndexPaths.count)
 
-        let alert = ActionSheetController(title: title, message: message)
+        // Tellomi：只选了「我的收藏」时换成说清楚的文案（#1174）。
+        // 先在事务外取会话：threadViewModel(forIndexPath:) 缓存没命中时会自己开一次读，嵌在 db.read 里会触发 GRDB 的不可重入断言。
+        let selectedThreads = selectedIndexPaths.compactMap(tableDataSource.threadViewModel(forIndexPath:)).map(\.threadRecord)
+        let hasLinkedDevices = db.read { tx in DependenciesBridge.shared.deviceStore.hasLinkedDevices(tx: tx) }
+        let savedMessagesConfirmation = TellomiSavedMessagesStrings.deleteConfirmation(
+            for: selectedThreads,
+            hasLinkedDevices: hasLinkedDevices,
+        )
+
+        let alert = ActionSheetController(
+            title: savedMessagesConfirmation?.title ?? title,
+            message: savedMessagesConfirmation?.message ?? message,
+        )
         alert.addAction(ActionSheetAction(
             title: CommonStrings.deleteButton,
             style: .destructive,

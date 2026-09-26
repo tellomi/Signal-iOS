@@ -386,7 +386,7 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>ld</string>
 			<key>other</key>
-			<string>%1$ld 個自動銷毀訊息時限變更 · %2$@</string>
+			<string>%1$ld 個限時訊息時限變更 · %2$@</string>
 		</dict>
 	</dict>
 	<key>CONVERSATION_DELETE_CONFIRMATIONS_ALERT_TITLE_%d</key>
@@ -1350,6 +1350,20 @@
 			<string>%2$@ +%1$ld 舉了手</string>
 		</dict>
 	</dict>
+	<key>REGISTRATION_PROFILE_USERNAME_COOLDOWN_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>%d 天後才能設定用戶名稱</string>
+		</dict>
+	</dict>
 	<key>REREGISTER_INVALID_PIN_ATTEMPT_COUNT_%d</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -1548,6 +1562,20 @@
 			<string>連結此裝置時，此貼圖未從你的手機轉移過來。當裝置連結時，超過 %1$d 天的媒體和檔案無法同步。</string>
 		</dict>
 	</dict>
+	<key>USERNAME_SELECTION_TOO_LONG_ERROR_MESSAGE_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>用戶名稱最多只能包含 %d 個字元。</string>
+		</dict>
+	</dict>
 	<key>USERNAME_SELECTION_TOO_SHORT_ERROR_MESSAGE_%d</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -1560,6 +1588,62 @@
 			<string>d</string>
 			<key>other</key>
 			<string>用戶名稱必須至少以 %1$d 個字元開始</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>你最近更改過用戶名稱，%d 天後可以再更改。在那之前，只能改回原來的名稱。</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>更改用戶名稱將重設你現有的二維碼和連結，之後 %d 天內不能再更改。你確定嗎？</string>
+		</dict>
+	</dict>
+	<key>PROFILE_SETTINGS_USERNAME_DELETION_CONFIRMATION_ALERT_MESSAGE_TELLOMI_%d_%@_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>這將刪除你的用戶名稱及停用你的二維碼和連結。「%2$@」會為你保留 %3$d 天；這期間再設定用戶名稱，之後 %1$d 天內不能再更改。如果你 %1$d 天內改過用戶名稱，刪除後只能改回原來的名稱。你確定嗎？</string>
+		</dict>
+	</dict>
+	<key>USERNAME_SELECTION_SET_AFTER_DELETE_CONFIRMATION_MESSAGE_TELLOMI_%d_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>你在 %2$d 天內刪除過用戶名稱，現在設定也算一次更改：之後 %d 天內不能再更改。你確定嗎？</string>
 		</dict>
 	</dict>
 </dict>

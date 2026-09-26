@@ -4970,7 +4970,7 @@
 "HOME_VIEW_FIRST_CONVERSATION_OFFER_1_CONTACT_FORMAT" = "તમારા કેટલાક સંપર્કો પહેલેથી જ Tellomi પર છે, %1$@સહિત";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have 2 Signal contacts.  Embeds {{The names of 2 of your Signal contacts}}. */
-"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "તમારા કેટલાક સંપર્કો પહેલાથી જ સિગ્નલ પર છે, જેમાં %1$@અને %2$@નો સમાવેશ થાય છે";
+"HOME_VIEW_FIRST_CONVERSATION_OFFER_2_CONTACTS_FORMAT" = "તમારા કેટલાક સંપર્કો પહેલાથી જ Tellomi પર છે, જેમાં %1$@અને %2$@નો સમાવેશ થાય છે";
 
 /* Format string for a label offering to start a new conversation with your contacts, if you have at least 3 Signal contacts.  Embeds {{The names of 3 of your Signal contacts}}. */
 "HOME_VIEW_FIRST_CONVERSATION_OFFER_3_CONTACTS_FORMAT" = "તમારા કેટલાક સંપર્કો પહેલેથી જ Tellomi પર છે, જેમાં %1$@, %2$@અને %3$@શામેલ છે";

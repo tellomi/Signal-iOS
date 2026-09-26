@@ -43,6 +43,7 @@ public class AppEnvironment: NSObject {
     private(set) var groupSendEndorsementExpirationJob: GroupSendEndorsementExpirationJob!
     private(set) var lowDiskSpaceManager: LowDiskSpaceManager!
     private var lowDiskSpaceMonitoringManager: LowDiskSpaceMonitoringManager!
+    private var tellomiUpdateRequiredMonitoringManager: TellomiUpdateRequiredMonitoringManager!
     private(set) var outgoingDeviceRestorePresenter: OutgoingDeviceRestorePresenter!
     private(set) var passwordManagerManager: PasswordManagerManager!
     private(set) var provisioningManager: ProvisioningManager!
@@ -140,6 +141,11 @@ public class AppEnvironment: NSObject {
 
         self.clockSkewMonitoringManager = ClockSkewMonitoringManager(
             clockSkewManager: DependenciesBridge.shared.clockSkewManager,
+            windowManager: windowManagerRef,
+        )
+
+        self.tellomiUpdateRequiredMonitoringManager = TellomiUpdateRequiredMonitoringManager(
+            appExpiry: DependenciesBridge.shared.appExpiry,
             windowManager: windowManagerRef,
         )
 
@@ -351,6 +357,7 @@ public class AppEnvironment: NSObject {
             self.appIconBadgeUpdater.startObserving()
             self.clockSkewMonitoringManager.start()
             self.lowDiskSpaceMonitoringManager.start()
+            self.tellomiUpdateRequiredMonitoringManager.start()
         }
 
         appReadiness.runNowOrWhenAppDidBecomeReadyAsync {

@@ -54,8 +54,9 @@ class UsernameLinkTests: XCTestCase {
         let knownHandle = UUID(uuidString: "EF0228A2-9EAC-46C2-ACF4-67DF5B06BE57")!
 
         let testCases: [(String, String)] = [
-            ("aa?", "https://signal.me/#eu/YWE_AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwPvAiiinqxGwqz0Z99bBr5X"),
-            ("aa>", "https://signal.me/#eu/YWE-AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwPvAiiinqxGwqz0Z99bBr5X"),
+            // Tellomi（tellomi/tellomi#1113）：生成的是 tell.cc/u#eu/…，编码部分不变
+            ("aa?", "https://tell.cc/u#eu/YWE_AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwPvAiiinqxGwqz0Z99bBr5X"),
+            ("aa>", "https://tell.cc/u#eu/YWE-AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwPvAiiinqxGwqz0Z99bBr5X"),
         ]
 
         for testCase in testCases {

@@ -452,7 +452,7 @@
 "ATTACHMENT_KEYBOARD_NO_MEDIA_TITLE" = "کوئی تصاویز یا ویڈیوز نہیں ہیں";
 
 /* Text in chat attachment panel explaining that user needs to give Signal permission to access photos. */
-"ATTACHMENT_KEYBOARD_NO_PHOTO_ACCESS" = "سگنل کو آپ کی تصاویر یا ویڈیوز تک رسائی حاصل نہیں ہوتی۔ رسائی کو فعال کرنے کے لیے سیٹنگز کھولیں اور تصاویر پر ٹیپ کریں";
+"ATTACHMENT_KEYBOARD_NO_PHOTO_ACCESS" = "Tellomi کو آپ کی تصاویر یا ویڈیوز تک رسائی حاصل نہیں ہوتی۔ رسائی کو فعال کرنے کے لیے سیٹنگز کھولیں اور تصاویر پر ٹیپ کریں";
 
 /* Button in chat attachment panel to let user open Settings app and give Signal persmission to access photos. */
 "ATTACHMENT_KEYBOARD_OPEN_SETTINGS" = "سیٹنگز کھولیں";
@@ -1814,7 +1814,7 @@
 "CALLING_MEMBER_VIEW_YOUR_CAMERA_IS_OFF" = "آپ کا کیمرا بند ہے";
 
 /* The generic name used for calls if CallKit privacy is enabled */
-"CALLKIT_ANONYMOUS_CONTACT_NAME" = "سگنل صارف";
+"CALLKIT_ANONYMOUS_CONTACT_NAME" = "Tellomi صارف";
 
 /* The generic name used for group calls if CallKit privacy is enabled */
 "CALLKIT_ANONYMOUS_GROUP_NAME" = "Tellomi گروپ \n";
@@ -3701,7 +3701,7 @@
 "EDIT_CONTACT_WITHOUT_CONTACTS_PERMISSION_ALERT_BODY" = "iOS ایپ کی ترتیبات میں رسائی کیلئے فعال کر سکتے ہیں۔";
 
 /* Alert title for when the user has just tried to edit a contacts after declining to give Signal contacts permissions */
-"EDIT_CONTACT_WITHOUT_CONTACTS_PERMISSION_ALERT_TITLE" = "رابطے کی معلومات کیلئے سگنل رابطوں تک رسائی چاہتا ہے۔";
+"EDIT_CONTACT_WITHOUT_CONTACTS_PERMISSION_ALERT_TITLE" = "رابطے کی معلومات کیلئے Tellomi رابطوں تک رسائی چاہتا ہے۔";
 
 /* The navbar title for the 'update group' view. */
 "EDIT_GROUP_DEFAULT_TITLE" = "گروپ ترتیب دیں";
@@ -3776,7 +3776,7 @@
 "EMOJI_CATEGORY_TRAVEL_NAME" = "سفر اور مقامات";
 
 /* Full width label displayed when attempting to compose message */
-"EMPTY_CONTACTS_LABEL_LINE1" = "آپ کے رابطوں میں سے کسی کے پاس سگنل نہیں ہے۔";
+"EMPTY_CONTACTS_LABEL_LINE1" = "آپ کے رابطوں میں سے کسی کے پاس Tellomi نہیں ہے۔";
 
 /* Full width label displayed when attempting to compose message */
 "EMPTY_CONTACTS_LABEL_LINE2" = "آپ کسی کو دعوت کیوں نہیں دیتے؟";
@@ -5201,7 +5201,7 @@
 "INVITE_FLOW_REQUIRES_CONTACT_ACCESS_TITLE" = "رابطوں تک رسائی کی اجازت دیں";
 
 /* Label for the cell that presents the 'invite contacts' workflow. */
-"INVITE_FRIENDS_CONTACT_TABLE_BUTTON" = "سگنل میں دوستوں کو دعوت دیں";
+"INVITE_FRIENDS_CONTACT_TABLE_BUTTON" = "Tellomi میں دوستوں کو دعوت دیں";
 
 /* Header label above a section for more options for adding contacts */
 "INVITE_FRIENDS_CONTACT_TABLE_HEADER" = "مزید";

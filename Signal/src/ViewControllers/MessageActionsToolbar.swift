@@ -30,6 +30,8 @@ public class MessageAction: NSObject {
         case endPoll
         case pin
         case unpin
+        /// Tellomi：长按「收藏」（#1174），排在「转发」旁边
+        case tellomiSave
 
         /// Lower priority numbers indicate an action should be shown earlier.
         var priority: Int {
@@ -49,6 +51,7 @@ public class MessageAction: NSObject {
             case .pin: 12
             case .unpin: 13
             case .delete: 14
+            case .tellomiSave: 1
             }
         }
     }
@@ -105,6 +108,8 @@ public class MessageAction: NSObject {
                 return .pin
             case .unpin:
                 return .unpin
+            case .tellomiSave:
+                return .settingsTellomiSavedMessages
             }
         }()
         return Theme.iconImage(icon)

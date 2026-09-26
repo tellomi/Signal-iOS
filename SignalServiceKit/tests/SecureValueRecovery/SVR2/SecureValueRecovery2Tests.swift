@@ -343,6 +343,36 @@ class SecureValueRecovery2Tests: XCTestCase {
             XCTAssertEqual(localStorage.backupAttemptStore.allKeys(transaction: tx), [mockEnclave.stringValue])
         }
     }
+
+    /// Tellomi：没有 SVR enclave 的部署（`TSConstantsStaging`，docs/signal/ENCLAVES.md）里，
+    /// `refreshBackupIfNecessary` 直接返回：不连 enclave、不备份、不清理旧 enclave。
+    /// 上面几条上游用例跑的是 `TSConstantsMock` 的缺省值，也就是有 enclave 的上游档。
+    @MainActor
+    func testTellomiNoSVR_refreshBackupIfNecessary_touchesNoEnclave() async throws {
+        mockTSConstants.svrEnclaveAvailable = false
+
+        // 有主密钥、有 PIN、有 enclave 列表：上游档下这就会去备份（见 testMigration）。
+        db.write { tx in
+            accountKeyStore.setAccountEntropyPool(AccountEntropyPool(), tx: tx)
+        }
+        mock2FAManager.pinCode = "0000"
+        mockTSConstants.svr2Enclaves = [MrEnclave("0000000000000000000000000000000000000000000000000000000000000000")]
+
+        // 用 OWSGenericError 而不是 OWSAssertionError：后者在 Debug 里直接 owsFailDebug 把测试进程崩掉，
+        // 回归时应该是这一条红，而不是整个进程崩。
+        var connectionAttempts = 0
+        mockConnectionFactory.setOnConnectAndPerformHandshake { (_: SVR2WebsocketConfigurator) in
+            connectionAttempts += 1
+            throw OWSGenericError("No SVR enclave in this deployment; nothing should connect.")
+        }
+
+        _ = try await svr.refreshBackupIfNecessary()
+
+        XCTAssertEqual(connectionAttempts, 0)
+        db.read { tx in
+            XCTAssertEqual(localStorage.backupAttemptStore.allKeys(transaction: tx), [])
+        }
+    }
 }
 
 // MARK: -

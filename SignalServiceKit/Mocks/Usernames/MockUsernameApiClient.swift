@@ -25,6 +25,20 @@ class MockUsernameApiClient: UsernameApiClient {
         return try await confirmReservedUsernameMocks.removeFirst()(reservedUsername, encryptedUsernameForLink, chatServiceAuth)
     }
 
+    // MARK: Reserve
+
+    var reserveUsernameCandidatesMocks = [(
+        usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
+    ) async throws -> Usernames.ApiClientReservationResult]()
+
+    func reserveUsernameCandidates(
+        usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
+    ) async throws -> Usernames.ApiClientReservationResult {
+        return try await reserveUsernameCandidatesMocks.removeFirst()(usernameCandidates, chatServiceAuth)
+    }
+
     // MARK: Delete
 
     var deleteCurrentUsernameMocks = [() async throws -> Void]()
@@ -45,7 +59,6 @@ class MockUsernameApiClient: UsernameApiClient {
 
     // MARK: Unimplemented
 
-    func reserveUsernameCandidates(usernameCandidates: Usernames.HashedUsername.GeneratedCandidates) async throws -> Usernames.ApiClientReservationResult { owsFail("Not implemented!") }
     func lookupAci(forHashedUsername hashedUsername: Usernames.HashedUsername) async throws -> Aci? { owsFail("Not implemented!") }
     func getUsernameLink(handle: UUID, entropy: Data) async throws -> LibSignalClient.Username? { owsFail("Not implemented!") }
 }
