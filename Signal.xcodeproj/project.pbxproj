@@ -198,6 +198,7 @@
 		17EC850C29133CDB00319C82 /* CancelledGroupRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EC850B29133CDB00319C82 /* CancelledGroupRing.swift */; };
 		259D4DF2486F14DB112B3999 /* Pods_SignalServiceKitTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 91DA2BE463493965F5BC71C0 /* Pods_SignalServiceKitTests.framework */; };
 		2B5914CF7BCE3017430CFD84 /* Pods_SignalTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0BADD293DAFC82BF3274F0F6 /* Pods_SignalTests.framework */; };
+		311F40E779E2EF2EE52A3669 /* TellomiMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18DD78A71B955701E58CB70 /* TellomiMotion.swift */; };
 		3236FCC42592B67B006D33B9 /* NameCollisionReviewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3236FCC32592B67B006D33B9 /* NameCollisionReviewCell.swift */; };
 		326DF2612739F4D90017B789 /* FeaturedBadgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 326DF2602739F4D90017B789 /* FeaturedBadgeViewController.swift */; };
 		327CF66825ACE7DD00DA0A6F /* GetStartedBannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 327CF66725ACE7DC00DA0A6F /* GetStartedBannerViewController.swift */; };
@@ -1788,6 +1789,7 @@
 		A1A018521805C5E800A052A6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A11CD70C17FA230600A2D1B1 /* QuartzCore.framework */; };
 		A1A018531805C60D00A052A6 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D221A091169C9E5E00537ABF /* CoreGraphics.framework */; };
 		A5E7C675248C5443007C949A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A5E7C673248C5442007C949A /* InfoPlist.strings */; };
+		A676B91F78D4ED46234C683F /* TellomiMotionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E28DBA3B377800CE0F5C042 /* TellomiMotionTest.swift */; };
 		AB0C401C2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0C401B2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift */; };
 		B60EDE041A05A01700D73516 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B60EDE031A05A01700D73516 /* AudioToolbox.framework */; };
 		B66DBF4A19D5BBC8006EA940 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B66DBF4919D5BBC8006EA940 /* Images.xcassets */; };
@@ -5315,6 +5317,7 @@
 		55B7535F2D97303A00CCC91C /* RemoteMuteToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteMuteToast.swift; sourceTree = "<group>"; };
 		5AA002E52CA2455F002D1CC2 /* SessionStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStoreTest.swift; sourceTree = "<group>"; };
 		5D6C4583F668E9D733E59B9B /* Pods-SignalServiceKitTests.testable release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SignalServiceKitTests.testable release.xcconfig"; path = "Target Support Files/Pods-SignalServiceKitTests/Pods-SignalServiceKitTests.testable release.xcconfig"; sourceTree = "<group>"; };
+		5E28DBA3B377800CE0F5C042 /* TellomiMotionTest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TellomiMotionTest.swift; sourceTree = "<group>"; };
 		5F85041386A219C9710EAB41 /* Pods-Signal.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Signal.debug.xcconfig"; path = "Target Support Files/Pods-Signal/Pods-Signal.debug.xcconfig"; sourceTree = "<group>"; };
 		63AB899B30505F350065AEF3 /* SelectContactForSharingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectContactForSharingViewController.swift; sourceTree = "<group>"; };
 		65703441A3D2C7FE670E65ED /* Pods-SignalServiceKit.profiling.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SignalServiceKit.profiling.xcconfig"; path = "Target Support Files/Pods-SignalServiceKit/Pods-SignalServiceKit.profiling.xcconfig"; sourceTree = "<group>"; };
@@ -6311,6 +6314,7 @@
 		C18D4A942B4CBC1300C3F412 /* DonationViewsUtil+IDEAL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DonationViewsUtil+IDEAL.swift"; sourceTree = "<group>"; };
 		C18D6FDF2D4D8FB40085E3B9 /* AccountEntropyPool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountEntropyPool.swift; sourceTree = "<group>"; };
 		C18DB09E2DA6B9D40084CFD6 /* RegistrationUIStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationUIStyles.swift; sourceTree = "<group>"; };
+		C18DD78A71B955701E58CB70 /* TellomiMotion.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TellomiMotion.swift; sourceTree = "<group>"; };
 		C18E3C712A9FF65D003D1CF1 /* PniDistributionSyncMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PniDistributionSyncMessage.swift; sourceTree = "<group>"; };
 		C19001BF2ECE319400D0CBD5 /* ThemeDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeDataStore.swift; sourceTree = "<group>"; };
 		C19001C12ECF62AD00D0CBD5 /* CallServiceSettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallServiceSettingsStore.swift; sourceTree = "<group>"; };
@@ -9315,6 +9319,8 @@
 				3402A9E5271D97090084CBAE /* UIView+SignalUI.swift */,
 				762A41682A37D71600057955 /* UIViewController+SignalUI.swift */,
 				05A180352CD1840F00579FA4 /* UIViewPropertyAnimator+SignalUI.swift */,
+				C18DD78A71B955701E58CB70 /* TellomiMotion.swift */,
+				5E28DBA3B377800CE0F5C042 /* TellomiMotionTest.swift */,
 			);
 			path = UIKitExtensions;
 			sourceTree = "<group>";
@@ -18363,6 +18369,7 @@
 				3402AA9F271D9E180084CBAE /* ViewOnceTooltip.swift in Sources */,
 				3402AA6A271D9DFC0084CBAE /* Wallpaper+SignalUI.swift in Sources */,
 				D9392DE02D88AA5800728C01 /* ZoomableMediaView.swift in Sources */,
+				311F40E779E2EF2EE52A3669 /* TellomiMotion.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -18379,6 +18386,7 @@
 				D9C5634F2EB438500001626A /* OWSByteCountFormatStyleTest.swift in Sources */,
 				50BF510E2BB2033800C2C309 /* RecipientPickerViewControllerTest.swift in Sources */,
 				50BF51102BB2035400C2C309 /* UIStackView+SignalUITest.swift in Sources */,
+				A676B91F78D4ED46234C683F /* TellomiMotionTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
