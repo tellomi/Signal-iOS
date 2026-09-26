@@ -178,9 +178,8 @@ class MediaCaptionView: UIView {
 
     @available(iOS 26, *)
     private func glassEffect() -> UIVisualEffect? {
-        let glassEffect = UIGlassEffect(style: .regular)
-        glassEffect.isInteractive = true
-        return glassEffect
+        // Tellomi（#1257）：深色玻璃（TellomiViewerGlass）。
+        TellomiViewerGlass.effect()
     }
 
     @available(iOS 26, *)

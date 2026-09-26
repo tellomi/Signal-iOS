@@ -848,6 +848,60 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         return Guarantee.wrapAsync { await self.nextStep() }
     }
 
+    /// 资料页的状态。Tellomi（tellomi/tellomi#1266）：重新注册时不显示用户名框，交给设置页。
+    static func profileState(
+        accountIdentity: AccountIdentity,
+        phoneNumberDiscoverability: PhoneNumberDiscoverability,
+    ) -> RegistrationProfileState {
+        return RegistrationProfileState(
+            e164: accountIdentity.e164,
+            phoneNumberDiscoverability: phoneNumberDiscoverability,
+            showsTellomiUsername: accountIdentity.isReregistration != true,
+        )
+    }
+
+    @MainActor
+    public func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome {
+        guard let accountIdentity = persistedState.accountIdentity else {
+            owsFailBeta("Shouldn't be reserving a username prior to registration.")
+            return .failed
+        }
+
+        let usernameCandidates: Usernames.HashedUsername.GeneratedCandidates
+        do {
+            // 不指定判别位 = 只生成 `<nickname>.01`（ADR-0066，#17）
+            usernameCandidates = try Usernames.HashedUsername.generateCandidates(
+                forNickname: nickname,
+                minNicknameLength: UInt32(TellomiRegistrationUsername.minLength),
+                maxNicknameLength: UInt32(TellomiRegistrationUsername.maxLength),
+                desiredDiscriminator: nil,
+            )
+        } catch {
+            logger.warn("Username candidate generation failed: \(error)")
+            return .notAvailable
+        }
+
+        let result = await deps.localUsernameManager.reserveUsername(
+            usernameCandidates: usernameCandidates,
+            chatServiceAuth: accountIdentity.chatServiceAuth,
+        )
+        return TellomiRegistrationUsername.reservationOutcome(of: result)
+    }
+
+    @MainActor
+    public func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome {
+        guard let accountIdentity = persistedState.accountIdentity else {
+            owsFailBeta("Shouldn't be confirming a username prior to registration.")
+            return .failed
+        }
+
+        let result = await deps.localUsernameManager.confirmUsername(
+            reservedUsername: reservedUsername,
+            chatServiceAuth: accountIdentity.chatServiceAuth,
+        )
+        return TellomiRegistrationUsername.confirmationOutcome(of: result)
+    }
+
     public func acknowledgeReglockTimeout() -> AcknowledgeReglockResult {
         logger.info("")
 
@@ -3795,8 +3849,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                     )
                 }
             } else {
-                return .setupProfile(RegistrationProfileState(
-                    e164: accountIdentity.e164,
+                return .setupProfile(Self.profileState(
+                    accountIdentity: accountIdentity,
                     phoneNumberDiscoverability: inMemoryState.phoneNumberDiscoverability.orDefault,
                 ))
             }
@@ -4843,6 +4897,11 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         /// We create this locally and include it in the create account request,
         /// then use it to authenticate subsequent requests.
         let authPassword: String
+
+        /// Tellomi（tellomi/tellomi#1266）：注册回包的 `reregistration`（这个号码之前有没有账号）。为真时资料页不显示用户名框：
+        /// 旧用户名在服务端是本账号的待认领保留，本机不知道它，在注册那一刻请用户填，冷却外一填就等于换名、丢了原名。
+        /// 可选：旧版本存下来的注册状态里没有这个键，照样能解出来；改号不经过资料页，传 nil。
+        var isReregistration: Bool? = nil
 
         var authUsername: String {
             return aci.serviceIdString

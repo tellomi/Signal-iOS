@@ -134,6 +134,29 @@ class LocalUsernameManagerTests: XCTestCase {
         XCTAssertEqual(mockSyncMessageSender.usernameChangeSyncMessageCount, 1)
     }
 
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：注册资料页用注册拿到的凭证显式认证去保留 / 确认（本机注册还没完成，隐式认证取不到凭证）；
+    /// 不传认证时仍是隐式，上游原来的行为不变。
+    func testReserveAndConfirmUseTheGivenAuth() async throws {
+        let explicitAuth = ChatServiceAuth.explicit(aci: Aci.randomForTesting(), deviceId: .primary, password: "registration-password")
+        let candidates = try Usernames.HashedUsername.generateCandidates(forNickname: "kaixin", minNicknameLength: 3, maxNicknameLength: 20, desiredDiscriminator: nil)
+
+        var reserveAuths: [ChatServiceAuth] = []
+        mockUsernameApiClient.reserveUsernameCandidatesMocks = [
+            { _, auth in reserveAuths.append(auth); return .rejected },
+            { _, auth in reserveAuths.append(auth); return .rejected },
+        ]
+        _ = await localUsernameManager.reserveUsername(usernameCandidates: candidates, chatServiceAuth: explicitAuth)
+        _ = await localUsernameManager.reserveUsername(usernameCandidates: candidates)
+        XCTAssertEqual(reserveAuths, [explicitAuth, .implicit()])
+
+        var confirmAuths: [ChatServiceAuth] = []
+        mockUsernameLinkManager.entropyToGenerate = .success(.mockEntropy)
+        mockUsernameApiClient.confirmReservedUsernameMocks = [{ _, _, auth in confirmAuths.append(auth); return .rejected }]
+        _ = await localUsernameManager.confirmUsername(reservedUsername: .mock("kaixin.01"), chatServiceAuth: explicitAuth)
+        XCTAssertEqual(confirmAuths, [explicitAuth])
+        XCTAssertTrue(mockUsernameApiClient.reserveUsernameCandidatesMocks.isEmpty)
+    }
+
     func testConfirmBailsEarlyIfNotReachable() async {
         mockReachabilityManager.isReachable = false
 
@@ -598,6 +621,50 @@ class LocalUsernameManagerTests: XCTestCase {
     private func usernameState() -> Usernames.LocalUsernameState {
         return mockDB.read { tx in
             return localUsernameManager.usernameState(tx: tx)
+        }
+    }
+
+    // MARK: - Tellomi
+
+    /// Tellomi（tellomi/tellomi#1106 第二刀，ADR-0066 §六「生成」）：不指定判别位时只产 `<nickname>.01` 一个候选；
+    /// 指定了照用（修复模式沿用旧判别位的路径还在）；昵称不合法照旧抛错，界面按错误类型给提示。
+    func testTellomiCandidatesUseOnlyTheFixedDiscriminator() throws {
+        let generated = try Usernames.HashedUsername.generateCandidates(
+            forNickname: "kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+        )
+        XCTAssertEqual(generated.candidateHashes.count, 1)
+        XCTAssertEqual(generated.candidate(matchingHash: generated.candidateHashes[0])?.usernameString, "kaixin.01")
+
+        let custom = try Usernames.HashedUsername.generateCandidates(
+            forNickname: "kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: "57",
+        )
+        XCTAssertEqual(custom.candidate(matchingHash: custom.candidateHashes[0])?.usernameString, "kaixin.57")
+
+        XCTAssertThrowsError(try Usernames.HashedUsername.generateCandidates(
+            forNickname: "1kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+        ))
+    }
+
+    /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 按 Retry-After 分成改名冷却和普通限流。
+    func testTellomiReservationRateLimitSplitsOffRenameCooldown() {
+        guard case .changeCooldown(let retryAfter) = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: 2_591_999) else {
+            return XCTFail("30 天的 Retry-After 应当是改名冷却")
+        }
+        XCTAssertEqual(retryAfter, 2_591_999)
+
+        for shortOrMissing: TimeInterval? in [9, 3600, nil] {
+            guard case .rateLimited = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: shortOrMissing) else {
+                return XCTFail("\(String(describing: shortOrMissing)) 秒应当是普通限流")
+            }
         }
     }
 }
