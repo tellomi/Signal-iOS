@@ -1562,6 +1562,20 @@
 			<string>此设备链接时，此表情未从您的手机转移。设备链接时已存在超过 %1$d 天的媒体和文件无法同步。</string>
 		</dict>
 	</dict>
+	<key>USERNAME_SELECTION_TOO_LONG_ERROR_MESSAGE_TELLOMI_%d</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@text@</string>
+		<key>text</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>用户名至多只能包含 %d 个字符。</string>
+		</dict>
+	</dict>
 	<key>USERNAME_SELECTION_TOO_SHORT_ERROR_MESSAGE_%d</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
