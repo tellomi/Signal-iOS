@@ -69,6 +69,8 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
         case reservationRejected
         /// The reservation was rejected by the server due to rate limiting.
         case reservationRateLimited
+        /// Tellomi（tellomi/tellomi#1106 第四刀）：30 天改名冷却期内，还剩 `daysLeft` 天。
+        case reservationChangeCooldown(daysLeft: Int)
         /// The reservation failed due to a network error.
         case reservationFailedNetworkError
         /// The reservation failed, for an unknown reason.
@@ -102,6 +104,8 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
                 return "reservationRejected"
             case .reservationRateLimited:
                 return "reservationRateLimited"
+            case .reservationChangeCooldown:
+                return "reservationChangeCooldown"
             case .reservationFailedNetworkError:
                 return "reservationFailedNetworkError"
             case .reservationFailed:
@@ -399,6 +403,7 @@ private extension UsernameSelectionViewController {
                 .pending,
                 .reservationRejected,
                 .reservationRateLimited,
+                .reservationChangeCooldown,
                 .reservationFailedNetworkError,
                 .reservationFailed,
                 .tooShort,
@@ -438,6 +443,7 @@ private extension UsernameSelectionViewController {
                 .pending,
                 .reservationRejected,
                 .reservationRateLimited,
+                .reservationChangeCooldown,
                 .reservationFailedNetworkError,
                 .reservationFailed,
                 .tooShort,
@@ -471,6 +477,7 @@ private extension UsernameSelectionViewController {
         case
             .reservationRejected,
             .reservationRateLimited,
+            .reservationChangeCooldown,
             .reservationFailedNetworkError,
             .reservationFailed,
             .tooShort,
@@ -504,6 +511,16 @@ private extension UsernameSelectionViewController {
                 return OWSLocalizedString(
                     "USERNAME_SELECTION_RESERVATION_RATE_LIMITED_ERROR_MESSAGE",
                     comment: "An error message shown when the user has attempted too many username reservations.",
+                )
+            case let .reservationChangeCooldown(daysLeft):
+                // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：不再是泛泛的「尝试次数过多」（与 Desktop#2、Android 同一句）
+                return String.localizedStringWithFormat(
+                    OWSLocalizedString(
+                        "USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d",
+                        tableName: "PluralAware",
+                        comment: "Tellomi: error shown when the user changed their username less than 30 days ago and tries another one. Embeds {{ %d the number of days left, rounded up }}.",
+                    ),
+                    daysLeft,
                 )
             case .reservationFailedNetworkError:
                 return Usernames.RemoteMutationError.networkError.localizedDescription
@@ -619,6 +636,7 @@ private extension UsernameSelectionViewController {
             .pending,
             .reservationRejected,
             .reservationRateLimited,
+            .reservationChangeCooldown,
             .reservationFailedNetworkError,
             .reservationFailed,
             .tooShort,
@@ -676,10 +694,15 @@ private extension UsernameSelectionViewController {
                 reservedUsername: reservedUsername,
             )
         } else {
+            // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：每次换名都会开始 30 天冷却，确认前就说清楚（与 Desktop#2、Android 同一句）
             OWSActionSheets.showConfirmationAlert(
-                message: OWSLocalizedString(
-                    "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE",
-                    comment: "A message explaining the side effects of changing your username.",
+                message: String.localizedStringWithFormat(
+                    OWSLocalizedString(
+                        "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d",
+                        tableName: "PluralAware",
+                        comment: "Tellomi: confirmation before replacing an existing username. Every change starts the rename cooldown. Embeds {{ %d the cooldown length in days (30) }}.",
+                    ),
+                    TellomiLinks.renameCooldownDays,
                 ),
                 proceedTitle: CommonStrings.continueButton,
                 proceedAction: { [weak self] _ in
@@ -968,6 +991,12 @@ private extension UsernameSelectionViewController {
                 logger.error("Reservation rate-limited.")
 
                 self.currentUsernameState = .reservationRateLimited
+            case .success(.changeCooldown(let retryAfter)):
+                logger.warn("Reservation refused: rename cooldown, retry after \(retryAfter)s.")
+
+                self.currentUsernameState = .reservationChangeCooldown(
+                    daysLeft: TellomiLinks.renameCooldownDaysLeft(retryAfter: retryAfter),
+                )
             case .networkError:
                 logger.error("Reservation failed due to a network error.")
 

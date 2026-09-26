@@ -78,6 +78,9 @@ public extension Usernames {
         )
         case rejected
         case rateLimited
+        /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：30 天改名冷却期内要换别的名字。服务端同样回 429，
+        /// 靠天级的 `Retry-After` 和限流桶分开；`retryAfter` 单位是秒。
+        case changeCooldown(retryAfter: TimeInterval)
     }
 
     enum ApiClientConfirmationResult {
