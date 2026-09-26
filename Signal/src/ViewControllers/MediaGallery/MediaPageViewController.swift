@@ -1333,6 +1333,16 @@ extension MediaPageViewController {
     var contextMenuTitlesForTesting: [String] {
         (navigationItem.rightBarButtonItems?.first?.menu?.children ?? []).compactMap { ($0 as? UIAction)?.title }
     }
+
+    /// 模拟一次手指横滑到下一页，顺序同 UIKit：从数据源取下一页 → willTransitionTo → 换上去 → didFinishAnimating。
+    func swipeToNextPageForTesting() {
+        guard let current = viewControllers?.first, let next = pageViewController(self, viewControllerAfter: current) else {
+            return
+        }
+        pageViewController(self, willTransitionTo: [next])
+        setViewControllers([next], direction: .forward, animated: false)
+        pageViewController(self, didFinishAnimating: true, previousViewControllers: [current], transitionCompleted: true)
+    }
 }
 
 #endif
