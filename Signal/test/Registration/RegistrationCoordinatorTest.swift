@@ -2532,6 +2532,121 @@ public class RegistrationCoordinatorTest {
         #expect(nextStep == .captchaChallenge)
     }
 
+    /// Tellomi（ADR-0070 P4）：推送挑战令牌在等待窗口之后才到，这时已经停在验证页上。
+    /// 真的导航控制器收到通知后要重新取下一步，协调器用这个令牌提交推送挑战，离开验证页，不能让用户卡在验证页上。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenLeavesTheCaptcha(testCase: TestCase) async throws {
+        let (coordinator, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationCaptchaViewController(presenter: navigationController)], animated: false)
+
+        // 推送晚到：服务端把推送挑战当作验证码已过，接着发码。
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        lateToken.resolve("a late pre-auth challenge token")
+
+        let deadline = Date().addingTimeInterval(10)
+        while sessionManager.latestChallengeFulfillment == nil, Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+        // 先等导航控制器自己那一步走完（提交推送挑战 → 发码 → 推到验证码页），再问协调器，免得两个 nextStep 并发。
+        try await waitForTellomiCodeEntry(navigationController)
+        #expect(
+            await coordinator.nextStep() ==
+                .verificationCodeEntry(stubs.verificationCodeEntryState(mode: testCase.mode)),
+        )
+    }
+
+    /// Tellomi（ADR-0070 P4）反向：已经不在验证页上（这里停在加载页，比如已经往下走了），令牌晚到时导航控制器什么也不做。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenIgnoredAwayFromTheCaptcha(testCase: TestCase) async throws {
+        let (_, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationLoadingViewController(mode: .generic)], animated: false)
+
+        // 回应照样备好：万一导航控制器不该动却动了，这里会记下一次推送挑战，而不是让模拟对象从空队列取值崩掉。
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        lateToken.resolve("a late pre-auth challenge token")
+        try await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
+        #expect(sessionManager.latestChallengeFulfillment == nil)
+    }
+
+    /// Tellomi（ADR-0070 P4）：「令牌到了」只认自己这个协调器发的。别的注册流程（比如并行跑的另一条用例）发的通知，
+    /// 不能让这个导航控制器离开验证页——否则它会替自己的协调器取下一步，发出没人备好回应的请求（模拟对象从空队列取值就崩）。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenFromAnotherFlowIsIgnored(testCase: TestCase) async throws {
+        let (_, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationCaptchaViewController(presenter: navigationController)], animated: false)
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+
+        NotificationCenter.default.post(
+            name: RegistrationCoordinatorImpl.tellomiPreAuthChallengeTokenDidArriveNotification,
+            object: NSObject(),
+        )
+        #expect(navigationController.topViewController is RegistrationCaptchaViewController)
+
+        // 收尾：让自己的令牌到，等导航控制器用它走完这一步，别让这一条的异步下一步拖到后面的用例里。
+        lateToken.resolve("a late pre-auth challenge token")
+        let deadline = Date().addingTimeInterval(10)
+        while sessionManager.latestChallengeFulfillment == nil, Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+        try await waitForTellomiCodeEntry(navigationController)
+    }
+
+    /// 等导航控制器自己取的那一步走完：提交推送挑战 → 发码 → 推到验证码页。
+    /// 协调器的 nextStep() 没有串行保护：用例在「推送挑战已提交」时就再调一次 nextStep()，两边都会去要验证码，
+    /// 而模拟对象只备了一个回应——空队列 removeFirst，整个测试宿主崩掉（第三批预合链上运行 136、144、145、148）。
+    @MainActor
+    private func waitForTellomiCodeEntry(_ navigationController: RegistrationNavigationController) async throws {
+        let deadline = Date().addingTimeInterval(10)
+        while !(navigationController.topViewController is RegistrationVerificationViewController), Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(navigationController.topViewController is RegistrationVerificationViewController)
+    }
+
+    /// 两条 P4 用例共用：会话同时要推送挑战和验证码，推送在 0.5 秒的等待窗口里没到 → 协调器给出验证页。
+    /// 返回协调器、一个真的导航控制器（它在 init 里订阅「令牌到了」的通知），以及之后用来让令牌晚到的 promise。
+    @MainActor
+    private func setUpTellomiCaptchaWaitingForLatePush(
+        _ testCase: TestCase,
+    ) async throws -> (RegistrationCoordinatorImpl, RegistrationNavigationController, GuaranteeFuture<String>) {
+        let coordinator = setupTest(testCase)
+        await setUpSessionPath(coordinator: coordinator, mode: testCase.mode)
+
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        let (challengeTokenPromise, challengeTokenFuture) = Guarantee<String>.pending()
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({ await challengeTokenPromise.awaitable() })
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session(
+            allowedToRequestCode: false,
+            requestedInformation: [.pushChallenge, .captcha],
+        )))
+        timeoutProviderMock.pushTokenMinWaitTime = 0.5
+        timeoutProviderMock.pushTokenTimeout = 2
+
+        let step = await coordinator.submitE164(Stubs.e164).awaitable()
+        try #require(step == .captchaChallenge)
+        #expect(sessionManager.latestChallengeFulfillment == nil)
+
+        return (coordinator, RegistrationNavigationController.withCoordinator(coordinator), challengeTokenFuture)
+    }
+
     @MainActor @Test(arguments: Self.testCases())
     func testSessionPath_pushChallengeFastResolution(testCase: TestCase) async {
         let coordinator = setupTest(testCase)
