@@ -48,6 +48,9 @@ public struct RegistrationCoordinatorDependencies {
     public let svrAuthCredentialManager: SVRAuthCredentialManager
     public let timeoutProvider: RegistrationCoordinatorImpl.Shims.TimeoutProvider
     public let tsAccountManager: TSAccountManager
+    /// Tellomi：这套部署有哪些服务（`svrEnclaveAvailable` 等）。App 里就是 `TSConstants.shared`；
+    /// 单测按用例显式给——上游用例跑上游档，Tellomi 用例跑没有 SVR 的档（见 RegistrationCoordinatorTest）。
+    public let tsConstants: TSConstantsProtocol
     public let udManager: RegistrationCoordinatorImpl.Shims.UDManager
     public let usernameApiClient: any RegistrationCoordinatorImpl.Shims.UsernameApiClient
     public let usernameLinkManager: UsernameLinkManager
@@ -99,6 +102,7 @@ public struct RegistrationCoordinatorDependencies {
             svrAuthCredentialManager: DependenciesBridge.shared.svrAuthCredentialManager,
             timeoutProvider: RegistrationCoordinatorImpl.Wrappers.TimeoutProvider(),
             tsAccountManager: DependenciesBridge.shared.tsAccountManager,
+            tsConstants: TSConstants.shared,
             udManager: RegistrationCoordinatorImpl.Wrappers.UDManager(SSKEnvironment.shared.udManagerRef),
             usernameApiClient: RegistrationCoordinatorImpl.Wrappers.UsernameApiClient(DependenciesBridge.shared.usernameApiClient),
             usernameLinkManager: DependenciesBridge.shared.usernameLinkManager,

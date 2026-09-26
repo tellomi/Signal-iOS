@@ -149,17 +149,16 @@ extension UsernameSelectionViewController {
                     spinnerView.isHiddenInStackView = false
                     separatorView.isHiddenInStackView = true
                     discriminatorTextField.isHiddenInStackView = true
+                // Tellomi（tellomi/tellomi#1106 第二刀，ADR-0066 §六「自选数字 → 去掉」）：判别位固定 01、界面隐藏——
+                // 数字栏和它前面的分隔线一律不显示，也就没法手动改数字；预约中的转圈照留。
                 case let .spinningWithDiscriminator(discriminatorValue):
                     isHidden = false
                     spinnerView.isHiddenInStackView = false
-                    separatorView.isHiddenInStackView = false
-                    discriminatorTextField.isHiddenInStackView = false
+                    separatorView.isHiddenInStackView = true
+                    discriminatorTextField.isHiddenInStackView = true
                     setDiscriminatorValue(to: discriminatorValue)
                 case let .discriminator(discriminatorValue):
-                    isHidden = false
-                    spinnerView.isHidden = true
-                    separatorView.isHiddenInStackView = false
-                    discriminatorTextField.isHiddenInStackView = false
+                    isHidden = true
                     setDiscriminatorValue(to: discriminatorValue)
                 }
             }
@@ -228,7 +227,7 @@ extension UsernameSelectionViewController {
                 comment: "The placeholder for a text field into which users can type their desired username.",
             )
 
-            returnKeyType = .next
+            returnKeyType = .done // Tellomi（#1106）：没有数字栏可跳了，回车就是「完成」
             autocapitalizationType = .none
             autocorrectionType = .no
             spellCheckingType = .no

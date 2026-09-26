@@ -38,7 +38,7 @@ final class AlbumViewerScreenshotTests: XCTestCase {
                     groupV2Updates: MockGroupV2Updates(),
                     groupsV2: MockGroupsV2(),
                     messageSender: FakeMessageSender(),
-                    networkManager: OWSFakeNetworkManager(appReadiness: appReadiness, libsignalNet: nil),
+                    networkManager: OWSFakeNetworkManager(appReadiness: appReadiness, netProvider: nil),
                     paymentsCurrencies: MockPaymentsCurrencies(),
                     paymentsHelper: MockPaymentsHelper(),
                     pendingReceiptRecorder: NoopPendingReceiptRecorder(),
@@ -267,38 +267,81 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         try report.write(to: shotsDirectory(width: width).deletingLastPathComponent().appendingPathComponent("metrics-viewer.txt"), atomically: true, encoding: .utf8)
     }
 
-    // MARK: - 回复这一张（owner 2026-09-25）
+    // MARK: - 开合的底色、翻到视频就播（移动会话审查 2026-09-26；这两条总是跑）
 
-    /// 查看器里「回复」：草稿的引用缩略图是指定的那一张；不指定时照上游取第一张。
+    /// 查看器一律深色：系统浅色模式下，开合动画的底色也是黑的。动画在转场容器里画这个颜色，那里跟着系统的浅色模式——
+    /// 给会随模式变的 mediaBackground，浅色模式下就取成白，开合时闪一下白。
     @MainActor
-    func testReplyDraftQuotesTheChosenAlbumItem() async throws {
+    func testOpenAndCloseAnimationsUseABlackBackgroundInLightMode() async throws {
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let album = try await insertAlbum(thread: thread, incoming: true, sizes: sizes(2), body: nil)
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: try bodyAttachments(of: album)[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.overrideUserInterfaceStyle = .light
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        defer { window.isHidden = true }
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+
+        let context = try XCTUnwrap(viewer.mediaPresentationContext(item: .gallery(viewer.currentItemForTesting), in: window))
+        let resolvedInLightMode = context.backgroundColor.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+        XCTAssertEqual(resolvedInLightMode, UIColor.black, "浅色模式下开合动画的底色")
+    }
+
+    /// 照 Telegram iOS（`UniversalVideoGalleryItemNode.centralityUpdated`：成为当前那一项、文件在本地就播）：
+    /// 手指横滑到下载好的视频就开始播——不会停在第一帧、画面上又没有播放键（四角按钮这时还收着）。
+    @MainActor
+    func testSwipingToADownloadedVideoPlaysIt() async throws {
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let video = try await makeVideo(size: CGSize(width: 320, height: 180), duration: 6, framesPerSecond: 10)
+        let message = try await insertMediaMessage(
+            thread: thread,
+            incoming: true,
+            media: [(data: jpeg(size: CGSize(width: 1200, height: 1600), number: 1), mimeType: "image/jpeg"), (data: video, mimeType: "video/mp4")],
+            body: nil,
+        )
+        let attachments = try bodyAttachments(of: message)
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: attachments[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        defer { window.isHidden = true }
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertNil(viewer.currentVideoPlayerForTesting, "先停在图片上")
+
+        viewer.swipeToNextPageForTesting()
+        let playing = await waitUntil(timeout: 3) { viewer.currentVideoPlayerForTesting?.isPlaying == true }
+        XCTAssertNotNil(viewer.currentVideoPlayerForTesting, "翻到了视频")
+        XCTAssertTrue(viewer.areToolbarsHiddenForTesting, "四角按钮还收着")
+        XCTAssertTrue(playing, "横滑到下载好的视频就播")
+    }
+
+    // MARK: - 回复（owner 2026-09-26：回复整条，收件方照上游防伪）
+
+    /// 在查看器里看相册的第 3 张时点「回复」：和聊天里长按回复一样，引用整条消息，缩略图照上游取第一张。
+    @MainActor
+    func testViewerReplyQuotesTheWholeMessage() async throws {
         let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
         let album = try await insertAlbum(thread: thread, incoming: true, sizes: sizes(3), body: nil)
         let attachments = try bodyAttachments(of: album)
-        let manager = DependenciesBridge.shared.quotedReplyManager
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: attachments[2], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        defer { window.isHidden = true }
+        XCTAssertEqual(viewer.currentItemForTesting.referencedAttachment.attachment.id, attachments[2].attachment.id, "正在看第 3 张")
 
-        let (chosen, defaultDraft) = read { tx in
-            (
-                manager.buildDraftQuotedReply(
-                    originalMessage: album,
-                    preferredAttachmentId: attachments[2].attachment.id,
-                    loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
-                    tx: tx,
-                ),
-                manager.buildDraftQuotedReply(
-                    originalMessage: album,
-                    loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
-                    tx: tx,
-                ),
-            )
-        }
-        XCTAssertEqual(quotedAttachmentId(chosen), attachments[2].attachment.id, "回复的是第 3 张")
-        XCTAssertEqual(quotedAttachmentId(defaultDraft), attachments[0].attachment.id, "不指定时照上游取第一张")
+        let draft = viewer.replyDraftForTesting()
+
+        XCTAssertEqual(quotedAttachmentId(draft), attachments[0].attachment.id, "引用整条相册，缩略图是第一张（不是正在看的第 3 张）")
     }
 
-    /// 对方回复了我发的相册里的某一张：引用缩略图用对方带来的那张（不是本地第一张）；单张照上游用本地原图。
+    /// 对方回复了我发的相册：不管对方带来的缩略图是哪一张，都照上游用本地原消息里的图（防伪）；单张同样。
     @MainActor
-    func testIncomingQuoteOfAnAlbumItemUsesTheSendersThumbnail() async throws {
+    func testIncomingQuoteOfAnAlbumUsesTheLocalOriginal() async throws {
         let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
         let album = try await insertAlbum(thread: thread, incoming: false, sizes: sizes(3), body: nil)
         let single = try await insertAlbum(thread: thread, incoming: false, sizes: [CGSize(width: 1200, height: 1600)], body: nil)
@@ -330,8 +373,8 @@ final class AlbumViewerScreenshotTests: XCTestCase {
                 try manager.validateAndBuildQuotedReply(from: singleProto, threadUniqueId: thread.uniqueId, tx: tx),
             )
         }
-        if case .notFoundLocallyAttachment? = albumResult.thumbnailDataSource {} else {
-            XCTFail("相册：应该用对方带来的缩略图，实际 \(String(describing: albumResult.thumbnailDataSource))")
+        if case .originalAttachment? = albumResult.thumbnailDataSource {} else {
+            XCTFail("相册：应该照上游用本地原图，实际 \(String(describing: albumResult.thumbnailDataSource))")
         }
         if case .originalAttachment? = singleResult.thumbnailDataSource {} else {
             XCTFail("单张：应该照上游用本地原图，实际 \(String(describing: singleResult.thumbnailDataSource))")
@@ -353,6 +396,10 @@ final class AlbumViewerScreenshotTests: XCTestCase {
     func testVideoViewerTelegramControls() async throws {
         try requireShots()
         let width = shotWidths.first ?? 402
+        // 本用例不测自动收起（见 testVideoControlsAutoHideWhilePlaying）：中途要停好几秒，别让控件自己收起。
+        let savedAutoHideDelay = MediaPageViewController.autoHideControlsDelay
+        MediaPageViewController.autoHideControlsDelay = 3600
+        defer { MediaPageViewController.autoHideControlsDelay = savedAutoHideDelay }
 
         let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
         let shortVideo = try await makeVideo(size: CGSize(width: 320, height: 180), duration: 6, framesPerSecond: 10)
@@ -705,6 +752,129 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
         }
+    }
+
+    // MARK: - 播放中控件自动收起（#1257 欠账，照 Telegram iOS 的 4 秒）
+
+    /// 照 Telegram iOS（UniversalVideoGalleryItem 的 shouldHideControlsSignal）：正在播、没被打断，控件过一会儿自动收起（产品里 4 秒，测试里 0.6 秒、每 0.1 秒看一次）。
+    /// 暂停、倍速菜单 / 「···」菜单开着、拖着进度条、开着 VoiceOver 时不收；打断结束后再等满时间才收；碰一下屏幕计时从头来。不需要 TELLOMI_SHOTS。
+    @MainActor
+    func testVideoControlsAutoHideWhilePlaying() async throws {
+        let savedDelay = MediaPageViewController.autoHideControlsDelay
+        let savedTick = MediaPageViewController.autoHideControlsTickInterval
+        let savedVoiceOver = MediaPageViewController.isVoiceOverRunning
+        MediaPageViewController.autoHideControlsDelay = 0.6
+        MediaPageViewController.autoHideControlsTickInterval = 0.1
+        defer {
+            MediaPageViewController.autoHideControlsDelay = savedDelay
+            MediaPageViewController.autoHideControlsTickInterval = savedTick
+            MediaPageViewController.isVoiceOverRunning = savedVoiceOver
+        }
+
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let video = try await makeVideo(size: CGSize(width: 320, height: 180), duration: 6, framesPerSecond: 10)
+        let message = try await insertMediaMessage(thread: thread, incoming: true, media: [(data: video, mimeType: "video/mp4")], body: nil)
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: try bodyAttachments(of: message)[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+        let player = try XCTUnwrap(viewer.currentVideoPlayerForTesting)
+        XCTAssertTrue(player.isPlaying, "照常自动播放")
+
+        func showControls() {
+            if viewer.areToolbarsHiddenForTesting {
+                viewer.tapMediaForTesting()
+            }
+            XCTAssertFalse(viewer.areToolbarsHiddenForTesting)
+        }
+        func staysShown(_ reason: String) async throws {
+            try await Task.sleep(nanoseconds: 1_500_000_000)
+            report += "autohide: \(reason) hidden=\(viewer.areToolbarsHiddenForTesting)\n"
+            XCTAssertFalse(viewer.areToolbarsHiddenForTesting, reason)
+        }
+        func hidesAfterDelay(_ reason: String, timeout: TimeInterval = 3) async {
+            let start = Date()
+            let hidden = await waitUntil(timeout: timeout) { viewer.areToolbarsHiddenForTesting }
+            let elapsed = Date().timeIntervalSince(start)
+            report += "autohide: \(reason) hidden=\(hidden) after=\(String(format: "%.2f", elapsed))s\n"
+            XCTAssertTrue(hidden, reason)
+            XCTAssertGreaterThanOrEqual(elapsed, 0.5, "\(reason)：等满时间才收，不是一放开就收")
+        }
+
+        // 播放中：轻点叫出控件，没再碰就自动收起
+        showControls()
+        await hidesAfterDelay("播放中没碰就自动收起")
+
+        // 暂停：不收；接着放，等满时间再收
+        showControls()
+        viewer.videoCenterControlsForTesting.tapPlayPauseForTesting()
+        XCTAssertFalse(player.isPlaying)
+        try await staysShown("暂停时不收")
+        viewer.videoCenterControlsForTesting.tapPlayPauseForTesting()
+        // 刚恢复时 timeControlStatus 会先是「等待以指定速率播放」，等它真的播起来再判。
+        let resumed = await waitUntil(timeout: 2) { player.isPlaying }
+        XCTAssertTrue(resumed, "接着放")
+        await hidesAfterDelay("接着放，等满时间再收")
+
+        // 倍速菜单开着：不收；关掉后再等满时间
+        showControls()
+        viewer.openPlaybackSpeedMenuForTesting()
+        try await staysShown("倍速菜单开着不收")
+        viewer.playbackSpeedMenuForTesting?.dismiss(animated: false)
+        await hidesAfterDelay("倍速菜单关掉后再等满时间收")
+
+        // 拖着进度条：不收；松手后再等满时间
+        showControls()
+        let progress = try XCTUnwrap(viewer.bottomPanelForTesting.progressViewForTesting)
+        progress.scrubForTesting(toFraction: 0.5, isMove: false)
+        try await staysShown("拖着进度条不收")
+        progress.endScrubForTesting()
+        await hidesAfterDelay("松手后再等满时间收")
+
+        // 「···」菜单开着：不收（iOS 26 起顶栏是自定义深色圆钮，能知道菜单开没开）
+        if #available(iOS 26, *) {
+            showControls()
+            let menuButton = try XCTUnwrap(viewer.contextMenuButtonForTesting, "「···」是能报告菜单开关的圆钮")
+            menuButton.setMenuVisibleForTesting(true)
+            try await staysShown("「···」菜单开着不收")
+            menuButton.setMenuVisibleForTesting(false)
+            await hidesAfterDelay("「···」菜单关掉后再等满时间收")
+        }
+
+        // 开着 VoiceOver：不收
+        showControls()
+        MediaPageViewController.isVoiceOverRunning = { true }
+        try await staysShown("开着 VoiceOver 不收")
+        MediaPageViewController.isVoiceOverRunning = { false }
+        await hidesAfterDelay("关掉 VoiceOver 后再等满时间收")
+
+        // 碰一下屏幕：计时从头来。这一段时间放长到 3 秒，判据只用下限——收起离「碰」那一下至少满 3 秒；
+        // 机器忙只会让它更晚收、不会更早（原来「2.4 秒时还在」那种定点看，Android 440dp 在机器忙时红过一次，两端一起改）。
+        // 没清零的话，从叫出控件（上一次清零）算满 3 秒就收，离「碰」只有约 2 秒，这条就红。
+        MediaPageViewController.autoHideControlsDelay = 3
+        showControls()
+        let shownAt = Date()
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertFalse(viewer.areToolbarsHiddenForTesting, "碰之前控件还在（离叫出 \(String(format: "%.2f", Date().timeIntervalSince(shownAt)))s）")
+        let touchedAt = Date()
+        XCTAssertTrue(viewer.noteTouchForTesting(), "查看器根视图上挂着「碰过屏幕」识别器")
+        let hiddenAfterTouch = await waitUntil(timeout: 8) { viewer.areToolbarsHiddenForTesting }
+        let sinceTouch = Date().timeIntervalSince(touchedAt)
+        report += "autohide: touched \(String(format: "%.2f", touchedAt.timeIntervalSince(shownAt)))s after shown, hidden=\(hiddenAfterTouch) after=\(String(format: "%.2f", sinceTouch))s\n"
+        XCTAssertTrue(hiddenAfterTouch, "碰过之后再等满时间收")
+        XCTAssertGreaterThanOrEqual(sinceTouch, 3, "碰过屏幕，计时从头来（收起离「碰」\(String(format: "%.2f", sinceTouch))s）")
+
+        try report.write(to: FileManager.default.temporaryDirectory.appendingPathComponent("metrics-autohide.txt"), atomically: true, encoding: .utf8)
+        if ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1" {
+            try report.write(to: shotsDirectory(width: shotWidths.first ?? 402).deletingLastPathComponent().appendingPathComponent("metrics-autohide.txt"), atomically: true, encoding: .utf8)
+        }
+        // 收尾：这个视频结束时还在循环播放。先停下、摘掉查看器、等它释放完，别让它拖到下一个用例（那时测试环境已经拆了，释放时会崩）。
+        player.pause()
+        window.isHidden = true
+        window.rootViewController = nil
+        try await Task.sleep(nanoseconds: 500_000_000)
     }
 
     // MARK: - Hosting

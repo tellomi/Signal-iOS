@@ -117,6 +117,12 @@ public class OWSChatConnection {
             name: .clockSkewShouldBlockConnectionsDidChange,
             object: nil,
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(crossBorderConsentDidChange),
+            name: TellomiCrossBorderConsent.didChangeNotification,
+            object: nil,
+        )
     }
 
     // MARK: -
@@ -246,6 +252,10 @@ public class OWSChatConnection {
     fileprivate func _canOpenWebSocketError() -> (any Error)? {
         guard !appExpiry.isExpired(now: Date()) else {
             return AppExpiredError()
+        }
+        // Tellomi：同意跨境之前，已注册 / 未注册两种连接都不开（tellomi/tellomi#1133）。
+        guard !TellomiCrossBorderConsent.blocksNetwork else {
+            return OWSHTTPError.networkFailure(.genericFailure)
         }
         guard !clockSkewManager.shouldBlockConnections else {
             return ClockSkewError()
@@ -401,6 +411,13 @@ public class OWSChatConnection {
         updateCanOpenWebSocket()
     }
 
+    @objc
+    private func crossBorderConsentDidChange(_ notification: NSNotification) {
+        AssertIsOnMainThread()
+
+        updateCanOpenWebSocket()
+    }
+
     // MARK: - Message Sending
 
     func makeRequest(_ request: TSRequest) async throws -> HTTPResponse {
@@ -461,7 +478,9 @@ public class OWSChatConnection {
 // MARK: -
 
 class OWSChatConnectionUsingLibSignal<Connection: ChatConnection & Sendable>: OWSChatConnection, ConnectionEventsListener {
-    fileprivate let libsignalNet: Net
+    /// Tellomi（#1056 第三刀）：连接时从 provider 现取 `Net`，不存；切区换了 `Net` 以后，新建的连接就用新的那个。
+    fileprivate let netProvider: TellomiNetProvider
+    fileprivate var libsignalNet: Net { netProvider.current }
 
     fileprivate enum ConnectionState {
         case closed(task: Task<Void, Never>?)
@@ -542,14 +561,14 @@ class OWSChatConnectionUsingLibSignal<Connection: ChatConnection & Sendable>: OW
     }
 
     init(
-        libsignalNet: Net,
+        netProvider: TellomiNetProvider,
         type: OWSChatConnectionType,
         appExpiry: AppExpiry,
         appReadiness: AppReadiness,
         clockSkewManager: ClockSkewManager,
         db: any DB,
     ) {
-        self.libsignalNet = libsignalNet
+        self.netProvider = netProvider
         super.init(
             type: type,
             appExpiry: appExpiry,
@@ -568,6 +587,12 @@ class OWSChatConnectionUsingLibSignal<Connection: ChatConnection & Sendable>: OW
             name: .signalProxyConfigDidChange,
             object: nil,
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(tellomiRegionDidChange),
+            name: .tellomiRegionDidChange,
+            object: nil,
+        )
     }
 
     fileprivate func connectChatService(token: NSObject) async throws -> Connection {
@@ -579,6 +604,13 @@ class OWSChatConnectionUsingLibSignal<Connection: ChatConnection & Sendable>: OW
         // The libsignal connection needs to be recreated whether the proxy is going up,
         // changing, or going down.
         Logger.info("\(logPrefix) signal proxy config changed; cycling socket")
+        cycleSocket()
+    }
+
+    /// Tellomi（#1056 第三刀）：切了区，provider 里的 `Net` 已经换成新区的；断开旧连接、按新 `Net` 重连（同代理变更的做法）。
+    @objc
+    private func tellomiRegionDidChange(_ notification: NSNotification) {
+        Logger.info("\(logPrefix) Tellomi region changed; cycling socket")
         cycleSocket()
     }
 
@@ -849,14 +881,14 @@ class OWSChatConnectionUsingLibSignal<Connection: ChatConnection & Sendable>: OW
 
 class OWSUnauthConnectionUsingLibSignal: OWSChatConnectionUsingLibSignal<UnauthenticatedChatConnection> {
     init(
-        libsignalNet: Net,
+        netProvider: TellomiNetProvider,
         appExpiry: AppExpiry,
         appReadiness: AppReadiness,
         clockSkewManager: ClockSkewManager,
         db: any DB,
     ) {
         super.init(
-            libsignalNet: libsignalNet,
+            netProvider: netProvider,
             type: .unidentified,
             appExpiry: appExpiry,
             appReadiness: appReadiness,
@@ -909,7 +941,7 @@ class OWSAuthConnectionUsingLibSignal: OWSChatConnectionUsingLibSignal<Authentic
     private let inactivePrimaryDeviceStore: InactivePrimaryDeviceStore
 
     init(
-        libsignalNet: Net,
+        netProvider: TellomiNetProvider,
         accountManager: TSAccountManager,
         appContext: any AppContext,
         appExpiry: AppExpiry,
@@ -931,7 +963,7 @@ class OWSAuthConnectionUsingLibSignal: OWSChatConnectionUsingLibSignal<Authentic
         self.connectionLock = ConnectionLock(filePath: appContext.appSharedDataDirectoryPath().appendingPathComponent("chat-connection.lock"), priority: priority, of: priorityCount)
 
         super.init(
-            libsignalNet: libsignalNet,
+            netProvider: netProvider,
             type: .identified,
             appExpiry: appExpiry,
             appReadiness: appReadiness,

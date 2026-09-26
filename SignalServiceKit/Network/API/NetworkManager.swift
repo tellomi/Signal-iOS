@@ -31,15 +31,20 @@ public class NetworkManager: NetworkManagerProtocol {
         DependenciesBridge.shared.chatConnectionManager
     }
 
-    public let libsignalNet: Net?
+    /// Tellomi（#1056 第三刀）：不存 `Net`，每次从 provider 现取；切区时 provider 换掉 `Net`，这里不会留住旧实例。
+    private let netProvider: TellomiNetProvider?
 
-    public init(appReadiness: AppReadiness, libsignalNet: Net?) {
+    public var libsignalNet: Net? { netProvider?.current }
+
+    public init(appReadiness: AppReadiness, netProvider: TellomiNetProvider?) {
         self.appReadiness = appReadiness
-        self.libsignalNet = libsignalNet
-        if let libsignalNet {
+        self.netProvider = netProvider
+        if let netProvider {
             self.reachabilityDidChangeObserver = Task {
                 for await _ in NotificationCenter.default.notifications(named: SSKReachability.owsReachabilityDidChange) {
                     do {
+                        // Tellomi（#1056）：每次事件现取。这个 Task 跟进程一样长，捕获 `Net` 就会一直留住旧实例
+                        let libsignalNet = netProvider.current
                         Self.resetLibsignalNetProxySettings(libsignalNet, appReadiness: appReadiness)
                         try libsignalNet.networkDidChange()
                     } catch {
@@ -76,7 +81,7 @@ public class NetworkManager: NetworkManagerProtocol {
         Self.resetLibsignalNetProxySettings(libsignalNet, appReadiness: appReadiness)
     }
 
-    private static func resetLibsignalNetProxySettings(_ libsignalNet: Net, appReadiness: AppReadiness) {
+    static func resetLibsignalNetProxySettings(_ libsignalNet: Net, appReadiness: AppReadiness) {
         guard !SignalProxy.isEnabled else {
             // Don't stomp on in-app proxy settings, which are managed by SignalProxy.
             return

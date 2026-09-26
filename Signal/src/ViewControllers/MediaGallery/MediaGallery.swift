@@ -308,6 +308,9 @@ class MediaGallery {
 
     // Used for filtering.
     private(set) var mediaFilter: AllMediaFilter
+
+    /// Tellomi：「我的收藏」按类型搜的查询；换过滤条件时带上（#1174）。
+    var tellomiQuery: String?
     private let mediaCategory: AllMediaCategory
 
     private var deletedAttachmentIds: Set<AttachmentReferenceId> = Set() {
@@ -1006,6 +1009,7 @@ class MediaGallery {
                 threadId: mediaGalleryFinder.threadId,
                 filter: mediaFilter,
             )
+            mediaGalleryFinder.tellomiQuery = tellomiQuery
             let newLoader = Loader(mediaGallery: self, finder: mediaGalleryFinder)
             return sections.replaceLoader(
                 loader: newLoader,

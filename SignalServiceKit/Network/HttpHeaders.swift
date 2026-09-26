@@ -149,7 +149,22 @@ public struct HttpHeaders: Codable, CustomDebugStringConvertible, ExpressibleByD
     public static var userAgentHeaderKey: String { "User-Agent" }
 
     public static var userAgentHeaderValueSignalIos: String {
-        "Signal-iOS/\(AppVersionImpl.shared.currentAppVersion) iOS/\(UIDevice.current.systemVersion)"
+        tellomiUserAgent(appVersion: AppVersionImpl.shared.currentAppVersion, systemVersion: UIDevice.current.systemVersion)
+    }
+
+    /// Tellomi（tellomi/tellomi#1137，需求 app-update-and-version-policy 3.3；格式由 taishi 在中转包 8 第〇节第 1 条定）：
+    /// 内部版本号 `0.1.2.37`（三段版本 + 构建号）在 User-Agent 里写成 `Signal-iOS/0.1.2 iOS/26.0 Build/37`。
+    /// 版本保持三段，服务端的 `minimumVersions` / `blockedVersions` 照旧只看它；构建号放在最后的 `Build/` 段，
+    /// 服务端按 `^Signal-(Android|Desktop|iOS)/([^ ]+)( (.+))?$` 把它归进附加段，要按构建号拦时再从那里读。
+    /// 和 Android 的 `Signal-Android/0.1.2 Android/34 Build/175101` 同一个格式。
+    static func tellomiUserAgent(appVersion: String, systemVersion: String) -> String {
+        let components = appVersion.split(separator: ".", omittingEmptySubsequences: false)
+        guard components.count > 3 else {
+            return "Signal-iOS/\(appVersion) iOS/\(systemVersion)"
+        }
+        let releaseVersion = components.prefix(3).joined(separator: ".")
+        let buildNumber = components.dropFirst(3).joined(separator: ".")
+        return "Signal-iOS/\(releaseVersion) iOS/\(systemVersion) Build/\(buildNumber)"
     }
 
     public static var acceptLanguageHeaderKey: String { "Accept-Language" }

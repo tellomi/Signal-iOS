@@ -121,6 +121,13 @@ class MediaPageViewController: UIPageViewController {
 
     private weak var playbackSpeedMenu: MediaPlaybackSpeedMenuView?
 
+    /// Tellomi（#1257）：播放中控件自动收起的计时（见 updateAutoHideControlsTimer）。
+    private var autoHideControlsTimer: Timer?
+    private var autoHideControlsIdleSince = Date()
+    private lazy var touchActivityObserver = TellomiTouchActivityObserver { [weak self] in
+        self?.noteAutoHideControlsActivity()
+    }
+
     // MARK: UIViewController
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -162,6 +169,7 @@ class MediaPageViewController: UIPageViewController {
         view.backgroundColor = .Signal.mediaBackground
 
         mediaInteractiveDismiss.addGestureRecognizer(to: view)
+        view.addGestureRecognizer(touchActivityObserver.recognizer)
 
         navigationItem.titleView = headerView
 
@@ -341,6 +349,7 @@ class MediaPageViewController: UIPageViewController {
             previousPage.videoPlaybackStatusObserver = nil
             previousPage.zoomOut(animated: false)
             previousPage.stopVideoIfPlaying()
+            previousPage.tellomiDidResignCurrentPage()
         }
 
         let mediaPage = buildGalleryPage(galleryItem: item)
@@ -375,6 +384,9 @@ class MediaPageViewController: UIPageViewController {
         currentViewController.videoPlaybackStatusObserver = bottomMediaPanel
         showOrHideTopAndBottomPanelsAsNecessary(animated: animated)
         updateControlsForCurrentOrientation()
+
+        // Tellomi（#1257）：翻到视频就播（手指横滑、缩略条跳转一样），见 tellomiDidBecomeCurrentPage。
+        currentViewController.tellomiDidBecomeCurrentPage()
     }
 
     // MARK: Show / hide toolbars
@@ -390,6 +402,7 @@ class MediaPageViewController: UIPageViewController {
         _shouldHideToolbars = shouldHide
         showOrHideTopAndBottomPanelsAsNecessary(animated: animated)
         setNeedsStatusBarAppearanceUpdate()
+        updateAutoHideControlsTimer()
     }
 
     private func showOrHideTopAndBottomPanelsAsNecessary(animated: Bool) {
@@ -413,6 +426,72 @@ class MediaPageViewController: UIPageViewController {
     private func updateVideoCenterControlsVisibility(animated: Bool) {
         let isPlayableVideo = (viewControllers?.first as? MediaItemViewController)?.videoPlayer != nil
         videoCenterControls.setIsHidden(shouldHideToolbars || !isPlayableVideo || isPagingBetweenItems, animated: animated)
+    }
+
+    // MARK: - Tellomi（#1257）：播放中控件自动收起
+
+    /// 照 Telegram iOS（`UniversalVideoGalleryItem` 的 `shouldHideControlsSignal`：正在播、没在交互、控件显示着，4 秒后收起；
+    /// 菜单开着、说明展开时不收）。这里按「连续 4 秒没被打断」算：控件显示着时每 0.5 秒看一次，没在播、正在拖进度条、
+    /// 「···」或倍速菜单开着、上面盖着别的页面、开着 VoiceOver、正在翻页都算打断，计时从头来；碰一下屏幕也从头来。
+    /// 这样菜单、弹出页不管怎么关掉，关掉后都再等满 4 秒，不会一关就收。照片不收（只对正在播的视频）。
+    static var autoHideControlsDelay: TimeInterval = 4
+    static var autoHideControlsTickInterval: TimeInterval = 0.5
+    static var isVoiceOverRunning: () -> Bool = { UIAccessibility.isVoiceOverRunning }
+
+    private func updateAutoHideControlsTimer() {
+        autoHideControlsIdleSince = Date()
+        guard !shouldHideToolbars, viewIfLoaded?.window != nil else {
+            autoHideControlsTimer?.invalidate()
+            autoHideControlsTimer = nil
+            return
+        }
+        guard autoHideControlsTimer == nil else { return }
+        autoHideControlsTimer = Timer.scheduledTimer(withTimeInterval: Self.autoHideControlsTickInterval, repeats: true) { [weak self] timer in
+            guard let self else {
+                timer.invalidate()
+                return
+            }
+            self.autoHideControlsTick()
+        }
+    }
+
+    private func noteAutoHideControlsActivity() {
+        autoHideControlsIdleSince = Date()
+    }
+
+    private var isAutoHideControlsBlocked: Bool {
+        guard let videoPlayer = currentViewController?.videoPlayer, videoPlayer.isPlaying else { return true }
+        if viewIfLoaded?.window == nil || presentedViewController != nil || isPagingBetweenItems { return true }
+        if bottomMediaPanel.isScrubbingVideo { return true }
+        if playbackSpeedMenu?.window != nil { return true }
+        if (navigationItem.rightBarButtonItems ?? []).contains(where: { ($0.customView as? TellomiViewerMenuButton)?.isMenuVisible == true }) {
+            return true
+        }
+        return Self.isVoiceOverRunning()
+    }
+
+    private func autoHideControlsTick() {
+        guard !shouldHideToolbars, viewIfLoaded?.window != nil else {
+            updateAutoHideControlsTimer()
+            return
+        }
+        if isAutoHideControlsBlocked {
+            autoHideControlsIdleSince = Date()
+            return
+        }
+        if Date().timeIntervalSince(autoHideControlsIdleSince) >= Self.autoHideControlsDelay {
+            setShouldHideToolbars(true, animated: true)
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateAutoHideControlsTimer()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        updateAutoHideControlsTimer()
     }
 
     /// 同上游 VideoPlaybackControlView：30 秒以上的视频才有 ±15（Telegram 是 ≥ 30 秒）。
@@ -527,11 +606,31 @@ class MediaPageViewController: UIPageViewController {
 
         // Swapping mediaView for presentationView will be perceptible if we're not zoomed out all the way.
         currentViewController.zoomOut(animated: true)
-        currentViewController.stopVideoIfPlaying()
+
+        // Tellomi（#1257）：下拉关闭拖一半又放回去（#75 以后常见）——视频接着原处播。拖动开始时只暂停，
+        // 真关掉了才照上游 stop（回到开头）。上游一开始就 stop：取消后视频停在 0:00，而这里的控件是收起的
+        // （每页的播放键已去掉），画面上什么都点不到。
+        let wasPlaying = currentViewController.videoPlayer?.isPlaying == true
+        currentViewController.videoPlayer?.pause()
 
         navigationController?.setNavigationBarHidden(false, animated: false)
 
         dismiss(animated: isAnimated, completion: completion)
+
+        guard let transitionCoordinator else {
+            currentViewController.stopVideoIfPlaying()
+            return
+        }
+        transitionCoordinator.animate(alongsideTransition: nil) { [weak currentViewController] context in
+            guard let currentViewController else { return }
+            if context.isCancelled {
+                if wasPlaying {
+                    currentViewController.videoPlayer?.play()
+                }
+            } else {
+                currentViewController.stopVideoIfPlaying()
+            }
+        }
     }
 
     // MARK: Actions
@@ -593,7 +692,9 @@ class MediaPageViewController: UIPageViewController {
 
         switch mediaCount {
         case 0:
-            owsFail("We should always have at least one attachment stream, for the current item.")
+            // Tellomi（#1257）：「这一张」可能点在还没下载完的那一张上（横屏时导航栏上的转发键不按下载状态变灰），
+            // 这时没有可转发的——不动。上游这里是 owsFail，发布版也会崩。
+            Logger.warn("Nothing to forward: the current item has not been downloaded yet.")
         case 1:
             ForwardMessageViewController.present(
                 forAttachmentStreams: mediaAttachmentStreams,
@@ -793,7 +894,7 @@ class MediaPageViewController: UIPageViewController {
             UIAction(
                 title: OWSLocalizedString(
                     "MEDIA_VIEWER_TELLOMI_REPLY_ACTION",
-                    comment: "Context menu item in media viewer. Replies to the currently displayed photo/video.",
+                    comment: "Context menu item in media viewer. Replies to the message that contains the currently displayed photo/video.",
                 ),
                 image: Theme.iconImage(.contextMenuReply),
                 handler: { [weak self] _ in
@@ -804,14 +905,35 @@ class MediaPageViewController: UIPageViewController {
     }
 
     private func replyToCurrentMedia() {
-        guard let mediaItem = currentItem, let conversationViewController = conversationViewControllerForReply() else {
+        guard let conversationViewController = conversationViewControllerForReply() else {
             return
         }
-        let message = mediaItem.message
-        let attachmentId = mediaItem.referencedAttachment.attachment.id
-        dismissSelf(animated: true) { [weak conversationViewController] in
-            conversationViewController?.populateReply(forAlbumItemOf: message, attachmentId: attachmentId)
+        guard let quotedReply = buildReplyDraft() else {
+            owsFailDebug("Could not build quoted reply.")
+            return
         }
+        dismissSelf(animated: true) { [weak conversationViewController] in
+            conversationViewController?.populateReply(withDraft: quotedReply)
+        }
+    }
+
+    /// 「回复」的草稿：和聊天里长按回复一样引用整条消息，缩略图照上游取第一项（owner 2026-09-26：
+    /// 不做「回复这一张」——协议只能引用整条消息，要让对方看到那一张就得放宽收件方的防伪）。
+    private func buildReplyDraft() -> DraftQuotedReplyModel? {
+        guard let message = currentItem?.message else {
+            return nil
+        }
+        return SSKEnvironment.shared.databaseStorageRef.read { tx in
+            DependenciesBridge.shared.quotedReplyManager.buildDraftQuotedReply(
+                originalMessage: message,
+                loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
+                tx: tx,
+            )
+        }
+    }
+
+    func replyDraftForTesting() -> DraftQuotedReplyModel? {
+        return buildReplyDraft()
     }
 
     /// 打开这个查看器的会话页（同一个会话）；从「全部媒体」等别处打开时没有。
@@ -989,12 +1111,15 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
             previousPage.zoomOut(animated: false)
             previousPage.stopVideoIfPlaying()
             previousPage.videoPlaybackStatusObserver = nil
+            previousPage.tellomiDidResignCurrentPage()
         }
 
         if transitionCompleted {
             didTransitionToNewPage(animated: true, direction: currentPageSwipeDirection)
         } else {
-            updateVideoCenterControlsVisibility(animated: true)
+            // Tellomi（#1257）：横滑到一半又放回去——上面照上游把这一页的视频停了、观察者也摘了；上游每页有播放键兜底，
+            // 这里没有，停着的视频画面上没东西可点。重新接上这一页，和刚翻到时一样（视频从头播）。
+            didTransitionToNewPage(animated: true, direction: nil)
         }
     }
 }
@@ -1187,7 +1312,9 @@ extension MediaPageViewController: MediaPresentationContextProvider {
 
         view.layoutIfNeeded()
 
-        let backgroundColor: UIColor = if #available(iOS 26, *) { .Signal.mediaBackground } else { .black }
+        // Tellomi（#1257）：查看器一律深色（viewDidLoad），开合动画的底色也一律黑。上游 iOS 26 起给 mediaBackground
+        // （浅色模式下是白）——动画在转场容器里按系统的浅色取值，浅色模式下开合时会闪一下白。
+        let backgroundColor: UIColor = .black
         return MediaPresentationContext(
             mediaView: mediaView,
             presentationFrame: mediaView.frame,
@@ -1289,6 +1416,25 @@ extension MediaPageViewController: UINavigationBarDelegate {
 extension MediaPageViewController {
     var areToolbarsHiddenForTesting: Bool { shouldHideToolbars }
 
+    var isAutoHideControlsBlockedForTesting: Bool { isAutoHideControlsBlocked }
+
+    var contextMenuButtonForTesting: TellomiViewerMenuButton? {
+        (navigationItem.rightBarButtonItems ?? []).lazy.compactMap { $0.customView as? TellomiViewerMenuButton }.first
+    }
+
+    /// 走真实的那条路：在查看器根视图上找挂着的「碰过屏幕」识别器，像系统送触摸时那样问它的代理。
+    /// 找不到（识别器没挂上 / 代理没接）就返回 false，计时也不会从头来。
+    func noteTouchForTesting() -> Bool {
+        guard
+            let recognizer = view.gestureRecognizers?.first(where: { $0.delegate is TellomiTouchActivityObserver }),
+            let delegate = recognizer.delegate
+        else {
+            return false
+        }
+        _ = delegate.gestureRecognizer?(recognizer, shouldReceive: UITouch())
+        return true
+    }
+
     /// 标题胶囊（iOS 26 上是容器里的那块玻璃）与底栏的删除键，量它们在白底图上是不是深色。
     var headerViewForTesting: UIView { headerView.subviews.first ?? headerView }
     var deleteButtonForTesting: UIButton { bottomMediaPanel.deleteButtonForTesting }
@@ -1333,6 +1479,37 @@ extension MediaPageViewController {
     var contextMenuTitlesForTesting: [String] {
         (navigationItem.rightBarButtonItems?.first?.menu?.children ?? []).compactMap { ($0 as? UIAction)?.title }
     }
+
+    /// 模拟一次手指横滑到下一页，顺序同 UIKit：从数据源取下一页 → willTransitionTo → 换上去 → didFinishAnimating。
+    func swipeToNextPageForTesting() {
+        guard let current = viewControllers?.first, let next = pageViewController(self, viewControllerAfter: current) else {
+            return
+        }
+        pageViewController(self, willTransitionTo: [next])
+        setViewControllers([next], direction: .forward, animated: false)
+        pageViewController(self, didFinishAnimating: true, previousViewControllers: [current], transitionCompleted: true)
+    }
 }
 
 #endif
+
+/// Tellomi（#1257）：只用来知道「刚碰过屏幕」（播放中自动收起控件的计时从头来）。这个手势识别器一个触摸都不收
+/// （`shouldReceive` 里记一下就返回 false），所以不影响任何按钮、滑动和别的手势。
+private final class TellomiTouchActivityObserver: NSObject, UIGestureRecognizerDelegate {
+    let recognizer = UIGestureRecognizer()
+    private let onTouch: () -> Void
+
+    init(onTouch: @escaping () -> Void) {
+        self.onTouch = onTouch
+        super.init()
+        recognizer.delegate = self
+        recognizer.cancelsTouchesInView = false
+        recognizer.delaysTouchesBegan = false
+        recognizer.delaysTouchesEnded = false
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        onTouch()
+        return false
+    }
+}
