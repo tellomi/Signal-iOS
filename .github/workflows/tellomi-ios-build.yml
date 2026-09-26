@@ -25,6 +25,11 @@ on:
         description: "模拟器机型"
         required: false
         default: "iPhone 17 Pro"
+      sign:
+        description: "ad-hoc 签名（宿主 app 才有 App Group）。要跑直接用 InMemoryDB 的 SignalServiceKit 用例（如 MediaGalleryAttachmentFinderTest）时打开；打开后 SignalTests 里对时序敏感的动画用例可能被启动任务卡住，这类用例别和它一起跑"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -44,6 +49,7 @@ jobs:
       INPUT_REF: ${{ github.event.inputs.ref }}
       INPUT_TESTS: ${{ github.event.inputs.tests }}
       INPUT_SIMULATOR: ${{ github.event.inputs.simulator }}
+      INPUT_SIGN: ${{ github.event.inputs.sign }}
       DERIVED_DATA: ${{ github.workspace }}/dd
       LOG_DIR: ${{ github.workspace }}/logs
 
@@ -106,11 +112,19 @@ jobs:
         working-directory: clients/ios
         run: |
           set -o pipefail
+          # 默认不签名（同 #108 以前）；sign=true 时 ad-hoc 签名，模拟器包带上 entitlements（App Group）
+          if [ "$INPUT_SIGN" = "true" ]; then
+            SIGN_ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER= CODE_SIGNING_REQUIRED=NO)
+          else
+            SIGN_ARGS=(CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO)
+          fi
+          echo "sign=$INPUT_SIGN: ${SIGN_ARGS[*]}"
           NSUnbufferedIO=YES xcodebuild build-for-testing \
             -workspace Signal.xcworkspace -scheme Signal -configuration Debug \
             -sdk iphonesimulator -destination "platform=iOS Simulator,name=$INPUT_SIMULATOR" \
             -derivedDataPath "$DERIVED_DATA" \
-            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 \
+            "${SIGN_ARGS[@]}" \
             2>&1 | tee "$LOG_DIR/build-for-testing.log" | grep -E "error:|warning: .*Tellomi|\*\* (TEST )?BUILD" || true
           grep -q "\*\* TEST BUILD SUCCEEDED \*\*" "$LOG_DIR/build-for-testing.log"
 

@@ -905,14 +905,37 @@ class MediaPageViewController: UIPageViewController {
     }
 
     private func replyToCurrentMedia() {
-        guard let mediaItem = currentItem, let conversationViewController = conversationViewControllerForReply() else {
+        guard let conversationViewController = conversationViewControllerForReply() else {
             return
+        }
+        guard let quotedReply = buildReplyDraft() else {
+            owsFailDebug("Could not build quoted reply.")
+            return
+        }
+        dismissSelf(animated: true) { [weak conversationViewController] in
+            conversationViewController?.populateReply(withDraft: quotedReply)
+        }
+    }
+
+    /// 「回复」的草稿：引用正在看的这一项所在的消息。
+    private func buildReplyDraft() -> DraftQuotedReplyModel? {
+        guard let mediaItem = currentItem else {
+            return nil
         }
         let message = mediaItem.message
         let attachmentId = mediaItem.referencedAttachment.attachment.id
-        dismissSelf(animated: true) { [weak conversationViewController] in
-            conversationViewController?.populateReply(forAlbumItemOf: message, attachmentId: attachmentId)
+        return SSKEnvironment.shared.databaseStorageRef.read { tx in
+            DependenciesBridge.shared.quotedReplyManager.buildDraftQuotedReply(
+                originalMessage: message,
+                preferredAttachmentId: attachmentId,
+                loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
+                tx: tx,
+            )
         }
+    }
+
+    func replyDraftForTesting() -> DraftQuotedReplyModel? {
+        return buildReplyDraft()
     }
 
     /// 打开这个查看器的会话页（同一个会话）；从「全部媒体」等别处打开时没有。

@@ -318,38 +318,24 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         XCTAssertTrue(playing, "横滑到下载好的视频就播")
     }
 
-    // MARK: - 回复这一张（owner 2026-09-25）
+    // MARK: - 回复（owner 2026-09-26：回复整条，收件方照上游防伪）
 
-    /// 查看器里「回复」：草稿的引用缩略图是指定的那一张；不指定时照上游取第一张。
+    /// 在查看器里看相册的第 3 张时点「回复」：和聊天里长按回复一样，引用整条消息，缩略图照上游取第一张。
     @MainActor
-    func testReplyDraftQuotesTheChosenAlbumItem() async throws {
+    func testViewerReplyQuotesTheWholeMessage() async throws {
         let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
         let album = try await insertAlbum(thread: thread, incoming: true, sizes: sizes(3), body: nil)
         let attachments = try bodyAttachments(of: album)
-        let manager = DependenciesBridge.shared.quotedReplyManager
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: attachments[2], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
 
-        let (chosen, defaultDraft) = read { tx in
-            (
-                manager.buildDraftQuotedReply(
-                    originalMessage: album,
-                    preferredAttachmentId: attachments[2].attachment.id,
-                    loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
-                    tx: tx,
-                ),
-                manager.buildDraftQuotedReply(
-                    originalMessage: album,
-                    loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
-                    tx: tx,
-                ),
-            )
-        }
-        XCTAssertEqual(quotedAttachmentId(chosen), attachments[2].attachment.id, "回复的是第 3 张")
-        XCTAssertEqual(quotedAttachmentId(defaultDraft), attachments[0].attachment.id, "不指定时照上游取第一张")
+        let draft = viewer.replyDraftForTesting()
+
+        XCTAssertEqual(quotedAttachmentId(draft), attachments[0].attachment.id, "引用整条相册，缩略图是第一张（不是正在看的第 3 张）")
     }
 
-    /// 对方回复了我发的相册里的某一张：引用缩略图用对方带来的那张（不是本地第一张）；单张照上游用本地原图。
+    /// 对方回复了我发的相册：不管对方带来的缩略图是哪一张，都照上游用本地原消息里的图（防伪）；单张同样。
     @MainActor
-    func testIncomingQuoteOfAnAlbumItemUsesTheSendersThumbnail() async throws {
+    func testIncomingQuoteOfAnAlbumUsesTheLocalOriginal() async throws {
         let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
         let album = try await insertAlbum(thread: thread, incoming: false, sizes: sizes(3), body: nil)
         let single = try await insertAlbum(thread: thread, incoming: false, sizes: [CGSize(width: 1200, height: 1600)], body: nil)
@@ -381,8 +367,8 @@ final class AlbumViewerScreenshotTests: XCTestCase {
                 try manager.validateAndBuildQuotedReply(from: singleProto, threadUniqueId: thread.uniqueId, tx: tx),
             )
         }
-        if case .notFoundLocallyAttachment? = albumResult.thumbnailDataSource {} else {
-            XCTFail("相册：应该用对方带来的缩略图，实际 \(String(describing: albumResult.thumbnailDataSource))")
+        if case .originalAttachment? = albumResult.thumbnailDataSource {} else {
+            XCTFail("相册：应该照上游用本地原图，实际 \(String(describing: albumResult.thumbnailDataSource))")
         }
         if case .originalAttachment? = singleResult.thumbnailDataSource {} else {
             XCTFail("单张：应该照上游用本地原图，实际 \(String(describing: singleResult.thumbnailDataSource))")
