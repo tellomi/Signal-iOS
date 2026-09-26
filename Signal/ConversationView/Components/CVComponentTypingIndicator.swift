@@ -84,15 +84,13 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
         }
 
         let bubbleView: UIView
+        let bubbleConfig = Self.tellomiBubbleConfig(hasWallpaper: conversationStyle.hasWallpaper, isDarkThemeEnabled: isDarkThemeEnabled, isRTL: CurrentAppContext().isRTL)
         if conversationStyle.hasWallpaper {
             let wallpaperBlurView = componentView.ensureWallpaperBlurView()
             configureWallpaperBlurView(
                 wallpaperBlurView: wallpaperBlurView,
                 componentDelegate: componentDelegate,
-                bubbleConfig: BubbleConfiguration(
-                    corners: .capsule(),
-                    stroke: ConversationStyle.bubbleStroke(isDarkThemeEnabled: isDarkThemeEnabled),
-                ),
+                bubbleConfig: bubbleConfig,
             )
             bubbleView = wallpaperBlurView
         } else {
@@ -100,11 +98,18 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
             chatColorView.configure(
                 value: conversationStyle.bubbleChatColorIncoming,
                 referenceView: componentDelegate.view,
-                bubbleConfig: BubbleConfiguration(corners: .capsule()),
+                bubbleConfig: bubbleConfig,
             )
             bubbleView = chatColorView
         }
-        innerStackView.addSubviewToFillSuperviewEdges(bubbleView)
+        // Tellomi（#1205）：气泡视图在尾巴那一侧外扩 `Tail.extent`，尾巴画在这一条里；三个点的位置不变。
+        // ManualStackView 先排子视图、再跑布局块，所以这里设的 frame 不会被排版覆盖。
+        innerStackView.addSubview(bubbleView)
+        let outsets = bubbleConfig.tail?.contentInsets ?? .zero
+        innerStackView.addLayoutBlock { view in
+            let frame = view.bounds.inset(by: UIEdgeInsets(top: -outsets.top, left: -outsets.left, bottom: -outsets.bottom, right: -outsets.right))
+            ManualLayoutView.setSubviewFrame(subview: bubbleView, frame: frame)
+        }
 
         let typingIndicatorView = componentView.typingIndicatorView
         typingIndicatorView.configureForConversationView(cellMeasurement: cellMeasurement)
@@ -128,18 +133,39 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
         )
     }
 
+    /// Tellomi（#1205，设计规范 `bubbles-and-motion-design.md` 第 2 节）：「正在输入」气泡和对方的消息一样带尾巴，在对方那侧的下角。
+    /// 它总是单独一条，所以总是画。
+    static func tellomiBubbleConfig(hasWallpaper: Bool, isDarkThemeEnabled: Bool, isRTL: Bool) -> BubbleConfiguration {
+        BubbleConfiguration(
+            corners: .capsule(),
+            stroke: hasWallpaper ? ConversationStyle.bubbleStroke(isDarkThemeEnabled: isDarkThemeEnabled) : nil,
+            tail: BubbleConfiguration.Tail(isOnRight: isRTL),
+        )
+    }
+
+    /// Tellomi（规范 #1204 第 2 节，owner 2026-09-26）：和对方的消息一样，在尾巴那一侧多留 `Tail.sideMargin`——
+    /// 群里加在头像和气泡之间（8 → 14），单聊加在最前面（16 → 22）。间距也落在气泡和后面的弹性空白之间，那段本来就会被拉伸，不影响。
     private var outerStackViewConfig: CVStackViewConfig {
-        CVStackViewConfig(
+        let tailSpace = Self.tellomiTailSideSpace(
+            hasAvatar: typingIndicator.avatarDataSource != nil,
+            margin: BubbleConfiguration.Tail.sideMargin,
+        )
+        return CVStackViewConfig(
             axis: .horizontal,
             alignment: .center,
-            spacing: ConversationStyle.messageStackSpacing,
+            spacing: ConversationStyle.messageStackSpacing + tailSpace.afterAvatar,
             layoutMargins: UIEdgeInsets(
                 top: 0,
-                leading: conversationStyle.gutterLeading,
+                leading: conversationStyle.gutterLeading + tailSpace.leading,
                 bottom: 0,
                 trailing: conversationStyle.gutterTrailing,
             ),
         )
+    }
+
+    /// Tellomi：尾巴那一侧多留的 [margin] 放在哪——带头像（群里）加在头像和气泡之间，单聊加在最前面。
+    static func tellomiTailSideSpace(hasAvatar: Bool, margin: CGFloat) -> (leading: CGFloat, afterAvatar: CGFloat) {
+        hasAvatar ? (leading: 0, afterAvatar: margin) : (leading: margin, afterAvatar: 0)
     }
 
     private var innerStackViewConfig: CVStackViewConfig {
@@ -253,5 +279,20 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
             typingIndicatorView.reset()
             typingIndicatorView.removeFromSuperview()
         }
+    }
+}
+
+// MARK: - Tellomi 用例钩子
+
+extension CVComponentTypingIndicator.CVComponentViewTypingIndicator {
+    /// 气泡本体（不含尾巴外扩）在 `view` 里的排版位置
+    func tellomiBubbleFrameForTesting(in view: UIView) -> CGRect {
+        innerStackView.convert(innerStackView.bounds, to: view)
+    }
+
+    /// 头像在 `view` 里的位置；单聊不带头像时为 nil
+    func tellomiAvatarFrameForTesting(in view: UIView) -> CGRect? {
+        guard avatarView.superview != nil else { return nil }
+        return avatarView.convert(avatarView.bounds, to: view)
     }
 }
