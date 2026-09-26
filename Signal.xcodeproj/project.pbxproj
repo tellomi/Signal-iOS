@@ -730,6 +730,7 @@
 		5033D46929D7951F007FEADA /* MainAppContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5033D46829D7951F007FEADA /* MainAppContext.swift */; };
 		5033D47029DCACEF007FEADA /* UrlOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5033D46F29DCACEF007FEADA /* UrlOpener.swift */; };
 		5033D47329DCB3FF007FEADA /* UrlOpenerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5033D47229DCB3FF007FEADA /* UrlOpenerTest.swift */; };
+		7661C7CBFA6FB95E933C421F /* TellomiInChatLinksTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7441CCD04F8F1CAFBD0B350E /* TellomiInChatLinksTest.swift */; };
 		503614CF282AF657008128B4 /* GiftBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503614CE282AF657008128B4 /* GiftBadgeView.swift */; };
 		5037F1942A43A6A300C372AD /* UserProfileMerger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5037F1932A43A6A300C372AD /* UserProfileMerger.swift */; };
 		503AECC529B2A4D300642F66 /* VoiceMessageInProgressDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503AECC429B2A4D300642F66 /* VoiceMessageInProgressDraft.swift */; };
@@ -5113,6 +5114,7 @@
 		5033D46A29DB9F17007FEADA /* AppSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSetup.swift; sourceTree = "<group>"; };
 		5033D46F29DCACEF007FEADA /* UrlOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlOpener.swift; sourceTree = "<group>"; };
 		5033D47229DCB3FF007FEADA /* UrlOpenerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlOpenerTest.swift; sourceTree = "<group>"; };
+		7441CCD04F8F1CAFBD0B350E /* TellomiInChatLinksTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiInChatLinksTest.swift; sourceTree = "<group>"; };
 		503614CE282AF657008128B4 /* GiftBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftBadgeView.swift; sourceTree = "<group>"; };
 		503614D0282C5703008128B4 /* ro */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ro; path = translations/ro.lproj/PluralAware.stringsdict; sourceTree = "<group>"; };
 		503614D1282C5728008128B4 /* fi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = fi; path = translations/fi.lproj/PluralAware.stringsdict; sourceTree = "<group>"; };
@@ -9975,6 +9977,7 @@
 			isa = PBXGroup;
 			children = (
 				5033D47229DCB3FF007FEADA /* UrlOpenerTest.swift */,
+				7441CCD04F8F1CAFBD0B350E /* TellomiInChatLinksTest.swift */,
 			);
 			path = URLs;
 			sourceTree = "<group>";
@@ -19403,6 +19406,7 @@
 				E75DD3E02810CDBD00E32C36 /* SubscriptionModelsTest.swift in Sources */,
 				B6196A7361E8D35DFA908E4C /* TellomiLocalizationTest.swift in Sources */,
 				5033D47329DCB3FF007FEADA /* UrlOpenerTest.swift in Sources */,
+				7661C7CBFA6FB95E933C421F /* TellomiInChatLinksTest.swift in Sources */,
 				45A3579827DAAC6A0051CE8B /* UserProfileTest.swift in Sources */,
 				5042EAA3287F96FB00C9B19F /* VisibleBadgeResolverTest.swift in Sources */,
 				17E6049028A17BD300127680 /* ZkGroupIntegrationTest.swift in Sources */,
