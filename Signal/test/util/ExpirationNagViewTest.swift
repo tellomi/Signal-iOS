@@ -36,12 +36,13 @@ final class ExpirationNagViewTest: XCTestCase {
             device: MockDevice(),
         )
 
-        // Hidden with 12 days left.
-        date = appExpiry.expirationDate.subtractingTimeInterval(12 * .day)
+        // Tellomi（tellomi/tellomi#1142）：到期前 14 天开始提示（上游 10 天）。
+        // Hidden with 16 days left.
+        date = appExpiry.expirationDate.subtractingTimeInterval(16 * .day)
         XCTAssertNil(nag.expirationMessage())
 
-        // Shown with nonempty text if 10 days or sooner.
-        for dayCount in [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -99] {
+        // Shown with nonempty text if 14 days or sooner.
+        for dayCount in [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -99] {
             date = appExpiry.expirationDate.subtractingTimeInterval(
                 TimeInterval(dayCount) * .day,
             )
