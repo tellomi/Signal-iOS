@@ -257,6 +257,8 @@ final class TellomiForwardGridViewController: UIViewController {
     }
 
     override func accessibilityPerformEscape() -> Bool {
+        // 发送中面板已经藏起来了，同点空白处、下拉一样不响应；不然发完以后发起方去收一个已经关掉的面板
+        guard !isSending else { return true }
         if isSearching {
             endSearch()
         } else {

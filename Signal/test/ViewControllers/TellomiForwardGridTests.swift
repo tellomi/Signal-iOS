@@ -118,6 +118,11 @@ final class TellomiForwardGridTests: SignalBaseTest {
         _ = makeContactChat("小林")
         let hiking = makeGroupChat("Hiking Club")
         let quiet = makeGroupChat("Hiking Quiet", visible: false)
+        // 拉黑了、聊天也删了，但人还在群里（本地拉黑只是排队退群；存储服务、备份恢复来的拉黑根本不退）
+        let blockedQuiet = makeGroupChat("Hiking Blocked", visible: false)
+        write { tx in
+            SSKEnvironment.shared.blockingManagerRef.addBlockedGroupId(blockedQuiet.groupId, blockMode: .local, transaction: tx)
+        }
 
         let chats = read { tx in TellomiForwardTargets.load(tx: tx) }
         let saved = try read { tx in try TellomiForwardTargets.search(query: "Saved", chats: chats, tx: tx) }
@@ -126,7 +131,8 @@ final class TellomiForwardGridTests: SignalBaseTest {
         let hikingResults = try read { tx in try TellomiForwardTargets.search(query: "Hiking", chats: chats, tx: tx) }
         XCTAssertNil(hikingResults.savedMessages)
         XCTAssertEqual(hikingResults.chats.map(\.id), ["group:" + hiking.uniqueId])
-        XCTAssertEqual(hikingResults.groups.map(\.id), ["group:" + quiet.uniqueId], "没聊过的群在「群组」里")
+        XCTAssertEqual(hikingResults.groups.map(\.id), ["group:" + quiet.uniqueId], "没聊过的群在「群组」里，拉黑的群不出现")
+        XCTAssertFalse(hikingResults.groups.contains { $0.id == "group:" + blockedQuiet.uniqueId })
         XCTAssertTrue(hikingResults.contacts.isEmpty)
 
         let nothing = try read { tx in try TellomiForwardTargets.search(query: "zzzz", chats: chats, tx: tx) }

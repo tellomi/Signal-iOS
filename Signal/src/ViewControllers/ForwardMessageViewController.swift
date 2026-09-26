@@ -920,8 +920,15 @@ extension ForwardMessageViewController {
         forceDarkTheme: Bool,
     ) {
         weak let weakDelegate = delegate
+        // 打开网格的页面可能先不在了（例如长文页：消息被删，会话页把它弹出去，它一释放，delegate 就空了）。
+        // 没人来收，网格就得自己关：它全屏透明、盖在最上面，不关就吞掉所有触摸。
+        let gridReference = TellomiForwardGridReference()
         let send: @MainActor ([ConversationItem], String?) async -> Bool = { items, comment in
-            await tellomiSend(content: content, attachmentLimits: attachmentLimits, items: items, comment: comment, delegate: weakDelegate)
+            let didSend = await tellomiSend(content: content, attachmentLimits: attachmentLimits, items: items, comment: comment, delegate: weakDelegate)
+            if didSend, weakDelegate == nil {
+                gridReference.grid?.dismiss(animated: true)
+            }
+            return didSend
         }
         let shareItems = TellomiForwardShareItems(content: content)
         var share: (@MainActor (UIView) -> Void)?
@@ -931,12 +938,17 @@ extension ForwardMessageViewController {
             }
         }
         let cancel: @MainActor () -> Void = {
-            weakDelegate?.forwardMessageFlowDidCancel()
+            if let delegate = weakDelegate {
+                delegate.forwardMessageFlowDidCancel()
+            } else {
+                gridReference.grid?.dismiss(animated: true)
+            }
         }
         let grid = TellomiForwardGridViewController(
             forceDarkTheme: forceDarkTheme,
             actions: TellomiForwardGridViewController.Actions(send: send, share: share, cancel: cancel),
         )
+        gridReference.grid = grid
         fromViewController.present(grid, animated: true) {
             UIApplication.shared.hideKeyboard()
         }
@@ -1118,6 +1130,12 @@ private struct TellomiForwardShareItems {
         }
         AttachmentSharing.showShareUIForActivityItems(activityItems, sender: sender)
     }
+}
+
+/// 网格的弱引用，给它自己的几个回调用：回调要先有，网格才建得出来。
+@MainActor
+private final class TellomiForwardGridReference {
+    weak var grid: UIViewController?
 }
 
 /// 把借来的发送流程的回调转给原来的代理，同时记下有没有发出去

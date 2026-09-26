@@ -186,7 +186,13 @@ public enum TellomiForwardTargets {
         guard thread.canSendChatMessagesToThread() else {
             return nil
         }
-        // 未接受的消息请求；拉黑的人和群也在这里挡掉（上游：拉黑且还在会话里 = 显示消息请求）
+        // 拉黑的人和群。聊天列表里看得见的会话，下面的消息请求判断本来也会挡住；但搜索会搜到看不见的会话
+        // （例如删了聊天、人还在群里的群），hasPendingMessageRequest 对看不见的会话不查拉黑、直接返回 false，
+        // 不在这里挡就能选中、真发进拉黑的群。上游 ConversationPicker 的搜索同样单独判一次。
+        guard !SSKEnvironment.shared.blockingManagerRef.isThreadBlocked(thread, transaction: tx) else {
+            return nil
+        }
+        // 未接受的消息请求
         guard !ThreadFinder().hasPendingMessageRequest(thread: thread, transaction: tx) else {
             return nil
         }
