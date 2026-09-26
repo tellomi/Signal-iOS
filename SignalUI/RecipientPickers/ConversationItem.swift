@@ -631,3 +631,44 @@ extension PrivateStoryConversationItem: ConversationItem {
         getExistingThread(transaction: transaction)
     }
 }
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 「我的收藏」（自己）在选择会话列表里的一项，转发面板置顶和长按「收藏」都用它；还没注册完时返回 nil。
+public enum TellomiSavedMessagesConversationItem {
+    public static func build(tx: DBReadTransaction) -> ConversationItem? {
+        return contactItem(tx: tx)
+    }
+
+    /// 把「我的收藏」放到最近列表第一位，并从最近 / 联系人里去掉重复的它。
+    static func pinFirst(
+        _ savedMessages: ContactConversationItem,
+        recent: inout [RecentConversationItem],
+        contacts: inout [ContactConversationItem],
+    ) {
+        recent.removeAll { item in
+            if case .contact(let contact) = item.backingItem {
+                return contact.address == savedMessages.address
+            }
+            return false
+        }
+        contacts.removeAll { $0.address == savedMessages.address }
+        recent.insert(RecentConversationItem(backingItem: .contact(savedMessages)), at: 0)
+    }
+
+    static func contactItem(tx: DBReadTransaction) -> ContactConversationItem? {
+        guard let localAddress = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: tx)?.aciAddress else {
+            return nil
+        }
+        let thread = TSContactThread.getWithContactAddress(localAddress, transaction: tx)
+        let dmConfigurationStore = DependenciesBridge.shared.disappearingMessagesConfigurationStore
+        let dmConfig = thread.map { dmConfigurationStore.fetchOrBuildDefault(for: .thread($0), tx: tx) }
+        let displayName = SSKEnvironment.shared.contactManagerRef.displayName(for: localAddress, tx: tx)
+        return ContactConversationItem(
+            address: localAddress,
+            isBlocked: false,
+            disappearingMessagesConfig: dmConfig,
+            comparableName: ComparableDisplayName(address: localAddress, displayName: displayName, config: .current()),
+        )
+    }
+}

@@ -46,6 +46,11 @@ public class RegistrationCoordinatorTest {
     private var svrAuthCredentialManager: SVRAuthCredentialManager!
     private var timeoutProviderMock: RegistrationCoordinatorImpl.TestMocks.TimeoutProvider!
     private var tsAccountManagerMock: MockTSAccountManager!
+    /// Tellomi：协调器按这个部署档决定走不走 SVR 那几条路。缺省是**上游档**（`TSConstantsMock` 取
+    /// `TSConstantsProduction` 的值，有 SVR enclave），上游原有用例测的就是这一档；
+    /// 进程里全局的 `TSConstants.shared` 在 Tellomi 是没有 SVR 的那档，不能拿来跑上游用例。
+    /// Tellomi 自己的行为在「Tellomi：没有 SVR enclave 的部署」一节里显式翻成 false 再测。
+    private var tsConstants: TSConstantsMock!
     private var usernameApiClientMock: RegistrationCoordinatorImpl.TestMocks.UsernameApiClient!
     private var usernameLinkManagerMock: MockUsernameLinkManager!
     private var localFileBackupManager: LocalFileBackupManager!
@@ -94,6 +99,7 @@ public class RegistrationCoordinatorTest {
         storageServiceManagerMock = RegistrationCoordinatorImpl.TestMocks.StorageServiceManager(run: testRun)
         timeoutProviderMock = RegistrationCoordinatorImpl.TestMocks.TimeoutProvider()
         tsAccountManagerMock = MockTSAccountManager()
+        tsConstants = TSConstantsMock()
         usernameApiClientMock = RegistrationCoordinatorImpl.TestMocks.UsernameApiClient()
         usernameLinkManagerMock = MockUsernameLinkManager()
 
@@ -180,6 +186,7 @@ public class RegistrationCoordinatorTest {
             svrAuthCredentialManager: svrAuthCredentialManager,
             timeoutProvider: timeoutProviderMock,
             tsAccountManager: tsAccountManagerMock,
+            tsConstants: tsConstants,
             udManager: RegistrationCoordinatorImpl.TestMocks.UDManager(),
             usernameApiClient: usernameApiClientMock,
             usernameLinkManager: usernameLinkManagerMock,
@@ -2964,6 +2971,205 @@ public class RegistrationCoordinatorTest {
         #expect(db.read { accountKeyStore.getAccountEntropyPool(tx: $0) != nil })
 
         // Since we set profile info, we should have scheduled a reupload.
+        #expect(profileManagerMock.didScheduleReuploadLocalProfile)
+    }
+
+    // MARK: - Tellomi：没有 SVR enclave 的部署
+
+    // 上面的上游用例都跑在上游档（有 SVR enclave，见 `tsConstants` 的注释）。这一节把协调器切到
+    // Tellomi 发出去的那一档，测 fork 里三处按 `svrEnclaveAvailable` 改道的地方（docs/signal/ENCLAVES.md）：
+    //   1. 重新注册走恢复密码时不再问 PIN（`askForUserPINIfNeeded`，#964）；
+    //   2. 磁盘上有 SVR 凭证也不走 SVR 凭证那两条路（`getPathway`，#964 的第二处）；
+    //   3. 注册成功后不出「创建 PIN」（`showPinEntryIfNeeded`）。
+
+    private func useTellomiDeploymentWithoutSVR() {
+        tsConstants.svrEnclaveAvailable = false
+    }
+
+    /// 这一节的前提：Tellomi 发出去的档（`TSConstantsStaging`，见 `TSConstants.environment`）没有 SVR enclave。
+    /// 哪天真装了 enclave、把它翻成 true，这一条会红——那时要一起判断上面三处改道还留不留。
+    @Test
+    func testTellomiNoSVR_shippedProfileHasNoSVREnclave() {
+        #expect(!TSConstantsStaging().svrEnclaveAvailable)
+    }
+
+    /// 磁盘上有主密钥和 PIN（重新安装 / 重新注册）：上游输完手机号先要用户再输一遍 PIN
+    /// （runRegRecoverPwPathTestHappyPath）。Tellomi 的用户手里没有 PIN，所以直接拿恢复密码去注册，一步到 `.done`。
+    @MainActor @Test(arguments: Self.testCases())
+    func testTellomiNoSVR_regRecoveryPwPath_registersWithoutAskingForPIN(testCase: TestCase) async throws {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        setupDefaultAccountAttributes()
+        ows2FAManagerMock.pinCodeMock = { Stubs.pinCode }
+        ows2FAManagerMock.shouldMasterKeyBeBackedUpMock = { true }
+
+        let aep = buildKeyDataMocks(testCase)
+        let initialMasterKey = aep.getMasterKey()
+
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+        preKeyManagerMock.addFinalizePreKeyMock { didSucceed in
+            #expect(didSucceed)
+        }
+
+        let expectedRequest = createAccountWithRecoveryPw(initialMasterKey.deriveRegistrationRecoveryPassword())
+        mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+            matcher: { request in
+                #expect(initialMasterKey.regRecoveryPw == (request.parameters["recoveryPassword"] as? String) ?? "")
+                return request.url == expectedRequest.url
+            },
+            statusCode: 200,
+            bodyData: try JSONEncoder().encode(Stubs.accountIdentityResponse()),
+        ))
+
+        preKeyManagerMock.addRotateOneTimePreKeyMock({ _ in })
+        storageServiceManagerMock.addRestoreOrCreateManifestIfNecessaryMock({ _, _ in .value(()) })
+        storageServiceManagerMock.addRotateManifestMock({ _, _ in .value(()) })
+
+        #expect(
+            await coordinator.nextStep() ==
+                .phoneNumberEntry(stubs.phoneNumberEntryState(mode: mode)),
+        )
+
+        // 上游这里是 .pinEntry(Stubs.pinEntryStateForRegRecoveryPath(mode: mode))。
+        #expect(await coordinator.submitE164(Stubs.e164).awaitable() == .done)
+
+        #expect(profileManagerMock.didScheduleReuploadLocalProfile)
+    }
+
+    /// 同一条路，服务端不认这个恢复密码：照上游落回短信验证码，也照上游不清本机的 PIN
+    /// （testRegRecoveryPwPath_wrongPassword），只是中间不再问 PIN。
+    @MainActor @Test(arguments: Self.onlyReRegisteringTestCases())
+    func testTellomiNoSVR_regRecoveryPwRejected_fallsBackToSession(testCase: TestCase) async {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        setupDefaultAccountAttributes()
+        ows2FAManagerMock.pinCodeMock = { Stubs.pinCode }
+        ows2FAManagerMock.shouldMasterKeyBeBackedUpMock = { true }
+        var didClearPinCode = false
+        ows2FAManagerMock.clearLocalPinCodeMock = { didClearPinCode = true }
+
+        let aep = buildKeyDataMocks(testCase)
+
+        // 与上游那条一样：注册一次、失败后建会话，各要一个推送令牌。
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+        preKeyManagerMock.addFinalizePreKeyMock { didSucceed in
+            #expect(!didSucceed)
+        }
+
+        let expectedRecoveryPwRequest = createAccountWithRecoveryPw(aep.getMasterKey().deriveRegistrationRecoveryPassword())
+        mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+            urlSuffix: expectedRecoveryPwRequest.url.absoluteString,
+            statusCode: RegistrationServiceResponses.AccountCreationResponseCodes.unauthorized.rawValue,
+        ))
+
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({ "PUSH TOKEN" })
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(nextVerificationAttempt: 0)))
+
+        #expect(
+            await coordinator.nextStep() ==
+                .phoneNumberEntry(stubs.phoneNumberEntryState(mode: mode)),
+        )
+
+        // 上游在这两步之间多一步 .pinEntry(Stubs.pinEntryStateForRegRecoveryPath(mode: mode))。
+        #expect(
+            await coordinator.submitE164(Stubs.e164).awaitable() ==
+                .verificationCodeEntry(
+                    stubs.verificationCodeEntryState(mode: mode, exitConfigOverride: .noExitAllowed),
+                ),
+        )
+
+        #expect(!didClearPinCode)
+    }
+
+    /// 磁盘上有 SVR 凭证、服务端也说「匹配」：上游会去问 PIN、拿它到 enclave 里换主密钥
+    /// （testSVRAuthCredentialPath_happyPath）。Tellomi 没有 enclave，那条路走不通，所以连凭证都不去核，直接走短信验证码。
+    @MainActor @Test(arguments: Self.testCases())
+    func testTellomiNoSVR_svrAuthCredentials_goStraightToSession(testCase: TestCase) async {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        setupDefaultAccountAttributes()
+
+        // 凭证和「匹配」的回应都备好：协调器要是还去核凭证，下面的 responses 断言会红，而不是整个测试进程崩掉。
+        mockSVRCredentials(isMatch: true)
+        #expect(mockURLSession.responses.count == 1)
+
+        await goThroughOpeningHappyPath(
+            coordinator: coordinator,
+            mode: mode,
+            expectedNextStep: .phoneNumberEntry(stubs.phoneNumberEntryState(mode: mode)),
+        )
+
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({
+            try! await Task.sleep(nanoseconds: TimeInterval.infinity.clampedNanoseconds)
+            fatalError()
+        })
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(nextVerificationAttempt: 0)))
+
+        // 上游这里是 .pinEntry(Stubs.pinEntryStateForSVRAuthCredentialPath(mode: mode))。
+        #expect(
+            await coordinator.submitE164(Stubs.e164).awaitable() ==
+                .verificationCodeEntry(stubs.verificationCodeEntryState(mode: mode)),
+        )
+
+        // 没发 `POST v2/svr/auth/check`：备好的回应原封不动。
+        #expect(mockURLSession.responses.count == 1)
+    }
+
+    /// 新号注册、短信验证通过之后：上游要「创建 PIN」（testSessionPath_happyPath），Tellomi 没有 enclave，
+    /// PIN 设了也存不进去，所以当作已跳过、直接 `.done`，也不去标「PIN 已开启」。主密钥照样生成（同上游跳过 PIN）。
+    @MainActor @Test(arguments: Self.testCases())
+    func testTellomiNoSVR_sessionPath_skipsCreatePINAfterRegistration(testCase: TestCase) async {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let newMasterKey = Stubs.accountEntropyPoolToGenerate.getMasterKey()
+
+        await createSessionAndRequestFirstCode(coordinator: coordinator, mode: testCase.mode)
+
+        sessionManager.addSubmitCodeResponseMock(.success(stubs.session(verified: true)))
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+
+        let expectedRequest = createAccountWithSession(recoveryPassword: newMasterKey.deriveRegistrationRecoveryPassword())
+        mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+            matcher: { $0.url == expectedRequest.url },
+            statusCode: 200,
+            bodyJson: Stubs.accountIdentityResponse(),
+        ))
+
+        preKeyManagerMock.addFinalizePreKeyMock { didSucceed in
+            #expect(didSucceed)
+        }
+        preKeyManagerMock.addRotateOneTimePreKeyMock({ _ in })
+        ows2FAManagerMock.didMarkPinEnabled = { _ in
+            Issue.record("No SVR enclave, no PIN: nothing should mark a PIN enabled.")
+        }
+        storageServiceManagerMock.addRestoreOrCreateManifestIfNecessaryMock({ _, masterKeySource in
+            switch masterKeySource {
+            case .explicit(let explicitMasterKey):
+                #expect(newMasterKey.rawData == explicitMasterKey.rawData)
+            default:
+                Issue.record("Unexpected master key used in storage service operation.")
+            }
+            return .value(())
+        })
+        storageServiceManagerMock.addRotateManifestMock({ _, _ in .value(()) })
+
+        // 上游这里是 .pinEntry(Stubs.pinEntryStateForPostRegCreate(mode: mode, exitConfigOverride: .noExitAllowed))。
+        #expect(await coordinator.submitVerificationCode(Stubs.verificationCode).awaitable() == .done)
+
+        #expect(db.read { accountKeyStore.getAccountEntropyPool(tx: $0) != nil })
         #expect(profileManagerMock.didScheduleReuploadLocalProfile)
     }
 

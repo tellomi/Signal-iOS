@@ -20,9 +20,14 @@ final class CallLinkTest: XCTestCase {
     }
 
     func testRoundtrip() throws {
-        let urlString = "https://signal.link/call/#key=bcdf-ghkm-npqr-stxz-bcdf-ghkm-npqr-stxz"
-        let callLink = try XCTUnwrap(parse(urlString))
-        XCTAssertEqual(callLink.url().absoluteString, urlString)
+        // Tellomi（tellomi/tellomi#1113）：生成的是 tell.cc/call#key=…（不带斜杠）；旧的 signal.link/call/ 形状解析出的是同一个 key
+        let tellShape = "https://tell.cc/call#key=bcdf-ghkm-npqr-stxz-bcdf-ghkm-npqr-stxz"
+        let legacy = "https://signal.link/call/#key=bcdf-ghkm-npqr-stxz-bcdf-ghkm-npqr-stxz"
+        let fromTellShape = try XCTUnwrap(parse(tellShape))
+        let fromLegacy = try XCTUnwrap(parse(legacy))
+        XCTAssertEqual(fromTellShape, fromLegacy)
+        XCTAssertEqual(fromTellShape.url().absoluteString, tellShape)
+        XCTAssertEqual(fromLegacy.url().absoluteString, tellShape)
     }
 
     func testGenerate() {
