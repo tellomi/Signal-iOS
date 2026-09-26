@@ -212,6 +212,35 @@ extension ConversationViewController: MessageActionsDelegate {
         inputToolbar.beginEditingMessage()
     }
 
+    /// Tellomi（tellomi/tellomi#1257，owner 2026-09-25）：在查看器里「回复」相册里正在看的那一张——引用指向整条消息，
+    /// 引用缩略图是那一张（对方收到后也显示那一张，见 QuotedReplyManager.albumItemQuoteThumbnail）。
+    func populateReply(forAlbumItemOf message: TSMessage, attachmentId: Attachment.IDType) {
+        AssertIsOnMainThread()
+
+        guard let inputToolbar else {
+            return
+        }
+
+        self.uiMode = .normal
+
+        let quotedReply = SSKEnvironment.shared.databaseStorageRef.read { transaction in
+            DependenciesBridge.shared.quotedReplyManager.buildDraftQuotedReply(
+                originalMessage: message,
+                preferredAttachmentId: attachmentId,
+                loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
+                tx: transaction,
+            )
+        }
+        guard let quotedReply else {
+            owsFailDebug("Could not build quoted reply.")
+            return
+        }
+
+        inputToolbar.editTarget = nil
+        inputToolbar.quotedReplyDraft = quotedReply
+        inputToolbar.beginEditingMessage()
+    }
+
     func messageActionsForwardItem(_ itemViewModel: CVItemViewModelImpl) {
         AssertIsOnMainThread()
 

@@ -106,11 +106,25 @@ class MediaPageViewController: UIPageViewController {
         spoilerState: spoilerState,
     )
 
+    // Tellomi（tellomi/tellomi#1257，owner 2026-09-25「多个视频点开时完全参考 Telegram 的设计」）：
+    // 屏幕正中的播放 / 暂停（30 秒以上两侧再有 ±15），跟着四角按钮一起出现、一起收起；翻页拖动时先隐去。
+    private lazy var videoCenterControls = MediaVideoCenterControlsView()
+    private var isPagingBetweenItems = false
+
+    /// Tellomi（#1257，照 Telegram `GalleryController.playbackRate`）：这次查看器里选的倍速，翻到下一个视频沿用；不写任何设置。
+    private var playbackSpeed: Float = 1 {
+        didSet {
+            (viewControllers?.first as? MediaItemViewController)?.videoPlayer?.playbackSpeed = playbackSpeed
+            bottomMediaPanel.playbackSpeed = playbackSpeed
+        }
+    }
+
+    private weak var playbackSpeedMenu: MediaPlaybackSpeedMenuView?
+
     // MARK: UIViewController
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        guard Theme.forceDarkThemeForMedia else { return .default }
-
+        // Tellomi：查看器一律深色（见 viewDidLoad），状态栏也一律按上游「强制深色」时的规则走。
         if Theme.isDarkThemeEnabled {
             return .lightContent
         }
@@ -141,9 +155,10 @@ class MediaPageViewController: UIPageViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if Theme.forceDarkThemeForMedia {
-            overrideUserInterfaceStyle = .dark
-        }
+        // Tellomi（#1257，照 Telegram）：查看器一律深色——底色黑、按钮是深色玻璃 + 白图标，不跟系统的浅色模式。
+        // 上游在 iOS 26 起让查看器跟随系统（Theme.forceDarkThemeForMedia = false），浅色玻璃按钮放在亮的图片上看不清；
+        // Telegram 的查看器按钮在浅色、深色模式下都是深色（GalleryTitleView / 底栏 GlassControlPanelComponent 都写死 isDark / 深色主题）。
+        overrideUserInterfaceStyle = .dark
         view.backgroundColor = .Signal.mediaBackground
 
         mediaInteractiveDismiss.addGestureRecognizer(to: view)
@@ -162,6 +177,16 @@ class MediaPageViewController: UIPageViewController {
         navigationBar.compactAppearance = appearance
         navigationBar.scrollEdgeAppearance = appearance
         navigationBar.setItems([UINavigationItem(title: ""), navigationItem], animated: false)
+        if #available(iOS 26, *) {
+            // Tellomi（#1257，照 Telegram）：系统的返回键是跟着背景变浅的玻璃，换成同样深色的返回键（点了照系统返回：关查看器）。
+            navigationItem.hidesBackButton = true
+            navigationItem.leftBarButtonItem = TellomiViewerGlass.barButtonItem(
+                image: UIImage(systemName: "chevron.backward"),
+                accessibilityLabel: CommonStrings.backButton,
+                action: UIAction { [weak self] _ in self?.dismissSelf(animated: true) },
+                menu: nil,
+            )
+        }
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
         topPanel.addSubview(navigationBar)
 
@@ -204,8 +229,23 @@ class MediaPageViewController: UIPageViewController {
             bottomMediaPanel.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
 
+        // Tellomi（#1257）：正中的播放 / 暂停在媒体之上、上下两块面板之下。
+        videoCenterControls.translatesAutoresizingMaskIntoConstraints = false
+        videoCenterControls.isHidden = true
+        view.insertSubview(videoCenterControls, belowSubview: topPanel)
+        NSLayoutConstraint.activate([
+            videoCenterControls.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            videoCenterControls.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+        ])
+
         // Load initial page and update all UI to reflect it.
         setCurrentItem(initialGalleryItem, direction: .forward, shouldAutoPlayVideo: true, animated: false)
+
+        // Tellomi（#1257，owner 2026-09-25，对照 Telegram）：打开时什么都不显示（四角按钮、缩略条、视频控件），轻点才一起出现；
+        // 开着 VoiceOver 时照常显示，不然找不到转发 / 保存。
+        if !UIAccessibility.isVoiceOverRunning {
+            setShouldHideToolbars(true, animated: false)
+        }
 
         mediaGallery.addDelegate(self)
     }
@@ -323,6 +363,14 @@ class MediaPageViewController: UIPageViewController {
             animated: animated,
         )
 
+        // Tellomi（#1257）：倍速沿用到这个视频；正中的播放键换成这个视频的。
+        currentViewController.videoPlayer?.playbackSpeed = playbackSpeed
+        bottomMediaPanel.playbackSpeed = playbackSpeed
+        videoCenterControls.bind(
+            currentViewController.videoPlayer,
+            showsSkipButtons: Self.showsSkipButtons(for: currentViewController.galleryItem),
+        )
+
         updateScreenTitle(using: currentViewController.galleryItem)
         currentViewController.videoPlaybackStatusObserver = bottomMediaPanel
         showOrHideTopAndBottomPanelsAsNecessary(animated: animated)
@@ -347,6 +395,7 @@ class MediaPageViewController: UIPageViewController {
     private func showOrHideTopAndBottomPanelsAsNecessary(animated: Bool) {
         topPanel.setIsHidden(shouldHideToolbars, animated: animated)
         bottomMediaPanel.setIsHidden(shouldHideToolbars || bottomMediaPanel.shouldBeHidden, animated: animated)
+        updateVideoCenterControlsVisibility(animated: animated)
         if #available(iOS 26, *) {
             let targetColor: UIColor = shouldHideToolbars ? .black : .Signal.mediaBackground
             if animated {
@@ -361,6 +410,19 @@ class MediaPageViewController: UIPageViewController {
         }
     }
 
+    private func updateVideoCenterControlsVisibility(animated: Bool) {
+        let isPlayableVideo = (viewControllers?.first as? MediaItemViewController)?.videoPlayer != nil
+        videoCenterControls.setIsHidden(shouldHideToolbars || !isPlayableVideo || isPagingBetweenItems, animated: animated)
+    }
+
+    /// 同上游 VideoPlaybackControlView：30 秒以上的视频才有 ±15（Telegram 是 ≥ 30 秒）。
+    private static func showsSkipButtons(for item: MediaGalleryItem) -> Bool {
+        guard item.isVideo, let duration = item.referencedAttachment.asReferencedStream?.attachmentStream.cachedVideoDuration else {
+            return false
+        }
+        return duration > 30
+    }
+
     private var shouldHideStatusBar: Bool {
         guard traitCollection.userInterfaceIdiom == .phone else { return shouldHideToolbars }
         return shouldHideToolbars || traitCollection.verticalSizeClass == .compact
@@ -373,8 +435,14 @@ class MediaPageViewController: UIPageViewController {
         if traitCollection.verticalSizeClass == .compact {
             // Order of buttons is reversed: first button in array is the outermost in the navbar.
             navigationItem.rightBarButtonItems = [buildContextMenuBarButton(), barButtonForwardMedia, barButtonShareMedia]
+            if #available(iOS 26, *) {
+                navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.map(TellomiViewerGlass.barButtonItem(from:))
+            }
         } else {
             navigationItem.rightBarButtonItems = [buildContextMenuBarButton()]
+            if #available(iOS 26, *) {
+                navigationItem.rightBarButtonItems = navigationItem.rightBarButtonItems?.map(TellomiViewerGlass.barButtonItem(from:))
+            }
         }
     }
 
@@ -396,6 +464,19 @@ class MediaPageViewController: UIPageViewController {
                     self?.saveCurrentMediaToPhotos()
                 },
             ),
+            // Tellomi（#1257，照 Telegram）：底栏的分享位让给了删除，分享挪到这里。
+            UIAction(
+                title: OWSLocalizedString(
+                    "MEDIA_VIEWER_TELLOMI_SHARE_ACTION",
+                    comment: "Context menu item in media viewer: share the photo or video on screen to other apps.",
+                ),
+                image: Theme.iconImage(.contextMenuShare),
+                attributes:
+                currentItem.referencedAttachment.asReferencedStream == nil ? .disabled : [],
+                handler: { [weak self] _ in
+                    self?.shareCurrentMedia(fromNavigationBar: false)
+                },
+            ),
             UIAction(
                 title: OWSLocalizedString(
                     "MEDIA_VIEWER_GO_TO_MESSAGE_ACTION",
@@ -406,6 +487,7 @@ class MediaPageViewController: UIPageViewController {
                     self?.presentConversationForCurrentMedia()
                 },
             ),
+        ] + replyActionIfAvailable() + [
             UIAction(
                 title: OWSLocalizedString(
                     "MEDIA_VIEWER_DELETE_MEDIA_ACTION",
@@ -471,8 +553,18 @@ class MediaPageViewController: UIPageViewController {
         forwardCurrentMedia()
     }
 
+    /// Tellomi（#1257，owner 2026-09-25，照 Telegram）：相册里的一张先问「这一张 / 全部 N 张」。
     private func forwardCurrentMedia() {
+        presentAlbumChoice(
+            isDestructive: false,
+            onThisItem: { [weak self] in self?.forwardMedia(onlyCurrentItem: true) },
+            onAllItems: { [weak self] in self?.forwardMedia(onlyCurrentItem: false) },
+        )
+    }
+
+    private func forwardMedia(onlyCurrentItem: Bool) {
         let messageForCurrentItem = currentItem.message
+        let currentAttachmentId = currentItem.referencedAttachment.attachment.id
 
         let mediaAttachments: [ReferencedAttachment] = SSKEnvironment.shared.databaseStorageRef.read { transaction in
             guard let rowId = messageForCurrentItem.sqliteRowId else { return [] }
@@ -495,7 +587,7 @@ class MediaPageViewController: UIPageViewController {
             }
 
             return attachmentStream
-        }
+        }.filter { !onlyCurrentItem || $0.attachment.id == currentAttachmentId }
 
         let mediaCount = mediaAttachmentStreams.count
 
@@ -503,6 +595,14 @@ class MediaPageViewController: UIPageViewController {
         case 0:
             owsFail("We should always have at least one attachment stream, for the current item.")
         case 1:
+            ForwardMessageViewController.present(
+                forAttachmentStreams: mediaAttachmentStreams,
+                fromMessage: messageForCurrentItem,
+                from: self,
+                delegate: self,
+            )
+        case _ where !onlyCurrentItem && mediaGallery.album(for: currentItem).items.count > 1:
+            // 已经在「这一张 / 全部」里选了全部，不再二次确认
             ForwardMessageViewController.present(
                 forAttachmentStreams: mediaAttachmentStreams,
                 fromMessage: messageForCurrentItem,
@@ -603,9 +703,29 @@ class MediaPageViewController: UIPageViewController {
         }
     }
 
+    /// Tellomi（#1257，owner 2026-09-25，照 Telegram）：相册里的一张先问「这一张 / 全部 N 张」；
+    /// 「全部」走会话里长按删除的同一个面板（仅自己 / 所有人）。
     private func deleteCurrentMedia() {
         guard let mediaItem = currentItem else { return }
 
+        guard mediaGallery.album(for: mediaItem).items.count > 1 else {
+            confirmDeleteSingleMedia(mediaItem)
+            return
+        }
+        presentAlbumChoice(
+            isDestructive: true,
+            onThisItem: { [weak self] in
+                guard let self else { return }
+                self.mediaGallery.delete(items: [mediaItem], initiatedBy: self)
+            },
+            onAllItems: { [weak self] in
+                guard let self else { return }
+                mediaItem.message.presentDeletionActionSheet(from: self, forceDarkTheme: true)
+            },
+        )
+    }
+
+    private func confirmDeleteSingleMedia(_ mediaItem: MediaGalleryItem) {
         let actionSheet = ActionSheetController(title: nil, message: nil)
         let deleteAction = ActionSheetAction(
             title: CommonStrings.deleteButton,
@@ -617,6 +737,97 @@ class MediaPageViewController: UIPageViewController {
         actionSheet.addAction(deleteAction)
 
         presentActionSheet(actionSheet)
+    }
+
+    // MARK: - Tellomi（#1257）：倍速面板
+
+    private func presentPlaybackSpeedMenu(from sourceView: UIView) {
+        playbackSpeedMenu?.dismiss(animated: false)
+        let menu = MediaPlaybackSpeedMenuView(speed: playbackSpeed, sourceView: sourceView) { [weak self] speed in
+            self?.playbackSpeed = speed
+        }
+        menu.present(in: view)
+        playbackSpeedMenu = menu
+    }
+
+    // MARK: - Tellomi（#1257）：这一张 / 全部、回复这一张
+
+    /// 相册（≥ 2 张）里：弹出「这张图片 / 这个视频」与「全部 N 张 / N 个 / N 项」；不是相册直接走「这一张」。
+    private func presentAlbumChoice(isDestructive: Bool, onThisItem: @escaping () -> Void, onAllItems: @escaping () -> Void) {
+        let items = mediaGallery.album(for: currentItem).items
+        guard items.count > 1 else {
+            onThisItem()
+            return
+        }
+
+        let thisTitle = currentItem.isVideo
+            ? OWSLocalizedString("MEDIA_VIEWER_TELLOMI_THIS_VIDEO", comment: "Media viewer: action on only the video on screen, when the message has several photos or videos.")
+            : OWSLocalizedString("MEDIA_VIEWER_TELLOMI_THIS_PHOTO", comment: "Media viewer: action on only the photo on screen, when the message has several photos or videos.")
+        let allFormat: String
+        if items.allSatisfy({ $0.isVideo }) {
+            allFormat = OWSLocalizedString("MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT", comment: "Media viewer: action on all videos of the message. Embeds {{ the number of videos }}.")
+        } else if items.allSatisfy({ !$0.isVideo }) {
+            allFormat = OWSLocalizedString("MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT", comment: "Media viewer: action on all photos of the message. Embeds {{ the number of photos }}.")
+        } else {
+            allFormat = OWSLocalizedString("MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT", comment: "Media viewer: action on all photos and videos of the message. Embeds {{ the number of items }}.")
+        }
+        let allTitle = String.nonPluralLocalizedStringWithFormat(allFormat, OWSFormat.formatInt(items.count))
+
+        let actionSheet = ActionSheetController(title: nil, message: nil)
+        let style: ActionSheetAction.Style = isDestructive ? .destructive : .default
+        actionSheet.addAction(ActionSheetAction(title: thisTitle, style: style) { _ in onThisItem() })
+        actionSheet.addAction(ActionSheetAction(title: allTitle, style: style) { _ in onAllItems() })
+        actionSheet.addAction(OWSActionSheets.cancelAction)
+        presentActionSheet(actionSheet)
+    }
+
+    /// 从会话里打开、而且这个会话现在能发消息时，「···」里有「回复」（回复的是正在看的这一张）。
+    private func replyActionIfAvailable() -> [UIAction] {
+        guard let conversationViewController = conversationViewControllerForReply() else {
+            return []
+        }
+        guard conversationViewController.inputToolbar != nil, !conversationViewController.hasPendingMessageRequest else {
+            return []
+        }
+        return [
+            UIAction(
+                title: OWSLocalizedString(
+                    "MEDIA_VIEWER_TELLOMI_REPLY_ACTION",
+                    comment: "Context menu item in media viewer. Replies to the currently displayed photo/video.",
+                ),
+                image: Theme.iconImage(.contextMenuReply),
+                handler: { [weak self] _ in
+                    self?.replyToCurrentMedia()
+                },
+            ),
+        ]
+    }
+
+    private func replyToCurrentMedia() {
+        guard let mediaItem = currentItem, let conversationViewController = conversationViewControllerForReply() else {
+            return
+        }
+        let message = mediaItem.message
+        let attachmentId = mediaItem.referencedAttachment.attachment.id
+        dismissSelf(animated: true) { [weak conversationViewController] in
+            conversationViewController?.populateReply(forAlbumItemOf: message, attachmentId: attachmentId)
+        }
+    }
+
+    /// 打开这个查看器的会话页（同一个会话）；从「全部媒体」等别处打开时没有。
+    private func conversationViewControllerForReply() -> ConversationViewController? {
+        var pending: [UIViewController] = presentingViewController.map { [$0] } ?? []
+        let threadUniqueId = currentItem.message.uniqueThreadId
+        while let candidate = pending.popLast() {
+            if let conversationViewController = candidate as? ConversationViewController {
+                if conversationViewController.thread.uniqueId == threadUniqueId {
+                    return conversationViewController
+                }
+                continue
+            }
+            pending.append(contentsOf: candidate.children)
+        }
+        return nil
     }
 
     // MARK: Dynamic Header
@@ -653,6 +864,8 @@ class MediaPageViewController: UIPageViewController {
         label.textAlignment = .center
         label.textColor = .Signal.label
         if #available(iOS 26, *) {
+            // Tellomi（#1257）：胶囊是深色玻璃，字一律白色（不让玻璃按背后图的亮度改成黑字）。
+            label.textColor = .white
             label.font = .dynamicTypeSubheadlineClamped.semibold()
             // "semibold" fonts aren't dynamic anymore - have to track changes manually.
             label.registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (label: UILabel, _) in
@@ -671,6 +884,8 @@ class MediaPageViewController: UIPageViewController {
         label.textAlignment = .center
         label.textColor = .Signal.label
         if #available(iOS 26, *) {
+            // Tellomi（#1257）：胶囊是深色玻璃，字一律白色（不让玻璃按背后图的亮度改成黑字）。
+            label.textColor = .white
             label.font = .dynamicTypeCaption1Clamped
             label.adjustsFontForContentSizeCategory = true
         } else {
@@ -689,9 +904,9 @@ class MediaPageViewController: UIPageViewController {
         let containerView = UIView()
         if #available(iOS 26, *) {
             // Can't return `glassEffectView` as `headerView` because UINavigationBar stretches it to fill width.
-            let glassEffect = UIGlassEffect(style: .regular)
-            glassEffect.isInteractive = true
-            let glassEffectView = UIVisualEffectView(effect: glassEffect)
+            // Tellomi（#1257）：深色玻璃，白底的图上也看得清（TellomiViewerGlass）。
+            let glassEffectView = UIVisualEffectView(effect: TellomiViewerGlass.effect())
+            TellomiViewerGlass.darken(glassEffectView)
             glassEffectView.cornerConfiguration = .capsule()
             glassEffectView.translatesAutoresizingMaskIntoConstraints = false
             glassEffectView.contentView.addSubview(stackView)
@@ -744,6 +959,11 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
         _ pageViewController: UIPageViewController,
         willTransitionTo pendingViewControllers: [UIViewController],
     ) {
+        // Tellomi（#1257）：翻页拖动时正中的播放键先隐去，停下后按新的一页再决定。
+        isPagingBetweenItems = true
+        updateVideoCenterControlsVisibility(animated: true)
+        playbackSpeedMenu?.dismiss(animated: false)
+
         guard
             let currentPage = pageViewController.viewControllers?.first as? MediaItemViewController,
             let newPage = pendingViewControllers.first as? MediaItemViewController
@@ -763,6 +983,8 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
         previousViewControllers: [UIViewController],
         transitionCompleted: Bool,
     ) {
+        isPagingBetweenItems = false
+
         if let previousPage = previousViewControllers.first as? MediaItemViewController {
             previousPage.zoomOut(animated: false)
             previousPage.stopVideoIfPlaying()
@@ -771,6 +993,8 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
 
         if transitionCompleted {
             didTransitionToNewPage(animated: true, direction: currentPageSwipeDirection)
+        } else {
+            updateVideoCenterControlsVisibility(animated: true)
         }
     }
 }
@@ -892,6 +1116,13 @@ extension MediaPageViewController: MediaItemViewControllerDelegate {
     func mediaItemViewControllerFullyZoomedOut(_ viewController: MediaItemViewController) {
         setShouldHideToolbars(false, animated: true)
     }
+
+    // Tellomi（#1257，照 Telegram）：不循环的视频放完了，把控件叫出来（正中是播放键）。
+    func mediaItemViewControllerVideoDidPlayToEnd(_ viewController: MediaItemViewController) {
+        guard viewController === viewControllers?.first else { return }
+        videoCenterControls.updatePlayPauseButton()
+        setShouldHideToolbars(false, animated: true)
+    }
 }
 
 extension MediaGalleryItem: GalleryRailItem {
@@ -915,8 +1146,21 @@ extension MediaPageViewController: MediaControlPanelDelegate {
         forwardCurrentMedia()
     }
 
-    func mediaControlPanelDidRequestShareMedia(_ panel: MediaControlPanelView) {
-        shareCurrentMedia(fromNavigationBar: false)
+    func mediaControlPanelDidRequestDeleteMedia(_ panel: MediaControlPanelView) {
+        deleteCurrentMedia()
+    }
+
+    func mediaControlPanel(_ panel: MediaControlPanelView, didRequestPlaybackSpeedMenuFrom sourceView: UIView) {
+        presentPlaybackSpeedMenu(from: sourceView)
+    }
+
+    func mediaControlPanel(_ panel: MediaControlPanelView, didSelectAlbumItem item: MediaGalleryItem) {
+        guard item != currentItem else {
+            return
+        }
+        // 拖缩略条时跟手：直接换页，不做翻页动画
+        let direction: UIPageViewController.NavigationDirection = currentItem.albumIndex < item.albumIndex ? .forward : .reverse
+        setCurrentItem(item, direction: direction, animated: false)
     }
 
     func galleryRailView(_ galleryRailView: GalleryRailView, didTapItem imageRailItem: GalleryRailItem) {
@@ -956,7 +1200,10 @@ extension MediaPageViewController: MediaPresentationContextProvider {
     }
 
     func mediaDidPresent(toContext: MediaPresentationContext) {
-        view.backgroundColor = .Signal.mediaBackground
+        showOrHideTopAndBottomPanelsAsNecessary(animated: false)
+        if #unavailable(iOS 26) {
+            view.backgroundColor = .Signal.mediaBackground
+        }
     }
 
     func mediaWillDismiss(fromContext: MediaPresentationContext) {
@@ -1035,3 +1282,57 @@ extension MediaPageViewController: UINavigationBarDelegate {
         dismissSelf(animated: true)
     }
 }
+
+#if TESTABLE_BUILD
+
+// Tellomi（#1257）：给查看器判据用的入口（SignalTests/AlbumViewerScreenshotTests）。
+extension MediaPageViewController {
+    var areToolbarsHiddenForTesting: Bool { shouldHideToolbars }
+
+    /// 标题胶囊（iOS 26 上是容器里的那块玻璃）与底栏的删除键，量它们在白底图上是不是深色。
+    var headerViewForTesting: UIView { headerView.subviews.first ?? headerView }
+    var deleteButtonForTesting: UIButton { bottomMediaPanel.deleteButtonForTesting }
+    var leftBarButtonItemForTesting: UIBarButtonItem? { navigationItem.leftBarButtonItem }
+    var rightBarButtonItemsForTesting: [UIBarButtonItem] { navigationItem.rightBarButtonItems ?? [] }
+
+    var currentItemForTesting: MediaGalleryItem { currentItem }
+
+    var albumScrubberForTesting: MediaAlbumScrubberView { bottomMediaPanel.albumScrubberForTesting }
+
+    func tapMediaForTesting() {
+        if let currentViewController {
+            mediaItemViewControllerDidTapMedia(currentViewController)
+        }
+    }
+
+    func requestForwardForTesting() {
+        forwardCurrentMedia()
+    }
+
+    func requestDeleteForTesting() {
+        deleteCurrentMedia()
+    }
+
+    var bottomPanelForTesting: MediaControlPanelView { bottomMediaPanel }
+
+    var videoCenterControlsForTesting: MediaVideoCenterControlsView { videoCenterControls }
+
+    var isShowingVideoCenterControlsForTesting: Bool { !videoCenterControls.isHidden && videoCenterControls.alpha > 0 }
+
+    var currentVideoPlayerForTesting: VideoPlayer? { currentViewController?.videoPlayer }
+
+    var playbackSpeedForTesting: Float { playbackSpeed }
+
+    var playbackSpeedMenuForTesting: MediaPlaybackSpeedMenuView? { playbackSpeedMenu }
+
+    func openPlaybackSpeedMenuForTesting() {
+        presentPlaybackSpeedMenu(from: bottomMediaPanel.playbackSpeedButtonForTesting)
+    }
+
+    /// 右上角「···」里的各项标题（按顺序）。
+    var contextMenuTitlesForTesting: [String] {
+        (navigationItem.rightBarButtonItems?.first?.menu?.children ?? []).compactMap { ($0 as? UIAction)?.title }
+    }
+}
+
+#endif

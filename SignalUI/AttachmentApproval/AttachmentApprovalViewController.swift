@@ -648,7 +648,7 @@ public final class AttachmentApprovalViewController: OWSViewController, UIPageVi
         return viewController
     }
 
-    private func setCurrentItem(
+    func setCurrentItem(
         _ item: AttachmentApprovalItem,
         direction: UIPageViewController.NavigationDirection,
         animated: Bool,
