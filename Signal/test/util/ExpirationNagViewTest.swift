@@ -49,6 +49,8 @@ final class ExpirationNagViewTest: XCTestCase {
             XCTAssertNotNil(nag.text.strippedOrNil)
             XCTAssertNotNil(nag.actionTitle)
             XCTAssertEqual(nag.urlToOpen, TSConstants.appStoreUrl)
+            // Tellomi（tellomi/tellomi#1046）：点「更新」不能去 App Store 装 Signal
+            XCTAssertEqual(nag.urlToOpen.host, "tellomi.app")
             XCTAssertFalse(nag.isHidden)
         }
 

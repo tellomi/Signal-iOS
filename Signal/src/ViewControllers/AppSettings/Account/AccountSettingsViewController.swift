@@ -38,7 +38,12 @@ class AccountSettingsViewController: OWSTableViewController2 {
         let contents = OWSTableContents()
 
         // Show the change pin and reglock sections
-        if DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegisteredPrimaryDevice {
+        // Tellomi：没有 SVR 时 PIN 和注册锁两节都不显示——创建 / 修改 PIN 会去连 SVR，
+        // 注册锁又要先有 PIN（tellomi/tellomi#1234）。
+        if
+            TSConstants.svrEnclaveAvailable,
+            DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegisteredPrimaryDevice
+        {
             let pinSection = OWSTableSection()
             let isPinEnabled = SSKEnvironment.shared.ows2FAManagerRef.isPinEnabledWithSneakyTransaction
 
