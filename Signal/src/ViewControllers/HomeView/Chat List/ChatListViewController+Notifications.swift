@@ -265,6 +265,8 @@ extension ChatListViewController {
 
         reconcileExperienceUpgrades()
         updateShouldBeUpdatingView()
+        // Tellomi（#1218 F-01）：从系统设置回来，通知可能已经打开或关掉
+        updateNotificationsDisabledReminderView()
     }
 
     @objc

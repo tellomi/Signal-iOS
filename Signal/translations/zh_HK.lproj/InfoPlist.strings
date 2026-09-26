@@ -1,7 +1,7 @@
 NSAppleMusicUsageDescription = "Tellomi 需要使用 Apple Music 來播放媒體附件。";
-NSCameraUsageDescription = "Tellomi 將使用你的相機來拍照及進行視訊通話。";
-NSContactsUsageDescription = "Tellomi 會使用電話簿中的聯絡人來尋找你的朋友。我們不會將這些聯絡人資料儲存於伺服器中。";
-NSFaceIDUsageDescription = "Tellomi的螢幕鎖定使用Face ID。";
+NSCameraUsageDescription = "用於拍照、拍片、掃描二維碼和視像通話。";
+NSContactsUsageDescription = "用於在 Tellomi 中顯示您為聯絡人儲存的名字。通訊錄不會上傳。";
+NSFaceIDUsageDescription = "用於螢幕鎖定，以及在連結新裝置前確認是您本人。";
 NSLocationWhenInUseUsageDescription = "Tellomi需要存取你的位置以共享你的當前位置。";
 NSMicrophoneUsageDescription = "Tellomi需要存取你的咪高峰來接聽來電及傳送錄音訊息。";
 NSPhotoLibraryAddUsageDescription = "Tellomi會將相片儲存在相簿中。";
