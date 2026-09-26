@@ -688,12 +688,11 @@ public class AvatarBuilder {
         case gradient(AvatarGradient)
 
         static func noteToSelf(theme: AvatarTheme) -> Self {
+            // Tellomi：「备忘录」改名「我的收藏」，换成书签（左右对称，不用 RTL 版）、颜色固定（#1174）。
+            // 品牌色定稿前先用蓝色 A110（#1186），不跟自己的头像颜色走。
             return .tintedImage(
-                // The way we render avatars doesn't respect the asset catalog's
-                // icon direction, so the RTL variant needs to be specified
-                // here, but other uses of "note-resizable" automatically flip.
-                name: CurrentAppContext().isRTL ? "note-rtl" : "note-resizable",
-                theme: theme,
+                name: "tellomi-bookmark-resizable",
+                theme: .A110,
             )
         }
 
