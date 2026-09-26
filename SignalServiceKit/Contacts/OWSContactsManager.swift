@@ -205,6 +205,16 @@ public class OWSContactsManager: NSObject, ContactsManagerProtocol {
         return userInitiated || status != .notDetermined
     }
 
+    /// 先红用的桩：下一个提交换成真的判断。
+    static func tellomiShouldRequestContactsBeforeEditing(isEditingAllowed: Bool, status: RawContactAuthorizationStatus) -> Bool {
+        return false
+    }
+
+    /// 先红用的桩：下一个提交换成真的判断。
+    static func tellomiEditingAuthorization(isEditingAllowed: Bool, status: RawContactAuthorizationStatus) -> ContactAuthorizationForEditing {
+        return .notAllowed
+    }
+
     /// Ensure's the app has the latest contacts, but won't prompt the user for contact
     /// access if they haven't granted it.
     public func fetchSystemContactsOnceIfAlreadyAuthorized() {
