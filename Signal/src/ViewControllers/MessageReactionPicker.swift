@@ -369,14 +369,25 @@ class MessageReactionPicker: UIStackView {
             UIView.animate(withDuration: duration) { backgroundView.alpha = 1 }
         }
 
+        // Tellomi（交互审计 A-07）：原来用 ease-in——起步慢、到位最快，像「撞」上去。改成交互标准的 snap 弹簧
+        // （owner 选「活泼」，带回弹）；减弱动态效果时不位移，只淡入。
+        let reduceMotion = TellomiMotion.isReduceMotionEnabled
+        let snap = TellomiMotion.resolved(TellomiMotion.snap, reduceMotion: reduceMotion)
         var delay: TimeInterval = 0
         for view in self.buttonViews {
             view.alpha = 0
-            view.transform = CGAffineTransform(translationX: 0, y: 24)
-            UIView.animate(withDuration: duration, delay: delay, options: .curveEaseIn, animations: {
-                view.transform = .identity
-                view.alpha = 1
-            })
+            view.transform = reduceMotion ? .identity : CGAffineTransform(translationX: 0, y: 24)
+            UIView.animate(
+                withDuration: max(duration, snap.duration),
+                delay: delay,
+                usingSpringWithDamping: snap.dampingRatio,
+                initialSpringVelocity: 0,
+                options: [.allowUserInteraction, .beginFromCurrentState],
+                animations: {
+                    view.transform = .identity
+                    view.alpha = 1
+                },
+            )
             delay += 0.01
         }
         CATransaction.commit()
