@@ -396,6 +396,10 @@ final class AlbumViewerScreenshotTests: XCTestCase {
     func testVideoViewerTelegramControls() async throws {
         try requireShots()
         let width = shotWidths.first ?? 402
+        // 本用例不测自动收起（见 testVideoControlsAutoHideWhilePlaying）：中途要停好几秒，别让控件自己收起。
+        let savedAutoHideDelay = MediaPageViewController.autoHideControlsDelay
+        MediaPageViewController.autoHideControlsDelay = 3600
+        defer { MediaPageViewController.autoHideControlsDelay = savedAutoHideDelay }
 
         let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
         let shortVideo = try await makeVideo(size: CGSize(width: 320, height: 180), duration: 6, framesPerSecond: 10)
@@ -748,6 +752,129 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
         }
+    }
+
+    // MARK: - 播放中控件自动收起（#1257 欠账，照 Telegram iOS 的 4 秒）
+
+    /// 照 Telegram iOS（UniversalVideoGalleryItem 的 shouldHideControlsSignal）：正在播、没被打断，控件过一会儿自动收起（产品里 4 秒，测试里 0.6 秒、每 0.1 秒看一次）。
+    /// 暂停、倍速菜单 / 「···」菜单开着、拖着进度条、开着 VoiceOver 时不收；打断结束后再等满时间才收；碰一下屏幕计时从头来。不需要 TELLOMI_SHOTS。
+    @MainActor
+    func testVideoControlsAutoHideWhilePlaying() async throws {
+        let savedDelay = MediaPageViewController.autoHideControlsDelay
+        let savedTick = MediaPageViewController.autoHideControlsTickInterval
+        let savedVoiceOver = MediaPageViewController.isVoiceOverRunning
+        MediaPageViewController.autoHideControlsDelay = 0.6
+        MediaPageViewController.autoHideControlsTickInterval = 0.1
+        defer {
+            MediaPageViewController.autoHideControlsDelay = savedDelay
+            MediaPageViewController.autoHideControlsTickInterval = savedTick
+            MediaPageViewController.isVoiceOverRunning = savedVoiceOver
+        }
+
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let video = try await makeVideo(size: CGSize(width: 320, height: 180), duration: 6, framesPerSecond: 10)
+        let message = try await insertMediaMessage(thread: thread, incoming: true, media: [(data: video, mimeType: "video/mp4")], body: nil)
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: try bodyAttachments(of: message)[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+        let player = try XCTUnwrap(viewer.currentVideoPlayerForTesting)
+        XCTAssertTrue(player.isPlaying, "照常自动播放")
+
+        func showControls() {
+            if viewer.areToolbarsHiddenForTesting {
+                viewer.tapMediaForTesting()
+            }
+            XCTAssertFalse(viewer.areToolbarsHiddenForTesting)
+        }
+        func staysShown(_ reason: String) async throws {
+            try await Task.sleep(nanoseconds: 1_500_000_000)
+            report += "autohide: \(reason) hidden=\(viewer.areToolbarsHiddenForTesting)\n"
+            XCTAssertFalse(viewer.areToolbarsHiddenForTesting, reason)
+        }
+        func hidesAfterDelay(_ reason: String, timeout: TimeInterval = 3) async {
+            let start = Date()
+            let hidden = await waitUntil(timeout: timeout) { viewer.areToolbarsHiddenForTesting }
+            let elapsed = Date().timeIntervalSince(start)
+            report += "autohide: \(reason) hidden=\(hidden) after=\(String(format: "%.2f", elapsed))s\n"
+            XCTAssertTrue(hidden, reason)
+            XCTAssertGreaterThanOrEqual(elapsed, 0.5, "\(reason)：等满时间才收，不是一放开就收")
+        }
+
+        // 播放中：轻点叫出控件，没再碰就自动收起
+        showControls()
+        await hidesAfterDelay("播放中没碰就自动收起")
+
+        // 暂停：不收；接着放，等满时间再收
+        showControls()
+        viewer.videoCenterControlsForTesting.tapPlayPauseForTesting()
+        XCTAssertFalse(player.isPlaying)
+        try await staysShown("暂停时不收")
+        viewer.videoCenterControlsForTesting.tapPlayPauseForTesting()
+        // 刚恢复时 timeControlStatus 会先是「等待以指定速率播放」，等它真的播起来再判。
+        let resumed = await waitUntil(timeout: 2) { player.isPlaying }
+        XCTAssertTrue(resumed, "接着放")
+        await hidesAfterDelay("接着放，等满时间再收")
+
+        // 倍速菜单开着：不收；关掉后再等满时间
+        showControls()
+        viewer.openPlaybackSpeedMenuForTesting()
+        try await staysShown("倍速菜单开着不收")
+        viewer.playbackSpeedMenuForTesting?.dismiss(animated: false)
+        await hidesAfterDelay("倍速菜单关掉后再等满时间收")
+
+        // 拖着进度条：不收；松手后再等满时间
+        showControls()
+        let progress = try XCTUnwrap(viewer.bottomPanelForTesting.progressViewForTesting)
+        progress.scrubForTesting(toFraction: 0.5, isMove: false)
+        try await staysShown("拖着进度条不收")
+        progress.endScrubForTesting()
+        await hidesAfterDelay("松手后再等满时间收")
+
+        // 「···」菜单开着：不收（iOS 26 起顶栏是自定义深色圆钮，能知道菜单开没开）
+        if #available(iOS 26, *) {
+            showControls()
+            let menuButton = try XCTUnwrap(viewer.contextMenuButtonForTesting, "「···」是能报告菜单开关的圆钮")
+            menuButton.setMenuVisibleForTesting(true)
+            try await staysShown("「···」菜单开着不收")
+            menuButton.setMenuVisibleForTesting(false)
+            await hidesAfterDelay("「···」菜单关掉后再等满时间收")
+        }
+
+        // 开着 VoiceOver：不收
+        showControls()
+        MediaPageViewController.isVoiceOverRunning = { true }
+        try await staysShown("开着 VoiceOver 不收")
+        MediaPageViewController.isVoiceOverRunning = { false }
+        await hidesAfterDelay("关掉 VoiceOver 后再等满时间收")
+
+        // 碰一下屏幕：计时从头来。这一段时间放长到 3 秒，判据只用下限——收起离「碰」那一下至少满 3 秒；
+        // 机器忙只会让它更晚收、不会更早（原来「2.4 秒时还在」那种定点看，Android 440dp 在机器忙时红过一次，两端一起改）。
+        // 没清零的话，从叫出控件（上一次清零）算满 3 秒就收，离「碰」只有约 2 秒，这条就红。
+        MediaPageViewController.autoHideControlsDelay = 3
+        showControls()
+        let shownAt = Date()
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertFalse(viewer.areToolbarsHiddenForTesting, "碰之前控件还在（离叫出 \(String(format: "%.2f", Date().timeIntervalSince(shownAt)))s）")
+        let touchedAt = Date()
+        XCTAssertTrue(viewer.noteTouchForTesting(), "查看器根视图上挂着「碰过屏幕」识别器")
+        let hiddenAfterTouch = await waitUntil(timeout: 8) { viewer.areToolbarsHiddenForTesting }
+        let sinceTouch = Date().timeIntervalSince(touchedAt)
+        report += "autohide: touched \(String(format: "%.2f", touchedAt.timeIntervalSince(shownAt)))s after shown, hidden=\(hiddenAfterTouch) after=\(String(format: "%.2f", sinceTouch))s\n"
+        XCTAssertTrue(hiddenAfterTouch, "碰过之后再等满时间收")
+        XCTAssertGreaterThanOrEqual(sinceTouch, 3, "碰过屏幕，计时从头来（收起离「碰」\(String(format: "%.2f", sinceTouch))s）")
+
+        try report.write(to: FileManager.default.temporaryDirectory.appendingPathComponent("metrics-autohide.txt"), atomically: true, encoding: .utf8)
+        if ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1" {
+            try report.write(to: shotsDirectory(width: shotWidths.first ?? 402).deletingLastPathComponent().appendingPathComponent("metrics-autohide.txt"), atomically: true, encoding: .utf8)
+        }
+        // 收尾：这个视频结束时还在循环播放。先停下、摘掉查看器、等它释放完，别让它拖到下一个用例（那时测试环境已经拆了，释放时会崩）。
+        player.pause()
+        window.isHidden = true
+        window.rootViewController = nil
+        try await Task.sleep(nanoseconds: 500_000_000)
     }
 
     // MARK: - Hosting
