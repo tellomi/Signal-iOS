@@ -135,7 +135,7 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
     }
 
     /// dock 的「文件」：同一个 Sheet 里换到「文件」页（#1121）。
-    /// 「位置 / 投票 / 联系人」：先收起 Sheet，再走上游原来的流程（取消了会经 openAttachmentKeyboard 回到 Sheet）。
+    /// 「位置 / 投票 / 联系人 / GIF」：先收起 Sheet，再走上游原来的流程（取消了会经 openAttachmentKeyboard 回到 Sheet）。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {
         if item == .file, let container = picker.parent as? TellomiAttachmentSheetController {
             container.show(.files)

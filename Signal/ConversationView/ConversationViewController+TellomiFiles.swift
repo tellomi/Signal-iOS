@@ -19,7 +19,8 @@ extension ConversationViewController {
             // F-9：上限读服务端下发的配置（remoteConfig），不写死
             maxFileSizeText: ByteCountFormatter.string(fromByteCount: Int64(clamping: limits.maxPlaintextBytes), countStyle: .file),
             canScan: VNDocumentCameraViewController.isSupported,
-            dockItems: TellomiAttachmentDockItem.allCases,
+            // 同选图页那份：GIF 只在能用时列（#1078 isGifAvailable）
+            dockItems: TellomiAttachmentDockItem.attachmentSheetItems,
         )
         page.delegate = self
         return page
@@ -38,13 +39,15 @@ extension ConversationViewController: TellomiAttachmentFilesDelegate {
             (page.parent as? TellomiAttachmentSheetController)?.show(.gallery)
         case .file:
             break
-        case .location, .poll, .contact:
+        case .location, .poll, .contact, .gif:
             dismiss(animated: true) { [weak self] in
                 guard let self else { return }
                 switch item {
                 case .location: self.locationButtonPressed()
                 case .poll: self.pollButtonPressed()
                 case .contact: self.contactButtonPressed()
+                // owner 2026-09-26 临时加回的 GIF：同选图页 dock，走上游 GIF 键的处理
+                case .gif: self.gifButtonPressed()
                 case .gallery, .file: break
                 }
             }
