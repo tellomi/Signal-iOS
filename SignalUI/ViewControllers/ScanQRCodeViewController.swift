@@ -32,9 +32,12 @@ public protocol QRCodeSampleBufferScannerDelegate: AnyObject {
 
 public class QRCodeSampleBufferScanner: NSObject {
     private weak var delegate: QRCodeSampleBufferScannerDelegate?
+    /// Tellomi（#1219）：只放行对准中心、连续对准 0.5 秒的码；nil = 上游行为。只在视频输出队列上用。
+    private let tellomiFocus: TellomiQrFocus?
 
-    public init(delegate: QRCodeSampleBufferScannerDelegate?) {
+    public init(delegate: QRCodeSampleBufferScannerDelegate?, tellomiFocus: TellomiQrFocus? = nil) {
         self.delegate = delegate
+        self.tellomiFocus = tellomiFocus
     }
 
     private lazy var detectQRCodeRequest: VNDetectBarcodesRequest = {
@@ -59,7 +62,7 @@ public class QRCodeSampleBufferScanner: NSObject {
             return
         }
 
-        typealias QRCode = (string: String?, data: Data?)
+        typealias QRCode = (string: String?, data: Data?, boundingBox: CGRect)
         let qrCode: QRCode? = (request.results ?? [])
             .lazy
             .compactMap { $0 as? VNBarcodeObservation }
@@ -85,9 +88,18 @@ public class QRCodeSampleBufferScanner: NSObject {
                     return nil
                 }
 
-                return (qrCodeString, qrCodeData)
+                return (qrCodeString, qrCodeData, barcode.boundingBox)
             }
             .first
+
+        // Tellomi（#1219）：没对准中心、或者还没连续对准 0.5 秒，这一帧先不报。没找到码的帧也要喂进去，好重新计时。
+        if let tellomiFocus {
+            let code = qrCode.map { $0.string ?? $0.data?.base64EncodedString() ?? "" }
+            let center = qrCode.map { CGPoint(x: $0.boundingBox.midX, y: $0.boundingBox.midY) }
+            guard tellomiFocus.onFrame(code: code, center: center) else {
+                return
+            }
+        }
 
         guard let qrCode else {
             return
@@ -194,6 +206,8 @@ public class QRCodeScanViewController: OWSViewController {
 
     private let appearance: Appearance
     private let showUploadPhotoButton: Bool
+    /// Tellomi（#1219）：只认对准画面中心、连续对准 0.5 秒的码（关联设备扫码页用，见 `TellomiQrFocus`）。
+    private let tellomiRequiresCenteredStableCode: Bool
 
     public weak var delegate: QRCodeScanDelegate?
 
@@ -205,9 +219,10 @@ public class QRCodeScanViewController: OWSViewController {
         }
     }
 
-    public init(appearance: Appearance, showUploadPhotoButton: Bool = false) {
+    public init(appearance: Appearance, showUploadPhotoButton: Bool = false, tellomiRequiresCenteredStableCode: Bool = false) {
         self.appearance = appearance
         self.showUploadPhotoButton = showUploadPhotoButton
+        self.tellomiRequiresCenteredStableCode = tellomiRequiresCenteredStableCode
         super.init()
     }
 
@@ -388,6 +403,7 @@ public class QRCodeScanViewController: OWSViewController {
         let scanner = QRCodeScanner(
             prefersFrontFacingCamera: self.prefersFrontFacingCamera,
             scannerDelegate: self,
+            tellomiFocus: tellomiRequiresCenteredStableCode ? TellomiQrFocus() : nil,
         )
         self.scanner = scanner
 
@@ -739,9 +755,10 @@ private class QRCodeScanner {
     init(
         prefersFrontFacingCamera: Bool,
         scannerDelegate: any QRCodeSampleBufferScannerDelegate,
+        tellomiFocus: TellomiQrFocus? = nil,
     ) {
         self.prefersFrontFacingCamera = prefersFrontFacingCamera
-        self.output = QRCodeScanOutput(scannerDelegate: scannerDelegate)
+        self.output = QRCodeScanOutput(scannerDelegate: scannerDelegate, tellomiFocus: tellomiFocus)
 
         if #available(iOS 16.0, *) {
             if session.isMultitaskingCameraAccessSupported {
@@ -1011,8 +1028,8 @@ private class QRCodeScanOutput {
 
     // MARK: - Init
 
-    init(scannerDelegate: any QRCodeSampleBufferScannerDelegate) {
-        self.sampleBufferScanner = QRCodeSampleBufferScanner(delegate: scannerDelegate)
+    init(scannerDelegate: any QRCodeSampleBufferScannerDelegate, tellomiFocus: TellomiQrFocus? = nil) {
+        self.sampleBufferScanner = QRCodeSampleBufferScanner(delegate: scannerDelegate, tellomiFocus: tellomiFocus)
         videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
         videoDataOutput.setSampleBufferDelegate(
             self.sampleBufferScanner,
@@ -1052,5 +1069,59 @@ public extension AVCaptureVideoOrientation {
         @unknown default:
             return nil
         }
+    }
+}
+
+// MARK: - Tellomi（#1219）
+
+/// 只放行对准画面中心、并且连续对准一段时间的二维码（tellomi/tellomi#1219 第二刀）。
+///
+/// 关联设备的扫码页用它（`QRCodeScanViewController` 的 `tellomiRequiresCenteredStableCode`，默认不开，其余扫码照上游）：
+/// 扫到旁边别人屏幕上的关联码，就是把别人的电脑关联进自己的账号。
+///
+/// 规则照 Telegram iOS 的扫码页：码的中心要落在画面中间 40%（横竖都在 0.3–0.7），同一个码连续对准 0.5 秒才放行；
+/// 中途换成别的码，或者离开中心区超过 `maxGapInterval`，都重新计时。和 Android 的 `org.signal.camera.TellomiQrFocus` 同一套规则。
+/// 只在视频输出队列上用，不做同步。
+public final class TellomiQrFocus {
+    private static let region: ClosedRange<CGFloat> = 0.3...0.7
+
+    private let requiredStableInterval: TimeInterval
+    private let maxGapInterval: TimeInterval
+    private let now: () -> TimeInterval
+
+    private var candidate: String?
+    private var firstSeenAt: TimeInterval = 0
+    private var lastSeenAt: TimeInterval = 0
+
+    public init(
+        requiredStableInterval: TimeInterval = 0.5,
+        maxGapInterval: TimeInterval = 0.35,
+        now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+    ) {
+        self.requiredStableInterval = requiredStableInterval
+        self.maxGapInterval = maxGapInterval
+        self.now = now
+    }
+
+    /// Vision 的 `boundingBox` 是相对坐标（0–1）。中心区上下、左右都对称，所以不用管原点在左下还是左上、画面转没转过。
+    public static func isInCenter(_ point: CGPoint) -> Bool {
+        region.contains(point.x) && region.contains(point.y)
+    }
+
+    /// 每处理一帧调一次。`code` 是这一帧识别出的码（没有就传 nil），`center` 是码中心的相对位置。返回 true 表示这一帧可以放行。
+    public func onFrame(code: String?, center: CGPoint?) -> Bool {
+        let now = self.now()
+        guard let code, let center, Self.isInCenter(center) else {
+            if candidate != nil, now - lastSeenAt > maxGapInterval {
+                candidate = nil
+            }
+            return false
+        }
+        if code != candidate || now - lastSeenAt > maxGapInterval {
+            candidate = code
+            firstSeenAt = now
+        }
+        lastSeenAt = now
+        return now - firstSeenAt >= requiredStableInterval
     }
 }
