@@ -90,3 +90,42 @@ class TellomiSavedMessagesTest: SSKBaseTest {
         XCTAssertTrue(savedMessagesIsVisible())
     }
 }
+
+/// 「我的收藏」不套「新聊天默认限时」（owner 2026-09-26）：收藏的东西不该到时自己消失；别的一对一新会话照上游套。
+class TellomiSavedMessagesDefaultTimerTest: SSKBaseTest {
+
+    override func setUp() {
+        super.setUp()
+        SSKEnvironment.shared.databaseStorageRef.write { tx in
+            (DependenciesBridge.shared.registrationStateChangeManager as! RegistrationStateChangeManagerImpl).registerForTests(
+                localIdentifiers: .forUnitTests,
+                tx: tx,
+            )
+            DependenciesBridge.shared.disappearingMessagesConfigurationStore.setUniversalTimer(
+                token: DisappearingMessageToken(isEnabled: true, durationSeconds: 60 * 60),
+                tx: tx,
+            )
+        }
+    }
+
+    func testSavedMessagesDoesNotGetTheDefaultTimer() {
+        let (savedMessages, otherChat) = SSKEnvironment.shared.databaseStorageRef.write { tx in
+            (
+                TSContactThread.getOrCreateThread(withContactAddress: LocalIdentifiers.forUnitTests.aciAddress, transaction: tx),
+                TSContactThread.getOrCreateThread(withContactAddress: SignalServiceAddress.randomForTesting(), transaction: tx),
+            )
+        }
+        XCTAssertTrue(savedMessages.isNoteToSelf)
+
+        SSKEnvironment.shared.databaseStorageRef.read { tx in
+            XCTAssertFalse(
+                ThreadFinder().shouldSetDefaultDisappearingMessageTimer(contactThread: savedMessages, transaction: tx),
+                "「我的收藏」不套默认限时",
+            )
+            XCTAssertTrue(
+                ThreadFinder().shouldSetDefaultDisappearingMessageTimer(contactThread: otherChat, transaction: tx),
+                "别的一对一新会话照上游套默认限时",
+            )
+        }
+    }
+}
