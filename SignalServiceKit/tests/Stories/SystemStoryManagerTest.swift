@@ -21,6 +21,8 @@ class SystemStoryManagerTest: SSKBaseTest {
 
     override func setUp() {
         super.setUp()
+        // Tellomi：上游的下载用例照旧测下载那条路（Tellomi 默认不下载，见 TellomiOnboardingStoryTest）
+        SystemStoryManager.tellomiDownloadsOnboardingStory = true
         SSKEnvironment.shared.databaseStorageRef.write { tx in
             (DependenciesBridge.shared.registrationStateChangeManager as! RegistrationStateChangeManagerImpl).registerForTests(
                 localIdentifiers: .forUnitTests,
@@ -37,6 +39,7 @@ class SystemStoryManagerTest: SSKBaseTest {
 
     override func tearDown() {
         self.manager = nil
+        SystemStoryManager.tellomiDownloadsOnboardingStory = false
         super.tearDown()
     }
 
