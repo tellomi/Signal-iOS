@@ -81,6 +81,8 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
         case tooLong
         /// The username's first character is a digit.
         case cannotStartWithDigit
+        /// Tellomi（ADR-0066 §六）：the username's first character is `_`. libsignal allows it; Tellomi requires a letter.
+        case cannotStartWithUnderscore
         /// The username contains invalid characters.
         case invalidCharacters
         /// The custom-set discriminator is too short, but not empty.
@@ -116,6 +118,8 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
                 return "tooLong"
             case .cannotStartWithDigit:
                 return "cannotStartWithDigit"
+            case .cannotStartWithUnderscore:
+                return "cannotStartWithUnderscore"
             case .invalidCharacters:
                 return "invalidCharacters"
             case .customDiscriminatorTooShort:
@@ -409,6 +413,7 @@ private extension UsernameSelectionViewController {
                 .tooShort,
                 .tooLong,
                 .cannotStartWithDigit,
+                .cannotStartWithUnderscore,
                 .invalidCharacters,
                 .customDiscriminatorTooShort,
                 .customDiscriminatorIs00,
@@ -449,6 +454,7 @@ private extension UsernameSelectionViewController {
                 .tooShort,
                 .tooLong,
                 .cannotStartWithDigit,
+                .cannotStartWithUnderscore,
                 .invalidCharacters,
                 .customDiscriminatorTooShort,
                 .customDiscriminatorIs00,
@@ -483,6 +489,7 @@ private extension UsernameSelectionViewController {
             .tooShort,
             .tooLong,
             .cannotStartWithDigit,
+            .cannotStartWithUnderscore,
             .invalidCharacters,
             .customDiscriminatorTooShort,
             .customDiscriminatorIs00,
@@ -541,6 +548,12 @@ private extension UsernameSelectionViewController {
                 return OWSLocalizedString(
                     "USERNAME_SELECTION_CANNOT_START_WITH_DIGIT_ERROR_MESSAGE",
                     comment: "An error message shown when the user has typed a username that starts with a digit, which is invalid.",
+                )
+            case .cannotStartWithUnderscore:
+                // Tellomi（ADR-0066 §六）
+                return OWSLocalizedString(
+                    "USERNAME_SELECTION_CANNOT_START_WITH_UNDERSCORE_ERROR_MESSAGE_TELLOMI",
+                    comment: "An error message shown when the user has typed a username that starts with an underscore. Tellomi usernames must start with a letter.",
                 )
             case .invalidCharacters:
                 return OWSLocalizedString(
@@ -642,6 +655,7 @@ private extension UsernameSelectionViewController {
             .tooShort,
             .tooLong,
             .cannotStartWithDigit,
+            .cannotStartWithUnderscore,
             .invalidCharacters,
             .customDiscriminatorTooShort,
             .emptyDiscriminator,
@@ -873,6 +887,11 @@ private extension UsernameSelectionViewController {
                     minNicknameLength: Constants.minNicknameCodepointLength,
                     maxNicknameLength: Constants.maxNicknameCodepointLength,
                     desiredDiscriminator: desiredDiscriminator,
+                    enforcingLetterFirst: Usernames.HashedUsername.tellomiEnforcesLetterFirst(
+                        desiredNickname: desiredNickname,
+                        existingUsername: existingUsername,
+                        isAttemptingRecovery: isAttemptingRecovery,
+                    ),
                 )
 
                 attemptReservationAndUpdateValidationState(
@@ -880,6 +899,8 @@ private extension UsernameSelectionViewController {
                 )
             } catch CandidateError.nicknameCannotStartWithDigit {
                 currentUsernameState = .cannotStartWithDigit
+            } catch CandidateError.nicknameCannotStartWithUnderscore {
+                currentUsernameState = .cannotStartWithUnderscore
             } catch CandidateError.nicknameContainsInvalidCharacters {
                 currentUsernameState = .invalidCharacters
             } catch CandidateError.nicknameTooLong {
