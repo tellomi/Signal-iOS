@@ -112,10 +112,12 @@ public extension Usernames {
             let linkData: Data = entropy + handle.data
             let base64LinkData = linkData.asBase64Url
 
+            // Tellomi（tellomi/tellomi#1113）：发出 `https://tell.cc/u#eu/…`（与 Desktop 相同）——用微信扫码会落到我们的落地页，
+            // 不是 Signal 的网页；解析两种都认（init 里先换算成 `signal.me/#eu/…`）
             var components = URLComponents()
             components.scheme = LinkUrlComponents.httpsScheme
-            components.host = LinkUrlComponents.host
-            components.path = LinkUrlComponents.path
+            components.host = TellomiLinks.host
+            components.path = TellomiLinks.Path.contact
             components.fragment = "\(LinkUrlComponents.fragmentPrefix)\(base64LinkData)"
 
             guard let url = components.url else {

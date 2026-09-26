@@ -5,6 +5,7 @@
 
 import XCTest
 
+import LibSignalClient
 import SignalServiceKit
 @testable import Signal
 @testable import SignalUI
@@ -16,10 +17,10 @@ class TellomiScannedCodeTest: XCTestCase {
 
     func testUsernameLinkInBothShapes() throws {
         let usernameLink = try XCTUnwrap(Usernames.UsernameLink(handle: UUID(), entropy: Data(repeating: 7, count: 32)))
-        let legacy = usernameLink.url.absoluteString
-        XCTAssertTrue(legacy.hasPrefix("https://signal.me/#eu/"))
-        // Desktop 的二维码是 tell.cc/u#eu/…
-        let tellShape = legacy.replacingOccurrences(of: "https://signal.me/#eu/", with: "https://tell.cc/u#eu/")
+        // #1113 之后生成的就是 tell.cc/u#eu/…（与 Desktop 相同）；旧版本发出过的 signal.me/#eu/… 仍要认
+        let tellShape = usernameLink.url.absoluteString
+        XCTAssertTrue(tellShape.hasPrefix("https://tell.cc/u#eu/"))
+        let legacy = tellShape.replacingOccurrences(of: "https://tell.cc/u#eu/", with: "https://signal.me/#eu/")
 
         XCTAssertEqual(TellomiScannedCode(scannedString: legacy), .usernameLink(usernameLink))
         XCTAssertEqual(TellomiScannedCode(scannedString: tellShape), .usernameLink(usernameLink))
@@ -50,6 +51,16 @@ class TellomiScannedCodeTest: XCTestCase {
             XCTAssertEqual(parsed.rawValue, url, original)
             XCTAssertEqual(parsed.rawValue.fragment, "abc", original)
         }
+    }
+
+    /// #1113：群邀请生成 tell.cc/g#…，并且自己生成的能被自己解析回来
+    func testGroupInviteLinkIsGeneratedInTellShapeAndRoundTrips() throws {
+        let secretParams = try GroupSecretParams.generate()
+        let link = try GroupInviteLink(masterKey: secretParams.getMasterKey(), inviteLinkPassword: GroupInviteLink.generateInviteLinkPassword())
+        let url = link.url()
+        XCTAssertTrue(url.absoluteString.hasPrefix("https://tell.cc/g#"))
+        let parsed = try GroupInviteLink.parseFrom(try XCTUnwrap(PossibleGroupInviteLinkUrl.parseFrom(url)))
+        XCTAssertEqual(parsed, link)
     }
 
     func testDeviceLinkCodesInBothSchemes() {
@@ -109,10 +120,11 @@ class TellomiScannedCodeTest: XCTestCase {
 
     func testCallLinkParserAcceptsTellShape() throws {
         let callLink = CallLink.generate()
-        let legacy = callLink.url().absoluteString
-        XCTAssertTrue(legacy.hasPrefix("https://signal.link/call/#key="))
-        let tellShape = legacy.replacingOccurrences(of: "https://signal.link/call/#", with: "https://tell.cc/call#")
-        let tellShapeWithSlash = legacy.replacingOccurrences(of: "https://signal.link/call/#", with: "https://tell.cc/call/#")
+        // #1113 之后生成的是 tell.cc/call#key=…（不带斜杠）；带斜杠的（Desktop 发过）和旧的 signal.link/call/ 仍要认
+        let tellShape = callLink.url().absoluteString
+        XCTAssertTrue(tellShape.hasPrefix("https://tell.cc/call#key="))
+        let tellShapeWithSlash = tellShape.replacingOccurrences(of: "https://tell.cc/call#", with: "https://tell.cc/call/#")
+        let legacy = tellShape.replacingOccurrences(of: "https://tell.cc/call#", with: "https://signal.link/call/#")
 
         XCTAssertEqual(CallLink(url: try XCTUnwrap(URL(string: tellShape))), callLink)
         XCTAssertEqual(CallLink(url: try XCTUnwrap(URL(string: tellShapeWithSlash))), callLink)
