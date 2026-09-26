@@ -27,6 +27,9 @@ public protocol OWSSignalServiceProtocol: AnyObject {
     ) -> OWSURLSessionProtocol
 
     func sharedUrlSessionForCdn(cdnNumber: UInt32) async -> OWSURLSessionProtocol
+
+    /// Tellomi（#1056 第三刀）：指定地址的 CDN 会话。在途上传用它钉住开始时的那个区。
+    func sharedUrlSessionForCdn(cdnNumber: UInt32, baseUrl: URL) async -> OWSURLSessionProtocol
 }
 
 public enum SignalServiceType {

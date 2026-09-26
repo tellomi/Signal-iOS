@@ -88,7 +88,7 @@ public class MockSSKEnvironment {
                 groupV2Updates: MockGroupV2Updates(),
                 groupsV2: MockGroupsV2(),
                 messageSender: messageSender,
-                networkManager: OWSFakeNetworkManager(appReadiness: appReadiness, libsignalNet: nil),
+                networkManager: OWSFakeNetworkManager(appReadiness: appReadiness, netProvider: nil),
                 paymentsCurrencies: MockPaymentsCurrencies(),
                 paymentsHelper: MockPaymentsHelper(),
                 pendingReceiptRecorder: NoopPendingReceiptRecorder(),

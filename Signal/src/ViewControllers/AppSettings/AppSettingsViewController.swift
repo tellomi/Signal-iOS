@@ -152,6 +152,22 @@ class AppSettingsViewController: OWSTableViewController2 {
         contents.add(profileSection)
 
         let section1 = OWSTableSection()
+        // Tellomi：设置页的「我的收藏」入口，删掉之后从这里回来（#1174）
+        section1.add(.disclosureItem(
+            icon: .settingsTellomiSavedMessages,
+            withText: MessageStrings.noteToSelf,
+            actionBlock: { [weak self] in
+                let thread = SSKEnvironment.shared.databaseStorageRef.write { tx in
+                    TellomiSavedMessages.list(tx: tx)
+                }
+                guard let thread, let presentingViewController = self?.presentingViewController else {
+                    return
+                }
+                presentingViewController.dismiss(animated: true) {
+                    SignalApp.shared.presentConversationForThread(threadUniqueId: thread.uniqueId, animated: true)
+                }
+            },
+        ))
         section1.add(.disclosureItem(
             icon: .settingsAccount,
             withText: OWSLocalizedString("SETTINGS_ACCOUNT", comment: "Title for the 'account' link in settings."),
@@ -243,7 +259,9 @@ class AppSettingsViewController: OWSTableViewController2 {
             },
         ))
 
-        if isPrimaryDevice {
+        // Tellomi（tellomi/tellomi#1193）：正式构建里主设备这一行后面只有远端备份（上游的免费 / 付费套餐），阶段一不做，整行不出；
+        // 开发 / beta 构建走有本地备份的落地页，照留。见 TSConstants.remoteBackupsEnabled。
+        if isPrimaryDevice, TSConstants.remoteBackupsEnabled || BuildFlags.LocalFileBackups.settingsUI {
             section2.add(.disclosureItem(
                 icon: .backup,
                 withText: OWSLocalizedString(
@@ -282,7 +300,8 @@ class AppSettingsViewController: OWSTableViewController2 {
                     )
                 },
             ))
-        } else {
+        } else if !isPrimaryDevice, TSConstants.remoteBackupsEnabled {
+            // Tellomi（tellomi/tellomi#1193）：关联设备这页写着「您可以在您的主设备上开始备份」，可主设备没有这个入口，一起不出
             section2.add(.disclosureItem(
                 icon: .backup,
                 withText: OWSLocalizedString(
@@ -522,7 +541,8 @@ class AppSettingsViewController: OWSTableViewController2 {
             switch localUsernameState {
             case let .available(username, _):
                 addSubtitleLabel(
-                    text: username,
+                    // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：`.01` 结尾的去掉后缀显示，别的后缀完整显示
+                    text: TellomiLinks.displayUsername(username),
                     textColor: Theme.primaryTextColor,
                 )
             case .unset, .usernameAndLinkCorrupted, .linkCorrupted:

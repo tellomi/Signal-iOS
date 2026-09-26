@@ -26,6 +26,7 @@
 
 /* Accessibility label for media. */
 "ACCESSIBILITY_LABEL_MEDIA" = "媒體";
+"ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_ITEM_FORMAT" = "第 %1$@ 項，共 %2$@ 項";
 
 /* Accessibility label for stickers. */
 "ACCESSIBILITY_LABEL_STICKER" = "貼圖";
@@ -182,6 +183,15 @@
 
 /* Media (i.e., graphical) file type in All Meda file type picker. */
 "ALL_MEDIA_FILE_TYPE_MEDIA" = "媒體";
+
+/* Tellomi (#1174): links file type in the All Media file type picker (iOS had no links page) */
+"ALL_MEDIA_FILE_TYPE_TELLOMI_LINKS" = "連結";
+
+/* Tellomi (#1174): shown on the All Media links page when the chat has no messages with link previews */
+"ALL_MEDIA_TELLOMI_LINKS_EMPTY" = "還沒有連結";
+
+/* Tellomi (#1174): placeholder of the search bar in Saved Messages' All Media; filters the current file type */
+"ALL_MEDIA_TELLOMI_SEARCH_PLACEHOLDER" = "搜尋檔案名稱、說明文字和連結";
 
 /* Menu option to limit All Media view to displaying only GIFs */
 "ALL_MEDIA_FILTER_GIFS" = "動態圖檔";
@@ -2535,6 +2545,9 @@
 /* Context menu button title */
 "CONTEXT_MENU_FORWARD_MESSAGE" = "轉寄";
 
+/* Tellomi (#1174): context menu button that saves a message into Saved Messages */
+"CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏";
+
 /* Context menu button title */
 "CONTEXT_MENU_PAYMENT_DETAILS" = "付款詳情";
 
@@ -2559,8 +2572,17 @@
 /* Message for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE" = "此聊天將從你所有裝置上刪除。";
 
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when there are no linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES" = "「我的收藏」裡的內容會從這台裝置上刪除，無法復原。";
+
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when the account has linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES" = "「我的收藏」裡的內容會從這台裝置和已連結的裝置上刪除，無法復原。";
+
 /* Title for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE" = "刪除聊天？";
+
+/* Tellomi (#1174): title of the confirmation shown before deleting Saved Messages (the chat with yourself) */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES" = "刪除「我的收藏」？";
 
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that dismisses the sheet without pasting the key. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_DO_NOT_SHARE_BUTTON_TITLE" = "切勿分享金鑰";
@@ -2840,6 +2862,21 @@
 
 /* Button on truncated text messages that they can be tapped to download the entire text message. */
 "CONVERSATION_VIEW_OVERSIZE_TEXT_TAP_TO_DOWNLOAD" = "取得完整訊息";
+
+/* Tellomi (#1174): categories under the Saved Messages title; All is the chat itself */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_ALL" = "全部";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on photos and videos */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_MEDIA" = "圖片與影片";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on files */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_FILES" = "檔案";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on audio */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_VOICE" = "語音";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on links */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_LINKS" = "連結";
 
 /* Indicator that a value has been copied to the clipboard. */
 "COPIED_TO_CLIPBOARD" = "複製到剪貼簿";
@@ -3993,6 +4030,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "輸入用戶名稱，後面跟著一個點及其配對數字。";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "輸入對方的用戶名稱。";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "使用者名稱";
 
@@ -4016,6 +4056,48 @@
 
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "訊息已傳送";
+
+/* Tellomi: placeholder of the message field that is sent before the forwarded content. */
+"FORWARD_MESSAGE_TELLOMI_GRID_COMMENT_PLACEHOLDER" = "新增訊息…";
+
+/* Tellomi: separator between selected chat names in the forward grid subtitle. */
+"FORWARD_MESSAGE_TELLOMI_GRID_NAME_SEPARATOR" = "、";
+
+/* Tellomi: section title of matching chats in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CHATS" = "聊天";
+
+/* Tellomi: section title of matching contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CONTACTS" = "聯絡人";
+
+/* Tellomi: section title of matching groups in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_GROUPS" = "群組";
+
+/* Tellomi: section title of recent contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_RECENT" = "最近聯絡人";
+
+/* Tellomi: toast when trying to select more chats than allowed. Embeds {{the limit}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SELECTION_LIMIT_%d" = "最多選 %d 個聊天";
+
+/* Tellomi: toast after forwarding to three or more chats. Embeds {{first chat name}} and {{total number of chats}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_MANY_%@_%d" = "已轉寄給 %1$@ 等 %2$d 個聊天";
+
+/* Tellomi: toast after forwarding to one chat. Embeds {{chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_ONE_%@" = "已轉寄給 %@";
+
+/* Tellomi: toast after forwarding to Saved Messages only. Embeds {{Saved Messages}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_SAVED_%@" = "已轉寄到 %@";
+
+/* Tellomi: toast after forwarding to two chats. Embeds {{first chat name}} and {{second chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_TWO_%@_%@" = "已轉寄給 %1$@ 和 %2$@";
+
+/* Tellomi: accessibility label of the share button in the forward grid. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SHARE_TO_OTHER_APPS" = "分享到其他 App";
+
+/* Tellomi: subtitle of the forward grid before any chat is selected. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SUBTITLE" = "選擇聊天";
+
+/* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
+"FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "已收藏，點擊查看";
 
 /* Indicates that the user can add a text message to forwarded messages. */
 "FORWARD_MESSAGE_TEXT_PLACEHOLDER" = "新增訊息";
@@ -5681,6 +5763,20 @@
 
 /* Context menu item in media viewer. Refers to saving currently displayed photo/video to the Photos app. */
 "MEDIA_VIEWER_SAVE_MEDIA_ACTION" = "儲存";
+"MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT" = "全部 %@ 項";
+"MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT" = "全部 %@ 張圖片";
+"MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT" = "全部 %@ 部影片";
+"MEDIA_VIEWER_TELLOMI_PAUSE" = "暫停";
+"MEDIA_VIEWER_TELLOMI_PLAY" = "播放";
+"MEDIA_VIEWER_TELLOMI_PLAYBACK_SPEED" = "播放速度";
+"MEDIA_VIEWER_TELLOMI_REPLY_ACTION" = "回覆";
+"MEDIA_VIEWER_TELLOMI_SHARE_ACTION" = "分享";
+"MEDIA_VIEWER_TELLOMI_SKIP_BACK" = "倒轉 15 秒";
+"MEDIA_VIEWER_TELLOMI_SKIP_FORWARD" = "快轉 15 秒";
+"MEDIA_VIEWER_TELLOMI_SPEED" = "速度";
+"MEDIA_VIEWER_TELLOMI_SPEED_NORMAL" = "正常";
+"MEDIA_VIEWER_TELLOMI_THIS_PHOTO" = "這張圖片";
+"MEDIA_VIEWER_TELLOMI_THIS_VIDEO" = "這部影片";
 
 /* button title to snooze a megaphone */
 "MEGAPHONE_REMIND_LATER" = "稍後提醒我";
@@ -5789,6 +5885,9 @@
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_MESSAGE" = "轉寄此訊息";
+
+/* Tellomi (#1174): accessibility label for saving a message into Saved Messages */
+"MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏到「我的收藏」";
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_SELECTED_MESSAGES" = "轉寄已選擇的訊息";
@@ -6382,7 +6481,7 @@
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "重新註冊";
 
 /* Label for 1:1 conversation with yourself. */
-"NOTE_TO_SELF" = "給自己的筆記";
+"NOTE_TO_SELF" = "我的收藏";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
 "NOTIFICATION_BODY_CLOCK_SKEW" = "當你的裝置日期和時間不正確時，Tellomi 無法接收訊息。開啟「設定」以進行更正。";
@@ -8115,11 +8214,50 @@
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "關於個人資料隱私";
 
+/* During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field. */
+"REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI" = "名字";
+
+/* During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting. */
+"REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI" = "你的電話號碼預設不會向任何人顯示。";
+
 /* During registration, users set up their profile. This is the subtitle on the screen where this is done. It tells users about the privacy of their profile. A \"learn more\" link will be added to the end of this string. */
 "REGISTRATION_PROFILE_SETUP_SUBTITLE" = "與你收發訊息的使用者、聯絡人和群組將會看到你的個人檔案。";
 
 /* During registration, users set up their profile. This is the title on the screen where this is done. */
 "REGISTRATION_PROFILE_SETUP_TITLE" = "設定你的資訊";
+
+/* Tellomi: registration username is being checked with the server. */
+"REGISTRATION_PROFILE_USERNAME_CHECKING_TELLOMI" = "正在檢查…";
+
+/* Tellomi: registration username could not be checked because of a network or server error. */
+"REGISTRATION_PROFILE_USERNAME_CHECK_FAILED_TELLOMI" = "暫時無法檢查，請稍後再試";
+
+/* Tellomi: registration username contains characters other than letters, numbers and underscores. */
+"REGISTRATION_PROFILE_USERNAME_INVALID_CHARACTERS_TELLOMI" = "只能使用字母、數字和底線";
+
+/* Tellomi: registration username is taken or reserved. */
+"REGISTRATION_PROFILE_USERNAME_NOT_AVAILABLE_TELLOMI" = "這個用戶名稱無法使用";
+
+/* Tellomi: during registration, placeholder of the optional username field below the name field. */
+"REGISTRATION_PROFILE_USERNAME_PLACEHOLDER_TELLOMI" = "用戶名稱（選填）";
+
+/* Tellomi: registration username does not start with a letter. */
+"REGISTRATION_PROFILE_USERNAME_START_WITH_LETTER_TELLOMI" = "需要以字母開頭";
+
+/* Tellomi: registration username is longer than 20 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_LONG_TELLOMI" = "最多 20 個字元";
+
+/* Tellomi: registration username reservation was rate limited for less than an hour. */
+"REGISTRATION_PROFILE_USERNAME_TOO_MANY_ATTEMPTS_TELLOMI" = "嘗試次數過多，請稍後再試";
+
+/* Tellomi: registration username is shorter than 3 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_SHORT_TELLOMI" = "至少 3 個字元";
+
+/* Tellomi: label before the suggested usernames when the one typed is not available. */
+"REGISTRATION_PROFILE_USERNAME_TRY_TELLOMI" = "可以試試：";
+
+/* Tellomi: registration username is available. Embeds {{ the link, like tell.cc/kaixin }}. */
+"REGISTRATION_PROFILE_USERNAME_YOUR_LINK_TELLOMI" = "你的連結：%@";
 
 /* Error shown if an SMS/call service provider is unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_PERMANENT" = "我們無法向你的號碼發送 SMS 短訊。請於幾個小時後重試。";
@@ -10435,7 +10573,7 @@
 "THREAD_DETAILS_NO_MEMBERS" = "尚未有其他群組成員";
 
 /* Subtitle appearing at the top of the users 'note to self' conversation */
-"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "你可以在此聊天中為自己新增註釋。 如果你的帳戶有任何已連結的裝置，則新的筆記將被同步。";
+"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "把訊息轉寄到這裡，或直接傳給自己，隨時查看。若你的帳戶有已連結的裝置，這裡的新訊息會同步過去。";
 
 /* Label for a group with one member (not counting yourself), displaying their name */
 "THREAD_DETAILS_ONE_MEMBER" = "%1$@";
@@ -10737,6 +10875,9 @@
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@ 不是有效的用戶名稱。請確保你已輸入完整的用戶名稱，以及隨後的一組數字。";
 
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ 不是有效的用戶名稱。";
+
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "用戶名稱無效";
 
@@ -10763,6 +10904,9 @@
 
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "用戶名稱都會與一組數字配對。 %1$@";
+
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "別人可以透過用戶名稱找到你、傳訊息給你，不需要知道你的電話號碼。";
 
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "選擇你的使用者名稱";

@@ -20,15 +20,22 @@ struct KeyTransparencyManagerTest {
     private let identityManager: MockIdentityManager
     /// A week, deliberately distinct from the 24h interval used to retry after
     /// a failure. The cadence tests below assume this value.
-    private let keyTransparencyStore = KeyTransparencyStore(selfCheckCronInterval: .week)
+    private let keyTransparencyStore: KeyTransparencyStore
     private let localUsernameManager = MockLocalUsernameManager()
     private let recipientDatabaseTable = RecipientDatabaseTable()
     private let tsAccountManager = MockTSAccountManager()
+    /// Tellomi：缺省是上游档（`TSConstantsMock` 取 `TSConstantsProduction` 的值，KT 开），上游用例测的就是这一档；
+    /// 进程里全局的 `TSConstants.shared` 在 Tellomi 是没有 KT 服务的那档（用户没选过就是关）。
+    private let tsConstants: TSConstantsMock
     private let udManager = OWSMockUDManager()
 
     private let clock = AtomicValue(Date(), lock: .init())
 
     init() {
+        let tsConstants = TSConstantsMock()
+        self.tsConstants = tsConstants
+        self.keyTransparencyStore = KeyTransparencyStore(selfCheckCronInterval: .week, tsConstants: tsConstants)
+
         let recipientFetcher = RecipientFetcher(
             recipientDatabaseTable: recipientDatabaseTable,
             searchableNameIndexer: MockSearchableNameIndexer(),
@@ -356,6 +363,19 @@ struct KeyTransparencyManagerTest {
         }
         // We should have bailed before making a request for the other user.
         #expect(apiClient.checkMocks.count == 1)
+    }
+
+    /// Tellomi：没有 key transparency 服务的部署（`TSConstantsStaging.keyTransparencyAvailable == false`）里，
+    /// 用户没选过就是关的；用户在设置里显式打开过，以用户的选择为准。
+    @Test
+    func testTellomiNoKT_offUntilUserTurnsItOn() {
+        tsConstants.keyTransparencyAvailable = false
+        let keyTransparencyManager = buildManager()
+
+        #expect(!db.read { keyTransparencyManager.isEnabled(tx: $0) })
+
+        db.write { keyTransparencyManager.setIsEnabled(true, updateStorageService: false, tx: $0) }
+        #expect(db.read { keyTransparencyManager.isEnabled(tx: $0) })
     }
 }
 
