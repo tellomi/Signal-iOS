@@ -28,7 +28,7 @@ protocol TellomiPhotoPickerDelegate: AnyObject {
     /// 说明和会话输入框是同一段字（同上游的预览页）。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?)
 
-    /// Tellomi（#1115）：附件 Sheet 底部 dock 点了「相册」以外的格子（文件 / 位置 / 投票 / 联系人）。接收方先收起 Sheet，再打开对应的页面。
+    /// Tellomi（#1115）：附件 Sheet 底部 dock 点了「相册」以外的格子（文件 / 位置 / 投票 / 联系人 / GIF）。接收方先收起 Sheet，再打开对应的页面。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem)
 }
 
