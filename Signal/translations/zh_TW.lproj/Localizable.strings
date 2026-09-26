@@ -8779,7 +8779,7 @@
 "SETTINGS_ABOUT_TELLOMI_SECTION_UPDATES" = "更新";
 
 /* Tellomi: sentence at the top of the open source licenses page saying where to get the source code. Keep the web address as is. */
-"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE_NOTICE" = "Tellomi 基於 Signal 修改，以 GNU AGPLv3 發布；原始碼可在 www.tellomi.app/source 取得。";
+"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE_NOTICE" = "Tellomi 以 GNU AGPLv3 發布；原始碼可在 www.tellomi.app/source 取得。";
 
 /* Tellomi: row in About Tellomi that opens the list of system permissions the app uses. */
 "SETTINGS_ABOUT_TELLOMI_SYSTEM_PERMISSIONS" = "系統權限調用清單";

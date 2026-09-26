@@ -342,7 +342,7 @@ final class TellomiAcknowledgementsViewController: OWSTableViewController2 {
     static var sourceCodeNotice: String {
         OWSLocalizedString(
             "SETTINGS_ABOUT_TELLOMI_SOURCE_CODE_NOTICE",
-            value: "Tellomi is a modified version of Signal, released under the GNU AGPLv3. The source code is available at www.tellomi.app/source.",
+            value: "Tellomi is released under the GNU AGPLv3. The source code is available at www.tellomi.app/source.",
             comment: "Tellomi: sentence at the top of the open source licenses page saying where to get the source code. Keep the web address as is.",
         )
     }
