@@ -821,11 +821,11 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             let contentFrame = superview.convert(contentRootView.bounds, from: contentRootView)
             let swipeToReplySize = swipeToReplyIconView.intrinsicContentSize
             var swipeToReplyFrame = CGRect(origin: .zero, size: swipeToReplySize)
-            // swipeToReplyIconView.autoPinEdge(.leading, to: .leading, of: swipeActionContentView, withOffset: 8)
+            // Tellomi（tellomi/tellomi#1109）：回复改成手指从右往左滑，气泡往左让开，图标从气泡右侧露出来（RTL 镜像）。
             if CurrentAppContext().isRTL {
-                swipeToReplyFrame.x = contentFrame.maxX - (swipeToReplySize.width + 8)
-            } else {
                 swipeToReplyFrame.x = contentFrame.x + 8
+            } else {
+                swipeToReplyFrame.x = contentFrame.maxX - (swipeToReplySize.width + 8)
             }
             // swipeToReplyIconView.autoAlignAxis(.horizontal, toSameAxisOf: swipeActionContentView)
             swipeToReplyFrame.y = contentFrame.y + (contentFrame.height - swipeToReplyFrame.height) * 0.5
@@ -2859,7 +2859,27 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         }
     }
 
-    private let swipeActionOffsetThreshold: CGFloat = 55
+    private var swipeActionOffsetThreshold: CGFloat {
+        Self.tellomiSwipeToReplyThreshold(isIncoming: isIncoming)
+    }
+
+    /// Tellomi（tellomi/tellomi#1109，ADR-0058 §2）：过这个位移松手才算回复——对方的消息 45、自己的 60
+    /// （Telegram `ChatMessageBubbleItemNode.swipeToReplyGesture` 同值）。
+    static func tellomiSwipeToReplyThreshold(isIncoming: Bool) -> CGFloat {
+        isIncoming ? 45 : 60
+    }
+
+    /// Tellomi（tellomi/tellomi#1109，ADR-0058 §2）：手指沿回复方向走了 `fingerOffset` → 气泡跟着走多少。
+    /// 阈值内 1:1 跟手，过阈值后橡皮筋（range 100、系数 0.4），整体最多 180。
+    static func tellomiSwipeToReplyBubbleOffset(fingerOffset: CGFloat, threshold: CGFloat) -> CGFloat {
+        guard fingerOffset > threshold else {
+            return max(fingerOffset, 0)
+        }
+        let range: CGFloat = 100
+        let overflow = fingerOffset - threshold
+        let band = (1 - 1 / (overflow * 0.4 / range + 1)) * range
+        return min(threshold + band, 180)
+    }
 
     private func updateSwipeActionProgress(
         sender: UIPanGestureRecognizer,
@@ -2873,12 +2893,10 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         AssertIsOnMainThread()
 
         var xOffset = sender.translation(in: componentView.rootView).x
-        var xVelocity = sender.velocity(in: componentView.rootView).x
 
         // Invert positions for RTL logic, since the user is swiping in the opposite direction.
         if CurrentAppContext().isRTL {
             xOffset = -xOffset
-            xVelocity = -xVelocity
         }
 
         let hasFailed = [.failed, .cancelled].contains(sender.state)
@@ -2896,18 +2914,16 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         let previousActiveDirection = panHandler.activeDirection
         let activeDirection: CVPanHandler.ActiveDirection
         switch xOffset {
-        case let x where x >= swipeActionOffsetThreshold:
-            // We're doing a message swipe action. We should
-            // only become active if this message allows
-            // swipe-to-reply.
+        case let x where x <= -swipeActionOffsetThreshold:
+            // Tellomi（tellomi/tellomi#1109）：手指从右往左过阈值 = 回复（Telegram 基线）。
+            // 原来的「从右往左 = 交互式推出消息详情」去掉了，详情仍在长按菜单里。
+            // We should only become active if this message allows swipe-to-reply.
             let itemViewModel = CVItemViewModelImpl(renderItem: renderItem)
             if componentDelegate.shouldAllowMessageSendActionsForItem(itemViewModel) {
-                activeDirection = .right
+                activeDirection = .left
             } else {
                 activeDirection = .none
             }
-        case let x where x <= -swipeActionOffsetThreshold:
-            activeDirection = .left
         default:
             activeDirection = .none
         }
@@ -2916,36 +2932,19 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         panHandler.activeDirection = activeDirection
 
-        // Play a haptic when moving to active.
-        if didChangeActiveDirection {
-            switch activeDirection {
-            case .right:
-                ImpactHapticFeedback.impactOccurred(style: .light)
-                panHandler.percentDrivenTransition?.cancel()
-                panHandler.percentDrivenTransition = nil
-            case .left:
-                ImpactHapticFeedback.impactOccurred(style: .light)
-                panHandler.percentDrivenTransition = UIPercentDrivenInteractiveTransition()
-                componentDelegate.didTapShowMessageDetail(CVItemViewModelImpl(renderItem: renderItem))
-            case .none:
-                panHandler.percentDrivenTransition?.cancel()
-                panHandler.percentDrivenTransition = nil
-            }
+        // Play a haptic when moving to active（Tellomi：到阈值重振一次，同 Telegram `impact(.heavy)`）.
+        if didChangeActiveDirection, activeDirection == .left {
+            ImpactHapticFeedback.impactOccurred(style: .heavy)
         }
 
         // Update the reply image styling to reflect active state
         let isStarting = sender.state == .began
-        if isStarting {
-            // Prepare the message detail view as soon as we start doing
-            // any gesture, we may or may not want to present it.
-            componentDelegate.prepareMessageDetailForInteractivePresentation(CVItemViewModelImpl(renderItem: renderItem))
-        }
 
         if isStarting || didChangeActiveDirection {
             let shouldAnimate = didChangeActiveDirection
             let transform: CGAffineTransform
             let tintColor: UIColor
-            if activeDirection == .right {
+            if activeDirection == .left {
                 transform = CGAffineTransform(scaleX: 1.16, y: 1.16)
                 tintColor = conversationStyle.bubbleTextColorIncoming
             } else {
@@ -2971,33 +2970,10 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             }
         }
 
-        if hasFinished {
-            switch activeDirection {
-            case .left:
-                guard let percentDrivenTransition = panHandler.percentDrivenTransition else {
-                    return owsFailDebug("Missing percentDrivenTransition")
-                }
-                // Only finish the pan if we're actively moving in
-                // the correct direction.
-                if xVelocity <= 0 {
-                    percentDrivenTransition.finish()
-                } else {
-                    percentDrivenTransition.cancel()
-                }
-            case .right:
-                let itemViewModel = CVItemViewModelImpl(renderItem: renderItem)
-                componentDelegate.didTapReplyToItem(itemViewModel)
-            case .none:
-                break
-            }
-        } else if activeDirection == .left {
-            guard let percentDrivenTransition = panHandler.percentDrivenTransition else {
-                return owsFailDebug("Missing percentDrivenTransition")
-            }
-            let viewXOffset = sender.translation(in: componentDelegate.view).x
-            let percentDriventTransitionProgress =
-                (abs(viewXOffset) - swipeActionOffsetThreshold) / (componentDelegate.view.width - swipeActionOffsetThreshold)
-            percentDrivenTransition.update(percentDriventTransitionProgress)
+        // 松手只看位移是否过阈值，不看速度（ADR-0058 §2，Telegram 同）。
+        if hasFinished, activeDirection == .left {
+            let itemViewModel = CVItemViewModelImpl(renderItem: renderItem)
+            componentDelegate.didTapReplyToItem(itemViewModel)
         }
     }
 
@@ -3026,36 +3002,20 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         let swipeToReplyIconView = componentView.swipeToReplyIconView
 
-        // Scale the translation above or below the desired range,
-        // to produce an elastic feeling when you overscroll.
-        var alpha = swipeActionProgress.xOffset
+        // Tellomi（tellomi/tellomi#1109）：只有手指从右往左才移动气泡（xOffset 已按 RTL 翻过，负 = 回复方向）；
+        // 往右一律不动，把右滑留给系统返回。阈值内 1:1 跟手，过阈值后橡皮筋。
+        let fingerOffset = max(-swipeActionProgress.xOffset, 0)
+        let offset = Self.tellomiSwipeToReplyBubbleOffset(fingerOffset: fingerOffset, threshold: swipeActionOffsetThreshold)
+        let position = CurrentAppContext().isRTL ? offset : -offset
 
-        let isSwipingLeft = alpha < 0
-
-        if isSwipingLeft, alpha < -swipeActionOffsetThreshold {
-            // If we're swiping left, stop moving the message
-            // after we reach the threshold.
-            alpha = -swipeActionOffsetThreshold
-        } else if alpha > swipeActionOffsetThreshold {
-            let overflow = alpha - swipeActionOffsetThreshold
-            alpha = swipeActionOffsetThreshold + overflow / 4
-        }
-        let position = CurrentAppContext().isRTL ? -alpha : alpha
-
-        let slowPosition: CGFloat
-        if isSwipingLeft {
-            slowPosition = position
-        } else {
-            // When swiping right (swipe-to-reply) the swipe content moves at
-            // 1/8th the speed of the message bubble, so that it reveals itself
-            // from underneath with an elastic feel.
-            slowPosition = position / 8
-        }
+        // The swipe content moves at 1/8th the speed of the message bubble,
+        // so that it reveals itself from underneath with an elastic feel.
+        let slowPosition = position / 8
 
         var iconAlpha: CGFloat = 1
         let useSwipeFadeTransition = isBorderless
         if useSwipeFadeTransition {
-            iconAlpha = CGFloat.inverseLerp(alpha, min: 0, max: swipeActionOffsetThreshold).clamp01()
+            iconAlpha = CGFloat.inverseLerp(fingerOffset, min: 0, max: swipeActionOffsetThreshold).clamp01()
         }
 
         componentView.removeSwipeActionAnimations()
