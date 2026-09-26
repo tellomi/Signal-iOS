@@ -765,25 +765,16 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         XCTAssertEqual(bubble.minX, 16 + 6, accuracy: 0.5, "单聊里打字气泡离屏幕左边：\(bubble)")
     }
 
-    @MainActor
-    func testTheirTypingBubbleStarts8Plus6AfterTheAvatarInAGroup() throws {
-        register()
-        let otherAci = self.otherAci
-        let thread = write { tx in
-            try! GroupManager.createGroupForTests(
-                members: [LocalIdentifiers.forUnitTests.aciAddress, SignalServiceAddress(otherAci)],
-                shouldInsertInfoMessage: true,
-                name: "Typing margin",
-                transaction: tx,
-            )
-        }
-        let typing = TypingIndicatorInteraction(threadUniqueId: thread.uniqueId, timestamp: NSDate.ows_millisecondTimeStamp(), address: SignalServiceAddress(otherAci))
+    /// 群里的打字气泡：e 加在头像和气泡之间。和上面群里那条同一个原因（单测环境渲染不了群头像），测排版参数；实际排版需上设备。
+    func testInAGroupTheTypingBubbleGetsTheExtraSpaceAfterTheAvatar() {
+        let margin = BubbleConfiguration.Tail.sideMargin
+        let group = CVComponentTypingIndicator.tellomiTailSideSpace(hasAvatar: true, margin: margin)
+        XCTAssertEqual(ConversationStyle.messageStackSpacing + group.afterAvatar, 8 + 6, "头像和打字气泡之间")
+        XCTAssertEqual(group.leading, 0)
 
-        let cell = try renderCell(typing, in: thread)
-        let typingView = try XCTUnwrap(cell.componentView as? CVComponentTypingIndicator.CVComponentViewTypingIndicator)
-        let bubble = typingView.tellomiBubbleFrameForTesting(in: cell)
-        let avatar = try XCTUnwrap(typingView.tellomiAvatarFrameForTesting(in: cell), "群里打字气泡带头像")
-        XCTAssertEqual(bubble.minX - avatar.maxX, 8 + 6, accuracy: 0.5, "群里打字气泡离头像：avatar \(avatar) bubble \(bubble)")
+        let oneToOne = CVComponentTypingIndicator.tellomiTailSideSpace(hasAvatar: false, margin: margin)
+        XCTAssertEqual(oneToOne.leading, 6, "单聊加在最前面")
+        XCTAssertEqual(oneToOne.afterAvatar, 0)
     }
 
     // MARK: -

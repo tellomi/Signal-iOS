@@ -143,6 +143,11 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
         )
     }
 
+    /// 红对照用：签名和修复后一样，行为是改动前的——尾巴那一侧不多留。
+    static func tellomiTailSideSpace(hasAvatar: Bool, margin: CGFloat) -> (leading: CGFloat, afterAvatar: CGFloat) {
+        (leading: 0, afterAvatar: 0)
+    }
+
     private var outerStackViewConfig: CVStackViewConfig {
         CVStackViewConfig(
             axis: .horizontal,
