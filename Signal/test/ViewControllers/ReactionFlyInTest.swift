@@ -35,6 +35,17 @@ final class ReactionFlyInTest: XCTestCase {
         XCTAssertEqual(ReactionFlyIn.verticalInitialVelocity(verticalDistance: 10), .zero)
     }
 
+    // MARK: - 落点
+
+    /// 落点只认「我」的那一格：别人已经用同一个表情回应过时，菜单刚收起那一刻那一格还不是我这次的回应，认了它真表情会先露出来。
+    func testOnlyTheLocalUsersPillIsALandingSpot() {
+        XCTAssertTrue(CVReactionCountsView.isFlyInTarget(.emoji(emoji: "❤️", count: 2, fromLocalUser: true), emoji: "❤️"))
+        XCTAssertFalse(CVReactionCountsView.isFlyInTarget(.emoji(emoji: "❤️", count: 1, fromLocalUser: false), emoji: "❤️"))
+        XCTAssertFalse(CVReactionCountsView.isFlyInTarget(.emoji(emoji: "👍", count: 1, fromLocalUser: true), emoji: "❤️"))
+        XCTAssertFalse(CVReactionCountsView.isFlyInTarget(.moreCount(count: 3, fromLocalUser: true), emoji: "❤️"))
+        XCTAssertFalse(CVReactionCountsView.isFlyInTarget(nil, emoji: "❤️"))
+    }
+
     // MARK: - 路线形状（用真实的 Token 数值做弹簧积分）
 
     /// 横向偏开的落点：路线要明显弯（离直线最远处 ≥ 12 pt），最后落在目标上。
