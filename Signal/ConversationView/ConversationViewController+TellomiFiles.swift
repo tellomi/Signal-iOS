@@ -82,7 +82,8 @@ extension ConversationViewController: TellomiAttachmentFilesDelegate {
                         ApprovedAttachments(nonViewOnceAttachments: attachments, imageQuality: .standard),
                         messageBody: nil,
                     ) { part, body in
-                        await self.sendAttachments(part, messageBody: body, from: page, attachmentLimits: limits)
+                        // 文件页发的东西不带聊天输入框里的草稿：发完不清（同 Android clearCompose = false）
+                        await self.sendAttachments(part, messageBody: body, from: page, attachmentLimits: limits, clearsDraft: false)
                     }
                 }
                 modal.dismiss(completion: {
@@ -153,7 +154,8 @@ extension ConversationViewController: TellomiAttachmentFilesDelegate {
                         ApprovedAttachments(nonViewOnceAttachments: attachments, imageQuality: .standard),
                         messageBody: messageBody,
                     ) { part, body in
-                        await self.sendAttachments(part, messageBody: body, from: page, attachmentLimits: limits)
+                        // 文件页发的东西不带聊天输入框里的草稿：发完不清（同 Android clearCompose = false）
+                        await self.sendAttachments(part, messageBody: body, from: page, attachmentLimits: limits, clearsDraft: false)
                     }
                     modal.dismiss(completion: {
                         self.dismiss(animated: true)
