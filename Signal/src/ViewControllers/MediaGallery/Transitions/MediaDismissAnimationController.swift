@@ -141,7 +141,7 @@ extension MediaDismissAnimationController: UIViewControllerAnimatedTransitioning
         transitionView.layer.shadowRadius = 48
         transitionView.layer.shadowOpacity = 0
         // Tellomi（交互审计 A-20）：拖动阶段尺寸不变，给阴影一个路径，免得跟手时每帧离屏渲染半径 48 的阴影。
-        transitionView.layer.shadowPath = UIBezierPath(rect: transitionView.bounds).cgPath
+        transitionView.layer.shadowPath = Self.dragShadowPath(for: fromMediaContext.mediaViewShape, in: transitionView.bounds)
         clippingView.addSubview(transitionView)
         self.transitionView = transitionView
 
@@ -186,35 +186,45 @@ extension MediaDismissAnimationController: UIViewControllerAnimatedTransitioning
             transitionView.layer.shadowPath = nil
             let reduceMotion = TellomiMotion.isReduceMotionEnabled
             let isFinishing = !transitionContext.transitionWasCancelled
-            let destinationInClipping = clippingView.convert(destinationFrame, from: containerView)
+            let targetClippingFrame = Self.targetClippingFrame(
+                containerBounds: containerView.bounds,
+                currentClippingFrame: clippingView.frame,
+                isFinishing: isFinishing,
+                toClippingAreaInsets: toMediaContext?.clippingAreaInsets,
+            )
+            let destinationInClipping = Self.landingFrame(destinationFrame: destinationFrame, targetClippingFrame: targetClippingFrame)
+            // 剩余距离按屏幕上（容器坐标）量：裁剪区域自己也在动，图在屏幕上走的是两者之和。
+            let currentCenter = clippingView.convert(transitionView.center, to: containerView)
             let remaining = CGVector(
-                dx: destinationInClipping.midX - transitionView.center.x,
-                dy: destinationInClipping.midY - transitionView.center.y,
+                dx: destinationFrame.midX - currentCenter.x,
+                dy: destinationFrame.midY - currentCenter.y,
             )
-            let animator = TellomiMotion.animator(
-                TellomiMotion.large,
-                initialVelocity: isTransitionInteractive
-                    ? TellomiMotion.relativeVelocity(self.interactionController.releaseVelocity, remaining: remaining)
-                    : .zero,
-                reduceMotion: reduceMotion,
-            )
+            let animator: UIViewPropertyAnimator
+            if reduceMotion, isFinishing {
+                // 减弱动态效果：交叉淡入淡出，时长照标准第六节（0.15–0.2 s），不用弹簧。
+                animator = UIViewPropertyAnimator(duration: TellomiMotion.reducedMotionCrossfadeDuration, curve: .easeOut)
+            } else {
+                animator = TellomiMotion.animator(
+                    TellomiMotion.large,
+                    initialVelocity: isTransitionInteractive
+                        ? TellomiMotion.relativeVelocity(self.interactionController.releaseVelocity, remaining: remaining)
+                        : .zero,
+                    reduceMotion: reduceMotion,
+                )
+            }
             animator.addAnimations {
                 if isFinishing {
                     fromView.alpha = 0
                     backgroundView.backgroundColor = toMediaContext?.backgroundColor
-
-                    if let clippingAreaInsets = toMediaContext?.clippingAreaInsets {
-                        clippingView.frame = containerView.bounds.inset(by: clippingAreaInsets)
-                    } else {
-                        clippingView.frame = containerView.bounds
-                    }
                 }
 
                 if reduceMotion, isFinishing {
                     // 减弱动态效果：不「飞」回缩略图，原地淡出，缩略图同时淡入（HIG：位移改淡入淡出）。
+                    // 裁剪区域也不动，不然淡出的图会跟着它往下滑。
                     transitionView.alpha = 0
                     toMediaContext?.mediaView.alpha = 1
                 } else {
+                    clippingView.frame = targetClippingFrame
                     transitionImageView?.shape = destinationMediaViewShape
                     transitionView.transform = .identity
                     transitionView.frame = destinationInClipping
@@ -313,4 +323,45 @@ extension MediaDismissAnimationController: InteractiveDismissDelegate {
     }
 
     func interactiveDismissDidCancel(_ interactiveDismiss: UIPercentDrivenInteractiveTransition) { }
+}
+
+// MARK: - Tellomi（交互审计 A-20）
+
+extension MediaDismissAnimationController {
+
+    /// 拖动时阴影的路径，照媒体的形状画：头像大图（AvatarViewController）是圆的，画成矩形会在圆外面拖出一圈方的阴影。
+    /// 各个角不一样圆的不给路径，照旧按内容算阴影。
+    static func dragShadowPath(for shape: MediaViewShape, in bounds: CGRect) -> CGPath? {
+        switch shape {
+        case .circle:
+            // 同 MediaTransitionImageView：圆角半径是短边的一半
+            return UIBezierPath(roundedRect: bounds, cornerRadius: 0.5 * min(bounds.width, bounds.height)).cgPath
+        case .rectangle(let cornerRadius):
+            return UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
+        case .variableRoundedCorners:
+            return nil
+        }
+    }
+
+    /// 收尾时裁剪区域的去处：关掉时换成目标页的（没有就是整个容器），弹回时不动。
+    static func targetClippingFrame(
+        containerBounds: CGRect,
+        currentClippingFrame: CGRect,
+        isFinishing: Bool,
+        toClippingAreaInsets: UIEdgeInsets?,
+    ) -> CGRect {
+        guard isFinishing else {
+            return currentClippingFrame
+        }
+        if let toClippingAreaInsets {
+            return containerBounds.inset(by: toClippingAreaInsets)
+        }
+        return containerBounds
+    }
+
+    /// 落点在裁剪区域里的位置，按收尾之后的裁剪区域换算。上游是在动画块里先改裁剪区域再换算；
+    /// 提前按旧的裁剪区域换算，落点会差出两页裁剪区域之差（从查看器回会话页，约是状态栏 + 导航栏的高度）。
+    static func landingFrame(destinationFrame: CGRect, targetClippingFrame: CGRect) -> CGRect {
+        destinationFrame.offsetBy(dx: -targetClippingFrame.minX, dy: -targetClippingFrame.minY)
+    }
 }

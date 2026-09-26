@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import UIKit
 import XCTest
 
 @testable import Signal
@@ -57,5 +58,70 @@ final class MediaInteractiveDismissTest: XCTestCase {
     func testTheProjectedLandingPointDecidesTheMiddleGround() {
         XCTAssertTrue(shouldFinish(CGPoint(x: 0, y: 30), CGPoint(x: 0, y: 200)))
         XCTAssertFalse(shouldFinish(CGPoint(x: 0, y: 20), CGPoint(x: 0, y: 100)))
+    }
+}
+
+/// 查看器关掉时的收尾（tellomi/tellomi 交互审计 A-20）：落点、裁剪区域、拖动时的阴影。
+final class MediaDismissAnimationControllerTest: XCTestCase {
+
+    private let container = CGRect(x: 0, y: 0, width: 390, height: 844)
+
+    /// 从查看器（没有裁剪）回到会话页（上面让出状态栏 + 导航栏）：图要落在缩略图上，不能低一个导航栏的高度。
+    func testLandingIsMeasuredInTheDestinationClippingArea() {
+        let thumbnail = CGRect(x: 200, y: 300, width: 100, height: 100)
+        let target = MediaDismissAnimationController.targetClippingFrame(
+            containerBounds: container,
+            currentClippingFrame: container,
+            isFinishing: true,
+            toClippingAreaInsets: UIEdgeInsets(top: 100, left: 0, bottom: 80, right: 0),
+        )
+        XCTAssertEqual(target, CGRect(x: 0, y: 100, width: 390, height: 664))
+
+        let landing = MediaDismissAnimationController.landingFrame(destinationFrame: thumbnail, targetClippingFrame: target)
+        XCTAssertEqual(landing, CGRect(x: 200, y: 200, width: 100, height: 100))
+        // 屏幕上的位置 = 裁剪区域的位置 + 在裁剪区域里的位置 = 缩略图
+        XCTAssertEqual(landing.offsetBy(dx: target.minX, dy: target.minY), thumbnail)
+    }
+
+    /// 弹回时裁剪区域不动；关掉但目标页没有裁剪时，裁剪区域是整个容器。
+    func testClippingAreaStaysWhenCancellingAndFillsTheContainerWithoutInsets() {
+        let current = CGRect(x: 0, y: 50, width: 390, height: 744)
+        XCTAssertEqual(
+            MediaDismissAnimationController.targetClippingFrame(
+                containerBounds: container,
+                currentClippingFrame: current,
+                isFinishing: false,
+                toClippingAreaInsets: UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0),
+            ),
+            current,
+        )
+        XCTAssertEqual(
+            MediaDismissAnimationController.targetClippingFrame(
+                containerBounds: container,
+                currentClippingFrame: current,
+                isFinishing: true,
+                toClippingAreaInsets: nil,
+            ),
+            container,
+        )
+    }
+
+    /// 拖动时的阴影跟媒体一个形状：头像是圆的，阴影的四个角是空的；矩形照圆角；各角不一样圆的不给路径。
+    func testDragShadowFollowsTheMediaShape() throws {
+        let square = CGRect(x: 0, y: 0, width: 200, height: 200)
+
+        let circle = try XCTUnwrap(MediaDismissAnimationController.dragShadowPath(for: .circle, in: square))
+        XCTAssertFalse(circle.contains(CGPoint(x: 5, y: 5)))
+        XCTAssertTrue(circle.contains(CGPoint(x: 100, y: 3)))
+        XCTAssertTrue(circle.contains(CGPoint(x: 100, y: 100)))
+
+        let sharp = try XCTUnwrap(MediaDismissAnimationController.dragShadowPath(for: .rectangle(0), in: square))
+        XCTAssertTrue(sharp.contains(CGPoint(x: 1, y: 1)))
+
+        let rounded = try XCTUnwrap(MediaDismissAnimationController.dragShadowPath(for: .rectangle(20), in: square))
+        XCTAssertFalse(rounded.contains(CGPoint(x: 1, y: 1)))
+        XCTAssertTrue(rounded.contains(CGPoint(x: 20, y: 20)))
+
+        XCTAssertNil(MediaDismissAnimationController.dragShadowPath(for: .variableRoundedCorners(.all(12)), in: square))
     }
 }

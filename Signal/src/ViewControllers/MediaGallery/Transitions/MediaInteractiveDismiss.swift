@@ -93,6 +93,8 @@ class MediaInteractiveDismiss: UIPercentDrivenInteractiveTransition {
         case .began:
             interactionInProgress = true
             peakOffset = .zero
+            // 松手速度只在 .ended 里写；系统取消的拖动走不到那里，不清零会带着上一次拖动的速度收尾。
+            releaseVelocity = .zero
             targetViewController?.performInteractiveDismissal(animated: true)
 
         case .changed:
