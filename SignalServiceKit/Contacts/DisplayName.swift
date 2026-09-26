@@ -73,7 +73,9 @@ public enum DisplayName {
         case .phoneNumber(let phoneNumber):
             return PhoneNumber.bestEffortLocalizedPhoneNumber(e164: phoneNumber.stringValue)
         case .username(let username):
-            return username
+            // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：别人名字的最后一档回落——`.01` 结尾的去掉后缀显示，
+            // 别的后缀完整显示（`kaixin.57` 不能显示成 `kaixin`）。排序用的 `comparableValue` 照旧用完整用户名。
+            return TellomiLinks.displayUsername(username)
         case .deletedAccount:
             return OWSLocalizedString("DELETED_USER", comment: "Label indicating a user who deleted their account.")
         case .unknown:

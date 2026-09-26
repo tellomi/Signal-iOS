@@ -600,6 +600,50 @@ class LocalUsernameManagerTests: XCTestCase {
             return localUsernameManager.usernameState(tx: tx)
         }
     }
+
+    // MARK: - Tellomi
+
+    /// Tellomi（tellomi/tellomi#1106 第二刀，ADR-0066 §六「生成」）：不指定判别位时只产 `<nickname>.01` 一个候选；
+    /// 指定了照用（修复模式沿用旧判别位的路径还在）；昵称不合法照旧抛错，界面按错误类型给提示。
+    func testTellomiCandidatesUseOnlyTheFixedDiscriminator() throws {
+        let generated = try Usernames.HashedUsername.generateCandidates(
+            forNickname: "kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+        )
+        XCTAssertEqual(generated.candidateHashes.count, 1)
+        XCTAssertEqual(generated.candidate(matchingHash: generated.candidateHashes[0])?.usernameString, "kaixin.01")
+
+        let custom = try Usernames.HashedUsername.generateCandidates(
+            forNickname: "kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: "57",
+        )
+        XCTAssertEqual(custom.candidate(matchingHash: custom.candidateHashes[0])?.usernameString, "kaixin.57")
+
+        XCTAssertThrowsError(try Usernames.HashedUsername.generateCandidates(
+            forNickname: "1kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+        ))
+    }
+
+    /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 按 Retry-After 分成改名冷却和普通限流。
+    func testTellomiReservationRateLimitSplitsOffRenameCooldown() {
+        guard case .changeCooldown(let retryAfter) = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: 2_591_999) else {
+            return XCTFail("30 天的 Retry-After 应当是改名冷却")
+        }
+        XCTAssertEqual(retryAfter, 2_591_999)
+
+        for shortOrMissing: TimeInterval? in [9, 3600, nil] {
+            guard case .rateLimited = UsernameApiClientImpl.reservationResultForRateLimit(retryAfter: shortOrMissing) else {
+                return XCTFail("\(String(describing: shortOrMissing)) 秒应当是普通限流")
+            }
+        }
+    }
 }
 
 private extension Usernames.RemoteMutationResult<Void> {
