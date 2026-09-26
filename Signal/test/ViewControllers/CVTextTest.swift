@@ -4,6 +4,7 @@
 //
 
 import BonMot
+import LibSignalClient
 import XCTest
 
 @testable import Signal
