@@ -171,6 +171,22 @@ class CVReactionCountsView: ManualStackView {
         pill3.reset()
     }
 
+    /// Tellomi（交互审计 A-07）：回应飞入的落点——显示着「我」这次回应的那一格里的表情字。
+    func emojiLabel(for emoji: String) -> UILabel? {
+        [pill1, pill2, pill3]
+            .first { $0.superview === self && Self.isFlyInTarget($0.displayedPillState, emoji: emoji) }?
+            .emojiLabelForFlyIn
+    }
+
+    /// Tellomi（交互审计 A-07）：落点只认「我」的那一格。别人已经用同一个表情回应过时，菜单刚收起那一刻消息还是回应之前的样子
+    /// （收菜单期间聊天列表不落 load），那一格并不是我这次的回应；认了它，紧接着 load 落地、格子重新配置，真表情就先露出来了。
+    static func isFlyInTarget(_ pillState: PillState?, emoji: String) -> Bool {
+        guard case .emoji(let pillEmoji, _, let fromLocalUser) = pillState else {
+            return false
+        }
+        return fromLocalUser && pillEmoji == emoji
+    }
+
     // MARK: -
 
     private class PillView: ManualStackViewWithLayer {
@@ -179,6 +195,10 @@ class CVReactionCountsView: ManualStackView {
 
         private let emojiLabel = CVLabel()
         private let countLabel = CVLabel()
+
+        /// Tellomi（交互审计 A-07）：这一格正在显示的内容，给回应飞入找落点。
+        private(set) var displayedPillState: PillState?
+        var emojiLabelForFlyIn: UILabel { emojiLabel }
 
         private static let pillBorderWidth: CGFloat = 1
 
@@ -260,6 +280,10 @@ class CVReactionCountsView: ManualStackView {
             }
 
             var subviews = [UIView]()
+
+            // Tellomi（交互审计 A-07）：飞行中会把落点的字暂时藏起来；重新配置（包括复用给别的消息）时一律露出来。
+            emojiLabel.alpha = 1
+            displayedPillState = pillState
 
             if let emojiLabelConfig = Self.emojiLabelConfig(pillState: pillState) {
                 emojiLabelConfig.applyForRendering(label: emojiLabel)

@@ -79,7 +79,8 @@ public extension TSInfoMessage {
         case .phoneNumber(let phoneNumber):
             return String.nonPluralLocalizedStringWithFormat(format, phoneNumber)
         case .username(let username):
-            return String.nonPluralLocalizedStringWithFormat(format, username)
+            // Tellomi（#1106 第三刀）：存的仍是完整用户名，显示时 `.01` 结尾的去掉后缀
+            return String.nonPluralLocalizedStringWithFormat(format, TellomiLinks.displayUsername(username))
         }
     }
 }

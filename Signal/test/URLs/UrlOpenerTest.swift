@@ -66,14 +66,86 @@ class UrlOpenerTest: XCTestCase {
         }
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#u/ceshi.57")!), "ceshi.57")
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/u/#u/linktest.56")!), "linktest.56")
-        // 裸形状（与 Android 对齐）：tell.cc/<username>，带 `.<数字>` 判别位才算用户名，保留字路径不算
+        // 裸形状（与 Android 对齐）：tell.cc/<username>，保留字路径不算
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/ceshi.57")!), "ceshi.57")
         XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/linktest.56/")!), "linktest.56")
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/call#key=abc")!))
+        // tellomi/tellomi#1106（ADR-0066）：不带「.数字」的也认，返回补上 `.01` 的完整用户名
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin?from=wechat")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/kaixin/")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "tellomi://tell.cc/u#u/kaixin")!), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/kaixin.01")!), "kaixin.01")
+        // 3 位以上的保留路径显式挡（大小写不敏感）；两位名、数字开头不是用户名
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/app")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/CALL")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/ab")!))
+        XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/1abc")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/u#p/+16505550100")!))
         XCTAssertNil(TellomiLinks.plainUsername(in: URL(string: "https://tell.cc/g#u/notauser")!))
         // tell.cc/u#p/… 不能被当成群邀请（Android #973 撞过的坑）
         XCTAssertNil(PossibleGroupInviteLinkUrl.parseFrom(TellomiLinks.legacyEquivalent(of: URL(string: "https://tell.cc/u#p/+16505550100")!)))
+    }
+
+    /// tellomi/tellomi#1106（ADR-0066）：找人页 / 联系人搜索把输入的名字补成协议层的完整用户名（与 Android `TellomiUsernamesTest` 同一组）。
+    func testTellomiProtocolUsername() {
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin"), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.protocolUsername("@kaixin"), "kaixin.01")
+        XCTAssertEqual(TellomiLinks.protocolUsername("  kaixin \n"), "kaixin.01")
+        // 旧账号带随机后缀：原样保留，按全名去查
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.57"), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.protocolUsername(" @kaixin.57 "), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.01"), "kaixin.01")
+    }
+
+    /// tellomi/tellomi#1106 第四刀（ADR-0066 §6.2）：一小时是改名冷却与限流的分界线；天数向上取整、至少 1（与 Android、Desktop 同一组）。
+    func testTellomiRenameCooldown() {
+        XCTAssertFalse(TellomiLinks.isRenameCooldown(retryAfter: 9))
+        XCTAssertFalse(TellomiLinks.isRenameCooldown(retryAfter: 3600))
+        XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 3601))
+        XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 2_591_999))
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 2_591_999), 30)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86400), 1)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86401), 2)
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 7200), 1)
+    }
+
+    /// tellomi/tellomi#1106 第四刀：两条复数文案必须在 `PluralAware.stringsdict` 的**顶层**。
+    /// 嵌进上一条的 dict 里时 `plutil -lint` 照样通过，运行时却查不到键、界面上直接显示键名（taishi 审查 2026-09-24）。
+    /// 四种语言各查一遍：测试进程只跑英文，只查当前语言会漏掉中文三份。
+    func testTellomiRenameCooldownPluralStringsResolveInEveryLocale() throws {
+        let keys = [
+            "USERNAME_SELECTION_CHANGE_COOLDOWN_ERROR_MESSAGE_TELLOMI_%d",
+            "USERNAME_SELECTION_CHANGE_USERNAME_CONFIRMATION_MESSAGE_TELLOMI_%d",
+        ]
+        for localization in ["en", "zh_CN", "zh_HK", "zh_TW"] {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: localization, ofType: "lproj"), localization)
+            let bundle = try XCTUnwrap(Bundle(path: path), localization)
+            for key in keys {
+                let format = bundle.localizedString(forKey: key, value: nil, table: "PluralAware")
+                XCTAssertNotEqual(format, key, "\(localization): \(key)")
+                XCTAssertTrue(String.localizedStringWithFormat(format, 30).contains("30"), "\(localization): \(key)")
+            }
+        }
+    }
+
+    /// tellomi/tellomi#1106 第二刀：选用户名页「没改 / 只改大小写」的捷径只认原判别位是 01 的；`.57` 这类旧号同名也要重新预约 `.01`。
+    func testTellomiUsernameShortcutsOnlyForFixedDiscriminator() {
+        let fixed = Usernames.ParsedUsername(rawUsername: "kaixin.01")
+        XCTAssertNotNil(fixed)
+        XCTAssertEqual(UsernameSelectionViewController.existingUsernameForShortcuts(fixed), fixed)
+        XCTAssertNil(UsernameSelectionViewController.existingUsernameForShortcuts(Usernames.ParsedUsername(rawUsername: "kaixin.57")))
+        XCTAssertNil(UsernameSelectionViewController.existingUsernameForShortcuts(nil))
+    }
+
+    /// tellomi/tellomi#1106（ADR-0066 §六「显示」）：只有 `.01` 结尾的去掉后缀，别的后缀完整显示（与 Android `TellomiUsernamesTest` 同一组）。
+    func testTellomiDisplayUsername() {
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.01"), "kaixin")
+        XCTAssertEqual(TellomiLinks.displayUsername("KaiXin.01"), "KaiXin")
+        // 反向：别的后缀原样——`kaixin.57` 不能显示成 `kaixin`
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.57"), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.101"), "kaixin.101")
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.001"), "kaixin.001")
     }
 }

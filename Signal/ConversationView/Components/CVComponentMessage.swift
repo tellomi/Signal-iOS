@@ -96,6 +96,61 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         return result
     }
 
+    /// Tellomi（#1205）：这一条画不画小尾巴、画在哪边。
+    private var tellomiBubbleTail: BubbleConfiguration.Tail? {
+        let hasBubbleBackground = !isBubbleTransparent
+            && !componentState.isBodyMediaOnlyMessage
+            && !wasRemotelyDeleted
+            && componentState.giftBadge == nil
+        guard
+            Self.tellomiShouldDrawTail(
+                isLastInCluster: itemViewState.isLastInCluster,
+                hasReactions: componentState.reactions != nil,
+                hasBubbleBackground: hasBubbleBackground,
+                styleType: conversationStyle.type,
+            )
+        else {
+            return nil
+        }
+        let isRTL = CurrentAppContext().isRTL
+        return BubbleConfiguration.Tail(isOnRight: isIncoming ? isRTL : !isRTL)
+    }
+
+    /// Tellomi（#1205，设计规范 `bubbles-and-motion-design.md` 第 2 节；和 Android `TellomiBubbleTail.shouldDraw` 同一规则）：
+    /// - 是一组的最后一条或单独一条；
+    /// - 下面没挂表情回应（视为「下面还连着」，Telegram 同样）；
+    /// - 有气泡底色：贴纸、大号表情、没文字的图片或视频、已删除的消息、礼物都不算；
+    /// - 只在会话里画：消息详情、编辑记录、置顶消息详情（都用 `.messageDetails` 样式）不画。
+    ///   会话页渲染时样式常是 `.placeholder`、不一定是 `.default`，所以照上游（本文件开头的头像判断）判断「不是消息详情」。
+    static func tellomiShouldDrawTail(
+        isLastInCluster: Bool,
+        hasReactions: Bool,
+        hasBubbleBackground: Bool,
+        styleType: ConversationStyle.`Type`,
+    ) -> Bool {
+        isLastInCluster && !hasReactions && hasBubbleBackground && styleType != .messageDetails
+    }
+
+    /// Tellomi（#1205）：把内容放进气泡视图。内容先放进 `tailContentView`，由它按 `insets` 缩回：有尾巴时气泡视图在尾巴那一侧
+    /// 外扩了 `Tail.extent`，内容缩回原来的位置；没有尾巴内缩为零。
+    ///
+    /// 没有尾巴也放进这一层：壁纸模糊视图（`CVWallpaperBlurView`）一个 cell 只建一次、从不 reset，每次配置
+    /// `addSubviewToFillSuperviewEdges` 加的布局块都留在它身上，块里排的是当时加进去的子视图。子视图永远是这一层，
+    /// 旧的块就不会去排一个已经不在任何视图里的视图（Debug 下 owsFailDebug 直接崩，Release 每次布局都写错误日志）。
+    /// chatColorView 会把自己所有子视图铺满整块（ensureSubviewsFillBounds），所以缩回只能在中间这一层做。
+    static func tellomiHostContent(
+        _ contentView: UIView,
+        in bubbleView: ManualLayoutView,
+        tailContentView: ManualLayoutView,
+        insets: UIEdgeInsets,
+    ) {
+        tailContentView.addSubview(contentView)
+        tailContentView.addLayoutBlock { view in
+            ManualLayoutView.setSubviewFrame(subview: contentView, frame: view.bounds.inset(by: insets))
+        }
+        bubbleView.addSubviewToFillSuperviewEdges(tailContentView)
+    }
+
     private var sharpCornersForQuotedMessage: OWSDirectionalRectCorner {
         var sharpCorners = sharpCorners
 
@@ -490,6 +545,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         // No bubbles for borderless stickers.
         var outerBubbleView: (CVDimmableView & OWSBubbleViewHost)?
+        let tellomiTail = componentState.isBorderlessStickerMessage ? nil : tellomiBubbleTail
         if !componentState.isBorderlessStickerMessage {
             let bubbleConfiguration = BubbleConfiguration(
                 corners: .segmented(
@@ -498,6 +554,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                     wideCornerRadius: Self.bubbleWideCornerRadius,
                 ),
                 stroke: bubbleStroke,
+                tail: tellomiTail,
             )
             if case .blur = bubbleChatColor {
                 let wallpaperBlurView = componentView.ensureWallpaperBlurView()
@@ -536,7 +593,16 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         let contentViewSwipeToReplyWrapper = componentView.contentViewSwipeToReplyWrapper
         if let bubbleView = outerBubbleView {
-            bubbleView.addSubviewToFillSuperviewEdges(outerContentView)
+            // Tellomi（#1205）：气泡视图在尾巴那一侧外扩 `Tail.extent`，尾巴画在这一条里；内容缩回原来的位置，排版不变。
+            let tellomiInsets = tellomiTail?.contentInsets ?? .zero
+            Self.tellomiHostContent(
+                outerContentView,
+                in: bubbleView,
+                tailContentView: componentView.tellomiTailContentView,
+                insets: tellomiInsets,
+            )
+            // 每次都重设：有的包装在复用时不 reset，不重设会带着上一条的外扩。
+            contentViewSwipeToReplyWrapper.tellomiSubviewOutsets = tellomiInsets
 
             if let (giftWrapView, bubbleViewPartner) = self.configureGiftWrapIfNeeded(messageView: componentView) {
                 let wrapper = ManualLayoutView(name: "containerForOverlay")
@@ -1493,12 +1559,44 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
     }
 
     private var hInnerStackConfig: CVStackViewConfig {
-        CVStackViewConfig(
+        let tailSpace = Self.tellomiTailSideSpace(
+            isIncoming: isIncoming,
+            followsAvatar: isIncoming && hasSenderAvatarLayout && senderAvatar != nil,
+            margin: tellomiTailSideMargin,
+        )
+        return CVStackViewConfig(
             axis: .horizontal,
             alignment: .bottom,
-            spacing: ConversationStyle.messageStackSpacing,
-            layoutMargins: .zero,
+            spacing: ConversationStyle.messageStackSpacing + tailSpace.afterAvatar,
+            layoutMargins: UIEdgeInsets(
+                top: 0,
+                leading: tailSpace.leading,
+                bottom: 0,
+                trailing: tailSpace.trailing,
+            ),
         )
+    }
+
+    /// Tellomi：尾巴那一侧多留的 [margin] 放在哪。对方发的尾巴在左下：带头像时加在头像和气泡之间，
+    /// 单聊（没头像）加在最前面；我发的加在最后面。
+    static func tellomiTailSideSpace(
+        isIncoming: Bool,
+        followsAvatar: Bool,
+        margin: CGFloat,
+    ) -> (leading: CGFloat, afterAvatar: CGFloat, trailing: CGFloat) {
+        guard isIncoming else {
+            return (leading: 0, afterAvatar: 0, trailing: margin)
+        }
+        return followsAvatar ? (leading: 0, afterAvatar: margin, trailing: 0) : (leading: margin, afterAvatar: 0, trailing: 0)
+    }
+
+    /// Tellomi（规范 #1204 第 2 节最后一条，owner 2026-09-26 定照规范加）：气泡在尾巴那一侧多留 `Tail.sideMargin`，
+    /// 尾巴不贴屏幕边、不压头像。一组里没画尾巴的几条也留，整列才对齐；不画尾巴的消息详情、居中显示的发布说明不留。
+    private var tellomiTailSideMargin: CGFloat {
+        guard conversationStyle.type != .messageDetails, !isReleaseNotesMessage else {
+            return 0
+        }
+        return BubbleConfiguration.Tail.sideMargin
     }
 
     private let reactionsHInset: CGFloat = 6
@@ -1571,6 +1669,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         let hOuterStackConfig = self.hOuterStackConfig
         var contentMaxWidth = maxWidth - hOuterStackConfig.layoutMargins.totalWidth
         contentMaxWidth -= ConversationStyle.messageDirectionSpacing
+        // Tellomi：尾巴那一侧多留的外边距也从内容里让出来（见 hInnerStackConfig）
+        contentMaxWidth -= tellomiTailSideMargin
         if isShowingSelectionUI || wasShowingSelectionUI {
             contentMaxWidth -= selectionViewWidth + hOuterStackConfig.spacing
             if isReleaseNotesMessage {
@@ -2228,6 +2328,9 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         // Contains the actual renderable message content, arranged vertically.
         fileprivate let contentStack = ManualStackView(name: "message.contentStack")
 
+        // Tellomi（#1205）：有尾巴时，气泡里的内容放进这一层、再在尾巴那一侧缩回。
+        fileprivate let tellomiTailContentView = ManualLayoutView(name: "message.tellomiTailContentView")
+
         // We use these stack views when there is a mixture of subcomponents,
         // some of which are full-width and some of which are not.
         fileprivate let topFullWidthStackView = ManualStackView(name: "message.topFullWidthStackView")
@@ -2331,6 +2434,11 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
                 bottomLabelView,
                 pollView,
             ].compactMap { $0 }
+        }
+
+        /// Tellomi（交互审计 A-07）：回应飞入的落点——这条消息回应胶囊里显示 [emoji] 的那个字。
+        func reactionEmojiLabel(for emoji: String) -> UILabel? {
+            (reactionsView as? CVComponentReactions.CVComponentViewReactions)?.emojiLabel(for: emoji)
         }
 
         fileprivate func subcomponentView(key: CVComponentKey) -> CVComponentView? {
@@ -2495,6 +2603,9 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             chatColorView.removeFromSuperview()
             chatColorView.reset()
 
+            tellomiTailContentView.removeFromSuperview()
+            tellomiTailContentView.reset()
+
             wallpaperBlurView?.removeFromSuperview()
 
             avatarView.reset()
@@ -2532,7 +2643,9 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         public func contextMenuContentView() -> UIView? {
             chatColorView.animationsEnabled = true
-            return contentViewSwipeToReplyWrapper
+            // Tellomi（#1205）：交出气泡视图本身，不交包装：尾巴画在包装外扩出去的那一条里，
+            // 长按预览按视图自己的范围截图，交包装会截掉尾巴、那个角变成直角。
+            return contentViewSwipeToReplyWrapper.subview ?? contentViewSwipeToReplyWrapper
         }
 
         public func contextMenuAuxiliaryContentView() -> UIView? {
@@ -3189,6 +3302,13 @@ class SwipeToReplyWrapper: ManualLayoutView {
         }
     }
 
+    /// Tellomi（#1205）：子视图（气泡）比自己大出的部分：有尾巴时尾巴那一侧外扩 `BubbleConfiguration.Tail.extent`。
+    var tellomiSubviewOutsets: UIEdgeInsets = .zero {
+        didSet {
+            layoutSubviews()
+        }
+    }
+
     let useSlowOffset: Bool
     let shouldReset: Bool
 
@@ -3214,7 +3334,8 @@ class SwipeToReplyWrapper: ManualLayoutView {
             guard let subview = view.subview else {
                 return
             }
-            var subviewFrame = view.bounds
+            let outsets = view.tellomiSubviewOutsets
+            var subviewFrame = view.bounds.inset(by: UIEdgeInsets(top: -outsets.top, left: -outsets.left, bottom: -outsets.bottom, right: -outsets.right))
             subviewFrame.origin += view.offset
             ManualLayoutView.setSubviewFrame(subview: subview, frame: subviewFrame)
         }
@@ -3225,6 +3346,7 @@ class SwipeToReplyWrapper: ManualLayoutView {
 
         subview = nil
         offset = .zero
+        tellomiSubviewOutsets = .zero
         addDefaultLayoutBlock()
     }
 }
@@ -3299,5 +3421,22 @@ private class SwipeToReplyIndicatorView: UIView {
                 backgroundView.layer.cornerRadius = min(bounds.height, bounds.width) / 2
             }
         }
+    }
+}
+
+// MARK: - 用例
+
+extension CVComponentMessage.CVComponentViewMessage {
+    /// Tellomi 用例：气泡的排版位置（不含尾巴外扩）在 `view` 里的矩形
+    func tellomiContentFrameForTesting(in view: UIView) -> CGRect {
+        contentViewSwipeToReplyWrapper.convert(contentViewSwipeToReplyWrapper.bounds, to: view)
+    }
+
+    /// Tellomi 用例：群聊里对方的头像在 `view` 里的矩形；这一条没排头像时为 nil
+    func tellomiAvatarFrameForTesting(in view: UIView) -> CGRect? {
+        guard avatarViewSwipeToReplyWrapper.superview != nil else {
+            return nil
+        }
+        return avatarViewSwipeToReplyWrapper.convert(avatarViewSwipeToReplyWrapper.bounds, to: view)
     }
 }
