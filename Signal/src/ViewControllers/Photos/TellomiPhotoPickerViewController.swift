@@ -28,8 +28,12 @@ protocol TellomiPhotoPickerDelegate: AnyObject {
     /// 说明和会话输入框是同一段字（同上游的预览页）。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?)
 
-    /// Tellomi（#1115）：附件 Sheet 底部 dock 点了「相册」以外的格子（文件 / 位置 / 投票 / 联系人）。接收方先收起 Sheet，再打开对应的页面。
+    /// Tellomi（#1115）：附件 Sheet 底部 dock 点了「相册」以外的格子（文件 / 位置 / 投票 / 联系人 / GIF）。接收方先收起 Sheet，再打开对应的页面。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem)
+
+    /// Tellomi（#1115）：没有照片权限时，占位里点了「照片」：用系统选择器选（不要照片权限）。接收方先收起 Sheet，再弹系统选择器。
+    /// 已发布的《系统权限调用清单》TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2 承诺了这个入口，所以不给默认实现，接收方必须接上。
+    func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController)
 }
 
 extension TellomiPhotoPickerDelegate {
@@ -413,6 +417,15 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
 
     /// 拒绝了照片权限：网格整块换成一句说明 +「设置」（上游附件面板同一句话、同一个按钮），有相机时旁边再给「相机」——
     /// 照 Telegram（没权限时网格换成占位，占位里能去设置、也能直接拍）；相机格这时不在网格里，免得说明压在它上面。
+    /// 最前面还有「照片」：用系统选择器选，不要照片权限——已发布的《系统权限调用清单》（TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2）
+    /// 承诺「拒绝照片读取权限，附件面板仍然提供“全部相册”入口，通过系统选择器完成选择与发送」（Telegram 的占位里没有这一个）。
+    private lazy var noAccessSystemPickerButton = Self.noAccessButton(
+        title: OWSLocalizedString("ATTACHMENT_KEYBOARD_PHOTOS", comment: "A button to open the photo picker from the Attachment Keyboard"),
+    ) { [weak self] in
+        guard let self else { return }
+        self.delegate?.photoPickerDidRequestSystemPicker(self)
+    }
+
     private lazy var noAccessSettingsButton = Self.noAccessButton(title: CommonStrings.openSystemSettingsButton) {
         UIApplication.shared.openSystemSettings()
     }
@@ -438,7 +451,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         label.textAlignment = .center
         label.numberOfLines = 0
 
-        let buttons = UIStackView(arrangedSubviews: [noAccessSettingsButton, noAccessCameraButton])
+        let buttons = UIStackView(arrangedSubviews: [noAccessSystemPickerButton, noAccessSettingsButton, noAccessCameraButton])
         buttons.axis = .horizontal
         buttons.spacing = 12
 
@@ -1542,10 +1555,20 @@ extension TellomiPhotoPickerViewController {
     var isDockShownForTesting: Bool { dock.map { !$0.isHidden } ?? false }
     var isNoAccessHintShownForTesting: Bool { !noAccessView.isHidden }
     var noAccessHintTextForTesting: String? { (noAccessView as? UIStackView)?.arrangedSubviews.compactMap { ($0 as? UILabel)?.text }.first }
-    var noAccessButtonTitlesForTesting: [String] { [noAccessSettingsButton, noAccessCameraButton].filter { !$0.isHidden }.compactMap { $0.configuration?.title } }
+    /// 占位里露着的按钮，按排列的先后。
+    private var noAccessButtonsForTesting: [UIButton] {
+        let rows = (noAccessView as? UIStackView)?.arrangedSubviews.compactMap { $0 as? UIStackView } ?? []
+        return rows.flatMap { $0.arrangedSubviews }.compactMap { $0 as? UIButton }.filter { !$0.isHidden }
+    }
+
+    var noAccessButtonTitlesForTesting: [String] { noAccessButtonsForTesting.compactMap { $0.configuration?.title } }
 
     func tapNoAccessCameraForTesting() {
         noAccessCameraButton.sendActions(for: .primaryActionTriggered)
+    }
+
+    func tapNoAccessButtonForTesting(title: String) {
+        noAccessButtonsForTesting.first { $0.configuration?.title == title }?.sendActions(for: .primaryActionTriggered)
     }
 
     var gridBottomInsetForTesting: CGFloat { collectionView.contentInset.bottom }

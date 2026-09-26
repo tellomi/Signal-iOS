@@ -27,7 +27,8 @@ extension ConversationViewController {
 
     // MARK: - 附件 Sheet（#1115）
 
-    /// 「+」：附件 Sheet = 选图网格 + 底部 dock（相册 · 文件 · 位置 · 投票 · 联系人，owner 2026-09-23 定），两档高度，下滑关闭。
+    /// 「+」：附件 Sheet = 选图网格 + 底部 dock（相册 · 文件 · 位置 · 投票 · 联系人，owner 2026-09-23 定；GIF 能用时最后再加一格 GIF，
+    /// owner 2026-09-26 临时加回，见 `TellomiAttachmentDockItem`），两档高度，下滑关闭。
     /// 相册权限：没问过就先问；拒绝 / 受限制也照样打开（dock 里别的格子还要用），网格里显示去「设置」开权限的说明。
     func presentTellomiAttachmentSheet() {
         AssertIsOnMainThread()
@@ -101,7 +102,7 @@ extension ConversationViewController {
             chatBackground: viewState.wallpaperViewBuilder?.build().asPreviewView(),
             bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
             camera: TellomiSystemPickerCamera(),
-            dockItems: asAttachmentSheet ? TellomiAttachmentDockItem.allCases : [],
+            dockItems: asAttachmentSheet ? TellomiAttachmentDockItem.attachmentSheetItems : [],
         )
         picker.delegate = self
 
@@ -153,7 +154,20 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
                 self.pollButtonPressed()
             case .contact:
                 self.contactButtonPressed()
+            case .gif:
+                // owner 2026-09-26 临时加回：上游附件面板 GIF 键的同一个处理（didTapGif → gifButtonPressed → showGifPicker）。
+                // 下滑关掉 GIF 选择器经 presentationControllerDidDismiss → openAttachmentKeyboard 回到 Sheet。
+                self.gifButtonPressed()
             }
+        }
+    }
+
+    /// 没有照片权限时占位里的「照片」：收起 Sheet，再弹上游的系统选择器（不要照片权限就能选、能发）——
+    /// 已发布的《系统权限调用清单》TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2 承诺的「全部相册」入口。
+    /// 系统选择器取消了经 `sendMediaNavDidCancel → openAttachmentKeyboard` 回到 Sheet；发了照常发（`sendMediaNav(_:didApproveAttachments:)`）。
+    func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController) {
+        dismiss(animated: true) { [weak self] in
+            self?.tellomiChooseFromLibraryWithNativePicker()
         }
     }
 
