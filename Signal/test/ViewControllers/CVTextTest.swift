@@ -666,6 +666,33 @@ class TellomiBubbleTailTest: XCTestCase {
     }
 }
 
+/// Tellomi（#1205，设计规范第 2 节）：「正在输入」气泡和对方的消息一样带尾巴，在对方那侧的下角；有壁纸时才带描边（和上游一样）。
+class TellomiTypingTailTest: XCTestCase {
+
+    func testTypingBubbleHasATailOnTheOtherPersonsSide() {
+        let ltr = CVComponentTypingIndicator.tellomiBubbleConfig(hasWallpaper: false, isDarkThemeEnabled: false, isRTL: false)
+        XCTAssertEqual(ltr.tail, BubbleConfiguration.Tail(isOnRight: false))
+        XCTAssertNil(ltr.stroke)
+
+        let rtl = CVComponentTypingIndicator.tellomiBubbleConfig(hasWallpaper: true, isDarkThemeEnabled: true, isRTL: true)
+        XCTAssertEqual(rtl.tail, BubbleConfiguration.Tail(isOnRight: true))
+        XCTAssertNotNil(rtl.stroke)
+    }
+
+    func testTypingBubbleOutlineIncludesTheTail() {
+        let config = CVComponentTypingIndicator.tellomiBubbleConfig(hasWallpaper: false, isDarkThemeEnabled: false, isRTL: false)
+        let rect = CGRect(x: 0, y: 0, width: 70 + BubbleConfiguration.Tail.extent, height: 36)
+        let path = config.bubblePath(for: rect)
+
+        // 尖端在左下、气泡本体外
+        XCTAssertTrue(path.contains(CGPoint(x: 3, y: 35.5)))
+        // 尾巴只有 14 高
+        XCTAssertFalse(path.contains(CGPoint(x: 3, y: 10)))
+        // 右下角照旧是胶囊的圆角
+        XCTAssertFalse(path.contains(CGPoint(x: rect.maxX - 1, y: 35)))
+    }
+}
+
 /// Tellomi（规范 #1204 第 2 节最后一条，owner 2026-09-26 定照规范加）：气泡在尾巴那一侧多留 e = 6，尾巴不贴屏幕边、不压头像。
 /// 和 Android `TellomiBubbleTailMarginTest` 同一组数：我发的离屏幕边 16 + 6；单聊里对方的离屏幕边 16 + 6；群里对方的离头像 8 + 6。
 /// 用会话页同一套渲染（`CVLoader` 单条渲染 + `CVCellView`，同 `MockConversationView`）真排一次版，量气泡的排版位置（不含尾巴外扩）。
@@ -724,6 +751,32 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         XCTAssertEqual(mine.leading + mine.afterAvatar, 0)
     }
 
+    /// 「正在输入」气泡也带尾巴（a52），离屏幕边、离头像和对方的消息一样
+    @MainActor
+    func testTheirTypingBubbleStarts16Plus6FromTheScreenEdgeInA1to1Chat() throws {
+        register()
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let typing = TypingIndicatorInteraction(threadUniqueId: thread.uniqueId, timestamp: NSDate.ows_millisecondTimeStamp(), address: SignalServiceAddress(otherAci))
+
+        let cell = try renderCell(typing, in: thread)
+        let typingView = try XCTUnwrap(cell.componentView as? CVComponentTypingIndicator.CVComponentViewTypingIndicator)
+        let bubble = typingView.tellomiBubbleFrameForTesting(in: cell)
+        XCTAssertNil(typingView.tellomiAvatarFrameForTesting(in: cell), "单聊不带头像")
+        XCTAssertEqual(bubble.minX, 16 + 6, accuracy: 0.5, "单聊里打字气泡离屏幕左边：\(bubble)")
+    }
+
+    /// 群里的打字气泡：e 加在头像和气泡之间。和上面群里那条同一个原因（单测环境渲染不了群头像），测排版参数；实际排版需上设备。
+    func testInAGroupTheTypingBubbleGetsTheExtraSpaceAfterTheAvatar() {
+        let margin = BubbleConfiguration.Tail.sideMargin
+        let group = CVComponentTypingIndicator.tellomiTailSideSpace(hasAvatar: true, margin: margin)
+        XCTAssertEqual(ConversationStyle.messageStackSpacing + group.afterAvatar, 8 + 6, "头像和打字气泡之间")
+        XCTAssertEqual(group.leading, 0)
+
+        let oneToOne = CVComponentTypingIndicator.tellomiTailSideSpace(hasAvatar: false, margin: margin)
+        XCTAssertEqual(oneToOne.leading, 6, "单聊加在最前面")
+        XCTAssertEqual(oneToOne.afterAvatar, 0)
+    }
+
     // MARK: -
 
     private func register() {
@@ -735,9 +788,16 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         }
     }
 
-    /// 同 `MockConversationView`：会话页样式单独渲染一条，放进 `CVCellView` 排版
     @MainActor
     private func render(_ interaction: TSInteraction, in thread: TSThread) throws -> (CVCellView, CVComponentMessage.CVComponentViewMessage) {
+        let cell = try renderCell(interaction, in: thread)
+        let messageView = try XCTUnwrap(cell.componentView as? CVComponentMessage.CVComponentViewMessage)
+        return (cell, messageView)
+    }
+
+    /// 同 `MockConversationView`：会话页样式单独渲染一条，放进 `CVCellView` 排版
+    @MainActor
+    private func renderCell(_ interaction: TSInteraction, in thread: TSThread) throws -> CVCellView {
         let viewWidth = self.viewWidth
         let renderItem = try XCTUnwrap(read { tx -> CVRenderItem? in
             let conversationStyle = ConversationStyle(
@@ -764,8 +824,7 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
         cell.configure(renderItem: renderItem, componentDelegate: componentDelegate)
         cell.frame = CGRect(origin: .zero, size: CGSize(width: viewWidth, height: renderItem.cellMeasurement.cellSize.height))
         cell.layoutIfNeeded()
-        let messageView = try XCTUnwrap(cell.componentView as? CVComponentMessage.CVComponentViewMessage)
-        return (cell, messageView)
+        return cell
     }
 
     private var componentDelegates: [UIView] = []
