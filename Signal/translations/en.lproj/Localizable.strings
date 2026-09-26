@@ -2536,6 +2536,9 @@
 /* Context menu button title */
 "CONTEXT_MENU_FORWARD_MESSAGE" = "Forward";
 
+/* Tellomi (#1174): context menu button that saves a message into Saved Messages */
+"CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE" = "Save";
+
 /* Context menu button title */
 "CONTEXT_MENU_PAYMENT_DETAILS" = "Payment Details";
 
@@ -2560,8 +2563,17 @@
 /* Message for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE" = "This chat will be deleted from all your devices.";
 
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when there are no linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES" = "Everything in Saved Messages will be deleted from this device. This can't be undone.";
+
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when the account has linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES" = "Everything in Saved Messages will be deleted from this device and your linked devices. This can't be undone.";
+
 /* Title for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE" = "Delete Chat?";
+
+/* Tellomi (#1174): title of the confirmation shown before deleting Saved Messages (the chat with yourself) */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES" = "Delete Saved Messages?";
 
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that dismisses the sheet without pasting the key. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_DO_NOT_SHARE_BUTTON_TITLE" = "Do Not Share Key";
@@ -4017,6 +4029,9 @@
 
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "Messages sent";
+
+/* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
+"FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "Saved to Saved Messages. Tap to view.";
 
 /* Indicates that the user can add a text message to forwarded messages. */
 "FORWARD_MESSAGE_TEXT_PLACEHOLDER" = "Add a message";
@@ -5805,6 +5820,9 @@
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_MESSAGE" = "Forward This Message";
 
+/* Tellomi (#1174): accessibility label for saving a message into Saved Messages */
+"MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE" = "Save to Saved Messages";
+
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_SELECTED_MESSAGES" = "Forward selected messages";
 
@@ -6397,7 +6415,7 @@
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "Re-register";
 
 /* Label for 1:1 conversation with yourself. */
-"NOTE_TO_SELF" = "Note to Self";
+"NOTE_TO_SELF" = "Saved Messages";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
 "NOTIFICATION_BODY_CLOCK_SKEW" = "Tellomi can’t receive messages while your device’s date and time are incorrect. Open Settings to correct them.";
@@ -10450,7 +10468,7 @@
 "THREAD_DETAILS_NO_MEMBERS" = "No other group members yet";
 
 /* Subtitle appearing at the top of the users 'note to self' conversation */
-"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "You can add notes for yourself in this chat. If your account has any linked devices, new notes will be synced.";
+"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "Forward messages here or send them to yourself to keep them handy. If your account has linked devices, new messages here are synced to them.";
 
 /* Label for a group with one member (not counting yourself), displaying their name */
 "THREAD_DETAILS_ONE_MEMBER" = "%1$@";

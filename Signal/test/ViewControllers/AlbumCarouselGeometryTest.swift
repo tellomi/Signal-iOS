@@ -44,7 +44,9 @@ final class AlbumCarouselGeometryTest: XCTestCase {
 
         XCTAssertTrue(layout.isScrollable)
         XCTAssertEqual(layout.itemLefts, [16, 205, 394, 583, 772])
-        XCTAssertEqual(layout.contentWidth, 16 + 5 * 181 + 4 * 8 + 16)
+        // Xcode 26.6 的类型检查器对「字面量算式 vs CGFloat」会超时，先定类型再比
+        let expectedContentWidth: CGFloat = 16 + 5 * 181 + 4 * 8 + 16
+        XCTAssertEqual(layout.contentWidth, expectedContentWidth)
         XCTAssertEqual(layout.maxScroll, layout.contentWidth - 402)
 
         let lastRightAtEnd = layout.itemLefts.last! + layout.itemWidths.last! - layout.maxScroll

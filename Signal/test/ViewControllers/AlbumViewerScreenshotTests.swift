@@ -267,6 +267,57 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         try report.write(to: shotsDirectory(width: width).deletingLastPathComponent().appendingPathComponent("metrics-viewer.txt"), atomically: true, encoding: .utf8)
     }
 
+    // MARK: - 开合的底色、翻到视频就播（移动会话审查 2026-09-26；这两条总是跑）
+
+    /// 查看器一律深色：系统浅色模式下，开合动画的底色也是黑的。动画在转场容器里画这个颜色，那里跟着系统的浅色模式——
+    /// 给会随模式变的 mediaBackground，浅色模式下就取成白，开合时闪一下白。
+    @MainActor
+    func testOpenAndCloseAnimationsUseABlackBackgroundInLightMode() async throws {
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let album = try await insertAlbum(thread: thread, incoming: true, sizes: sizes(2), body: nil)
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: try bodyAttachments(of: album)[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.overrideUserInterfaceStyle = .light
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        defer { window.isHidden = true }
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+
+        let context = try XCTUnwrap(viewer.mediaPresentationContext(item: .gallery(viewer.currentItemForTesting), in: window))
+        let resolvedInLightMode = context.backgroundColor.resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+        XCTAssertEqual(resolvedInLightMode, UIColor.black, "浅色模式下开合动画的底色")
+    }
+
+    /// 照 Telegram iOS（`UniversalVideoGalleryItemNode.centralityUpdated`：成为当前那一项、文件在本地就播）：
+    /// 手指横滑到下载好的视频就开始播——不会停在第一帧、画面上又没有播放键（四角按钮这时还收着）。
+    @MainActor
+    func testSwipingToADownloadedVideoPlaysIt() async throws {
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let video = try await makeVideo(size: CGSize(width: 320, height: 180), duration: 6, framesPerSecond: 10)
+        let message = try await insertMediaMessage(
+            thread: thread,
+            incoming: true,
+            media: [(data: jpeg(size: CGSize(width: 1200, height: 1600), number: 1), mimeType: "image/jpeg"), (data: video, mimeType: "video/mp4")],
+            body: nil,
+        )
+        let attachments = try bodyAttachments(of: message)
+        let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: attachments[0], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        defer { window.isHidden = true }
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertNil(viewer.currentVideoPlayerForTesting, "先停在图片上")
+
+        viewer.swipeToNextPageForTesting()
+        let playing = await waitUntil(timeout: 3) { viewer.currentVideoPlayerForTesting?.isPlaying == true }
+        XCTAssertNotNil(viewer.currentVideoPlayerForTesting, "翻到了视频")
+        XCTAssertTrue(viewer.areToolbarsHiddenForTesting, "四角按钮还收着")
+        XCTAssertTrue(playing, "横滑到下载好的视频就播")
+    }
+
     // MARK: - 回复这一张（owner 2026-09-25）
 
     /// 查看器里「回复」：草稿的引用缩略图是指定的那一张；不指定时照上游取第一张。
