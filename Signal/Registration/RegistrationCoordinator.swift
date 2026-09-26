@@ -143,6 +143,15 @@ public protocol RegistrationCoordinator {
         phoneNumberDiscoverability: PhoneNumberDiscoverability,
     ) -> Guarantee<RegistrationStep>
 
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：资料页上的「用户名（选填）」。保留 `<nickname>.01`；
+    /// 账号已建好、本机注册还没完成，所以用 `accountIdentity` 的凭证显式认证。
+    @MainActor
+    func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome
+
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：点「下一步」时确认保留着的用户名，成功才保存资料。确认成功后本地用户名与链接一起写好。
+    @MainActor
+    func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome
+
     /// The user has hit a reglock timeout and is acknowledging it.
     ///
     /// If they're doing initial registration, the user should get bonked back to

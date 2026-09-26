@@ -309,6 +309,20 @@ class MessageReactionPicker: UIStackView {
         )
     }
 
+    /// Tellomi（交互审计 A-07）：把选中的表情交给「回应飞入」——返回它在窗口里的位置和字号，并把条上这一个藏起来，由飞的那个接着走。
+    func takeEmojiForFlyIn(at position: Int) -> ReactionFlyIn.Source? {
+        guard
+            buttonForEmoji.indices.contains(position),
+            let button = buttonForEmoji[position].emojiButton,
+            let window = button.window
+        else {
+            return nil
+        }
+        let frameInWindow = button.convert(button.bounds, to: window)
+        button.hideEmojiForFlyIn()
+        return ReactionFlyIn.Source(frameInWindow: frameInWindow, fontSize: button.emojiFontSize)
+    }
+
     func currentEmojiSet() -> [String] {
         buttonForEmoji.compactMap { button in
             switch button {
@@ -369,14 +383,25 @@ class MessageReactionPicker: UIStackView {
             UIView.animate(withDuration: duration) { backgroundView.alpha = 1 }
         }
 
+        // Tellomi（交互审计 A-07）：原来用 ease-in——起步慢、到位最快，像「撞」上去。改成交互标准的 snap 弹簧
+        // （owner 选「活泼」，带回弹）；减弱动态效果时不位移，只淡入。
+        let reduceMotion = TellomiMotion.isReduceMotionEnabled
+        let snap = TellomiMotion.resolved(TellomiMotion.snap, reduceMotion: reduceMotion)
         var delay: TimeInterval = 0
         for view in self.buttonViews {
             view.alpha = 0
-            view.transform = CGAffineTransform(translationX: 0, y: 24)
-            UIView.animate(withDuration: duration, delay: delay, options: .curveEaseIn, animations: {
-                view.transform = .identity
-                view.alpha = 1
-            })
+            view.transform = reduceMotion ? .identity : CGAffineTransform(translationX: 0, y: 24)
+            UIView.animate(
+                withDuration: max(duration, snap.duration),
+                delay: delay,
+                usingSpringWithDamping: snap.dampingRatio,
+                initialSpringVelocity: 0,
+                options: [.allowUserInteraction, .beginFromCurrentState],
+                animations: {
+                    view.transform = .identity
+                    view.alpha = 1
+                },
+            )
             delay += 0.01
         }
         CATransaction.commit()
@@ -526,6 +551,13 @@ class MessageReactionPicker: UIStackView {
             didSet {
                 label.alpha = isHighlighted ? 0.7 : 1
             }
+        }
+
+        // Tellomi（交互审计 A-07）：给「回应飞入」用。用 isHidden 而不是 alpha，免得高亮状态变化又把它显示出来。
+        var emojiFontSize: CGFloat { label.font.pointSize }
+
+        func hideEmojiForFlyIn() {
+            label.isHidden = true
         }
 
         // MARK: - Layout

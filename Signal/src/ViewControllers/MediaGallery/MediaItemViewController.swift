@@ -12,6 +12,8 @@ protocol MediaItemViewControllerDelegate: AnyObject {
     func mediaItemViewControllerDidTapMedia(_ viewController: MediaItemViewController)
     func mediaItemViewControllerWillBeginZooming(_ viewController: MediaItemViewController)
     func mediaItemViewControllerFullyZoomedOut(_ viewController: MediaItemViewController)
+    /// Tellomi（#1257，照 Telegram）：超过 30 秒、不循环的视频放完了（查看器把控件叫出来，中间是播放键）。
+    func mediaItemViewControllerVideoDidPlayToEnd(_ viewController: MediaItemViewController)
 }
 
 protocol VideoPlaybackStatusProvider: AnyObject {
@@ -51,7 +53,6 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
 
     var videoPlayerView: VideoPlayerView? { mediaView as? VideoPlayerView }
     var videoPlayer: VideoPlayer? { videoPlayerView?.videoPlayer }
-    private var buttonPlayVideo: UIButton?
 
     private var downloadTask: Task<Void, Never>?
 
@@ -59,31 +60,11 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
         scrollView.zoomOut(animated: animated)
     }
 
-    private func configureVideoPlaybackControls() {
-        guard isVideo else {
-            return
-        }
+    // Tellomi（#1257，照 Telegram）：上游每页一个、只在没播时出现的 92 播放键去掉了，
+    // 换成查看器正中跟着四角按钮一起出现的播放 / 暂停（MediaVideoCenterControlsView）。
 
-        if galleryItem.isVideoReadyToPlay {
-            let buttonConfiguration = UIButton.Configuration.roundMedia(
-                image: UIImage(imageLiteralResourceName: "play-fill-48"),
-                size: 92,
-            )
-            let button = UIButton(
-                configuration: buttonConfiguration,
-                primaryAction: UIAction { [weak self] _ in
-                    self?.playVideo()
-                },
-            )
-            button.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(button)
-            NSLayoutConstraint.activate([
-                button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                button.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            ])
-            self.buttonPlayVideo = button
-        }
-    }
+    /// Tellomi（#1257，照 Telegram，同 Android 的 LOOP_MAX_DURATION_MS）：30 秒以内的视频循环播放。
+    static let loopMaxDuration: TimeInterval = 30
 
     // MARK: - Media Views
 
@@ -106,7 +87,6 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
 
         // Video Playback controls
         if isVideo {
-            configureVideoPlaybackControls()
             if shouldAutoPlayVideo, !hasAutoPlayedVideo {
                 playVideo()
                 hasAutoPlayedVideo = true
@@ -279,11 +259,6 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
 
         view.addSubview(scrollView)
         scrollView.autoPinEdgesToSuperviewEdges()
-
-        // Video Playback controls
-        if isVideo {
-            configureVideoPlaybackControls()
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -357,6 +332,23 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
         }
     }
 
+    /// Tellomi（#1257，照 Telegram iOS `UniversalVideoGalleryItemNode.centralityUpdated`：视频成为当前那一项、文件在本地就直接播）：
+    /// 这一页成了查看器的当前页——刚打开、手指横滑、缩略条跳转都走这里。下载好的视频直接播；还没下载完的，下载完（`replaceGalleryItem`）再播。
+    /// 上游翻页不自动播，靠每页正中的播放键；那个键换成跟着四角按钮一起出现的播放 / 暂停以后，停着的视频看上去和图片一样、画面上也没有能点的。
+    func tellomiDidBecomeCurrentPage() {
+        guard isVideo else { return }
+        shouldAutoPlayVideo = true
+        guard !hasAutoPlayedVideo, isViewLoaded, videoPlayerView != nil, galleryItem.isVideoReadyToPlay else { return }
+        playVideo()
+        hasAutoPlayedVideo = true
+    }
+
+    /// 不再是当前页：之后下载完也不自己播；翻回来时再算一次「刚翻到」。
+    func tellomiDidResignCurrentPage() {
+        shouldAutoPlayVideo = false
+        hasAutoPlayedVideo = false
+    }
+
     // MARK: - VideoPlaybackStatusProvider
 
     weak var videoPlaybackStatusObserver: VideoPlaybackStatusObserver?
@@ -395,17 +387,24 @@ extension MediaItemViewController: VideoPlayerDelegate {
     func videoPlayerDidPlayToCompletion(_ videoPlayer: VideoPlayer) {
         guard isVideo, let videoPlayerView else { return }
 
+        // Tellomi（#1257）：30 秒以内的循环；更长的停回开头，并让查看器把控件叫出来。
+        if
+            let duration = videoPlayer.avPlayer.currentItem?.asset.duration.seconds,
+            duration.isFinite, duration > 0, duration <= Self.loopMaxDuration
+        {
+            videoPlayer.seek(to: .zero)
+            videoPlayer.play()
+            return
+        }
+
         videoPlayerView.stop()
-        buttonPlayVideo?.isHidden = false
+        delegate?.mediaItemViewControllerVideoDidPlayToEnd(self)
     }
 }
 
 extension MediaItemViewController: VideoPlayerViewDelegate {
 
     func videoPlayerViewStatusDidChange(_ view: VideoPlayerView) {
-        if let buttonPlayVideo, view.isPlaying {
-            buttonPlayVideo.isHidden = true
-        }
         if let videoPlaybackStatusObserver, let videoPlayer = view.videoPlayer {
             videoPlaybackStatusObserver.videoPlayerStatusChanged(videoPlayer)
         }
