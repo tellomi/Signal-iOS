@@ -41,3 +41,52 @@ class TSContactThreadTest: SSKBaseTest {
         XCTAssertTrue(contactThread().canSendChatMessagesToThread())
     }
 }
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 「我的收藏」（自己的会话）默认在聊天列表里（需求 official-account-and-saved §3.2）。
+class TellomiSavedMessagesTest: SSKBaseTest {
+
+    private func register() {
+        SSKEnvironment.shared.databaseStorageRef.write { tx in
+            (DependenciesBridge.shared.registrationStateChangeManager as! RegistrationStateChangeManagerImpl).registerForTests(
+                localIdentifiers: .forUnitTests,
+                tx: tx,
+            )
+        }
+    }
+
+    private func savedMessagesIsVisible() -> Bool {
+        SSKEnvironment.shared.databaseStorageRef.read { tx in
+            let localAddress = LocalIdentifiers.forUnitTests.aciAddress
+            return TSContactThread.getWithContactAddress(localAddress, transaction: tx)?.shouldThreadBeVisible ?? false
+        }
+    }
+
+    func testNothingIsCreatedBeforeRegistrationAndTheOneTimeListingStillHappensAfterwards() {
+        SSKEnvironment.shared.databaseStorageRef.write { tx in TellomiSavedMessages.ensureListedOnce(tx: tx) }
+        XCTAssertFalse(savedMessagesIsVisible())
+
+        register()
+        SSKEnvironment.shared.databaseStorageRef.write { tx in TellomiSavedMessages.ensureListedOnce(tx: tx) }
+        XCTAssertTrue(savedMessagesIsVisible())
+    }
+
+    func testItIsListedOnceStaysOutAfterTheUserDeletesItAndTheSettingsEntryBringsItBack() {
+        register()
+        let thread = SSKEnvironment.shared.databaseStorageRef.write { tx in
+            TellomiSavedMessages.ensureListedOnce(tx: tx)
+            return TSContactThread.getWithContactAddress(LocalIdentifiers.forUnitTests.aciAddress, transaction: tx)!
+        }
+        XCTAssertTrue(savedMessagesIsVisible())
+
+        SSKEnvironment.shared.databaseStorageRef.write { tx in
+            thread.updateWithShouldThreadBeVisible(false, transaction: tx)
+            TellomiSavedMessages.ensureListedOnce(tx: tx)
+        }
+        XCTAssertFalse(savedMessagesIsVisible())
+
+        SSKEnvironment.shared.databaseStorageRef.write { tx in _ = TellomiSavedMessages.list(tx: tx) }
+        XCTAssertTrue(savedMessagesIsVisible())
+    }
+}
