@@ -368,25 +368,32 @@ final class TellomiForwardGridTests: SignalBaseTest {
         let grid = hosted.grid
         let collectionView = grid.collectionViewForTesting
         let metrics = grid.metricsForTesting
+        let card = components(TellomiForwardGridViewController.Colors.card, traits: grid.traitCollection)
 
-        // 第二行第二格：头像圆心在格子里 (中线, 4 + 30)。滚到这一圈正好落在贴顶的标题区中间（标题区高 64）
+        // 第二行第二格。头像圆心在格子里 (中线, 4 + 30)；取圆环上、字母以外的一点（圆心左边 22）
         let item = IndexPath(item: metrics.columns + 1, section: 0)
         let cellFrame = try XCTUnwrap(collectionView.layoutAttributesForItem(at: item)?.frame)
         let avatarCenterY = cellFrame.minY + 4 + 30
+        let ringPoint = CGPoint(x: cellFrame.midX - 22, y: avatarCenterY)
+
+        // 先让它露在标题区下面：头像确实画出了颜色，这条用例才有意义
+        collectionView.contentOffset.y = avatarCenterY - 64 - 100
+        collectionView.layoutIfNeeded()
+        try await settle()
+        let avatar = pixel(render(hosted.window), at: collectionView.convert(ringPoint, to: hosted.window))
+        XCTAssertGreaterThan(distance(avatar, card), 0.2, "格子的头像没画出来（\(avatar)），量不了标题区")
+
+        // 再滚到这一圈正好落在贴顶的标题区中间（标题区高 64）
         collectionView.contentOffset.y = avatarCenterY - 32
         collectionView.layoutIfNeeded()
         try await settle()
         XCTAssertEqual(grid.headerFrameInCardForTesting.minY, 0, accuracy: 0.5, "标题区贴在卡片顶端")
-
-        // 头像圆环上、字母以外的一点（圆心左边 22）：在标题区里，也不在标题、副标题、两个按钮上
-        let ringPoint = collectionView.convert(CGPoint(x: cellFrame.midX - 22, y: avatarCenterY), to: hosted.window)
         let image = render(hosted.window)
-        let card = components(TellomiForwardGridViewController.Colors.card, traits: grid.traitCollection)
-        let underHeader = pixel(image, at: ringPoint)
+        let underHeader = pixel(image, at: collectionView.convert(ringPoint, to: hosted.window))
         XCTAssertLessThan(
             distance(underHeader, card),
             0.04,
-            "标题区里看到的是底下格子的头像（\(underHeader)），应当是卡片底色（\(card)）",
+            "标题区里透出了底下格子的头像（\(underHeader)，头像本身 \(avatar)），应当是卡片底色（\(card)）",
         )
 
         // 卡片左上角外侧那一点是压暗层，不是方角的标题区
@@ -472,8 +479,9 @@ final class TellomiForwardGridTests: SignalBaseTest {
         let field = grid.searchFieldFrameInWindowForTesting
         let state = "offset \(collectionView.contentOffset.y) inset \(collectionView.contentInset.top) card \(card) header \(grid.headerFrameInCardForTesting) field \(field) safeTop \(hosted.window.safeAreaInsets.top) firstResponder \(grid.isSearchFieldFirstResponderForTesting)"
         XCTAssertEqual(card.minY, hosted.window.safeAreaInsets.top + 8, accuracy: 0.5, "搜索态卡片展开到状态栏下方：\(state)")
-        XCTAssertEqual(grid.headerFrameInCardForTesting.minY, 0, accuracy: 0.5, "搜索框所在的标题区贴在卡片顶端：\(state)")
         XCTAssertEqual(field.minY, card.minY + 14, accuracy: 0.5, "搜索框离卡片顶 14：\(state)")
+        // 结果从搜索栏下面开始：网格停在停放位置，没有被系统为了「露出搜索框」往下推
+        XCTAssertEqual(collectionView.contentOffset.y, -collectionView.contentInset.top, accuracy: 0.5, "搜索结果被往下推了：\(state)")
     }
 
     /// F-3 / F-10：右上角「分享到其他 App」只在内容能分享时出现，点它交给系统分享面板。
