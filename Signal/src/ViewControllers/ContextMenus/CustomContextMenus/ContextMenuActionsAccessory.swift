@@ -42,12 +42,14 @@ public class ContextMenuActionsAccessory: ContextMenuTargetedPreviewAccessory, C
 
         setMenuLayerAnchorPoint()
 
-        menuView.transform = CGAffineTransform.scale(minimumScale)
+        // Tellomi（交互审计 A-06）：减弱动态效果时不从消息角上「长」出来，只淡入。
+        let reduceMotion = MainActor.assumeIsolated { TellomiMotion.isReduceMotionEnabled }
+        menuView.transform = reduceMotion ? .identity : CGAffineTransform.scale(minimumScale)
         menuView.isHidden = false
         UIView.animate(
             withDuration: duration,
             delay: 0,
-            usingSpringWithDamping: springDamping,
+            usingSpringWithDamping: reduceMotion ? 1 : springDamping,
             initialSpringVelocity: springInitialVelocity,
             options: [.curveEaseInOut, .beginFromCurrentState],
             animations: {
@@ -71,12 +73,15 @@ public class ContextMenuActionsAccessory: ContextMenuTargetedPreviewAccessory, C
     ) {
 
         setMenuLayerAnchorPoint()
+        let reduceMotion = MainActor.assumeIsolated { TellomiMotion.isReduceMotionEnabled }
         UIView.animate(
             withDuration: duration,
             delay: 0,
             options: [.curveEaseInOut, .beginFromCurrentState],
             animations: {
-                self.menuView.transform = CGAffineTransform.scale(self.minimumScale)
+                if !reduceMotion {
+                    self.menuView.transform = CGAffineTransform.scale(self.minimumScale)
+                }
             },
             completion: { _ in
                 completion()
@@ -439,6 +444,11 @@ private class ContextMenuActionsView: UIView, UIGestureRecognizerDelegate, UIScr
 
     override func layoutSubviews() {
         super.layoutSubviews()
+
+        // Tellomi（交互审计 A-06）：iOS 26 以下这块菜单带半径 64 的阴影，缩放动画里每帧离屏渲染；给它路径。
+        if #unavailable(iOS 26) {
+            layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
+        }
 
         backdropView.frame = bounds
         scrollView.frame = bounds

@@ -368,7 +368,15 @@ public class SystemStoryManager: SystemStoryManagerProtocol {
 
     // MARK: - Implementation
 
+    /// Tellomi：没有自己的引导故事，不下载（owner 以后决定要不要做 Tellomi 自己的）。updates.tellomi.app 上的清单是
+    /// `{"version":0,"languages":{}}`——照上游去取，每次启动解码报错、重试；languages 为空时 `filenames(for:or:)` 还会抛
+    /// OWSAssertionError。只有上游的下载用例把它打开。
+    static var tellomiDownloadsOnboardingStory = false
+
     private func downloadOnboardingStoryIfNeeded() async throws {
+        guard Self.tellomiDownloadsOnboardingStory else {
+            return
+        }
         let knownViewStatus = SSKEnvironment.shared.databaseStorageRef.read {
             self.onboardingStoryViewStatus(transaction: $0)
         }
