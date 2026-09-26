@@ -275,12 +275,37 @@ class InternalSettingsViewController: OWSTableViewController2 {
         section.add(.actionItem(withText: "Refresh") { [weak self] in
             self?.updateTableContents()
         })
+        // #1056 第四刀：手动跑一次选路器的探测，看它会怎么建议（不切区）
+        section.add(.actionItem(withText: "Probe Regions") { [weak self] in
+            self?.probeTellomiRegions(provider: provider)
+        })
         for profile in provider.profiles {
             section.add(.actionItem(withText: "Switch to \(profile.id.rawValue)\(profile.enabled ? "" : " (disabled)")") { [weak self] in
                 self?.switchTellomiRegion(to: profile.id, provider: provider)
             })
         }
         return section
+    }
+
+    private func probeTellomiRegions(provider: TellomiNetProvider) {
+        Task { @MainActor [weak self] in
+            let decision = await TellomiRegionSelector.forProvider(provider).probe()
+            let lines = decision.results
+                .sorted { $0.key.rawValue < $1.key.rawValue }
+                .map { id, result in
+                    switch result {
+                    case .ok(let rtt):
+                        return "\(id.rawValue): \(Int(rtt * 1000)) ms"
+                    case .failed(let error):
+                        return "\(id.rawValue): failed (\(error))"
+                    }
+                }
+            OWSActionSheets.showActionSheet(
+                title: "\(decision.reason.rawValue): \(decision.current.rawValue) → \(decision.recommended.rawValue)",
+                message: lines.joined(separator: "\n"),
+                fromViewController: self,
+            )
+        }
     }
 
     private func switchTellomiRegion(to id: TellomiRegionId, provider: TellomiNetProvider) {

@@ -136,6 +136,17 @@ public enum TellomiRegions {
         TellomiNetProvider.installed?.profiles ?? processProfiles
     }
 
+    /// libsignal `Net` 连 `grpcChatHost` 用的端口（`Net(customServerHostname:chatPort:)`，缺省 443）。
+    /// 包里的区恒为 443。测试构建里测试区带了端口（见 `testRegionProfiles`），就跟测试区 chat URL 上的端口走。
+    public static func chatPort(for region: TellomiRegionProfile) -> UInt16 {
+#if TESTABLE_BUILD
+        if region.id == .cn, region.enabled, let port = URLComponents(string: region.chat)?.port, let chatPort = UInt16(exactly: port) {
+            return chatPort
+        }
+#endif
+        return 443
+    }
+
     /// 记住的区 id → 区。回落规则是纯函数，单测直接测它。
     static func resolve(storedId: String?, profiles: [TellomiRegionProfile] = all) -> TellomiRegionProfile {
         profiles.first { $0.id.rawValue == storedId && $0.enabled } ?? global
@@ -225,9 +236,13 @@ public enum TellomiRegions {
     /// 启动环境变量，值是一个域名，例如 `tellomi.test`。
     static let testRegionDomainKey = "TELLOMI_TEST_REGION_DOMAIN"
 
+    /// 可选的启动环境变量，值是 1–65535 的端口：测试区的每个 URL 端点和 libsignal 的 chat 端口（`chatPort(for:)`）都改用它。
+    /// 模拟器走 Mac 自己的网络栈，非 root 在 127.0.0.1 上绑不了 443，给测试区接的本机中继只能听高端口。
+    static let testRegionPortKey = "TELLOMI_TEST_REGION_PORT"
+
     /// 带 `TELLOMI_TEST_REGION_DOMAIN` 启动时，CN 档换成一个**开着的**测试区：同名标签挂到那个域下
-    /// （`chat.<域>`、`grpc.chat.<域>`、`cdn3.<域>`…，路径和端口不变）。用来在 CN 保持关闭、`tellomi.cn` 下
-    /// 没有任何 DNS 记录的前提下验切区（#1056 判据 1、2）。
+    /// （`chat.<域>`、`grpc.chat.<域>`、`cdn3.<域>`…，路径不变；端口也不变，除非带了 `TELLOMI_TEST_REGION_PORT`）。
+    /// 用来在 CN 保持关闭、`tellomi.cn` 下没有任何 DNS 记录的前提下验切区（#1056 判据 1、2）。
     ///
     /// 只换本进程的表，不改 `all`，所以 `problems(all)` 和第二刀的门禁照旧。NSE、分享扩展由系统启动，
     /// 没有这个变量：store 里记的 `cn` 在那边按规则回落 global。值不像域名就当没设。
@@ -235,8 +250,49 @@ public enum TellomiRegions {
         guard let domain = environment[testRegionDomainKey], isPlausibleTestDomain(domain) else {
             return all
         }
-        let testRegion = cnOf(global, domain: "." + domain, enabled: true)
+        var testRegion = cnOf(global, domain: "." + domain, enabled: true)
+        if let port = testRegionPort(environment) {
+            testRegion = withPort(testRegion, port: port)
+        }
         return all.map { $0.id == .cn ? testRegion : $0 }
+    }
+
+    /// `TELLOMI_TEST_REGION_PORT` 的值；不是 1–65535 的整数就当没设。
+    private static func testRegionPort(_ environment: [String: String]) -> Int? {
+        guard let value = environment[testRegionPortKey], let port = Int(value), (1...65535).contains(port) else {
+            return nil
+        }
+        return port
+    }
+
+    /// 每个 URL 端点改到 `port`，主机和路径不变。只写主机名的两个字段不带端口：libsignal 的端口由 `chatPort(for:)`
+    /// 从 chat URL 上取，uptime 只做 DNS 解析；内容代理的端口是单独一个字段，一起改。
+    private static func withPort(_ region: TellomiRegionProfile, port: Int) -> TellomiRegionProfile {
+        let repoint = { (url: String) -> String in
+            guard var components = URLComponents(string: url) else {
+                return url
+            }
+            components.port = port
+            return components.string ?? url
+        }
+        return TellomiRegionProfile(
+            id: region.id,
+            enabled: region.enabled,
+            chat: repoint(region.chat),
+            grpcChatHost: region.grpcChatHost,
+            storage: repoint(region.storage),
+            cdn0: repoint(region.cdn0),
+            cdn2: repoint(region.cdn2),
+            cdn3: repoint(region.cdn3),
+            updates: repoint(region.updates),
+            contentProxyHost: region.contentProxyHost,
+            contentProxyPort: port,
+            captchaRegistration: repoint(region.captchaRegistration),
+            captchaChallenge: repoint(region.captchaChallenge),
+            sfu: repoint(region.sfu),
+            uptimeHost: region.uptimeHost,
+            debugLog: repoint(region.debugLog),
+        )
     }
 
     private static func isPlausibleTestDomain(_ domain: String) -> Bool {
