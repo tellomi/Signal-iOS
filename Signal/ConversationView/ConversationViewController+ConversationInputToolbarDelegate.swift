@@ -671,7 +671,9 @@ private extension ConversationViewController {
 
     // MARK: - Media Library
 
-    func takePictureOrVideo() {
+    /// Tellomi（#1261 P-8）：`presenter` / `sendMediaNavDelegate` 给选图面板的相机格用（见文件末尾 `tellomiTakePictureOrVideo`）；
+    /// 其它入口照旧（都是 nil = 会话页自己）。
+    func takePictureOrVideo(presenter: UIViewController? = nil, sendMediaNavDelegate: SendMediaNavDelegate? = nil) {
         AssertIsOnMainThread()
 
         let attachmentLimits = OutgoingAttachmentLimits.currentLimits()
@@ -693,7 +695,7 @@ private extension ConversationViewController {
                     hasQuotedReplyDraft: self.inputToolbar?.quotedReplyDraft != nil,
                     attachmentLimits: attachmentLimits,
                 )
-                pickerModal.sendMediaNavDelegate = self
+                pickerModal.sendMediaNavDelegate = sendMediaNavDelegate ?? self
                 pickerModal.sendMediaNavDataSource = self
                 pickerModal.modalPresentationStyle = .overFullScreen
                 // Defer hiding status bar until modal is fully onscreen
@@ -703,7 +705,7 @@ private extension ConversationViewController {
                     pickerModal.modalPresentationCapturesStatusBarAppearance = true
                 }
                 self.dismissKeyBoard()
-                self.present(pickerModal, animated: true) {
+                (presenter ?? self).present(pickerModal, animated: true) {
                     if pickerHidesStatusBar {
                         pickerModal.modalPresentationCapturesStatusBarAppearance = true
                         pickerModal.setNeedsStatusBarAppearanceUpdate()
@@ -714,6 +716,13 @@ private extension ConversationViewController {
     }
 
     func chooseFromLibrary() {
+        AssertIsOnMainThread()
+
+        // Tellomi（tellomi/tellomi#1261）：换成 Telegram 式的选图网格；没有「照片」权限时照旧用下面的系统选择器。
+        chooseFromLibraryWithTellomiPicker { [weak self] in self?.chooseFromLibraryWithNativePicker() }
+    }
+
+    func chooseFromLibraryWithNativePicker() {
         AssertIsOnMainThread()
 
         let pickerModal = SendMediaNavigationController.showingNativePicker(
@@ -927,13 +936,15 @@ extension ConversationViewController: SendMediaNavDelegate {
     }
 
     /// Attempts to send attachments. Handles prompting to unblock or un-verify safety numbers, as well as showing failure states.
+    /// Tellomi（#1261）：返回是否发出去了（「单独发送」上一条没发出就停）。
     @MainActor
+    @discardableResult
     func sendAttachments(
         _ approvedAttachments: ApprovedAttachments,
         messageBody: MessageBody?,
         from viewController: UIViewController,
         attachmentLimits: OutgoingAttachmentLimits,
-    ) async {
+    ) async -> Bool {
         let didSend: Bool
         do {
             didSend = try await tryToSendAttachments(
@@ -944,10 +955,10 @@ extension ConversationViewController: SendMediaNavDelegate {
             )
         } catch {
             self.showErrorAlert(attachmentError: error as? SignalAttachmentError)
-            return
+            return false
         }
         guard didSend else {
-            return
+            return false
         }
         if
             approvedAttachments.attachments.count == 1,
@@ -962,6 +973,7 @@ extension ConversationViewController: SendMediaNavDelegate {
         // we want to already be at the bottom when the user returns, rather than have to watch
         // the new message scroll into view.
         scrollToBottomOfConversation(animated: true)
+        return true
     }
 
     func sendMediaNav(
@@ -1038,5 +1050,14 @@ extension ConversationViewController: PollSendDelegate {
             ),
             thread: self.thread,
         )
+    }
+}
+
+// MARK: - Tellomi
+
+extension ConversationViewController {
+    /// Tellomi（tellomi/tellomi#1261 P-8）：选图面板的相机格从面板上面打开相机（上面的 `takePictureOrVideo` 在 private 扩展里）。
+    func tellomiTakePictureOrVideo(presenter: UIViewController, sendMediaNavDelegate: SendMediaNavDelegate) {
+        takePictureOrVideo(presenter: presenter, sendMediaNavDelegate: sendMediaNavDelegate)
     }
 }
