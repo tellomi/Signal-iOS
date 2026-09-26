@@ -1080,7 +1080,9 @@ public extension AVCaptureVideoOrientation {
 /// 扫到旁边别人屏幕上的关联码，就是把别人的电脑关联进自己的账号。
 ///
 /// 规则照 Telegram iOS 的扫码页：码的中心要落在画面中间 40%（横竖都在 0.3–0.7），同一个码连续对准 0.5 秒才放行；
-/// 中途换成别的码，或者离开中心区超过 `maxGapInterval`，都重新计时。和 Android 的 `org.signal.camera.TellomiQrFocus` 同一套规则。
+/// 中途换成别的码，或者看到没对准的帧、并且离上次对准超过 `maxGapInterval`，都重新计时。和 Android 的 `org.signal.camera.TellomiQrFocus` 同一套规则。
+/// 帧本身来得慢（每帧都对准、中间没有别的帧）不算中断：只有真的看到没对准的帧，才按间隔判「丢失」，
+/// 不然处理一帧超过 `maxGapInterval` 时每一帧都会重新计时，永远不放行（taishi 中转包 8 审 a12 / a13 不阻塞 1）。
 /// 只在视频输出队列上用，不做同步。
 public final class TellomiQrFocus {
     private static let region: ClosedRange<CGFloat> = 0.3...0.7
@@ -1092,6 +1094,8 @@ public final class TellomiQrFocus {
     private var candidate: String?
     private var firstSeenAt: TimeInterval = 0
     private var lastSeenAt: TimeInterval = 0
+    /// 上次对准之后，出现过没对准的帧（没识别出、不在中心区）。
+    private var missedSinceLastSeen = false
 
     public init(
         requiredStableInterval: TimeInterval = 0.5,
@@ -1112,16 +1116,18 @@ public final class TellomiQrFocus {
     public func onFrame(code: String?, center: CGPoint?) -> Bool {
         let now = self.now()
         guard let code, let center, Self.isInCenter(center) else {
+            missedSinceLastSeen = true
             if candidate != nil, now - lastSeenAt > maxGapInterval {
                 candidate = nil
             }
             return false
         }
-        if code != candidate || now - lastSeenAt > maxGapInterval {
+        if code != candidate || (missedSinceLastSeen && now - lastSeenAt > maxGapInterval) {
             candidate = code
             firstSeenAt = now
         }
         lastSeenAt = now
+        missedSinceLastSeen = false
         return now - firstSeenAt >= requiredStableInterval
     }
 }
