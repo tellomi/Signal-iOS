@@ -10845,6 +10845,9 @@
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "用戶名稱都會與一組數字配對。 %1$@";
 
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "別人可以透過用戶名稱找到你、傳訊息給你，不需要知道你的電話號碼。";
+
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "選擇你的使用者名稱";
 
