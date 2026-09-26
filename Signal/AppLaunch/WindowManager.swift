@@ -31,7 +31,7 @@ extension UIWindow.Level {
     fileprivate static let _updateRequiredBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 3)
 }
 
-class WindowManager {
+class WindowManager: TellomiUpdateRequiredBlockHost {
 
     init() {
         AssertIsOnMainThread()
@@ -64,17 +64,18 @@ class WindowManager {
         return shouldShowCallView ? callViewWindow : rootWindow
     }
 
-    /// Tellomi（tellomi/tellomi#1139）：非 nil 时用「必须更新」阻断页盖住整个 App（由 `TellomiUpdateRequiredMonitoringManager` 设置）。
-    var updateRequiredBlockReason: TellomiUpdateRequiredAppBlockingViewController.Reason? {
+    /// Tellomi（tellomi/tellomi#1139）：为真时用「必须更新」阻断页盖住整个 App（由 `TellomiUpdateRequiredMonitoringManager` 设置）。
+    var isUpdateRequiredBlockActive: Bool = false {
         didSet {
             AssertIsOnMainThread()
-            guard updateRequiredBlockReason != oldValue else { return }
-            if let updateRequiredBlockReason {
-                updateRequiredBlockingViewController.reason = updateRequiredBlockReason
-            }
+            guard isUpdateRequiredBlockActive != oldValue else { return }
             ensureWindowState()
+            NotificationCenter.default.post(name: .tellomiUpdateRequiredBlockDidChange, object: nil)
         }
     }
+
+    /// Tellomi：阻断页上确认了「暂不更新，只看聊天记录」（owner 2026-09-24 规则 1）。
+    var updateRequiredViewChatsOnlyHandler: (@MainActor () -> Void)?
 
     var isScreenBlockActive: Bool = false {
         didSet {
@@ -188,13 +189,21 @@ class WindowManager {
     private var screenBlockingWindow: UIWindow!
 
     // UIWindow.Level._updateRequiredBlocking（Tellomi，tellomi/tellomi#1139）
-    private lazy var updateRequiredBlockingViewController = TellomiUpdateRequiredAppBlockingViewController(
-        reason: .serverRejected,
-        openUpdatePage: {
-            // Signal-iOS#23（tellomi/tellomi#1046）把它从 Signal 的 App Store 页改成了官网下载页。
-            UIApplication.shared.open(TSConstants.appStoreUrl)
-        },
-    )
+    private lazy var updateRequiredBlockingViewController = Self.makeUpdateRequiredBlockingViewController(host: self)
+
+    /// 拆成静态方法，是为了用例能走这里真的接线（taishi 审查 b15 启用前置 2）。
+    static func makeUpdateRequiredBlockingViewController(host: TellomiUpdateRequiredBlockHost) -> TellomiUpdateRequiredAppBlockingViewController {
+        return TellomiUpdateRequiredAppBlockingViewController(
+            openUpdatePage: {
+                // 阻断页只在 appStoreUrl 就是我们配的更新渠道时才会出现
+                // （TellomiUpdateRequiredMonitoringManager.hasUpdateChannel），不会把人送去装别的 App。
+                UIApplication.shared.open(TSConstants.appStoreUrl)
+            },
+            viewChatsOnly: { [weak host] in
+                host?.updateRequiredViewChatsOnlyHandler?()
+            },
+        )
+    }
 
     private lazy var updateRequiredBlockingWindow: UIWindow = {
         AssertIsOnMainThread()
@@ -222,6 +231,26 @@ class WindowManager {
         // window level and are shown/hidden as necessary.
         //
         // Note that we always "hide" before we "show".
+
+        // Tellomi（tellomi/tellomi#1139）：「必须更新」照上游两个阻断窗口（应用锁、时钟偏差）的写法，先把根窗口和通话窗口藏起来，
+        // 免得会话列表在下面继续显示、被旁白读到（taishi 审查 b15 要改 2）。锁窗口照旧按 isScreenBlockActive 处理，
+        // 所以选了「只看聊天记录」、收起阻断页以后，锁上着就先看到应用锁。
+        // 通话中先不盖（上游的时钟偏差页也排在通话后面），挂断后 ensureWindowState 会再盖上。
+        if isUpdateRequiredBlockActive, !hasCall {
+            if isScreenBlockActive {
+                ensureScreenBlockWindowShown()
+            } else {
+                ensureScreenBlockWindowHidden()
+            }
+            ensureRootWindowHidden()
+            ensureReturnToCallWindowHidden()
+            ensureCallViewWindowHidden()
+            ensureClockSkewBlockWindowHidden()
+            ensureUpdateRequiredBlockWindowShown()
+            return
+        }
+        ensureUpdateRequiredBlockWindowHidden()
+
         if isScreenBlockActive {
             ensureScreenBlockWindowShown()
             ensureRootWindowHidden()
@@ -259,14 +288,6 @@ class WindowManager {
             }
 
             ensureCallViewWindowHidden()
-        }
-
-        // Tellomi（tellomi/tellomi#1139）：「必须更新」窗口层级最高，下面各窗口照常切换；
-        // 放在最后，让它最后一个 makeKeyAndVisible。
-        if updateRequiredBlockReason != nil {
-            ensureUpdateRequiredBlockWindowShown()
-        } else {
-            ensureUpdateRequiredBlockWindowHidden()
         }
     }
 

@@ -23,7 +23,41 @@ public extension Bundle {
 
 @inlinable
 public func OWSLocalizedString(_ key: String, tableName: String? = nil, value: String = "", comment: String) -> String {
-    return NSLocalizedString(key, tableName: tableName, bundle: .main.app, value: value, comment: comment)
+    return TellomiLocalization.localizedString(key, tableName: tableName, value: value)
+}
+
+/// Tellomi：iOS 在当前语言的字符串表里找不到某个键时**不会回落到英文**，而是把键名原样显示出来
+/// （实测：de 表缺键时 `localizedString(forKey:value:"",table:)` 返回的就是键名本身）。
+/// 上游靠发版前由翻译平台把每种语言补齐；Tellomi 新加的文案只写中文和英文，其余几十种语言的用户
+/// 会在界面上直接看到 `ONBOARDING_…` 这样的键名。这里在当前语言缺键时退回 en.lproj，
+/// 英文也没有才照上游返回 `value` / 键名。
+public enum TellomiLocalization {
+    /// 不可能出现在任何译文里的哨兵，用来区分「表里没有这个键」和「译文恰好等于键名」。
+    private static let missingSentinel = "\u{0}tellomi-missing-localization\u{0}"
+
+    private static let appEnglishBundle: Bundle? = englishBundle(in: .main.app)
+
+    static func englishBundle(in bundle: Bundle) -> Bundle? {
+        return bundle.path(forResource: "en", ofType: "lproj").flatMap { Bundle(path: $0) }
+    }
+
+    public static func localizedString(_ key: String, tableName: String?, value: String) -> String {
+        return localizedString(key, tableName: tableName, value: value, bundle: .main.app, englishBundle: appEnglishBundle)
+    }
+
+    static func localizedString(_ key: String, tableName: String?, value: String, bundle: Bundle, englishBundle: Bundle?) -> String {
+        let localized = bundle.localizedString(forKey: key, value: missingSentinel, table: tableName)
+        if localized != missingSentinel {
+            return localized
+        }
+        if let englishBundle {
+            let english = englishBundle.localizedString(forKey: key, value: missingSentinel, table: tableName)
+            if english != missingSentinel {
+                return english
+            }
+        }
+        return value.isEmpty ? key : value
+    }
 }
 
 extension String {
