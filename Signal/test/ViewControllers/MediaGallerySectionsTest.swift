@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import UIKit
 import XCTest
 
 @testable import Signal
@@ -1569,6 +1570,160 @@ extension MediaGallerySections {
                 batchSize: batchSize,
                 transaction: transaction,
             )
+        }
+    }
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 直接读某个语言的 Localizable.strings（测试跑在英文下，要看译文有没有写进去）。
+private func tellomiLocalizedString(_ key: String, _ localization: String) -> String? {
+    guard let path = Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: localization) else {
+        return nil
+    }
+    return NSDictionary(contentsOfFile: path)?[key] as? String
+}
+
+/// 「我的收藏」顶栏下方的分类（需求 official-account-and-saved §3.2 第 1 条）。
+@MainActor
+class TellomiSavedCategoryTest: XCTestCase {
+
+    func testOnlyKindsWithContentAreListedInAFixedOrderAfterAll() {
+        XCTAssertEqual(TellomiSavedCategory.toShow(withContent: []), [])
+        XCTAssertEqual(TellomiSavedCategory.toShow(withContent: [.links, .media]), [.all, .media, .links])
+        XCTAssertEqual(TellomiSavedCategory.toShow(withContent: [.voice, .files]), [.all, .files, .voice])
+    }
+
+    func testEachCategoryOpensItsOwnAllMediaSegmentAndAllIsTheChatItself() {
+        XCTAssertNil(TellomiSavedCategory.all.allMediaSegmentIndex)
+        XCTAssertEqual(TellomiSavedCategory.media.allMediaSegmentIndex, AllMediaCategory.photoVideo.rawValue)
+        XCTAssertEqual(TellomiSavedCategory.voice.allMediaSegmentIndex, AllMediaCategory.audio.rawValue)
+        XCTAssertEqual(TellomiSavedCategory.files.allMediaSegmentIndex, AllMediaCategory.otherFiles.rawValue)
+        XCTAssertEqual(TellomiSavedCategory.links.allMediaSegmentIndex, 3)
+    }
+
+    func testTappingACategoryButtonReportsThatCategory() {
+        var tapped: [TellomiSavedCategory] = []
+        let view = TellomiSavedCategoriesView(categories: [.all, .media, .links]) { tapped.append($0) }
+
+        func buttons(in view: UIView) -> [UIButton] {
+            return view.subviews.flatMap { subview -> [UIButton] in
+                if let button = subview as? UIButton {
+                    return [button]
+                }
+                return buttons(in: subview)
+            }
+        }
+        let found = buttons(in: view)
+        XCTAssertEqual(found.map { $0.configuration?.title }, ["All", "Photos & Videos", "Links"])
+
+        found[2].sendActions(for: .touchUpInside)
+        found[0].sendActions(for: .touchUpInside)
+        XCTAssertEqual(tapped, [.links, .all])
+    }
+
+    func testTheLinksSegmentIsShownOverTheMediaGridAndHidesTheFooter() {
+        let helper = MediaGalleryAccessoriesHelper()
+        var changes: [Bool] = []
+        helper.tellomiLinksSelectionChanged = { changes.append($0) }
+
+        helper.tellomiSelectSegment(TellomiSavedCategory.linksSegmentIndex)
+        XCTAssertTrue(helper.tellomiIsShowingLinks)
+        helper.tellomiSelectSegment(AllMediaCategory.otherFiles.rawValue)
+        XCTAssertFalse(helper.tellomiIsShowingLinks)
+        XCTAssertEqual(changes, [true, false])
+    }
+
+    func testLinksAreSearchedByTitleOrAddress() {
+        let item = TellomiSavedLinks.Item(
+            interactionUniqueId: "1",
+            url: URL(string: "https://tellomi.app/download")!,
+            title: "Tellomi — 越聊，越懂你。",
+            timestamp: 0,
+        )
+        XCTAssertTrue(TellomiSavedLinks.matches(item, query: nil))
+        XCTAssertTrue(TellomiSavedLinks.matches(item, query: "越懂"))
+        XCTAssertTrue(TellomiSavedLinks.matches(item, query: "DOWNLOAD"))
+        XCTAssertFalse(TellomiSavedLinks.matches(item, query: "发票"))
+    }
+
+    func testTheWordsAreTranslated() {
+        XCTAssertEqual(tellomiLocalizedString("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_MEDIA", "zh_CN"), "图片与视频")
+        XCTAssertEqual(tellomiLocalizedString("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_VOICE", "zh_TW"), "語音")
+        XCTAssertEqual(tellomiLocalizedString("ALL_MEDIA_FILE_TYPE_TELLOMI_LINKS", "zh_HK"), "連結")
+        XCTAssertNil(tellomiLocalizedString("ALL_MEDIA_FILE_TYPE_TELLOMI_LINKS", "ja"))
+        XCTAssertEqual(TellomiSavedCategory.links.title, "Links")
+    }
+}
+
+/// 「链接」一段与分类里的「链接」：看消息有没有链接预览（iOS 原来没有这一页）。
+class TellomiSavedLinksTest: SignalBaseTest {
+
+    func testMessagesWithLinkPreviewsAreTheLinksNewestFirst() {
+        let (thread, items, categories) = write { tx -> (TSThread, [TellomiSavedLinks.Item], Set<TellomiSavedCategory>) in
+            let thread = TSContactThread.getOrCreateThread(withContactAddress: SignalServiceAddress.randomForTesting(), transaction: tx)
+            TSOutgoingMessageBuilder.withDefaultValues(thread: thread).build(transaction: tx).anyInsert(transaction: tx)
+            TSOutgoingMessageBuilder.withDefaultValues(
+                thread: thread,
+                linkPreview: OWSLinkPreview(urlString: "https://tellomi.app", title: "Tellomi"),
+            ).build(transaction: tx).anyInsert(transaction: tx)
+            TSOutgoingMessageBuilder.withDefaultValues(
+                thread: thread,
+                linkPreview: OWSLinkPreview(urlString: "https://example.com/a"),
+            ).build(transaction: tx).anyInsert(transaction: tx)
+            return (
+                thread,
+                TellomiSavedLinks.items(threadUniqueId: thread.uniqueId, tx: tx),
+                TellomiSavedCategory.withContent(thread: thread, tx: tx),
+            )
+        }
+
+        XCTAssertEqual(items.map(\.url.absoluteString), ["https://example.com/a", "https://tellomi.app"])
+        XCTAssertEqual(items.map(\.title), [nil, "Tellomi"])
+        XCTAssertEqual(categories, [.links])
+        XCTAssertEqual(TellomiSavedCategory.toShow(withContent: categories), [.all, .links])
+        read { tx in
+            XCTAssertTrue(TellomiSavedLinks.hasAny(threadUniqueId: thread.uniqueId, tx: tx))
+        }
+    }
+
+    /// 编辑过的消息，旧版本（pastRevision）不算——和上游「所有媒体」一样（InteractionFinder 的 editState 条件）。
+    func testEditedMessagesOnlyCountTheirLatestVersion() {
+        let (thread, items, categories) = write { tx -> (TSThread, [TellomiSavedLinks.Item], Set<TellomiSavedCategory>) in
+            let thread = TSContactThread.getOrCreateThread(withContactAddress: SignalServiceAddress.randomForTesting(), transaction: tx)
+            // 旧版本带着链接，编辑后把链接删了
+            TSOutgoingMessageBuilder.withDefaultValues(
+                thread: thread,
+                editState: .pastRevision,
+                linkPreview: OWSLinkPreview(urlString: "https://old.example.com", title: "Old"),
+            ).build(transaction: tx).anyInsert(transaction: tx)
+            TSOutgoingMessageBuilder.withDefaultValues(thread: thread, editState: .latestRevisionRead).build(transaction: tx).anyInsert(transaction: tx)
+            return (
+                thread,
+                TellomiSavedLinks.items(threadUniqueId: thread.uniqueId, tx: tx),
+                TellomiSavedCategory.withContent(thread: thread, tx: tx),
+            )
+        }
+
+        XCTAssertEqual(items, [], "旧版本里的链接不列")
+        XCTAssertEqual(categories, [], "只有旧版本带链接时，「链接」分类不亮")
+        read { tx in
+            XCTAssertFalse(TellomiSavedLinks.hasAny(threadUniqueId: thread.uniqueId, tx: tx))
+        }
+    }
+
+    func testAChatWithOnlyTextHasNoLinksAndNoCategories() {
+        let (thread, categories) = write { tx -> (TSThread, Set<TellomiSavedCategory>) in
+            let thread = TSContactThread.getOrCreateThread(withContactAddress: SignalServiceAddress.randomForTesting(), transaction: tx)
+            TSOutgoingMessageBuilder.withDefaultValues(thread: thread).build(transaction: tx).anyInsert(transaction: tx)
+            return (thread, TellomiSavedCategory.withContent(thread: thread, tx: tx))
+        }
+
+        XCTAssertEqual(categories, [])
+        XCTAssertEqual(TellomiSavedCategory.toShow(withContent: categories), [])
+        read { tx in
+            XCTAssertFalse(TellomiSavedLinks.hasAny(threadUniqueId: thread.uniqueId, tx: tx))
+            XCTAssertEqual(TellomiSavedLinks.items(threadUniqueId: thread.uniqueId, tx: tx), [])
         }
     }
 }
