@@ -10,7 +10,13 @@ import Testing
 @testable import Signal
 @testable import SignalServiceKit
 
-public class RegistrationCoordinatorTest {
+// Tellomi：整个套件串行跑。Swift Testing 默认把这里的约 100 个用例同时放到主 actor 上并发跑，GitHub 的 macOS 模拟器上
+// 主 actor 会被挤满（第三批预合链运行 148：连不 sleep 的用例也要 5 秒左右才跑完）。套件里有按真实时间算的用例——
+// 上游 `testSessionPath_pushChallengeFastResolution` 让令牌 1 秒后到、等待窗口 3 秒，挤满时令牌那一步排到 3 秒之后，
+// 就走成了验证码（运行 162，两种模式都红，这条用例跑了 6.48 秒）；本套件的 ADR-0070 P4 用例也按真实时间等。
+// 上游 `BackupAttachmentDownloadTrackerTest` 等同样用 `@Suite(.serialized)`。
+@Suite(.serialized)
+public final class RegistrationCoordinatorTest {
     // Default to the SSK AEP.
     typealias AccountEntropyPool = SignalServiceKit.AccountEntropyPool
 
