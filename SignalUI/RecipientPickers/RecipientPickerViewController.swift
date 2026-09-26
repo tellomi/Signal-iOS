@@ -339,10 +339,7 @@ public class RecipientPickerViewController: OWSViewController, OWSNavigationChil
                     comment: "A label for the cell that lets you add a new member by their username",
                 ),
                 actionBlock: { [weak self] in
-                    guard let self else { return }
-                    let viewController = FindByUsernameViewController()
-                    viewController.findByUsernameDelegate = self
-                    self.navigationController?.pushViewController(viewController, animated: true)
+                    self?.showFindByUsername(animated: true)
                 },
             ))
 
@@ -1404,6 +1401,16 @@ extension RecipientPickerViewController: FindByPhoneNumberDelegate {
         owsAssertDebug(address.isValid)
 
         tryToSelectRecipient(.for(address: address))
+    }
+}
+
+extension RecipientPickerViewController {
+    /// 推出「按用户名查找」；找到的人照常走 `tryToSelectRecipient`。
+    /// Tellomi（tellomi/tellomi#1218 F-02）：首屏「搜索用户名」卡也从这里进，和列表里那一行同一个入口。
+    public func showFindByUsername(animated: Bool) {
+        let viewController = FindByUsernameViewController()
+        viewController.findByUsernameDelegate = self
+        navigationController?.pushViewController(viewController, animated: animated)
     }
 }
 

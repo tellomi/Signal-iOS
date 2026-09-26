@@ -2170,8 +2170,17 @@
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_TITLE" = "无聊天";
 
+/* Chat list title while the app is connecting to the server. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_CONNECTING_TELLOMI" = "连接中…";
+
 /* Title for the chat list's default mode. */
 "CHAT_LIST_TITLE_INBOX" = "聊天";
+
+/* Chat list title while the app is receiving the messages that arrived while it was offline. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_UPDATING_TELLOMI" = "收取中…";
+
+/* Chat list title while the device has no network connection. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_WAITING_FOR_NETWORK_TELLOMI" = "等待网络…";
 
 /* Title for context menu action to enable Filter by Unread */
 "CHAT_LIST_UNREAD_FILTER_MENU_ACTION" = "按未读筛选";
@@ -3293,7 +3302,7 @@
 "DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "点击下方的“配对新设备”";
 
 /* table cell label in conversation settings */
-"DISAPPEARING_MESSAGES" = "阅后即焚";
+"DISAPPEARING_MESSAGES" = "限时消息";
 
 /* Info Message when added to a group which has enabled disappearing messages. Embeds {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
 "DISAPPEARING_MESSAGES_CONFIGURATION_GROUP_EXISTING_FORMAT" = "此聊天中的消息将在 %1$@后消失。";
@@ -3320,7 +3329,7 @@
 "DISAPPEARING_MESSAGES_HOURS" = "小时";
 
 /* Accessibility label for disappearing messages */
-"DISAPPEARING_MESSAGES_LABEL" = "阅后即焚消息设置";
+"DISAPPEARING_MESSAGES_LABEL" = "限时消息设置";
 
 /* The unit for a number of minutes */
 "DISAPPEARING_MESSAGES_MINUTES" = "分钟";
@@ -4129,8 +4138,14 @@
 /* Accessibility label for the close button in each Get Started card. */
 "GET_STARTED_CARD_CLOSE_A11YLABEL" = "移除建议";
 
+/* 'Get Started' button directing users to find someone by their username */
+"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "搜索用户名";
+
 /* 'Get Started' button directing users to invite friends */
 "GET_STARTED_CARD_INVITE_FRIENDS" = "邀请朋友";
+
+/* 'Get Started' button directing users to their own username QR code */
+"GET_STARTED_CARD_MY_QR_CODE_TELLOMI" = "我的二维码";
 
 /* 'Get Started' button directing users to create a group */
 "GET_STARTED_CARD_NEW_GROUP" = "新群组";
@@ -5401,6 +5416,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "此二维码无效，请确认您想要连接的设备所显示的是此二维码。";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "这个二维码已过期，或者不是 Tellomi 的二维码。请扫描电脑上 Tellomi 当前显示的二维码。";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "绑定设备失败";
 
@@ -5415,6 +5433,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "重试";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "重新扫码";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "使用此设备扫描要链接的设备上显示的二维码";
@@ -5547,6 +5568,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "已关联设备";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "无法连接服务器，或者服务器正忙。请检查网络连接，稍后再试。";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "绑定设备失败";
@@ -6808,7 +6832,7 @@
 "OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomi 很快将不再支持您设备上的 iOS 版本。如要继续使用 Tellomi，请在 %1$@之前切换到更新的设备。";
 
 /* Info Message when another user disabled disappearing messages. Embeds {{name of other user}}. */
-"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 取消了阅后即焚。";
+"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 关闭了限时消息。";
 
 /* Info Message when another user enabled disappearing messages. Embeds {{name of other user}} and {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
 "OTHER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 设置了消息 %2$@ 后消失。";
@@ -7874,6 +7898,12 @@
 
 /* Title of alert shown when push tokens sync job succeeds. */
 "PUSH_REGISTER_SUCCESS" = "成功重新注册了推送.";
+
+/* Tellomi: body of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. Warns that continuing moves the account to that phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_MESSAGE_TELLOMI" = "新手机正在请求转走你的帐户。只有在你自己换手机、正在新手机上注册时才继续。如果是别人让你扫的，请取消——继续会把你的帐户转到对方手机上。";
+
+/* Tellomi: title of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_TITLE_TELLOMI" = "这是转移帐户的二维码";
 
 /* Body for sheet with info about scanning a Quick Restore QR code */
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_BODY" = "使用本设备扫描您目标转移设备上的二维码";
@@ -9091,7 +9121,7 @@
 "SETTINGS_DELETE_HISTORYLOG_CONFIRMATION_SECONDARY_TITLE" = "您确定要删除所有聊天记录吗？";
 
 /* Label for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES" = "阅后即焚消息";
+"SETTINGS_DISAPPEARING_MESSAGES" = "限时消息";
 
 /* Explanation for the 'disappearing messages' privacy settings. */
 "SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "对于您开启的全部新聊天，设置默认的限时消息计时器。";
@@ -10726,10 +10756,10 @@
 "UNKNOWN_USER" = "未知";
 
 /* Info Message when an unknown user disabled disappearing messages. */
-"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "阅后即焚消息已被关闭。";
+"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限时消息已关闭。";
 
 /* Info Message when an unknown user enabled disappearing messages. Embeds {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
-"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "阅后即焚消息的销毁时间被设置为 %1$@。";
+"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限时消息时间已设为 %1$@。";
 
 /* Indicates an unknown or unrecognizable value. */
 "UNKNOWN_VALUE" = "无法识别";
@@ -10853,6 +10883,12 @@
 
 /* Text providing instructions on how to use the username link QR code scanning. */
 "USERNAME_LINK_SCAN_QR_CODE_INSTRUCTIONS_LABEL" = "请扫描您的联系人设备上的二维码。";
+
+/* Tellomi: shown when a device-linking QR code is scanned on a device that is not the primary phone. */
+"USERNAME_LINK_SCAN_DEVICE_LINK_NOT_PRIMARY_TELLOMI" = "这是链接新设备的二维码，请在主手机的「设置 → 已关联设备」里扫。";
+
+/* Tellomi: title of the sheet showing the content of a scanned QR code that is not a Tellomi code. */
+"USERNAME_LINK_SCAN_RESULT_TITLE_TELLOMI" = "扫描到的内容";
 
 /* Text for a tappable cell that copies the user's username link when selected. */
 "USERNAME_LINK_SHARE_SHEET_COPY_LINK_ACTION" = "复制链接";
@@ -11098,7 +11134,7 @@
 "YOU_DELETED_THIS_MESSAGE" = "您删除了此消息";
 
 /* Info Message when you disabled disappearing messages. */
-"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您取消了阅后即焚。";
+"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您关闭了限时消息。";
 
 /* alert body shown when trying to use features in the app before completing registration-related setup. */
 "YOU_MUST_COMPLETE_ONBOARDING_BEFORE_PROCEEDING" = "你必须先完成设置才能继续。";

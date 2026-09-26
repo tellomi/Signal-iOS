@@ -2170,8 +2170,17 @@
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_TITLE" = "沒有聊天";
 
+/* Chat list title while the app is connecting to the server. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_CONNECTING_TELLOMI" = "連線中…";
+
 /* Title for the chat list's default mode. */
 "CHAT_LIST_TITLE_INBOX" = "聊天";
+
+/* Chat list title while the app is receiving the messages that arrived while it was offline. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_UPDATING_TELLOMI" = "收取中…";
+
+/* Chat list title while the device has no network connection. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_WAITING_FOR_NETWORK_TELLOMI" = "等待網絡…";
 
 /* Title for context menu action to enable Filter by Unread */
 "CHAT_LIST_UNREAD_FILTER_MENU_ACTION" = "根據未讀訊息篩選";
@@ -2633,7 +2642,7 @@
 "CONVERSATION_SETTINGS_ARCHIVE_CHAT" = "封存聊天";
 
 /* Footer for the 'attributes access' section in conversation settings view with pinned messages added. */
-"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "選擇誰可以編輯群組名稱、相片、描述、自動銷毀訊息計時器和已釘選訊息。";
+"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "選擇誰可以編輯群組名稱、相片、描述、限時訊息計時器和已釘選訊息。";
 
 /* Footer string for a contact's badges in conversation settings */
 "CONVERSATION_SETTINGS_BADGES_FOOTER" = "撐起 Tellomi 並在您的個人資料中獲贈徽章。輕觸徽章以了解詳情。";
@@ -3509,7 +3518,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_CONFIRMATION_SCREEN_TITLE" = "確認捐款";
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
-"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "此聊天已開啟「自動銷毀訊息」功能。你的捐款訊息將在 %1$@ 內消失。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "此聊天已開啟「限時訊息」功能。你的捐款訊息將在 %1$@ 內消失。";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "單次捐款";
@@ -4129,8 +4138,14 @@
 /* Accessibility label for the close button in each Get Started card. */
 "GET_STARTED_CARD_CLOSE_A11YLABEL" = "移除建議";
 
+/* 'Get Started' button directing users to find someone by their username */
+"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "搜尋用戶名稱";
+
 /* 'Get Started' button directing users to invite friends */
 "GET_STARTED_CARD_INVITE_FRIENDS" = "邀請好友";
+
+/* 'Get Started' button directing users to their own username QR code */
+"GET_STARTED_CARD_MY_QR_CODE_TELLOMI" = "我的二維碼";
 
 /* 'Get Started' button directing users to create a group */
 "GET_STARTED_CARD_NEW_GROUP" = "建立新群組";
@@ -5401,6 +5416,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "此二維碼無效。請確認您所掃描的二維碼顯示於您想連結的裝置上。";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "這個二維碼已過期，或者不是 Tellomi 的二維碼。請掃描電腦上 Tellomi 目前顯示的二維碼。";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "裝置連結失敗";
 
@@ -5415,6 +5433,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "重試";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "重新掃描";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "使用此裝置來掃描你想連結的裝置上所顯示的二維碼";
@@ -5547,6 +5568,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "已連結裝置";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "無法連線到伺服器，或者伺服器正忙。請檢查網絡連線，稍後再試。";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "裝置連結失敗";
@@ -7570,10 +7594,10 @@
 "PINNED_SECTION_TITLE" = "已釘選";
 
 /* Body for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當自動銷毀訊息時限已到和從聊天中被移除時，系統會將其解除釘選。";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當限時訊息時限已到和從聊天中被移除時，系統會將其解除釘選。";
 
 /* Title for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "釘選自動銷毀訊息";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "釘選限時訊息";
 
 /* Action text for PIN megaphone when user doesn't have a PIN */
 "PINS_MEGAPHONE_ACTION" = "建立 PIN 碼";
@@ -7874,6 +7898,12 @@
 
 /* Title of alert shown when push tokens sync job succeeds. */
 "PUSH_REGISTER_SUCCESS" = "成功重設通知功能。";
+
+/* Tellomi: body of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. Warns that continuing moves the account to that phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_MESSAGE_TELLOMI" = "新手機正在要求轉走你的帳戶。只有在你自己換手機、正在新手機上註冊時才繼續。如果是別人叫你掃的，請取消——繼續會把你的帳戶轉到對方手機上。";
+
+/* Tellomi: title of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_TITLE_TELLOMI" = "這是轉移帳戶的二維碼";
 
 /* Body for sheet with info about scanning a Quick Restore QR code */
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_BODY" = "使用此裝置來掃描目標裝置上顯示的二維碼";
@@ -9094,7 +9124,7 @@
 "SETTINGS_DISAPPEARING_MESSAGES" = "限時訊息";
 
 /* Explanation for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為你開啟的所有新聊天預設一個自動銷毀訊息計時器。";
+"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為你開啟的所有新聊天預設一個限時訊息計時器。";
 
 /* Title for the 'donate to signal' link in settings. */
 "SETTINGS_DONATE" = "捐款給 Tellomi";
@@ -10853,6 +10883,12 @@
 
 /* Text providing instructions on how to use the username link QR code scanning. */
 "USERNAME_LINK_SCAN_QR_CODE_INSTRUCTIONS_LABEL" = "請掃描你聯絡人裝置上的二維碼。";
+
+/* Tellomi: shown when a device-linking QR code is scanned on a device that is not the primary phone. */
+"USERNAME_LINK_SCAN_DEVICE_LINK_NOT_PRIMARY_TELLOMI" = "這是連結新裝置的二維碼，請在主手機的「設定 → 已連結裝置」裡掃描。";
+
+/* Tellomi: title of the sheet showing the content of a scanned QR code that is not a Tellomi code. */
+"USERNAME_LINK_SCAN_RESULT_TITLE_TELLOMI" = "掃描到的內容";
 
 /* Text for a tappable cell that copies the user's username link when selected. */
 "USERNAME_LINK_SHARE_SHEET_COPY_LINK_ACTION" = "複製連結";

@@ -135,6 +135,8 @@ jobs:
           set -o pipefail
           ONLY=()
           for t in $INPUT_TESTS; do ONLY+=("-only-testing:$t"); done
+          # 步骤日志只留结果行（全文在产物 tests.log）：XCTest 的 Test Case / Executed，外加 Swift Testing 的
+          # 「✔ Suite … passed after」「Test run with N tests」「✘ Test …」——用 @Test 写的类（RegistrationCoordinatorTest 等）以前只进产物
           NSUnbufferedIO=YES xcodebuild test-without-building \
             -workspace Signal.xcworkspace -scheme Signal -configuration Debug \
             -sdk iphonesimulator -destination "platform=iOS Simulator,name=$INPUT_SIMULATOR" \
@@ -143,7 +145,7 @@ jobs:
             -testLanguage en -testRegion US -collect-test-diagnostics never \
             -resultBundlePath "$LOG_DIR/Tests.xcresult" \
             ONLY_ACTIVE_ARCH=YES ARCHS=arm64 \
-            2>&1 | tee "$LOG_DIR/tests.log" | grep -E "Test Case .*(passed|failed)|error:|Executed [0-9]+ test|\*\* TEST" || true
+            2>&1 | tee "$LOG_DIR/tests.log" | grep -E "Test Case .*(passed|failed)|error:|Executed [0-9]+ test|Suite .* (passed|failed) after|Test run with [0-9]+ tests?|✘ Test |\*\* TEST" || true
           grep -q "\*\* TEST EXECUTE SUCCEEDED \*\*" "$LOG_DIR/tests.log"
 
       - name: Upload logs

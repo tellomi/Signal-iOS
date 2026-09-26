@@ -2170,8 +2170,17 @@
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_TITLE" = "No Chats";
 
+/* Chat list title while the app is connecting to the server. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_CONNECTING_TELLOMI" = "Connecting…";
+
 /* Title for the chat list's default mode. */
 "CHAT_LIST_TITLE_INBOX" = "Chats";
+
+/* Chat list title while the app is receiving the messages that arrived while it was offline. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_UPDATING_TELLOMI" = "Updating…";
+
+/* Chat list title while the device has no network connection. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_WAITING_FOR_NETWORK_TELLOMI" = "Waiting for network…";
 
 /* Title for context menu action to enable Filter by Unread */
 "CHAT_LIST_UNREAD_FILTER_MENU_ACTION" = "Filter by Unread";
@@ -4129,8 +4138,14 @@
 /* Accessibility label for the close button in each Get Started card. */
 "GET_STARTED_CARD_CLOSE_A11YLABEL" = "Remove suggestion";
 
+/* 'Get Started' button directing users to find someone by their username */
+"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "Search by Username";
+
 /* 'Get Started' button directing users to invite friends */
 "GET_STARTED_CARD_INVITE_FRIENDS" = "Invite Friends";
+
+/* 'Get Started' button directing users to their own username QR code */
+"GET_STARTED_CARD_MY_QR_CODE_TELLOMI" = "My QR Code";
 
 /* 'Get Started' button directing users to create a group */
 "GET_STARTED_CARD_NEW_GROUP" = "New Group";
@@ -5401,6 +5416,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "This QR code is not valid. Please make sure you are scanning the QR code that is displayed on the device you want to link.";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "This QR code has expired, or it isn't a Tellomi code. Scan the QR code shown right now in Tellomi on your computer.";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "Linking Device Failed";
 
@@ -5415,6 +5433,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "Retry";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "Scan Again";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "Use this device to scan the QR code displayed on the device you want to link";
@@ -5547,6 +5568,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "Linked Devices";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "Couldn't reach the server, or the server is busy. Check your internet connection and try again in a moment.";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "Linking Device Failed";
@@ -7874,6 +7898,12 @@
 
 /* Title of alert shown when push tokens sync job succeeds. */
 "PUSH_REGISTER_SUCCESS" = "Successfully re-registered for push notifications.";
+
+/* Tellomi: body of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. Warns that continuing moves the account to that phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_MESSAGE_TELLOMI" = "A new phone is asking to take over your account. Continue only if you are switching to your own new phone and registering on it right now. If someone else asked you to scan this, cancel. Continuing moves your account to their phone.";
+
+/* Tellomi: title of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_TITLE_TELLOMI" = "This QR code transfers your account";
 
 /* Body for sheet with info about scanning a Quick Restore QR code */
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_BODY" = "Use this device to scan the QR code on the device you want to transfer to";
@@ -10853,6 +10883,12 @@
 
 /* Text providing instructions on how to use the username link QR code scanning. */
 "USERNAME_LINK_SCAN_QR_CODE_INSTRUCTIONS_LABEL" = "Scan the QR Code on your contact’s device.";
+
+/* Tellomi: shown when a device-linking QR code is scanned on a device that is not the primary phone. */
+"USERNAME_LINK_SCAN_DEVICE_LINK_NOT_PRIMARY_TELLOMI" = "This code is for linking a new device. Scan it from Settings > Linked Devices on your primary phone.";
+
+/* Tellomi: title of the sheet showing the content of a scanned QR code that is not a Tellomi code. */
+"USERNAME_LINK_SCAN_RESULT_TITLE_TELLOMI" = "Scanned Content";
 
 /* Text for a tappable cell that copies the user's username link when selected. */
 "USERNAME_LINK_SHARE_SHEET_COPY_LINK_ACTION" = "Copy Link";

@@ -884,15 +884,15 @@ class TellomiRegionsTest: XCTestCase {
         let unresolvable = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.invalid"])[1]
         XCTAssertEqual(TellomiRegions.hostOf(unresolvable.chat), "chat.tellomi.invalid")
 
-        let startedAt = Date()
-        let result = await TellomiRegionSelector.chatEndpointProbe(unresolvable, 5)
-        let elapsed = Date().timeIntervalSince(startedAt)
+        // 超时给足，用失败原因证明「解析不了（.waiting）立刻算失败、不等超时」：不看墙钟。
+        // 本机实测 0.1 s 量级，但 CI 的模拟器上 DNS / TLS 栈冷启动一次就要十几秒（运行 102：11.6 s 才返回 NoSuchRecord），
+        // 按秒数断言在忙的机器上必然偶发红。
+        let result = await TellomiRegionSelector.chatEndpointProbe(unresolvable, 60)
 
-        guard case .failed = result else {
+        guard case .failed(let reason) = result else {
             return XCTFail("probe of \(unresolvable.chat) should fail, got \(result)")
         }
-        // 解析不了（.waiting）立刻算失败，不等 5 s 超时（实测 0.1 s 量级）
-        XCTAssertLessThan(elapsed, 3, "\(result)")
+        XCTAssertFalse(reason.hasPrefix("timeout"), "解析失败应该当场报出来，不能等到超时：\(reason)")
     }
 
     // MARK: - 门禁：测试区和演练只在测试构建里
