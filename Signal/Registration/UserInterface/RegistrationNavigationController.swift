@@ -414,9 +414,14 @@ public class RegistrationNavigationController: OWSNavigationController {
                 return nil
             case .verificationCodeSubmissionUnavailable:
                 title = nil
-                message = OWSLocalizedString(
+                // Tellomi（tellomi/tellomi#1214）：这里既可能是输错太多次，也可能是验证码过期（见 ErrorSheet 的注释），
+                // 上游只说「输入次数过多」。两种情况下一步都是重新获取验证码，照实说。
+                message = TSConstants.isUsingProductionService ? OWSLocalizedString(
                     "REGISTRATION_SUBMIT_CODE_ATTEMPTS_EXHAUSTED_ALERT",
                     comment: "Alert shown when running out of attempts at submitting a verification code.",
+                ) : OWSLocalizedString(
+                    "REGISTRATION_TELLOMI_CODE_NO_LONGER_VALID",
+                    comment: "Tellomi: Alert shown when the verification code can no longer be submitted, because it expired or was entered wrong too many times.",
                 )
             case .submittingVerificationCodeBeforeAnyCodeSent:
                 title = nil
@@ -432,6 +437,16 @@ public class RegistrationNavigationController: OWSNavigationController {
                 message = OWSLocalizedString(
                     "REGISTRATION_NETWORK_ERROR_BODY",
                     comment: "A network error occurred during registration, and an error is shown to the user. This is the body on that error sheet.",
+                )
+            case .sessionInvalidated where !TSConstants.isUsingProductionService:
+                // Tellomi（tellomi/tellomi#1214）：会话失效时上游说「出错了，请稍后重试」，让人以为是服务器坏了。
+                // 失效不只是服务端 404 过期：协调器在「被限流且会话已不能再发码」和「等推送挑战超时」时也会先重置会话再报它，
+                // 所以文案说「已失效」而不是「已过期」（taishi 审查 b6）。
+                // 点「好」之后协调器回到手机号页（resetSession 清了 hasEnteredE164，号码还填着），再点下一步就重新开会话、重新发验证码。
+                title = nil
+                message = OWSLocalizedString(
+                    "REGISTRATION_TELLOMI_SESSION_EXPIRED",
+                    comment: "Tellomi: Alert shown when the registration verification session is no longer valid (it expired, or was reset); the user goes back to the phone number screen, where Next requests a new code.",
                 )
             case .sessionInvalidated, .genericError:
                 title = nil
