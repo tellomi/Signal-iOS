@@ -244,6 +244,13 @@ public class ChatListViewController: OWSViewController, HomeTabViewController {
         requestReviewIfAppropriate()
         showFYISheetIfNecessary()
 
+        // Tellomi：「我的收藏」默认在聊天列表里（#1174），只做一次
+        if !hasEverAppeared {
+            SSKEnvironment.shared.databaseStorageRef.asyncWrite { tx in
+                TellomiSavedMessages.ensureListedOnce(tx: tx)
+            }
+        }
+
         viewState.searchResultsController.viewDidAppear(animated)
 
         if viewState.shouldFocusSearchOnAppear {

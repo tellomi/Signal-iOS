@@ -7,6 +7,8 @@ import SignalServiceKit
 
 public enum ThemeIcon: UInt {
     case settingsAccount
+    /// Tellomi：设置页的「我的收藏」（#1174）
+    case settingsTellomiSavedMessages
     case settingsLinkedDevices
     case settingsDonate
     case settingsAppearance
@@ -212,6 +214,8 @@ public extension Theme {
         // App Settings
         case .settingsAccount:
             return "person-circle"
+        case .settingsTellomiSavedMessages:
+            return "tellomi-bookmark-resizable"
         case .settingsLinkedDevices:
             return "devices"
         case .settingsDonate:
