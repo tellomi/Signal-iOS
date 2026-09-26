@@ -654,6 +654,18 @@ extension RegistrationVerificationViewController {
 
 extension RegistrationVerificationViewController: RegistrationVerificationCodeViewDelegate {
     func codeViewDidChange() {
+        // Tellomi（tellomi/tellomi#1214）：错码后格子红着停 0.85 秒、输入框还拿着焦点；这时按数字键，上游单字符路径只收
+        // 文本框里原来那一位、最后一格不变，凑满的还是刚被判错的那串——不再原样交一次（白用一次提交机会，还可能撞上次数用尽），
+        // 错误提示照旧亮着。
+        if
+            verificationCodeView.isComplete,
+            case .invalidVerificationCode(let rejectedCode)? = state.validationError,
+            verificationCodeView.verificationCode == rejectedCode
+        {
+            codeErrorLabel.isHidden = false
+            verificationCodeView.setHasError(true)
+            return
+        }
         if !verificationCodeView.verificationCode.isEmpty {
             hideInlineCodeError()
         }

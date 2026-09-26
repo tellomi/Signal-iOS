@@ -84,16 +84,24 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
 
     func testPastingANumberLongerThanTheCodeIsNotTakenAsACode() {
         // taishi 审查 b6：粘进一个手机号，不能取前 6 位自动提交、白白用掉一次机会。
+        var rejectedFeedbacks = 0
+        let original = RegistrationVerificationCodeView.tellomiRejectedPasteFeedback
+        RegistrationVerificationCodeView.tellomiRejectedPasteFeedback = { rejectedFeedbacks += 1 }
+        defer { RegistrationVerificationCodeView.tellomiRejectedPasteFeedback = original }
+
         let (view, delegate) = makeCodeView()
         insert("13800138000", into: view)
         XCTAssertEqual(view.verificationCode, "")
         XCTAssertFalse(view.isComplete)
         XCTAssertEqual(delegate.changeCount, 0)
+        // taishi 审查 b6 包 4 不阻塞 3：整串不收时给一次触感，粘错的人知道没粘进去
+        XCTAssertEqual(rejectedFeedbacks, 1)
 
-        // 剩下的格子放得下的一小段照常接着填。
+        // 剩下的格子放得下的一小段照常接着填，不震。
         insert("4", into: view)
         insert("82913", into: view)
         XCTAssertEqual(view.verificationCode, "482913")
+        XCTAssertEqual(rejectedFeedbacks, 1)
     }
 
     // MARK: - "Didn't get the code?" sheet
@@ -180,10 +188,11 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
     // MARK: - The verification screen
 
     private final class Presenter: RegistrationVerificationPresenter {
+        var submittedCodes: [String] = []
         func returnToPhoneNumberEntry() {}
         func requestSMSCode() {}
         func requestVoiceCode() {}
-        func submitVerificationCode(_ code: String) {}
+        func submitVerificationCode(_ code: String) { submittedCodes.append(code) }
         func exitRegistration() {}
     }
 
@@ -212,6 +221,51 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
     func testHongKongDeploymentAllowsThreeCodesPerSession() {
         // deploy/hk/enable-aliyun-sms.sh：send-sms-verification-code.delays: [30s, 1m, 5m]
         XCTAssertEqual(TSConstants.smsVerificationCodesPerSession, 3)
+    }
+
+    func testTheRejectedCodeIsNotSubmittedAgainWhileItIsStillShown() throws {
+        // 错码后格子红着停 0.85 秒、输入框还拿着焦点。这时按一个数字键，上游的单字符路径只收文本框里原来那一位，
+        // 最后一格不变，凑满的还是刚被判错的那串——不能原样再交一次（白用一次提交机会，还可能撞上次数用尽）。
+        let presenter = Presenter()
+        let viewController = RegistrationVerificationViewController(state: verificationState(validationError: nil), presenter: presenter)
+        viewController.loadViewIfNeeded()
+        let codeView = try XCTUnwrap(firstSubview(RegistrationVerificationCodeView.self, in: viewController.view))
+
+        insert("123456", into: codeView)
+        XCTAssertEqual(presenter.submittedCodes, ["123456"])
+
+        viewController.updateState(verificationState(validationError: .invalidVerificationCode(invalidCode: "123456")))
+        let lastDigitField = UITextField()
+        lastDigitField.text = "6"
+        _ = codeView.textField(lastDigitField, shouldChangeCharactersIn: NSRange(location: 1, length: 0), replacementString: "7")
+
+        XCTAssertEqual(codeView.verificationCode, "123456")
+        XCTAssertEqual(presenter.submittedCodes, ["123456"], "刚被判错的那串不该原样再交一次")
+    }
+
+    private func verificationState(validationError: RegistrationVerificationValidationError?) -> RegistrationVerificationState {
+        RegistrationVerificationState(
+            e164: E164("+8613800138000")!,
+            nextSMSDate: Date().addingTimeInterval(30),
+            nextCallDate: nil,
+            nextVerificationAttemptDate: nil,
+            canChangeE164: true,
+            showHelpText: false,
+            validationError: validationError,
+            exitConfiguration: .noExitAllowed,
+        )
+    }
+
+    private func firstSubview<T: UIView>(_ type: T.Type, in view: UIView) -> T? {
+        if let match = view as? T {
+            return match
+        }
+        for subview in view.subviews {
+            if let found = firstSubview(type, in: subview) {
+                return found
+            }
+        }
+        return nil
     }
 
     /// taishi 审查 b8 不阻塞 4：ADR-0051 §二 F（`docs/adr/0051-sign-in-ux-redesign.md:108`）——

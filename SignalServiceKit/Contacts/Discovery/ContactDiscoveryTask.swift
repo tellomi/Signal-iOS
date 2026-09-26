@@ -20,7 +20,9 @@ final class ContactDiscoveryTaskQueueImpl: ContactDiscoveryTaskQueue {
     private let remoteAttestationAuthFetcher: RemoteAttestationAuthFetcher
     private let tsAccountManager: TSAccountManager
     private let udManager: OWSUDManager
-    private let libsignalNet: Net
+    /// Tellomi（#1056 第三刀）：`Net` 从 provider 现取，不存（切区时换掉的旧实例要放得掉）。
+    private let netProvider: TellomiNetProvider
+    private var libsignalNet: Net { netProvider.current }
 
     init(
         db: any DB,
@@ -31,7 +33,7 @@ final class ContactDiscoveryTaskQueueImpl: ContactDiscoveryTaskQueue {
         remoteAttestationAuthFetcher: RemoteAttestationAuthFetcher,
         tsAccountManager: TSAccountManager,
         udManager: OWSUDManager,
-        libsignalNet: Net,
+        netProvider: TellomiNetProvider,
     ) {
         self.db = db
         self.recipientDatabaseTable = recipientDatabaseTable
@@ -41,7 +43,7 @@ final class ContactDiscoveryTaskQueueImpl: ContactDiscoveryTaskQueue {
         self.remoteAttestationAuthFetcher = remoteAttestationAuthFetcher
         self.tsAccountManager = tsAccountManager
         self.udManager = udManager
-        self.libsignalNet = libsignalNet
+        self.netProvider = netProvider
     }
 
     func perform(for phoneNumbers: Set<String>, mode: ContactDiscoveryMode) async throws -> [SignalRecipient] {

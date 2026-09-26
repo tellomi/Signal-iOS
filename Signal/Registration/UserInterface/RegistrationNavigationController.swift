@@ -446,7 +446,7 @@ public class RegistrationNavigationController: OWSNavigationController {
                 title = nil
                 message = OWSLocalizedString(
                     "REGISTRATION_TELLOMI_SESSION_EXPIRED",
-                    comment: "Tellomi: Alert shown when the registration verification session has expired; dismissing it requests a new code.",
+                    comment: "Tellomi: Alert shown when the registration verification session is no longer valid (it expired, or was reset); the user goes back to the phone number screen, where Next requests a new code.",
                 )
             case .sessionInvalidated, .genericError:
                 title = nil
@@ -652,6 +652,14 @@ extension RegistrationNavigationController: RegistrationPinAttemptsExhaustedAndM
 }
 
 extension RegistrationNavigationController: RegistrationProfilePresenter {
+    func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome {
+        return await coordinator.reserveTellomiUsername(nickname: nickname)
+    }
+
+    func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome {
+        return await coordinator.confirmTellomiUsername(reservedUsername)
+    }
+
     func goToNextStep(
         givenName: OWSUserProfile.NameComponent,
         familyName: OWSUserProfile.NameComponent?,

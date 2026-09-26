@@ -4,7 +4,6 @@
 //
 
 import Foundation
-public import LibSignalClient
 
 /// A ContactDiscoveryManager coordinates CDS lookup requests.
 ///
@@ -92,9 +91,13 @@ public final class ContactDiscoveryManagerImpl: ContactDiscoveryManager {
     private var lock = UnfairLock()
 
     private let contactDiscoveryTaskQueue: ContactDiscoveryTaskQueue
+    /// Tellomi：这套部署有没有 CDSI（`cdsiAvailable`）。App 里就是 `TSConstants.shared`；
+    /// 单测按用例给——上游用例跑上游档，Tellomi 用例跑没有 CDSI 的档（见 ContactDiscoveryManagerTest）。
+    private let tsConstants: TSConstantsProtocol
 
-    init(contactDiscoveryTaskQueue: ContactDiscoveryTaskQueue) {
+    init(contactDiscoveryTaskQueue: ContactDiscoveryTaskQueue, tsConstants: TSConstantsProtocol) {
         self.contactDiscoveryTaskQueue = contactDiscoveryTaskQueue
+        self.tsConstants = tsConstants
     }
 
     public convenience init(
@@ -106,7 +109,8 @@ public final class ContactDiscoveryManagerImpl: ContactDiscoveryManager {
         remoteAttestationAuthFetcher: RemoteAttestationAuthFetcher,
         tsAccountManager: TSAccountManager,
         udManager: OWSUDManager,
-        libsignalNet: Net,
+        netProvider: TellomiNetProvider,
+        tsConstants: TSConstantsProtocol,
     ) {
         self.init(
             contactDiscoveryTaskQueue: ContactDiscoveryTaskQueueImpl(
@@ -118,8 +122,9 @@ public final class ContactDiscoveryManagerImpl: ContactDiscoveryManager {
                 remoteAttestationAuthFetcher: remoteAttestationAuthFetcher,
                 tsAccountManager: tsAccountManager,
                 udManager: udManager,
-                libsignalNet: libsignalNet,
+                netProvider: netProvider,
             ),
+            tsConstants: tsConstants,
         )
     }
 
@@ -130,7 +135,7 @@ public final class ContactDiscoveryManagerImpl: ContactDiscoveryManager {
         // 所以一道门就够。返回空 = 「目录里没有这些号」，调用方本来就处理这种情况；
         // 不抛错，才能做到「安静失败」——否则通讯录同步会不停重试（真机日志里就是这样：
         // `[cdsi] connection failed` 一轮接一轮）。
-        guard TSConstants.cdsiAvailable else {
+        guard tsConstants.cdsiAvailable else {
             Logger.info("No CDSI enclave in this deployment; skipping lookup of \(phoneNumbers.count) number(s). Use usernames to find people.")
             return []
         }

@@ -270,6 +270,12 @@ class RegistrationVerificationCodeView: UIView {
 // MARK: -
 
 extension RegistrationVerificationCodeView: UITextFieldDelegate {
+    /// Tellomi（taishi 审查 b6 包 4 不阻塞 3）：粘进来的一整串不收（比剩下的格子还长）时给一次触感，和输错验证码同款；
+    /// 不然框里什么都没变，粘错东西的人会以为粘贴坏了。单测里换成计数。
+    static var tellomiRejectedPasteFeedback: () -> Void = {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+    }
+
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString newString: String) -> Bool {
         // Tellomi（tellomi/tellomi#1214）：系统「从信息中填写」（.oneTimeCode）和粘贴会一次塞进一整串，
         // 上游下面只取第一位（`filtered.prefix(1)`），整串填进来只剩一个数字。
@@ -284,6 +290,8 @@ extension RegistrationVerificationCodeView: UITextFieldDelegate {
                 // 白白用掉每个会话 5 次里的一次（taishi 审查 b6）。
                 if digits.count <= digitCount - currentDigitIndex {
                     set(verificationCode: String(digitText.prefix(currentDigitIndex) + digits))
+                } else {
+                    Self.tellomiRejectedPasteFeedback()
                 }
                 return false
             }

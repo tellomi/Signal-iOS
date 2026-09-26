@@ -95,6 +95,14 @@ public class TSConstants {
     /// 「Signal is a 501c3 nonprofit」这类**对 Tellomi 不成立**的资质说法。
     public static let donationsEnabled = false
 
+    /// Tellomi（tellomi/tellomi#1193，#984 的 iOS 半边）：阶段一不做远端备份（上游的「Signal 备份」免费 / 付费套餐）。
+    ///
+    /// 没有备份服务端与 CDN，也没有支付通道；「选择方案」页的页脚还写着「Signal 是一个非营利性平台。
+    /// 付费进行备份可为我们提供支持」——对 Tellomi 不成立。关掉之后：设置里只通向远端备份的「备份」一行不出、
+    /// 各处（megaphone、首屏提示、通知）跳远端备份页的入口都只打开设置首页、选择方案页不再加载。
+    /// 本地备份（开发 / beta 构建里的「设备上备份」）不受影响。与 Android `PAID_BACKUPS_ENABLED`（#984）同一件事。
+    public static let remoteBackupsEnabled = false
+
 
     public static var serverPublicParams: Data { shared.serverPublicParams }
     public static var callLinkPublicParams: Data { shared.callLinkPublicParams }
@@ -245,7 +253,7 @@ public class TSConstantsProduction: TSConstantsProtocol {
     // Tellomi：动态资源（emoji 数据与搜索索引 · 故事字体 · 通话 DRED 权重）改从我们自己的
     // 更新源取，上游那 163 项已经镜像到同路径（#1017，deploy/hk/mirror-mobile-resources.sh）。
     // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
-    public let updates2URL = "https://updates.tellomi.app"
+    public let updates2URL = TellomiRegions.global.updates
 
     // Tellomi（#1025）：上游在这里放 censorshipF/GReflectorHost（Signal 自己的 Fastly / Google
     // reflector），规避模式会把请求连同 Host 头打到那两台机器上。两个档都删了，
@@ -289,14 +297,21 @@ public class TSConstantsProduction: TSConstantsProtocol {
 
 public class TSConstantsStaging: TSConstantsProtocol {
 
-    public init() {}
+    /// Tellomi（#1056）：端点按本进程生效区**现取**（`TellomiRegions.active()`），不在初始化时存下来。
+    /// `TSConstants.shared` 是 `static let`：这里要是存成 `let`，以后切区只重建了 `Net`，REST 侧还连旧区（「半切换」，#1056 交接评论第二处）。
+    /// 读生效区而不是每次读 app group 里记住的区：生效区和 `Net` 同一次换，REST 与 libsignal 在进程内同时切。
+    private let region: () -> TellomiRegionProfile
+
+    public init(region: @escaping () -> TellomiRegionProfile = { TellomiRegions.active() }) {
+        self.region = region
+    }
 
     /// Tellomi 自建服务端（香港）。REST 与 libsignal 是两个主机，见 docs/signal/CLIENT_LOCAL_SERVER.md 第四节。
     ///
     /// 注意：下面的 base64 公钥**必须带足 `=` 填充**。Swift 的 `Data(base64Encoded:)` 是严格的，
     /// 少填充会返回 nil 然后在这里强解包崩溃；而 Android 侧的 Java 解码器是宽松的，同一个值在那边不报错。
     /// 2026-09-21 踩过一次：`serverPublicParams` 从文档里抄来时少了结尾的 `==`。
-    public let customServerChatHostname: String? = "grpc.chat.tellomi.app"
+    public var customServerChatHostname: String? { region().grpcChatHost }
     public let svrEnclaveAvailable: Bool = false
     public let cdsiAvailable: Bool = false
     public let keyTransparencyAvailable: Bool = false
@@ -305,32 +320,33 @@ public class TSConstantsStaging: TSConstantsProtocol {
     public let smsVerificationCallingCodes: Set<String>? = ["86"]
     public let smsVerificationCodesPerSession: Int? = 3
 
-    public let mainServiceURL = "https://chat.tellomi.app"
-    public let textSecureCDN0ServerURL = "https://cdn.tellomi.app"
-    public let textSecureCDN2ServerURL = "https://cdn2.tellomi.app"
-    public let textSecureCDN3ServerURL = "https://cdn3.tellomi.app"
-    public let storageServiceURL = "https://storage.tellomi.app"
+    // Tellomi（#1056）：端点从区域表取（RegionProfile 契约 v2），global 档 = 原来这里的字面量，逐字节一致。
+    public var mainServiceURL: String { region().chat }
+    public var textSecureCDN0ServerURL: String { region().cdn0 }
+    public var textSecureCDN2ServerURL: String { region().cdn2 }
+    public var textSecureCDN3ServerURL: String { region().cdn3 }
+    public var storageServiceURL: String { region().storage }
     // 群通话走我们自己的 SFU（docs/signal/BUILD_CALLING.md）：香港那台上 calling_frontend
     // 听 127.0.0.1:9010，nginx 以 /callingService/ 暴露。Desktop 的 config/production.json
     // 早就是这个地址，两端不一致的后果是同一个群通话进不到一个房间。
-    public let sfuURL = "https://chat.tellomi.app/callingService"
+    public var sfuURL: String { region().sfu }
     public let svr2URL = "wss://svr2.staging.signal.org"
     // 自建服务端：香港 nginx 上的 captcha 页（Cloudflare Turnstile，#930；通过后跳 tellomicaptcha://turnstile.<siteKey>.<action>.<token>，
     // CaptchaView 新旧 scheme 都认）。/captcha/ 那份回旧的 signalcaptcha://，两阶段迁移完成后下线。
-    public let registrationCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/registration/generate.html"
-    public let challengeCaptchaURL = "https://chat.tellomi.app/captcha-tellomi/challenge/generate.html"
+    public var registrationCaptchaURL: String { region().captchaRegistration }
+    public var challengeCaptchaURL: String { region().captchaChallenge }
     // There's no separate test SFU for staging.
-    public let sfuTestURL = "https://chat.tellomi.app/callingService"   // 我们只有一套 SFU，没有单独的 test
+    public var sfuTestURL: String { region().sfu } // 我们只有一套 SFU，没有单独的 test
     public let kUDTrustRoots = ["BcLYlMOrgCUTLuLXSvW5I1FiBAub5uoawfHDNzrzyNg3"]
     // There's no separate updates endpoint for staging.
     // v1 的更新源也要指我们自己的：emoji **搜索索引**走的是这条（EmojiPickerCollectionView
     // 取 /dynamic/android/emoji/search/manifest.json 与 /static/android/emoji/search/<v>/<loc>.json），
     // 而 #1017 当时只改了 updates2URL。镜像上这两条路径都在（实测 200，manifest 67 种语言）。
-    public let updatesURL = "https://updates.tellomi.app"
+    public var updatesURL: String { region().updates }
     // Tellomi：动态资源（emoji 数据与搜索索引 · 故事字体 · 通话 DRED 权重）改从我们自己的
     // 更新源取，上游那 163 项已经镜像到同路径（#1017，deploy/hk/mirror-mobile-resources.sh）。
     // 两个档都要改：prod 那份漏了的话，发出去的包会去取 Signal 的资源（#1023 同一类坑）。
-    public let updates2URL = "https://updates.tellomi.app"
+    public var updates2URL: String { region().updates }
 
     // Tellomi（#1025）：上游在这里放 censorshipF/GReflectorHost（Signal 自己的 Fastly / Google
     // reflector），规避模式会把请求连同 Host 头打到那两台机器上。两个档都删了，

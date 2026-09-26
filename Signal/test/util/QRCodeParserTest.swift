@@ -178,3 +178,76 @@ class QRCodeParserTest: XCTestCase {
         }
     }
 }
+
+// MARK: - Tellomi（#1219）
+
+/// 关联设备扫码只放行对准中心、连续对准 0.5 秒的码。时刻都取 1/8 秒的倍数，浮点运算是精确的。
+class TellomiQrFocusTest: XCTestCase {
+    private var now: TimeInterval = 0
+    private lazy var focus = TellomiQrFocus(now: { [unowned self] in self.now })
+
+    private let center = CGPoint(x: 0.5, y: 0.5)
+
+    /// 在 `times` 这些时刻各喂一帧，返回每一帧是否放行。
+    private func feed(_ code: String?, at point: CGPoint?, _ times: TimeInterval...) -> [Bool] {
+        times.map {
+            now = $0
+            return focus.onFrame(code: code, center: point)
+        }
+    }
+
+    func testCenteredCodeIsReleasedOnlyAfterHalfASecond() {
+        XCTAssertEqual(feed("A", at: center, 0, 0.125, 0.25, 0.375), [false, false, false, false])
+        XCTAssertEqual(feed("A", at: center, 0.5), [true])
+    }
+
+    func testCodeOutsideTheCenterIsNeverReleased() {
+        let results = feed("A", at: CGPoint(x: 0.15, y: 0.5), 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1)
+        XCTAssertFalse(results.contains(true))
+    }
+
+    func testSwitchingToAnotherCodeRestartsTheTimer() {
+        _ = feed("A", at: center, 0, 0.125, 0.25, 0.375)
+        XCTAssertEqual(feed("B", at: center, 0.5, 0.625, 0.75, 0.875), [false, false, false, false])
+        XCTAssertEqual(feed("B", at: center, 1), [true])
+    }
+
+    func testAMissedFrameDoesNotRestartTheTimer() {
+        _ = feed("A", at: center, 0, 0.125, 0.25)
+        _ = feed(nil, at: nil, 0.375)
+        XCTAssertEqual(feed("A", at: center, 0.5), [true])
+    }
+
+    func testLosingTheCodeForLongerThanTheGapRestartsTheTimer() {
+        _ = feed("A", at: center, 0, 0.125)
+        _ = feed(nil, at: nil, 0.25, 0.375, 0.5)
+        XCTAssertEqual(feed("A", at: center, 0.625, 0.75, 0.875, 1), [false, false, false, false])
+        XCTAssertEqual(feed("A", at: center, 1.125), [true])
+    }
+
+    func testSlowFramesThatAllSeeTheCenteredCodeStillReleaseIt() {
+        // 处理一帧要 0.375 秒：每帧都对准，中间没有别的帧，不算丢失
+        XCTAssertEqual(feed("A", at: center, 0, 0.375), [false, false])
+        XCTAssertEqual(feed("A", at: center, 0.75), [true])
+    }
+
+    func testFramesJustOverTheGapStillRelease() {
+        XCTAssertEqual(feed("A", at: center, 0, 0.359375), [false, false])
+        XCTAssertEqual(feed("A", at: center, 0.71875), [true])
+    }
+
+    func testASlowFrameAfterAMissStillRestartsTheTimer() {
+        // 中间真的看到过没对准的帧，再按间隔判丢失
+        _ = feed("A", at: center, 0)
+        _ = feed("A", at: CGPoint(x: 0.1, y: 0.5), 0.125)
+        XCTAssertEqual(feed("A", at: center, 0.5, 0.875), [false, false])
+        XCTAssertEqual(feed("A", at: center, 1), [true])
+    }
+
+    func testCenterRegionIsTheMiddleFortyPercentOnBothAxes() {
+        XCTAssertTrue(TellomiQrFocus.isInCenter(CGPoint(x: 0.3, y: 0.3)))
+        XCTAssertTrue(TellomiQrFocus.isInCenter(CGPoint(x: 0.7, y: 0.7)))
+        XCTAssertFalse(TellomiQrFocus.isInCenter(CGPoint(x: 0.5, y: 0.29)))
+        XCTAssertFalse(TellomiQrFocus.isInCenter(CGPoint(x: 0.71, y: 0.5)))
+    }
+}
