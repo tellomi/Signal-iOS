@@ -1257,6 +1257,7 @@
 		669E8FE828B4153C00043D28 /* OWSUrlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669E8FE728B4153B00043D28 /* OWSUrlSession.swift */; };
 		669E8FE928B415C000043D28 /* OWSURLBuilderUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669E8FDB28B02CC400043D28 /* OWSURLBuilderUtil.swift */; };
 		669E8FEF28B417D500043D28 /* OWSSignalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669E8FEE28B417D500043D28 /* OWSSignalService.swift */; };
+		D45293E4B6536EC1FBA586E5 /* TellomiNetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB66858CB724C8B6E721E274 /* TellomiNetProvider.swift */; };
 		669E8FF128B41A8500043D28 /* StoryUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 668AB0CB28AD610600B31984 /* StoryUtil.swift */; };
 		669E900028B42B7A00043D28 /* SystemStoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669E8FFF28B42B7A00043D28 /* SystemStoryManager.swift */; };
 		669E900728B43F5B00043D28 /* SystemStoryManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669E900628B43F5B00043D28 /* SystemStoryManagerProtocol.swift */; };
@@ -5648,6 +5649,7 @@
 		669E8FE728B4153B00043D28 /* OWSUrlSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSUrlSession.swift; sourceTree = "<group>"; };
 		669E8FEC28B4177800043D28 /* OWSSignalServiceMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSSignalServiceMock.swift; sourceTree = "<group>"; };
 		669E8FEE28B417D500043D28 /* OWSSignalService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSSignalService.swift; sourceTree = "<group>"; };
+		DB66858CB724C8B6E721E274 /* TellomiNetProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TellomiNetProvider.swift; sourceTree = "<group>"; };
 		669E8FFF28B42B7A00043D28 /* SystemStoryManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemStoryManager.swift; sourceTree = "<group>"; };
 		669E900628B43F5B00043D28 /* SystemStoryManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStoryManagerProtocol.swift; sourceTree = "<group>"; };
 		669E900F28B57D6300043D28 /* SystemStoryManagerMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStoryManagerMock.swift; sourceTree = "<group>"; };
@@ -15788,6 +15790,7 @@
 				72328C882C6C6733000EA728 /* OWSCountryMetadata.swift */,
 				72328C862C6C3E6D000EA728 /* OWSMultipart.swift */,
 				669E8FEE28B417D500043D28 /* OWSSignalService.swift */,
+				DB66858CB724C8B6E721E274 /* TellomiNetProvider.swift */,
 				669E8FEC28B4177800043D28 /* OWSSignalServiceMock.swift */,
 				F9C5CAB3289453B200548EEE /* OWSSignalServiceProtocol.swift */,
 				669E8FDB28B02CC400043D28 /* OWSURLBuilderUtil.swift */,
@@ -20164,6 +20167,7 @@
 				F9C5CC52289453B300548EEE /* OWSRequestMaker.swift in Sources */,
 				66062E712E43F83600D5F8C1 /* OWSSequentialProgress.swift in Sources */,
 				669E8FEF28B417D500043D28 /* OWSSignalService.swift in Sources */,
+				D45293E4B6536EC1FBA586E5 /* TellomiNetProvider.swift in Sources */,
 				6600F368298DA57200B1EDB7 /* OWSSignalServiceMock.swift in Sources */,
 				F9C5CD8C289453B300548EEE /* OWSSignalServiceProtocol.swift in Sources */,
 				668A01002C2B5FC8007B8808 /* OWSSwiftUtils.swift in Sources */,

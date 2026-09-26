@@ -164,6 +164,11 @@ class InternalSettingsViewController: OWSTableViewController2 {
         }
         contents.add(buildSection)
 
+        // Tellomi（#1056 第三刀）：区域与切区。设备上验判据 1、2 用；Internal 页只有 Debug 构建进得来
+        if let provider = TellomiNetProvider.installed {
+            contents.add(tellomiRegionSection(provider))
+        }
+
         // format counts with thousands separator
         let numberFormatter = NumberFormatter()
         numberFormatter.formatterBehavior = .behavior10_4
@@ -254,6 +259,39 @@ class InternalSettingsViewController: OWSTableViewController2 {
         }
 
         self.contents = contents
+    }
+
+    private func tellomiRegionSection(_ provider: TellomiNetProvider) -> OWSTableSection {
+        let store = TellomiRegionStore.appGroup
+        let section = OWSTableSection(title: "Tellomi Region")
+        section.add(.copyableItem(label: "Active", value: "\(provider.activeRegion.id.rawValue) (\(provider.activeRegion.grpcChatHost))"))
+        section.add(.copyableItem(label: "Stored", value: store.storedRegionId() ?? "<none>"))
+        section.add(.copyableItem(label: "Last Switch", value: store.lastSwitchAt().map { "\($0)" } ?? "<none>"))
+        section.add(.copyableItem(label: "Net Generation", value: "\(provider.generation)"))
+        section.add(.copyableItem(label: "Retired Nets", value: "\(provider.retiredCount)"))
+#if TESTABLE_BUILD
+        section.add(.copyableItem(label: "Tokio Threads", value: "\(TellomiRegionDrill.tokioThreadCount())"))
+#endif
+        section.add(.actionItem(withText: "Refresh") { [weak self] in
+            self?.updateTableContents()
+        })
+        for profile in provider.profiles {
+            section.add(.actionItem(withText: "Switch to \(profile.id.rawValue)\(profile.enabled ? "" : " (disabled)")") { [weak self] in
+                self?.switchTellomiRegion(to: profile.id, provider: provider)
+            })
+        }
+        return section
+    }
+
+    private func switchTellomiRegion(to id: TellomiRegionId, provider: TellomiNetProvider) {
+        let message: String
+        do {
+            message = try provider.switchTo(id) ? "Switched to \(id.rawValue)" : "Already on \(id.rawValue)"
+        } catch {
+            message = "Can't switch to \(id.rawValue): \(error)"
+        }
+        presentToast(text: message)
+        updateTableContents()
     }
 
     var isChatHeaderContentTrackingDisabled: Bool {

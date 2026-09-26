@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import LibSignalClient
 import XCTest
 @testable import SignalServiceKit
 
@@ -231,6 +232,503 @@ class TellomiRegionsTest: XCTestCase {
         // 正对照：区域表文件本身命中十几处，证明扫描确实读到了源码，上面那条「没找到」不是空断言
         let inTable = try endpointLiterals().filter { $0.hasPrefix(Self.regionTableFile + ":") }
         XCTAssertGreaterThanOrEqual(inTable.count, Self.endpointHosts.count)
+    }
+
+    // MARK: - #1056 第三刀：Net 只放在 provider 里
+
+    /// 只建对象、不连：`.invalid` 永远解析不到。
+    private func makeTestNet() -> Net {
+        Net(customServerHostname: "chat.tellomi.invalid", userAgent: "TellomiRegionsTest", buildVariant: .production)
+    }
+
+    func testProviderHandsOutTheCurrentNetAndSwapsItAtomically() {
+        let first = makeTestNet()
+        let provider = TellomiNetProvider(region: global, net: first)
+        XCTAssertTrue(provider.current === first)
+        XCTAssertEqual(provider.activeRegion, global)
+        XCTAssertEqual(provider.generation, 0)
+
+        let second = makeTestNet()
+        let replaced = provider.replace(net: second, region: cn)
+        XCTAssertTrue(replaced === first)
+        XCTAssertTrue(provider.current === second)
+        XCTAssertEqual(provider.activeRegion, cn)
+        XCTAssertEqual(provider.generation, 1)
+    }
+
+    func testHoldersDoNotKeepTheOldNetAlive() {
+        // 切区要换掉 Net：持有方都活着的时候，换下来的旧 Net 也必须放得掉（#1056 判据 2 的单测版本）。
+        // NetworkManager 那个跟进程一样长的网络变化 Task 以前直接捕获 Net，就是最容易漏的一处。
+        weak var weakOld: Net?
+        let provider = TellomiNetProvider(
+            region: global,
+            net: {
+                let net = makeTestNet()
+                weakOld = net
+                return net
+            }(),
+        )
+        let networkManager = NetworkManager(appReadiness: AppReadinessMock(), netProvider: provider)
+        let signalService = OWSSignalService(netProvider: provider)
+        XCTAssertNotNil(weakOld)
+        XCTAssertTrue(networkManager.libsignalNet === provider.current)
+
+        do {
+            let replaced = provider.replace(net: makeTestNet(), region: global)
+            XCTAssertTrue(replaced === weakOld)
+        }
+
+        XCTAssertNil(weakOld, "换下来的 Net 还被持有方留着")
+        XCTAssertTrue(networkManager.libsignalNet === provider.current)
+        withExtendedLifetime((networkManager, signalService)) {}
+    }
+
+    // MARK: - #1056 第三刀：本进程生效区（提交 B）
+
+    func testActiveRegionFollowsTheInstalledProvider() {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: cnOn, net: makeTestNet())
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+
+        // 生效区跟着 provider（和 Net 同一个原子状态），REST 端点、内容代理回落都跟着它
+        XCTAssertEqual(TellomiRegions.active(), cnOn)
+        XCTAssertEqual(TSConstantsStaging().mainServiceURL, cnOn.chat)
+        XCTAssertEqual(TSConstantsStaging().textSecureCDN3ServerURL, cnOn.cdn3)
+        XCTAssertEqual(ContentProxy.defaultEndpoint.host, cnOn.contentProxyHost)
+
+        // 还没装 provider（AppSetup 建 Net 之前）：回落记住的区
+        TellomiNetProvider.installForTesting(nil)
+        XCTAssertEqual(TellomiRegions.active(), TellomiRegions.current())
+    }
+
+    func testCdnSessionsFollowTheActiveRegionAndOldOnesStayCached() async {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: global, net: makeTestNet())
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+        let signalService = OWSSignalService(netProvider: provider)
+
+        let before = await signalService.sharedUrlSessionForCdn(cdnNumber: 3)
+        XCTAssertEqual(before.endpoint.baseUrl?.host, "cdn3.tellomi.app")
+
+        // 切区后：按生效区解析出新地址，拿到新区的会话（不用等哪次网络失败把缓存冲掉）
+        provider.replace(net: makeTestNet(), region: cnOn)
+        let after = await signalService.sharedUrlSessionForCdn(cdnNumber: 3)
+        XCTAssertEqual(after.endpoint.baseUrl?.host, "cdn3.tellomi.cn")
+
+        // 旧区的会话还在缓存里，给钉住旧区的在途上传用：按旧地址取，拿到的是同一个
+        let pinned = await signalService.sharedUrlSessionForCdn(cdnNumber: 3, baseUrl: URL(string: global.cdn3)!)
+        XCTAssertTrue((pinned as AnyObject) === (before as AnyObject))
+    }
+
+    // MARK: - #1056 第三刀：在途上传钉住开始时的区（提交 D）
+
+    private func makeForm(regionId: String?) -> Upload.Form {
+        Upload.Form(headers: HttpHeaders(), signedUploadLocation: "https://cdn3.tellomi.app/upload", cdnKey: "key", cdnNumber: 3, tellomiRegionId: regionId)
+    }
+
+    func testUploadFormsAreStampedWithTheActiveRegion() {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: global, net: makeTestNet(), profiles: [global, cnOn])
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+        let remote = UploadForm(cdn: 3, key: "key", headers: [:], signedUploadUrl: URL(string: "https://cdn3.tellomi.app/upload")!)
+
+        XCTAssertEqual(Upload.Form(uploadForm: remote).tellomiRegionId, "global")
+        provider.replace(net: makeTestNet(), region: cnOn)
+        XCTAssertEqual(Upload.Form(uploadForm: remote).tellomiRegionId, "cn")
+    }
+
+    func testPinnedCdnAddressFollowsTheStampNotTheActiveRegion() {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: global, net: makeTestNet(), profiles: [global, cnOn])
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+        let startedInGlobal = makeForm(regionId: "global")
+        let startedInCn = makeForm(regionId: "cn")
+
+        // 切区以后，在途的上传仍连开始时那个区的 cdn3；新开始的上传才用新区
+        provider.replace(net: makeTestNet(), region: cnOn)
+        XCTAssertEqual(startedInGlobal.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.app")
+        XCTAssertEqual(startedInCn.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.cn")
+        provider.replace(net: makeTestNet(), region: global)
+        XCTAssertEqual(startedInCn.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.cn")
+    }
+
+    func testFormsFromBeforeTheStampArePinnedToGlobal() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let provider = TellomiNetProvider(region: cnOn, net: makeTestNet(), profiles: [global, cnOn])
+        let previous = TellomiNetProvider.installForTesting(provider)
+        defer { TellomiNetProvider.installForTesting(previous) }
+
+        // 表单整个以 JSON 存在上传记录里：章跟着存取；第三刀之前存的记录没有这个键，按 global（不是按生效区）
+        let stamped = try JSONDecoder().decode(Upload.Form.self, from: JSONEncoder().encode(makeForm(regionId: "cn")))
+        XCTAssertEqual(stamped.tellomiRegionId, "cn")
+        let legacyJson = try JSONEncoder().encode(makeForm(regionId: nil))
+        XCTAssertFalse(String(decoding: legacyJson, as: UTF8.self).contains("tellomiRegionId"))
+        let legacy = try JSONDecoder().decode(Upload.Form.self, from: legacyJson)
+        XCTAssertNil(legacy.tellomiRegionId)
+        XCTAssertEqual(legacy.tellomiPinnedRegion, global)
+        XCTAssertEqual(legacy.tellomiPinnedCdnBaseUrl.host, "cdn3.tellomi.app")
+    }
+
+    func testAFormPinnedToATurnedOffRegionIsNotReused() {
+        // 包里的 CN 关着：钉在 CN 的表单不能再用，上传管理器当它过期，重新取表单、从 0 开始、落到当前区
+        XCTAssertNil(makeForm(regionId: "cn").tellomiPinnedRegion)
+        XCTAssertNil(makeForm(regionId: "unknown").tellomiPinnedRegion)
+        XCTAssertEqual(makeForm(regionId: "global").tellomiPinnedRegion, TellomiRegions.global)
+    }
+
+    /// 上传目录里取 CDN 会话，一律按表单钉住的地址取：不带 `baseUrl:` 的取法会按生效区走，切区后续传就换了区。
+    private func uploadCdnSessionCalls() throws -> (unpinned: [String], pinned: Int) {
+        let dir = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // Util
+            .deletingLastPathComponent() // tests
+            .deletingLastPathComponent() // SignalServiceKit
+            .appendingPathComponent("Upload")
+            .resolvingSymlinksInPath()
+        var unpinned = [String]()
+        var pinned = 0
+        for name in try FileManager.default.contentsOfDirectory(atPath: dir.path) where name.hasPrefix("UploadEndpoint") && name.hasSuffix(".swift") {
+            let text = try String(contentsOf: dir.appendingPathComponent(name), encoding: .utf8)
+            for (index, line) in text.components(separatedBy: "\n").enumerated() where line.contains("sharedUrlSessionForCdn(cdnNumber:") {
+                if line.contains("baseUrl: uploadForm.tellomiPinnedCdnBaseUrl") {
+                    pinned += 1
+                } else {
+                    unpinned.append("\(name):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))")
+                }
+            }
+        }
+        return (unpinned, pinned)
+    }
+
+    func testUploadEndpointsOnlyUsePinnedCdnSessions() throws {
+        XCTAssertEqual(try uploadCdnSessionCalls().unpinned, [])
+    }
+
+    func testTheUploadScanActuallyFindsTheCalls() throws {
+        // 正对照：CDN2 三处、CDN3 两处，都扫得到
+        XCTAssertEqual(try uploadCdnSessionCalls().pinned, 5)
+    }
+
+    // MARK: - #1056 第三刀：切区（提交 C）
+
+    private final class RebuildRecorder {
+        var madeFor = [TellomiRegionId]()
+        var configured = [ObjectIdentifier]()
+    }
+
+    private func makeSwitchableProvider(profiles: [TellomiRegionProfile], retireDelay: TimeInterval = 60) -> (TellomiNetProvider, RebuildRecorder) {
+        let recorder = RebuildRecorder()
+        let provider = TellomiNetProvider(region: global, net: makeTestNet(), profiles: profiles, retireDelay: retireDelay)
+        provider.setRebuild(TellomiNetProvider.Rebuild(
+            makeNet: { [unowned self] region in
+                recorder.madeFor.append(region.id)
+                return self.makeTestNet()
+            },
+            configure: { net in
+                recorder.configured.append(ObjectIdentifier(net))
+            },
+        ))
+        return (provider, recorder)
+    }
+
+    func testSwitchingRefusesUnknownAndDisabledRegionsBeforeTouchingTheNetwork() {
+        // 包里的 CN 关着：直接报错
+        let (provider, recorder) = makeSwitchableProvider(profiles: TellomiRegions.all)
+        XCTAssertThrowsError(try provider.switchTo(.cn, store: nil)) { XCTAssertEqual($0 as? TellomiRegionSwitchError, .disabled) }
+        // 不认识的区
+        let (onlyGlobal, onlyGlobalRecorder) = makeSwitchableProvider(profiles: [global])
+        XCTAssertThrowsError(try onlyGlobal.switchTo(.cn, store: nil)) { XCTAssertEqual($0 as? TellomiRegionSwitchError, .unknown) }
+        // 两种都在建 Net 之前就停了：不查 DNS、不建连接（#1056 判据 4 在切换器这一层）
+        XCTAssertEqual(recorder.madeFor, [])
+        XCTAssertEqual(onlyGlobalRecorder.madeFor, [])
+        XCTAssertEqual(provider.generation, 0)
+        // 没接重建（USE_PRODUCTION、AppSetup 之前）
+        XCTAssertThrowsError(try TellomiNetProvider(region: global, net: makeTestNet()).switchTo(.global, store: nil)) {
+            XCTAssertEqual($0 as? TellomiRegionSwitchError, .notApplicable)
+        }
+    }
+
+    func testSwitchingToTheActiveRegionIsANoOp() throws {
+        let (provider, recorder) = makeSwitchableProvider(profiles: [global, TellomiRegionProfile(copying: cn, enabled: true)])
+        XCTAssertFalse(try provider.switchTo(.global, store: nil))
+        XCTAssertEqual(recorder.madeFor, [])
+        XCTAssertEqual(provider.generation, 0)
+    }
+
+    func testSwitchingSwapsTheNetRecordsTheRegionAndNotifiesOnce() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let (provider, recorder) = makeSwitchableProvider(profiles: [global, cnOn])
+        let defaults = TestUtils.userDefaults()
+        let store = TellomiRegionStore(userDefaults: { defaults })
+        let before = provider.current
+        let notifications = AtomicValue<Int>(0, lock: .init())
+        let observer = NotificationCenter.default.addObserver(forName: .tellomiRegionDidChange, object: nil, queue: nil) { _ in
+            notifications.update { $0 += 1 }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+        let switchedAt = Date(timeIntervalSince1970: 1_790_000_000)
+
+        XCTAssertTrue(try provider.switchTo(.cn, store: store, now: switchedAt))
+
+        // 按新区建了一个 Net，先配好再换上，换上以后幂等再配一次
+        XCTAssertEqual(recorder.madeFor, [.cn])
+        XCTAssertFalse(provider.current === before)
+        XCTAssertEqual(recorder.configured, [ObjectIdentifier(provider.current), ObjectIdentifier(provider.current)])
+        XCTAssertEqual(provider.activeRegion, cnOn)
+        XCTAssertEqual(provider.generation, 1)
+        // 主 App 记进 app group（区和切区时间，契约第六节「驻留时间从哪算起」）
+        XCTAssertEqual(store.storedRegionId(), "cn")
+        XCTAssertEqual(store.lastSwitchAt(), switchedAt)
+        // 旧 Net 进了退役区
+        XCTAssertEqual(provider.retiredCount, 1)
+        // 通知在主线程发：让主线程跑一轮再数，只发一次
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        XCTAssertEqual(notifications.get(), 1)
+    }
+
+    func testAdoptingTheStoredRegionRebuildsOnlyWhenItChanged() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let (provider, recorder) = makeSwitchableProvider(profiles: [global, cnOn])
+        let defaults = TestUtils.userDefaults()
+        let store = TellomiRegionStore(userDefaults: { defaults })
+
+        // 没有记录 = global = 生效区：不重建
+        XCTAssertFalse(provider.adoptStoredRegionIfChanged(store: store))
+        // 主 App 记了 CN：NSE 跟着换，但不写 store（切区时间还是主 App 记的那个）
+        let recordedAt = Date(timeIntervalSince1970: 1_790_000_000)
+        store.record(.cn, at: recordedAt)
+        XCTAssertTrue(provider.adoptStoredRegionIfChanged(store: store))
+        XCTAssertEqual(provider.activeRegion, cnOn)
+        XCTAssertEqual(store.lastSwitchAt(), recordedAt)
+        // 没变：不重建
+        XCTAssertFalse(provider.adoptStoredRegionIfChanged(store: store))
+        XCTAssertEqual(recorder.madeFor, [.cn])
+    }
+
+    func testRetiredNetIsReleasedAfterTheDelay() throws {
+        let cnOn = TellomiRegionProfile(copying: cn, enabled: true)
+        let (provider, _) = makeSwitchableProvider(profiles: [global, cnOn], retireDelay: 0.2)
+        weak let weakOld = provider.current
+        XCTAssertTrue(try provider.switchTo(.cn, store: nil))
+
+        // 退役期内还留着：旧连接的回调可能还在用它
+        XCTAssertNotNil(weakOld)
+        XCTAssertEqual(provider.retiredCount, 1)
+        // 到期后在专用后台队列上放掉（不在 tokio 线程上、不在主线程上）
+        let deadline = Date().addingTimeInterval(5)
+        while weakOld != nil, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertNil(weakOld)
+        XCTAssertEqual(provider.retiredCount, 0)
+    }
+
+    // MARK: - 门禁：除 provider 外不许存 Net
+
+    private static let netProviderFile = "SignalServiceKit/Network/TellomiNetProvider.swift"
+
+    /// 存储型的 `Net` 属性（`let x: Net` / `var x: LibSignalClient.Net?`，没有 `{` 也没有初始值）。计算属性、函数参数不算。
+    private static let storedNetPattern = try! NSRegularExpression(
+        pattern: #"^\s*(?:(?:public|private|fileprivate|internal|open|nonisolated\(unsafe\)|static|final|weak|unowned|lazy)\s+)*(?:let|var)\s+\w+\s*:\s*(?:LibSignalClient\.)?Net\??\s*(?://.*)?$"#,
+    )
+
+    private func storedNetDeclarations() throws -> [String] {
+        var hits = [String]()
+        for file in try appSourceFiles() {
+            for (index, line) in file.lines.enumerated() {
+                let range = NSRange(line.startIndex..., in: line)
+                if Self.storedNetPattern.firstMatch(in: line, range: range) != nil {
+                    hits.append("\(file.relativePath):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))")
+                }
+            }
+        }
+        return hits
+    }
+
+    func testOnlyTheProviderStoresANet() throws {
+        let outside = try storedNetDeclarations().filter { !$0.hasPrefix(Self.netProviderFile + ":") }
+        XCTAssertEqual(outside, [], "Net 只许放在 TellomiNetProvider 里，别处从 provider 现取（不然切区后旧 Net 放不掉）")
+    }
+
+    func testTheStoredNetScanActuallyFindsDeclarations() throws {
+        // 正对照：provider 自己的 State 里存着一个 Net，扫得到才说明上面那条「没有」不是空断言
+        let inProvider = try storedNetDeclarations().filter { $0.hasPrefix(Self.netProviderFile + ":") }
+        XCTAssertGreaterThanOrEqual(inProvider.count, 1)
+    }
+
+    // MARK: - #1056 第三刀：测试区与切区演练（提交 E）
+
+    private let testDomainKey = TellomiRegions.testRegionDomainKey
+
+    func testTheTestRegionIsOffUnlessTheLaunchEnvironmentAsksForIt() {
+        XCTAssertEqual(TellomiRegions.testRegionProfiles(environment: [:]), TellomiRegions.all)
+        for notADomain in ["", "localhost", ".tellomi.test", "tellomi.test.", "tellomi..test", "tellomi.test/x", "tel lomi.test", "tellomi.测试"] {
+            XCTAssertEqual(TellomiRegions.testRegionProfiles(environment: [testDomainKey: notADomain]), TellomiRegions.all, notADomain)
+        }
+        // 跑单测的进程没带这个变量：本进程的表就是包里的表
+        XCTAssertEqual(TellomiRegions.processProfiles, TellomiRegions.all)
+    }
+
+    func testTheTestRegionMovesEveryCnHostUnderTheGivenDomain() {
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        XCTAssertEqual(profiles.map(\.id), [.global, .cn])
+        XCTAssertEqual(profiles[0], global)
+        let testRegion = profiles[1]
+        XCTAssertTrue(testRegion.enabled)
+        for endpoint in testRegion.endpoints {
+            XCTAssertTrue(TellomiRegions.hostOf(endpoint).hasSuffix(".tellomi.test"), endpoint)
+        }
+        // 同名标签，路径和端口不变
+        XCTAssertEqual(testRegion.chat, "https://chat.tellomi.test")
+        XCTAssertEqual(testRegion.grpcChatHost, "grpc.chat.tellomi.test")
+        XCTAssertEqual(testRegion.cdn3, "https://cdn3.tellomi.test")
+        XCTAssertEqual(testRegion.captchaRegistration, "https://chat.tellomi.test/captcha-tellomi/registration/generate.html")
+        XCTAssertEqual(testRegion.contentProxyPort, global.contentProxyPort)
+        // 包里的表不受影响：CN 仍关着，不变量照旧
+        XCTAssertFalse(TellomiRegions.cn.enabled)
+        XCTAssertEqual(TellomiRegions.problems(TellomiRegions.all), [])
+    }
+
+    func testAStoredTestRegionFallsBackToGlobalWithoutTheLaunchEnvironment() {
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        XCTAssertEqual(TellomiRegions.resolve(storedId: "cn", profiles: profiles), profiles[1])
+        // 下次不带变量启动（NSE、分享扩展一直是这样）：记住的 cn 在包里的表里关着，回落 global
+        XCTAssertEqual(TellomiRegions.resolve(storedId: "cn", profiles: TellomiRegions.processProfiles), global)
+    }
+
+    func testSwitchingTenTimesLeavesNoTokioThreadsBehind() throws {
+        // #1056 判据 2 的单测版：每个 Net 一个 tokio 运行时；切 10 次、退役期过后，线程数回到开始时
+        let profiles = TellomiRegions.testRegionProfiles(environment: [testDomainKey: "tellomi.test"])
+        let (provider, _) = makeSwitchableProvider(profiles: profiles, retireDelay: 0.1)
+        let before = TellomiRegionDrill.tokioThreadCount()
+        XCTAssertGreaterThan(before, 0, "provider 第一个 Net 的运行时要数得到，否则下面的比较是空的")
+
+        for step in 1...10 {
+            XCTAssertTrue(try provider.switchTo(step.isMultiple(of: 2) ? .global : .cn, store: nil))
+        }
+        XCTAssertEqual(provider.generation, 10)
+
+        let deadline = Date().addingTimeInterval(10)
+        while provider.retiredCount > 0 || TellomiRegionDrill.tokioThreadCount() > before, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertEqual(provider.retiredCount, 0)
+        XCTAssertLessThanOrEqual(TellomiRegionDrill.tokioThreadCount(), before)
+    }
+
+    // MARK: - 门禁：测试区和演练只在测试构建里
+
+    /// 测试专用代码的标记。App 源码里出现的每一处都要在 `#if TESTABLE_BUILD` 里（App Store Release 没有这个宏）。
+    private static let testOnlyMarkers = ["TELLOMI_TEST_REGION_DOMAIN", "TELLOMI_REGION_DRILL", "testRegionProfiles(", "TellomiRegionDrill"]
+
+    private func testOnlyMarkerHits() throws -> (guarded: [String], unguarded: [String]) {
+        var guarded = [String]()
+        var unguarded = [String]()
+        for file in try appSourceFiles() {
+            let isGuarded = Self.linesInsideTestableBuild(file.lines)
+            for (index, line) in file.lines.enumerated() {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("//") || trimmed.hasPrefix("*") || trimmed.hasPrefix("/*") {
+                    continue
+                }
+                if Self.testOnlyMarkers.contains(where: { line.contains($0) }) {
+                    let hit = "\(file.relativePath):\(index + 1): \(trimmed)"
+                    if isGuarded[index] {
+                        guarded.append(hit)
+                    } else {
+                        unguarded.append(hit)
+                    }
+                }
+            }
+        }
+        return (guarded, unguarded)
+    }
+
+    /// 每一行是否在 `#if TESTABLE_BUILD` 的真分支里（套在别的 `#if` 里也算；它的 `#else` / `#elseif` 那一支不算）。
+    private static func linesInsideTestableBuild(_ lines: [String]) -> [Bool] {
+        var branches = [Bool]() // 每层 #if：当前这一支是不是 TESTABLE_BUILD 的真分支
+        return lines.map { line in
+            let directive = line.trimmingCharacters(in: .whitespaces).components(separatedBy: "//")[0].trimmingCharacters(in: .whitespaces)
+            if directive.hasPrefix("#if ") {
+                branches.append(directive == "#if TESTABLE_BUILD")
+            } else if directive.hasPrefix("#elseif "), !branches.isEmpty {
+                branches[branches.count - 1] = false
+            } else if directive == "#else", !branches.isEmpty {
+                branches[branches.count - 1] = false
+            } else if directive == "#endif" {
+                let inside = branches.contains(true)
+                _ = branches.popLast()
+                return inside
+            }
+            return branches.contains(true)
+        }
+    }
+
+    func testTestOnlyCodeStaysBehindTestableBuild() throws {
+        let hits = try testOnlyMarkerHits()
+        XCTAssertEqual(hits.unguarded, [], "测试区和切区演练只许出现在 #if TESTABLE_BUILD 里")
+        // 正对照：每个标记都在 #if TESTABLE_BUILD 里找到过，证明扫描和分支判断确实在工作
+        for marker in Self.testOnlyMarkers {
+            XCTAssertTrue(hits.guarded.contains { $0.contains(marker) }, marker)
+        }
+    }
+
+    func testTheTestableBuildBranchTracking() {
+        let lines = [
+            "a",
+            "#if TESTABLE_BUILD",
+            "b",
+            "#if DEBUG",
+            "c",
+            "#endif",
+            "#else",
+            "d",
+            "#endif",
+            "#if DEBUG",
+            "#if TESTABLE_BUILD // 说明",
+            "e",
+            "#endif",
+            "f",
+            "#endif",
+        ]
+        let inside = Self.linesInsideTestableBuild(lines)
+        let insideLines = zip(lines, inside).filter { $0.1 && $0.0.count == 1 }.map(\.0)
+        XCTAssertEqual(insideLines, ["b", "c", "e"])
+    }
+
+    // MARK: -
+
+    /// 各个 App 目标的 Swift 源码（不含测试）：相对仓库根的路径和按行拆开的内容。
+    private func appSourceFiles() throws -> [(relativePath: String, lines: [String])] {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent() // Util
+            .deletingLastPathComponent() // tests
+            .deletingLastPathComponent() // SignalServiceKit
+            .deletingLastPathComponent() // 仓库根
+            .resolvingSymlinksInPath()
+        var files = [(relativePath: String, lines: [String])]()
+        for target in ["Signal", "SignalServiceKit", "SignalUI", "SignalNSE", "SignalShareExtension"] {
+            guard let enumerator = FileManager.default.enumerator(at: root.appendingPathComponent(target), includingPropertiesForKeys: nil) else {
+                XCTFail("can't read \(target)")
+                continue
+            }
+            for case let url as URL in enumerator {
+                if ["test", "tests", "TestUtils"].contains(url.lastPathComponent) {
+                    enumerator.skipDescendants()
+                    continue
+                }
+                guard url.pathExtension == "swift" else {
+                    continue
+                }
+                let path = url.resolvingSymlinksInPath().path
+                let text = try String(contentsOf: url, encoding: .utf8)
+                files.append((String(path.dropFirst(root.path.count + 1)), text.components(separatedBy: "\n")))
+            }
+        }
+        return files
     }
 }
 

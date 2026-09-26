@@ -261,11 +261,12 @@ public class TSConstantsProduction: TSConstantsProtocol {
 
 public class TSConstantsStaging: TSConstantsProtocol {
 
-    /// Tellomi（#1056）：端点按当前区**现取**（`TellomiRegions.current()`），不在初始化时存下来。
+    /// Tellomi（#1056）：端点按本进程生效区**现取**（`TellomiRegions.active()`），不在初始化时存下来。
     /// `TSConstants.shared` 是 `static let`：这里要是存成 `let`，以后切区只重建了 `Net`，REST 侧还连旧区（「半切换」，#1056 交接评论第二处）。
+    /// 读生效区而不是每次读 app group 里记住的区：生效区和 `Net` 同一次换，REST 与 libsignal 在进程内同时切。
     private let region: () -> TellomiRegionProfile
 
-    public init(region: @escaping () -> TellomiRegionProfile = { TellomiRegions.current() }) {
+    public init(region: @escaping () -> TellomiRegionProfile = { TellomiRegions.active() }) {
         self.region = region
     }
 
