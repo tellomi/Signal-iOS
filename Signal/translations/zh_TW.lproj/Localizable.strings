@@ -6642,6 +6642,30 @@
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "註冊而不轉移";
 
+/* Tellomi: Body of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_BODY" = "舊手機上的 Tellomi 會登出，以前的訊息也不會出現在這支手機上。";
+
+/* Tellomi: Title of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_TITLE" = "不傳訊息，直接註冊？";
+
+/* Tellomi: Description on the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_DESCRIPTION" = "可以從舊 iPhone 把帳戶和訊息直接傳過來，也可以直接註冊。直接註冊的話，以前的訊息不會出現在這支手機上。";
+
+/* Tellomi: Body shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_BODY" = "Android 手機上的訊息目前無法傳到 iPhone。直接註冊就可以，只是以前的訊息不會跟過來，舊手機上的 Tellomi 也會登出。";
+
+/* Tellomi: Title shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_TITLE" = "無法從 Android 手機傳過來";
+
+/* Tellomi: Explanation of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_BODY" = "以前的訊息不會出現在這支手機上";
+
+/* Tellomi: Title of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_TITLE" = "直接註冊";
+
+/* Tellomi: Title of the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_TITLE" = "要把訊息傳過來嗎？";
+
 /* If a user is installing Signal on a new phone, they may be asked whether they want to restore their device from a backup. */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_TITLE" = "還原或轉移帳戶";
 
@@ -6765,11 +6789,26 @@
 /* Title for the 'have my old device' choice of the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "我有我的舊手機";
 
+/* Tellomi: One-line text link under the 'Continue' button in the 'onboarding splash' view, for people moving to a new phone. */
+"ONBOARDING_SPLASH_NEW_PHONE_LINK_TITLE" = "換了新手機？";
+
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
 "ONBOARDING_SPLASH_NONPROFIT" = "Signal 是一個非營利組織";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "還原或轉移帳戶";
+
+/* Tellomi: Explanation of the 'my old iPhone is here' choice: scan a QR code with the old iPhone to transfer the account and messages directly. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_BODY" = "用舊 iPhone 掃描一個二維碼，把帳戶和訊息直接傳過來";
+
+/* Tellomi: Title for the 'my old iPhone is here' choice after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_TITLE" = "舊 iPhone 還在身邊";
+
+/* Tellomi: Explanation of the 'register directly' choice: registering works, but earlier messages won't come to this phone and Tellomi on the old phone will be logged out. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "直接註冊就可以，只是以前的訊息不會跟過來，舊手機上的 Tellomi 也會登出";
+
+/* Tellomi: Title for the choice to register directly (old phone is not at hand, or is an Android phone) after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_TITLE" = "舊手機不在身邊，或者是 Android 手機";
 
 /* Link to the 'terms and privacy policy' in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_TERM_AND_PRIVACY_POLICY" = "服務條款與隱私政策";

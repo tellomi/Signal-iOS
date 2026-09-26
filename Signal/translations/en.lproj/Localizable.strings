@@ -6642,6 +6642,30 @@
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "Register without Transferring";
 
+/* Tellomi: Body of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_BODY" = "Tellomi on your old phone will be logged out, and your earlier messages won't appear on this phone.";
+
+/* Tellomi: Title of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_TITLE" = "Register Without Transferring?";
+
+/* Tellomi: Description on the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_DESCRIPTION" = "You can move your account and messages directly from your old iPhone, or just register. If you register without transferring, your earlier messages won't appear on this phone.";
+
+/* Tellomi: Body shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_BODY" = "Messages on an Android phone can't be transferred to an iPhone yet. You can just register: your earlier messages won't come with you, and Tellomi on your old phone will be logged out.";
+
+/* Tellomi: Title shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_TITLE" = "Messages Can't Be Moved from Android";
+
+/* Tellomi: Explanation of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_BODY" = "Your earlier messages won't appear on this phone";
+
+/* Tellomi: Title of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_TITLE" = "Register Without Transferring";
+
+/* Tellomi: Title of the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_TITLE" = "Transfer Your Messages?";
+
 /* If a user is installing Signal on a new phone, they may be asked whether they want to restore their device from a backup. */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_TITLE" = "Restore or Transfer Account";
 
@@ -6765,11 +6789,26 @@
 /* Title for the 'have my old device' choice of the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "I have my old phone";
 
+/* Tellomi: One-line text link under the 'Continue' button in the 'onboarding splash' view, for people moving to a new phone. */
+"ONBOARDING_SPLASH_NEW_PHONE_LINK_TITLE" = "New phone?";
+
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
 "ONBOARDING_SPLASH_NONPROFIT" = "Signal is a 501c3 nonprofit";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "Restore or Transfer Account";
+
+/* Tellomi: Explanation of the 'my old iPhone is here' choice: scan a QR code with the old iPhone to transfer the account and messages directly. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_BODY" = "Scan a QR code with your old iPhone to move your account and messages over directly";
+
+/* Tellomi: Title for the 'my old iPhone is here' choice after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_TITLE" = "My old iPhone is here";
+
+/* Tellomi: Explanation of the 'register directly' choice: registering works, but earlier messages won't come to this phone and Tellomi on the old phone will be logged out. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "Just register. Your earlier messages won't come with you, and Tellomi on your old phone will be logged out.";
+
+/* Tellomi: Title for the choice to register directly (old phone is not at hand, or is an Android phone) after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_TITLE" = "My old phone isn't here, or it's an Android phone";
 
 /* Link to the 'terms and privacy policy' in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_TERM_AND_PRIVACY_POLICY" = "Terms & Privacy Policy";
