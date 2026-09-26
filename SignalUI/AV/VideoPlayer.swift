@@ -25,6 +25,16 @@ public class VideoPlayer {
 
     public weak var delegate: VideoPlayerDelegate?
 
+    /// Tellomi（#1257，owner 2026-09-25，照 Telegram）：查看器里选的倍速。播放中改立刻生效，暂停时记下、下次播放按它放。
+    /// 只在这次查看器里有效，不写任何设置。
+    public var playbackSpeed: Float = 1 {
+        didSet {
+            if avPlayer.rate != 0, playbackRateToRestore == nil {
+                avPlayer.rate = playbackSpeed
+            }
+        }
+    }
+
     public convenience init(decryptedFileUrl: URL) {
         self.init(decryptedFileUrl: decryptedFileUrl, shouldLoop: false)
     }
@@ -134,6 +144,10 @@ public class VideoPlayer {
         }
 
         avPlayer.play()
+        // Tellomi（#1257）：按查看器里选的倍速放（iOS 15 没有 defaultRate，直接设 rate）。
+        if playbackSpeed != 1 {
+            avPlayer.rate = playbackSpeed
+        }
     }
 
     public func stop() {
@@ -142,7 +156,7 @@ public class VideoPlayer {
     }
 
     public func seek(to time: CMTime) {
-        owsAssertBeta(avPlayer.rate == 0 || avPlayer.rate == 1)
+        owsAssertBeta(avPlayer.rate == 0 || avPlayer.rate == 1 || avPlayer.rate == playbackSpeed)
         // Seek with a tolerance (or precision) of a hundredth of a second.
         let tolerance = CMTime(seconds: 0.01, preferredTimescale: Self.preferredTimescale)
         // Bound the time

@@ -116,10 +116,16 @@ class ForwardMessageViewController: OWSNavigationController {
                 try SignalAttachmentCloner.cloneAsSignalAttachment(attachment: attachmentStream, attachmentLimits: attachmentLimits)
             }
             present(
-                content: ForwardMessageContent(allItems: [ForwardMessageItem(interaction: message, attachments: attachments)]),
+                content: ForwardMessageContent(allItems: [ForwardMessageItem(
+                    interaction: message,
+                    attachments: attachments,
+                    tellomiShareStreams: attachmentStreams,
+                )]),
                 from: fromViewController,
                 attachmentLimits: attachmentLimits,
                 delegate: delegate,
+                // Tellomi（#1259 F-2）：只有查看器用这个入口，从查看器打开的网格一律深色
+                tellomiForceDarkTheme: true,
             )
         } catch let error {
             ForwardMessageViewController.showAlertForForwardError(
@@ -172,6 +178,7 @@ class ForwardMessageViewController: OWSNavigationController {
             from: fromViewController,
             attachmentLimits: attachmentLimits,
             delegate: delegate,
+            tellomiUsesGrid: false,
         )
     }
 
@@ -193,7 +200,22 @@ class ForwardMessageViewController: OWSNavigationController {
         from fromViewController: UIViewController,
         attachmentLimits: OutgoingAttachmentLimits,
         delegate: ForwardMessageDelegate,
+        tellomiUsesGrid: Bool = true,
+        tellomiForceDarkTheme: Bool = false,
     ) {
+        // Tellomi（#1259 F-1）：长按 / 多选 / 查看器 / 长文的「转发」都打开头像网格；
+        // 转发「动态」仍用上游选择器（网格里没有「动态」，owner D6）。
+        if tellomiUsesGrid, content.canSendToNonStories {
+            presentTellomiGrid(
+                content: content,
+                from: fromViewController,
+                attachmentLimits: attachmentLimits,
+                delegate: delegate,
+                forceDarkTheme: tellomiForceDarkTheme,
+            )
+            return
+        }
+
         let sheet = ForwardMessageViewController(content: content, attachmentLimits: attachmentLimits)
         sheet.forwardMessageDelegate = delegate
         fromViewController.present(sheet, animated: true) {
@@ -306,16 +328,18 @@ extension ForwardMessageViewController {
             let sortedItems = content.allItems.sorted { lhs, rhs in
                 lhs.interaction?.sortId ?? 0 < rhs.interaction?.sortId ?? 0
             }
-            // _Enqueue_ each item serially.
-            for item in sortedItems {
-                try await self.send(item: item, toOutgoingMessageRecipientThreads: outgoingMessageRecipientThreads)
-            }
             // The user may have added an additional text message to the forward.
-            // It should be sent last.
-            if let textMessage {
-                let messageBody = MessageBody(text: textMessage, ranges: .empty)
-                await enqueueMessageViaThreadUtil(toRecipientThreads: outgoingMessageRecipientThreads) { recipientThread in
-                    self.send(body: messageBody, recipientThread: recipientThread)
+            // Tellomi（#1259 F-7）：它作为单独一条文字先于转发内容发出（同 Telegram Android；上游放在最后）。
+            for step in Self.tellomiForwardSteps(items: sortedItems, comment: textMessage) {
+                switch step {
+                case .comment(let text):
+                    let messageBody = MessageBody(text: text, ranges: .empty)
+                    await enqueueMessageViaThreadUtil(toRecipientThreads: outgoingMessageRecipientThreads) { recipientThread in
+                        self.send(body: messageBody, recipientThread: recipientThread)
+                    }
+                case .item(let item):
+                    // _Enqueue_ each item serially.
+                    try await self.send(item: item, toOutgoingMessageRecipientThreads: outgoingMessageRecipientThreads)
                 }
             }
 
@@ -476,6 +500,11 @@ extension ForwardMessageViewController {
         recipientThreads: [TSThread],
         fromViewController: UIViewController,
     ) {
+        // Tellomi（#1259 F-8）：成功轻震一下，提示写明转给了谁；只转到「我的收藏」时点提示条打开它
+        if tellomiFinalizeForward(recipientThreads: recipientThreads, fromViewController: fromViewController) {
+            return
+        }
+
         let toast: String
         if items.count > 1 {
             toast = OWSLocalizedString(
@@ -564,6 +593,8 @@ struct ForwardMessageItem {
     let stickerMetadata: (any StickerMetadata)?
     let stickerAttachment: AttachmentStream?
     let textAttachment: TextAttachment?
+    /// Tellomi（#1259 F-10）：本机的原附件，「分享到其他 App」按原图 / 原文件交给系统分享面板
+    let tellomiShareStreams: [ReferencedAttachmentStream]
 
     fileprivate init(
         interaction: TSInteraction? = nil,
@@ -574,6 +605,7 @@ struct ForwardMessageItem {
         stickerMetadata: (any StickerMetadata)? = nil,
         stickerAttachment: AttachmentStream? = nil,
         textAttachment: TextAttachment? = nil,
+        tellomiShareStreams: [ReferencedAttachmentStream] = [],
     ) {
         self.interaction = interaction
         self.attachments = attachments
@@ -583,6 +615,7 @@ struct ForwardMessageItem {
         self.stickerMetadata = stickerMetadata
         self.stickerAttachment = stickerAttachment
         self.textAttachment = textAttachment
+        self.tellomiShareStreams = tellomiShareStreams
     }
 
     fileprivate static func build(
@@ -628,6 +661,7 @@ struct ForwardMessageItem {
         var contactShare: ContactShareViewModel?
         var stickerMetadata: (any StickerMetadata)?
         var stickerAttachment: AttachmentStream?
+        var tellomiShareStreams: [ReferencedAttachmentStream] = []
         if shouldHaveAttachments {
             if let oldContactShare = componentState.contactShareModel {
                 contactShare = oldContactShare.copyForRendering()
@@ -645,6 +679,7 @@ struct ForwardMessageItem {
             attachments = try attachmentStreams.map { attachmentStream in
                 try SignalAttachmentCloner.cloneAsSignalAttachment(attachment: attachmentStream, attachmentLimits: attachmentLimits)
             }
+            tellomiShareStreams = attachmentStreams
 
             stickerMetadata = componentState.stickerMetadata
             stickerAttachment = (stickerMetadata != nil) ? componentState.stickerAttachment : nil
@@ -668,6 +703,7 @@ struct ForwardMessageItem {
             linkPreviewDraft: linkPreviewDraft,
             stickerMetadata: stickerMetadata,
             stickerAttachment: stickerAttachment,
+            tellomiShareStreams: tellomiShareStreams,
         )
     }
 
@@ -811,5 +847,312 @@ private struct ForwardMessageContent {
             throw .invalidInteraction
         }
         return componentState
+    }
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+extension ForwardMessageViewController {
+
+    /// 长按「收藏」：不开转发面板，照转发的内容（同一套检查与发送）直接发到「我的收藏」。发出去了回调 true。
+    static func tellomiSaveToSavedMessages(
+        itemViewModel: CVItemViewModelImpl,
+        completion: @escaping @MainActor (Bool) -> Void,
+    ) {
+        AssertIsOnMainThread()
+
+        let attachmentLimits = OutgoingAttachmentLimits.currentLimits()
+        let content: Content
+        let savedMessages: ConversationItem
+        do {
+            let built: (Content, ConversationItem?) = try SSKEnvironment.shared.databaseStorageRef.read { tx in
+                return (
+                    try Content.build(itemViewModel: itemViewModel, attachmentLimits: attachmentLimits, tx: tx),
+                    TellomiSavedMessagesConversationItem.build(tx: tx),
+                )
+            }
+            guard let item = built.1 else {
+                completion(false)
+                return
+            }
+            content = built.0
+            savedMessages = item
+        } catch {
+            ForwardMessageViewController.showAlertForForwardError(error: error, forwardedInteractionCount: 1)
+            completion(false)
+            return
+        }
+
+        let forwardController = ForwardMessageViewController(content: content, attachmentLimits: attachmentLimits)
+        forwardController.selection.add(savedMessages)
+        let delegate = TellomiSaveToSavedMessagesDelegate()
+        forwardController.forwardMessageDelegate = delegate
+
+        Task { @MainActor in
+            await forwardController._tryToSend()
+            // forwardMessageDelegate 是 weak，发完之前靠这里留住代理
+            completion(delegate.didComplete)
+        }
+    }
+}
+
+private final class TellomiSaveToSavedMessagesDelegate: ForwardMessageDelegate {
+    private(set) var didComplete = false
+
+    func forwardMessageFlowDidComplete(items: [ForwardMessageItem], recipientThreads: [TSThread]) {
+        didComplete = true
+    }
+
+    func forwardMessageFlowDidCancel() {}
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1259）转发网格
+
+extension ForwardMessageViewController {
+
+    /// 打开转发网格。网格只管选聊天和写附言；点「发送」后照上游同一套发送（`_tryToSend`：检查消息还在、建会话、按原顺序发），
+    /// 发完仍回调原来的 `ForwardMessageDelegate`（由它收起面板、调 `finalizeForward` 提示）。
+    private static func presentTellomiGrid(
+        content: Content,
+        from fromViewController: UIViewController,
+        attachmentLimits: OutgoingAttachmentLimits,
+        delegate: ForwardMessageDelegate,
+        forceDarkTheme: Bool,
+    ) {
+        weak let weakDelegate = delegate
+        // 打开网格的页面可能先不在了（例如长文页：消息被删，会话页把它弹出去，它一释放，delegate 就空了）。
+        // 没人来收，网格就得自己关：它全屏透明、盖在最上面，不关就吞掉所有触摸。
+        let gridReference = TellomiForwardGridReference()
+        let send: @MainActor ([ConversationItem], String?) async -> Bool = { items, comment in
+            let didSend = await tellomiSend(content: content, attachmentLimits: attachmentLimits, items: items, comment: comment, delegate: weakDelegate)
+            if didSend, weakDelegate == nil {
+                gridReference.grid?.dismiss(animated: true)
+            }
+            return didSend
+        }
+        let shareItems = TellomiForwardShareItems(content: content)
+        var share: (@MainActor (UIView) -> Void)?
+        if !shareItems.isEmpty {
+            share = { sourceView in
+                shareItems.present(sender: sourceView)
+            }
+        }
+        let cancel: @MainActor () -> Void = {
+            if let delegate = weakDelegate {
+                delegate.forwardMessageFlowDidCancel()
+            } else {
+                gridReference.grid?.dismiss(animated: true)
+            }
+        }
+        let grid = TellomiForwardGridViewController(
+            forceDarkTheme: forceDarkTheme,
+            actions: TellomiForwardGridViewController.Actions(send: send, share: share, cancel: cancel),
+        )
+        gridReference.grid = grid
+        fromViewController.present(grid, animated: true) {
+            UIApplication.shared.hideKeyboard()
+        }
+    }
+
+    /// 网格点「发送」：不展示，只借一个转发页的发送流程（同 #1174 长按「收藏」）。发出去了返回 true。
+    @MainActor
+    private static func tellomiSend(
+        content: Content,
+        attachmentLimits: OutgoingAttachmentLimits,
+        items: [ConversationItem],
+        comment: String?,
+        delegate: ForwardMessageDelegate?,
+    ) async -> Bool {
+        let engine = ForwardMessageViewController(content: content, attachmentLimits: attachmentLimits)
+        for item in items {
+            engine.selection.add(item)
+        }
+        engine.textMessage = comment
+        let relay = TellomiForwardGridRelay(delegate: delegate)
+        engine.forwardMessageDelegate = relay
+        await engine._tryToSend()
+        // forwardMessageDelegate 是 weak，发完之前靠这里留住 relay
+        return relay.didComplete
+    }
+
+    /// 发送的先后（F-7）：附言（有的话）作为单独一条文字在最前，之后是按原顺序排好的转发内容。
+    enum TellomiForwardStep<Item> {
+        case comment(String)
+        case item(Item)
+    }
+
+    static func tellomiForwardSteps<Item>(items: [Item], comment: String?) -> [TellomiForwardStep<Item>] {
+        var steps: [TellomiForwardStep<Item>] = []
+        if let comment {
+            steps.append(.comment(comment))
+        }
+        steps.append(contentsOf: items.map { .item($0) })
+        return steps
+    }
+
+    /// 发完的提示（F-8）。能按收件会话写出名字就提示并返回 true；否则（例如只转给了「动态」）走上游的提示。
+    fileprivate static func tellomiFinalizeForward(
+        recipientThreads: [TSThread],
+        fromViewController: UIViewController,
+    ) -> Bool {
+        let recipients: [TellomiForwardedRecipient] = SSKEnvironment.shared.databaseStorageRef.read { tx in
+            recipientThreads.map { TellomiForwardedRecipient(thread: $0, tx: tx) }
+        }
+        guard let toast = TellomiForwardedToast(recipients: recipients) else {
+            return false
+        }
+
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+        let toastController = ToastController(text: toast.text)
+        toastController.tellomiBoldTexts = toast.boldTexts
+        if toast.opensSavedMessages {
+            toastController.tellomiOnTap = {
+                let thread = SSKEnvironment.shared.databaseStorageRef.write { tx in
+                    TellomiSavedMessages.list(tx: tx)
+                }
+                guard let thread else {
+                    return
+                }
+                SignalApp.shared.presentConversationForThread(threadUniqueId: thread.uniqueId, animated: true)
+            }
+        }
+        let bottomInset: CGFloat
+        if let cvc = fromViewController as? ConversationViewController {
+            bottomInset = 10 + cvc.collectionView.contentInset.bottom + cvc.view.layoutMargins.bottom
+        } else {
+            bottomInset = fromViewController.view.safeAreaInsets.bottom + 8
+        }
+        toastController.presentToastView(from: .bottom, of: fromViewController.view, inset: bottomInset, dismissAfter: .seconds(3))
+        return true
+    }
+}
+
+/// 发完提示里的一个收件会话
+struct TellomiForwardedRecipient: Equatable {
+    let name: String
+    let isSavedMessages: Bool
+
+    init(name: String, isSavedMessages: Bool) {
+        self.name = name
+        self.isSavedMessages = isSavedMessages
+    }
+
+    init(thread: TSThread, tx: DBReadTransaction) {
+        switch thread {
+        case let contactThread as TSContactThread where contactThread.contactAddress.isLocalAddress:
+            self.init(name: MessageStrings.noteToSelf, isSavedMessages: true)
+        case let contactThread as TSContactThread:
+            let name = SSKEnvironment.shared.contactManagerRef.displayName(for: contactThread.contactAddress, tx: tx).resolvedValue()
+            self.init(name: name, isSavedMessages: false)
+        case let groupThread as TSGroupThread:
+            self.init(name: groupThread.groupNameOrDefault, isSavedMessages: false)
+        default:
+            self.init(name: "", isSavedMessages: false)
+        }
+    }
+}
+
+/// 「已转发给 **小林**」/「已转发给 **小林** 和 **小王**」/「已转发给 **小林** 等 3 个聊天」/「已转发到 **我的收藏**」（F-8）
+struct TellomiForwardedToast: Equatable {
+    let text: String
+    let boldTexts: [String]
+    let opensSavedMessages: Bool
+
+    init?(recipients: [TellomiForwardedRecipient]) {
+        guard let first = recipients.first else {
+            return nil
+        }
+        switch recipients.count {
+        case 1 where first.isSavedMessages:
+            text = String(format: Self.savedFormat, first.name)
+            boldTexts = [first.name]
+            opensSavedMessages = true
+        case 1:
+            text = String(format: Self.oneFormat, first.name)
+            boldTexts = [first.name]
+            opensSavedMessages = false
+        case 2:
+            let second = recipients[1]
+            text = String(format: Self.twoFormat, first.name, second.name)
+            boldTexts = [first.name, second.name]
+            opensSavedMessages = false
+        default:
+            text = String(format: Self.manyFormat, first.name, recipients.count)
+            boldTexts = [first.name]
+            opensSavedMessages = false
+        }
+    }
+
+    private static var oneFormat: String {
+        OWSLocalizedString("FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_ONE_%@", comment: "Tellomi: toast after forwarding to one chat. Embeds {{chat name}}.")
+    }
+
+    private static var twoFormat: String {
+        OWSLocalizedString("FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_TWO_%@_%@", comment: "Tellomi: toast after forwarding to two chats. Embeds {{first chat name}} and {{second chat name}}.")
+    }
+
+    private static var manyFormat: String {
+        OWSLocalizedString("FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_MANY_%@_%d", comment: "Tellomi: toast after forwarding to three or more chats. Embeds {{first chat name}} and {{total number of chats}}.")
+    }
+
+    private static var savedFormat: String {
+        OWSLocalizedString("FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_SAVED_%@", comment: "Tellomi: toast after forwarding to Saved Messages only. Embeds {{Saved Messages}}.")
+    }
+}
+
+/// 「分享到其他 App」（F-10）：图片 / 视频 / 文件 / 语音按本机原文件，文字消息按文字，交给系统分享面板。
+private struct TellomiForwardShareItems {
+    let streams: [ReferencedAttachmentStream]
+    let texts: [String]
+
+    init(content: ForwardMessageContent) {
+        streams = content.allItems.flatMap(\.tellomiShareStreams)
+        texts = content.allItems
+            .filter { $0.tellomiShareStreams.isEmpty && $0.attachments.isEmpty }
+            .compactMap { $0.messageBody?.text.nilIfEmpty }
+    }
+
+    var isEmpty: Bool { streams.isEmpty && texts.isEmpty }
+
+    func present(sender: UIView) {
+        var activityItems: [Any] = []
+        if !streams.isEmpty {
+            do {
+                activityItems.append(contentsOf: try streams.asShareableAttachments())
+            } catch {
+                owsFailDebug("Could not share attachments: \(error)")
+            }
+        }
+        activityItems.append(contentsOf: texts)
+        guard !activityItems.isEmpty else {
+            return
+        }
+        AttachmentSharing.showShareUIForActivityItems(activityItems, sender: sender)
+    }
+}
+
+/// 网格的弱引用，给它自己的几个回调用：回调要先有，网格才建得出来。
+@MainActor
+private final class TellomiForwardGridReference {
+    weak var grid: UIViewController?
+}
+
+/// 把借来的发送流程的回调转给原来的代理，同时记下有没有发出去
+private final class TellomiForwardGridRelay: ForwardMessageDelegate {
+    private weak var delegate: ForwardMessageDelegate?
+    private(set) var didComplete = false
+
+    init(delegate: ForwardMessageDelegate?) {
+        self.delegate = delegate
+    }
+
+    func forwardMessageFlowDidComplete(items: [ForwardMessageItem], recipientThreads: [TSThread]) {
+        didComplete = true
+        delegate?.forwardMessageFlowDidComplete(items: items, recipientThreads: recipientThreads)
+    }
+
+    func forwardMessageFlowDidCancel() {
+        delegate?.forwardMessageFlowDidCancel()
     }
 }
