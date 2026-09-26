@@ -60,7 +60,7 @@ class UsernameLinkQRCodeColorPickerViewController: OWSTableViewController2 {
             label.lineBreakMode = .byCharWrapping
             label.textAlignment = .center
             label.font = .dynamicTypeHeadline.semibold()
-            label.text = username
+            label.text = TellomiLinks.displayUsername(username) // Tellomi（#1106 第三刀，ADR-0066 §六）
 
             return label
         }()

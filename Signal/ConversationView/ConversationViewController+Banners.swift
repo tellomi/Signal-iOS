@@ -21,6 +21,11 @@ extension ConversationViewController {
 
         var banners = [UIView]()
 
+        // Tellomi：「我的收藏」顶栏下方的分类，排在最上面（#1174）
+        if let banner = createTellomiSavedCategoriesBanner() {
+            banners.append(banner)
+        }
+
         // Logic for whether or not should a certain banner be displayed is inside of each banner creation method.
         // If the banner should not be shown its "create..." method would return `nil`.
 
@@ -1239,5 +1244,199 @@ extension ConversationViewController {
         banner.pinnedMessageDelegate = self
 
         return banner
+    }
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 「我的收藏」顶栏下方的分类：全部 · 图片与视频 · 文件 · 语音 · 链接，只显示有内容的（需求 official-account-and-saved §3.2 第 1 条；Telegram 同样只列有内容的）。
+/// 「全部」就是会话本身；其它几项打开「所有媒体」并停在对应的一段（「链接」是 Tellomi 给 iOS 补的一段，Android 本来就有）。
+enum TellomiSavedCategory: CaseIterable {
+    case all
+    case media
+    case files
+    case voice
+    case links
+
+    /// 「链接」在「所有媒体」顶部分段里排在上游三段之后。
+    static var linksSegmentIndex: Int { AllMediaCategory.allCases.count }
+
+    /// 「所有媒体」顶部分段里的第几段；「全部」是会话本身，没有对应的段。
+    var allMediaSegmentIndex: Int? {
+        switch self {
+        case .all:
+            return nil
+        case .media:
+            return AllMediaCategory.photoVideo.rawValue
+        case .voice:
+            return AllMediaCategory.audio.rawValue
+        case .files:
+            return AllMediaCategory.otherFiles.rawValue
+        case .links:
+            return Self.linksSegmentIndex
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .all:
+            return Self.localized("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_ALL", english: "All")
+        case .media:
+            return Self.localized("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_MEDIA", english: "Photos & Videos")
+        case .files:
+            return Self.localized("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_FILES", english: "Files")
+        case .voice:
+            return Self.localized("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_VOICE", english: "Voice")
+        case .links:
+            return Self.localized("CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_LINKS", english: "Links")
+        }
+    }
+
+    /// 只翻了 en / zh_CN / zh_HK / zh_TW；其它语言的表里没有这些键时回落英文（iOS 默认会直接显示键名）。
+    static func localized(_ key: String, english: String) -> String {
+        return Bundle.main.localizedString(forKey: key, value: english, table: nil)
+    }
+
+    /// 要显示的几项：有内容的按固定顺序排，前面加「全部」；一类都没有就什么都不显示。
+    static func toShow(withContent: Set<TellomiSavedCategory>) -> [TellomiSavedCategory] {
+        let categories = allCases.filter { $0 != .all && withContent.contains($0) }
+        return categories.isEmpty ? [] : [.all] + categories
+    }
+
+    /// 这个会话里哪几类有内容：图片与视频 / 文件 / 语音和「所有媒体」同一套查询，链接看有没有带链接预览的消息。
+    static func withContent(thread: TSThread, tx: DBReadTransaction) -> Set<TellomiSavedCategory> {
+        guard let threadRowId = thread.sqliteRowId else {
+            return []
+        }
+        func hasAny(_ filter: AllMediaFilter) -> Bool {
+            return !MediaGalleryAttachmentFinder(threadId: threadRowId, filter: filter).recentMediaAttachments(limit: 1, tx: tx).isEmpty
+        }
+        var result = Set<TellomiSavedCategory>()
+        if hasAny(.allPhotoVideoCategory) {
+            result.insert(.media)
+        }
+        if hasAny(.otherFiles) {
+            result.insert(.files)
+        }
+        if hasAny(.allAudioCategory) {
+            result.insert(.voice)
+        }
+        if TellomiSavedLinks.hasAny(threadUniqueId: thread.uniqueId, tx: tx) {
+            result.insert(.links)
+        }
+        return result
+    }
+}
+
+/// 「我的收藏」顶栏下方那一排分类，放在横幅区的最上面。背景和横幅卡片一样（iOS 26 玻璃胶囊，之前的系统毛玻璃圆角）；
+/// 「全部」是选中的样子（就是会话本身），点其它几项打开「所有媒体」对应的一段。
+final class TellomiSavedCategoriesView: UIView {
+
+    let categories: [TellomiSavedCategory]
+    private let onTap: (TellomiSavedCategory) -> Void
+
+    init(categories: [TellomiSavedCategory], onTap: @escaping (TellomiSavedCategory) -> Void) {
+        self.categories = categories
+        self.onTap = onTap
+        super.init(frame: .zero)
+
+        let backgroundView: UIView
+        if #available(iOS 26, *) {
+            let glassEffect = UIGlassEffect(style: .regular)
+            glassEffect.tintColor = .Signal.glassBackgroundTint
+            backgroundView = UIVisualEffectView(effect: glassEffect)
+            backgroundView.cornerConfiguration = .capsule()
+            backgroundView.clipsToBounds = true
+        } else {
+            if UIAccessibility.isReduceTransparencyEnabled {
+                backgroundView = UIView()
+                backgroundView.backgroundColor = Theme.secondaryBackgroundColor
+            } else {
+                backgroundView = UIVisualEffectView(effect: Theme.barBlurEffect)
+            }
+            backgroundView.layer.masksToBounds = true
+            backgroundView.layer.cornerRadius = 16
+        }
+        addSubview(backgroundView)
+        backgroundView.autoPinEdgesToSuperviewEdges()
+
+        let scrollView = UIScrollView()
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.alwaysBounceHorizontal = false
+        addSubview(scrollView)
+        scrollView.autoPinEdgesToSuperviewEdges()
+
+        let stackView = UIStackView(arrangedSubviews: categories.map { button(for: $0) })
+        stackView.axis = .horizontal
+        stackView.spacing = 4
+        stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.directionalLayoutMargins = .init(top: 6, leading: 6, bottom: 6, trailing: 6)
+        scrollView.addSubview(stackView)
+        stackView.autoPinEdgesToSuperviewEdges()
+        stackView.autoMatch(.height, to: .height, of: scrollView)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func button(for category: TellomiSavedCategory) -> UIButton {
+        let isSelected = category == .all
+        var configuration: UIButton.Configuration = isSelected ? .gray() : .plain()
+        configuration.title = category.title
+        configuration.cornerStyle = .capsule
+        configuration.baseForegroundColor = isSelected ? .Signal.label : .Signal.secondaryLabel
+        configuration.contentInsets = .init(top: 7, leading: 14, bottom: 7, trailing: 14)
+        let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
+            self?.onTap(category)
+        })
+        button.accessibilityIdentifier = "tellomi_saved_category_\(category)"
+        button.accessibilityTraits = isSelected ? [.button, .selected] : .button
+        return button
+    }
+}
+
+extension ConversationViewController {
+
+    /// 「我的收藏」而且至少有一类内容时，给一排分类（放在横幅区最上面）。
+    func createTellomiSavedCategoriesBanner() -> UIView? {
+        guard thread.isNoteToSelf else {
+            return nil
+        }
+        let categories = SSKEnvironment.shared.databaseStorageRef.read { tx in
+            TellomiSavedCategory.toShow(withContent: TellomiSavedCategory.withContent(thread: thread, tx: tx))
+        }
+        guard !categories.isEmpty else {
+            return nil
+        }
+        return TellomiSavedCategoriesView(categories: categories) { [weak self] category in
+            self?.tellomiOpenSavedCategory(category)
+        }
+    }
+
+    /// 数据更新后调：「我的收藏」里分类有变化（比如刚存了第一张图）就要重排横幅。
+    func tellomiSavedCategoriesChanged() -> Bool {
+        guard thread.isNoteToSelf else {
+            return false
+        }
+        let shown = bannerStackView?.arrangedSubviews.lazy.compactMap { $0 as? TellomiSavedCategoriesView }.first?.categories ?? []
+        let current = SSKEnvironment.shared.databaseStorageRef.read { tx in
+            TellomiSavedCategory.toShow(withContent: TellomiSavedCategory.withContent(thread: thread, tx: tx))
+        }
+        return shown != current
+    }
+
+    private func tellomiOpenSavedCategory(_ category: TellomiSavedCategory) {
+        guard let segmentIndex = category.allMediaSegmentIndex else {
+            return
+        }
+        let allMedia = AllMediaViewController(
+            thread: thread,
+            spoilerState: viewState.spoilerState,
+            name: title,
+        )
+        allMedia.tellomiInitialSegmentIndex = segmentIndex
+        dismissKeyBoard()
+        navigationController?.pushViewController(allMedia, animated: true)
     }
 }
