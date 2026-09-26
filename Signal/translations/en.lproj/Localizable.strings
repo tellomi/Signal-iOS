@@ -8199,6 +8199,12 @@
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "About Profile Privacy";
 
+/* During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field. */
+"REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI" = "Name";
+
+/* During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting. */
+"REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI" = "Your phone number isn't shown to anyone by default.";
+
 /* During registration, users set up their profile. This is the subtitle on the screen where this is done. It tells users about the privacy of their profile. A \"learn more\" link will be added to the end of this string. */
 "REGISTRATION_PROFILE_SETUP_SUBTITLE" = "Profiles are visible to people you message, contacts, and groups.";
 
