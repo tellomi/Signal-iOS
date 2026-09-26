@@ -248,3 +248,36 @@ public extension String.StringInterpolation {
         appendLiteral("\(TSThread.databaseTableName).\(column.rawValue)")
     }
 }
+
+// MARK: - Tellomi（tellomi/tellomi#1174，需求 official-account-and-saved §3.2）
+
+/// 「我的收藏」（= 上游的「备忘录」，自己的会话）默认在聊天列表里：
+/// 第一次进聊天列表时建好会话并设成可见，只做一次（删掉之后不会自己回来）；设置页的「我的收藏」进去时再设一次。
+public enum TellomiSavedMessages {
+
+    private static let store = KeyValueStore(collection: "TellomiSavedMessages")
+    private static let listedOnceKey = "listedOnce"
+
+    public static func ensureListedOnce(tx: DBWriteTransaction) {
+        guard !store.getBool(listedOnceKey, defaultValue: false, transaction: tx) else {
+            return
+        }
+        guard list(tx: tx) != nil else {
+            return
+        }
+        store.setBool(true, key: listedOnceKey, transaction: tx)
+    }
+
+    /// 建好「我的收藏」会话并让它出现在聊天列表里；还没注册完（没有本机身份）时返回 nil。
+    @discardableResult
+    public static func list(tx: DBWriteTransaction) -> TSContactThread? {
+        guard let localAddress = DependenciesBridge.shared.tsAccountManager.localIdentifiers(tx: tx)?.aciAddress else {
+            return nil
+        }
+        let thread = TSContactThread.getOrCreateThread(withContactAddress: localAddress, transaction: tx)
+        if !thread.shouldThreadBeVisible {
+            thread.updateWithShouldThreadBeVisible(true, transaction: tx)
+        }
+        return thread
+    }
+}

@@ -21,7 +21,8 @@ class LinkDeviceViewController: OWSViewController {
     private var hasShownEducationSheet: Bool
     private weak var educationSheet: HeroSheetViewController?
 
-    private lazy var qrCodeScanViewController = QRCodeScanViewController(appearance: .framed)
+    // Tellomi（#1219）：只认对准画面中心、连续对准 0.5 秒的码，免得扫到旁边别人屏幕上的关联码（见 TellomiQrFocus）
+    private lazy var qrCodeScanViewController = QRCodeScanViewController(appearance: .framed, tellomiRequiresCenteredStableCode: true)
 
     init(skipEducationSheet: Bool) {
         self.hasShownEducationSheet = skipEducationSheet
@@ -202,10 +203,35 @@ class LinkDeviceViewController: OWSViewController {
             ))
             return actionSheet
 
+        case _ where Self.tellomiIsExpiredOrForeignCode(error):
+            // Tellomi（#1219）：「重试」只会再往同一个地址发一次、再拿一次 404，所以这里给「重新扫描」。
+            let actionSheet = ActionSheetController(
+                title: OWSLocalizedString("LINKING_DEVICE_FAILED_TITLE", comment: "Alert Title"),
+                message: Self.tellomiExpiredOrForeignCodeMessage(),
+            )
+            actionSheet.addAction(ActionSheetAction(
+                title: OWSLocalizedString(
+                    "LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN",
+                    comment: "Tellomi (#1219): button that restarts the QR scanner after linking failed",
+                ),
+                style: .default,
+                handler: { [weak self] _ in
+                    self?.qrCodeScanViewController.tryToStartScanning()
+                },
+            ))
+            actionSheet.addAction(ActionSheetAction(
+                title: CommonStrings.cancelButton,
+                style: .cancel,
+                handler: { [weak self] _ in
+                    DispatchQueue.main.async { self?.popToLinkedDeviceList() }
+                },
+            ))
+            return actionSheet
+
         default:
             let actionSheet = ActionSheetController(
                 title: OWSLocalizedString("LINKING_DEVICE_FAILED_TITLE", comment: "Alert Title"),
-                message: error.userErrorDescription,
+                message: Self.tellomiFailureMessage(for: error),
             )
             actionSheet.addAction(ActionSheetAction(
                 title: CommonStrings.retryButton,
@@ -312,5 +338,35 @@ extension LinkDeviceViewController: QRCodeScanDelegate {
     func qrCodeScanViewDismiss(_ qrCodeScanViewController: SignalUI.QRCodeScanViewController) {
         AssertIsOnMainThread()
         popToLinkedDeviceList()
+    }
+}
+
+// MARK: - Tellomi（#1219）
+
+extension LinkDeviceViewController {
+    /// `PUT /v1/provisioning/{address}` 回 404：服务端上这个关联地址当时没有设备在等。
+    /// 码过期了，或者是别的服务器的码——Signal Desktop 的码连的是 Signal 的服务器，在我们的服务器上永远是 404。
+    /// 服务端分不出这两种，所以是同一型。上游显示的是「服务返回无效响应」加「重试」。
+    static func tellomiIsExpiredOrForeignCode(_ error: Error) -> Bool {
+        error.httpStatusCode == 404
+    }
+
+    /// 不点名别的 App（taishi 中转包 8：界面上出不出现「Signal」是品牌决定，先不点名）。
+    static func tellomiExpiredOrForeignCodeMessage() -> String {
+        OWSLocalizedString(
+            "LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY",
+            comment: "Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app.",
+        )
+    }
+
+    /// 连不上服务器、超时、服务器出错（5xx）说清楚是网络或服务器的问题，和 Android 同一句；其余照上游。
+    static func tellomiFailureMessage(for error: Error) -> String {
+        if error.isNetworkFailureOrTimeout || error.is5xxServiceResponse {
+            return OWSLocalizedString(
+                "LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY",
+                comment: "Tellomi (#1219): linking failed because the server could not be reached or returned a server error",
+            )
+        }
+        return error.userErrorDescription
     }
 }

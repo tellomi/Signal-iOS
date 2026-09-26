@@ -696,7 +696,9 @@ public class AttachmentUploadManagerImpl: AttachmentUploadManager {
             // And we are still in the window to reuse it
             dateProvider().timeIntervalSince(
                 Date(millisecondsSince1970: formTimestamp),
-            ) <= Upload.Constants.uploadFormReuseWindow
+            ) <= Upload.Constants.uploadFormReuseWindow,
+            // Tellomi（#1056 第三刀）：钉住的区不认识了或关掉了，就当表单过期（契约第六节「显式取消、从头重传」）
+            form.tellomiPinnedRegion != nil
         {
             uploadForm = form
         } else {
@@ -1183,6 +1185,8 @@ extension Upload.Form {
         self.signedUploadLocation = uploadForm.signedUploadUrl.absoluteString
         self.cdnKey = uploadForm.key
         self.cdnNumber = uploadForm.cdn
+        // Tellomi（#1056 第三刀）：盖上取表单时本进程生效的区，续传钉住它
+        self.tellomiRegionId = TellomiRegions.active().id.rawValue
     }
 }
 

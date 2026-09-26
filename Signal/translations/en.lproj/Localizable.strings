@@ -26,6 +26,7 @@
 
 /* Accessibility label for media. */
 "ACCESSIBILITY_LABEL_MEDIA" = "Media";
+"ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_ITEM_FORMAT" = "Item %1$@ of %2$@";
 
 /* Accessibility label for stickers. */
 "ACCESSIBILITY_LABEL_STICKER" = "Sticker";
@@ -182,6 +183,15 @@
 
 /* Media (i.e., graphical) file type in All Meda file type picker. */
 "ALL_MEDIA_FILE_TYPE_MEDIA" = "Media";
+
+/* Tellomi (#1174): links file type in the All Media file type picker (iOS had no links page) */
+"ALL_MEDIA_FILE_TYPE_TELLOMI_LINKS" = "Links";
+
+/* Tellomi (#1174): shown on the All Media links page when the chat has no messages with link previews */
+"ALL_MEDIA_TELLOMI_LINKS_EMPTY" = "No links yet";
+
+/* Tellomi (#1174): placeholder of the search bar in Saved Messages' All Media; filters the current file type */
+"ALL_MEDIA_TELLOMI_SEARCH_PLACEHOLDER" = "Search file names, captions and links";
 
 /* Menu option to limit All Media view to displaying only GIFs */
 "ALL_MEDIA_FILTER_GIFS" = "GIFs";
@@ -2160,8 +2170,17 @@
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_TITLE" = "No Chats";
 
+/* Chat list title while the app is connecting to the server. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_CONNECTING_TELLOMI" = "Connecting…";
+
 /* Title for the chat list's default mode. */
 "CHAT_LIST_TITLE_INBOX" = "Chats";
+
+/* Chat list title while the app is receiving the messages that arrived while it was offline. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_UPDATING_TELLOMI" = "Updating…";
+
+/* Chat list title while the device has no network connection. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_WAITING_FOR_NETWORK_TELLOMI" = "Waiting for network…";
 
 /* Title for context menu action to enable Filter by Unread */
 "CHAT_LIST_UNREAD_FILTER_MENU_ACTION" = "Filter by Unread";
@@ -2535,6 +2554,9 @@
 /* Context menu button title */
 "CONTEXT_MENU_FORWARD_MESSAGE" = "Forward";
 
+/* Tellomi (#1174): context menu button that saves a message into Saved Messages */
+"CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE" = "Save";
+
 /* Context menu button title */
 "CONTEXT_MENU_PAYMENT_DETAILS" = "Payment Details";
 
@@ -2559,8 +2581,17 @@
 /* Message for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE" = "This chat will be deleted from all your devices.";
 
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when there are no linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES" = "Everything in Saved Messages will be deleted from this device. This can't be undone.";
+
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when the account has linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES" = "Everything in Saved Messages will be deleted from this device and your linked devices. This can't be undone.";
+
 /* Title for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE" = "Delete Chat?";
+
+/* Tellomi (#1174): title of the confirmation shown before deleting Saved Messages (the chat with yourself) */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES" = "Delete Saved Messages?";
 
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that dismisses the sheet without pasting the key. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_DO_NOT_SHARE_BUTTON_TITLE" = "Do Not Share Key";
@@ -2840,6 +2871,21 @@
 
 /* Button on truncated text messages that they can be tapped to download the entire text message. */
 "CONVERSATION_VIEW_OVERSIZE_TEXT_TAP_TO_DOWNLOAD" = "Get Full Message";
+
+/* Tellomi (#1174): categories under the Saved Messages title; All is the chat itself */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_ALL" = "All";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on photos and videos */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_MEDIA" = "Photos & Videos";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on files */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_FILES" = "Files";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on audio */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_VOICE" = "Voice";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on links */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_LINKS" = "Links";
 
 /* Indicator that a value has been copied to the clipboard. */
 "COPIED_TO_CLIPBOARD" = "Copied to Clipboard";
@@ -3993,6 +4039,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "Enter a username followed by a dot and its set of numbers.";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "Enter the person’s username.";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "Username";
 
@@ -4016,6 +4065,48 @@
 
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "Messages sent";
+
+/* Tellomi: placeholder of the message field that is sent before the forwarded content. */
+"FORWARD_MESSAGE_TELLOMI_GRID_COMMENT_PLACEHOLDER" = "Add a message…";
+
+/* Tellomi: separator between selected chat names in the forward grid subtitle. */
+"FORWARD_MESSAGE_TELLOMI_GRID_NAME_SEPARATOR" = ", ";
+
+/* Tellomi: section title of matching chats in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CHATS" = "Chats";
+
+/* Tellomi: section title of matching contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CONTACTS" = "Contacts";
+
+/* Tellomi: section title of matching groups in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_GROUPS" = "Groups";
+
+/* Tellomi: section title of recent contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_RECENT" = "Recent";
+
+/* Tellomi: toast when trying to select more chats than allowed. Embeds {{the limit}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SELECTION_LIMIT_%d" = "You can select up to %d chats";
+
+/* Tellomi: toast after forwarding to three or more chats. Embeds {{first chat name}} and {{total number of chats}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_MANY_%@_%d" = "Forwarded to %2$d chats, including %1$@";
+
+/* Tellomi: toast after forwarding to one chat. Embeds {{chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_ONE_%@" = "Forwarded to %@";
+
+/* Tellomi: toast after forwarding to Saved Messages only. Embeds {{Saved Messages}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_SAVED_%@" = "Forwarded to %@";
+
+/* Tellomi: toast after forwarding to two chats. Embeds {{first chat name}} and {{second chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_TWO_%@_%@" = "Forwarded to %1$@ and %2$@";
+
+/* Tellomi: accessibility label of the share button in the forward grid. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SHARE_TO_OTHER_APPS" = "Share to Other Apps";
+
+/* Tellomi: subtitle of the forward grid before any chat is selected. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SUBTITLE" = "Select chats";
+
+/* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
+"FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "Saved to Saved Messages. Tap to view.";
 
 /* Indicates that the user can add a text message to forwarded messages. */
 "FORWARD_MESSAGE_TEXT_PLACEHOLDER" = "Add a message";
@@ -4047,8 +4138,14 @@
 /* Accessibility label for the close button in each Get Started card. */
 "GET_STARTED_CARD_CLOSE_A11YLABEL" = "Remove suggestion";
 
+/* 'Get Started' button directing users to find someone by their username */
+"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "Search by Username";
+
 /* 'Get Started' button directing users to invite friends */
 "GET_STARTED_CARD_INVITE_FRIENDS" = "Invite Friends";
+
+/* 'Get Started' button directing users to their own username QR code */
+"GET_STARTED_CARD_MY_QR_CODE_TELLOMI" = "My QR Code";
 
 /* 'Get Started' button directing users to create a group */
 "GET_STARTED_CARD_NEW_GROUP" = "New Group";
@@ -5319,6 +5416,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "This QR code is not valid. Please make sure you are scanning the QR code that is displayed on the device you want to link.";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "This QR code has expired, or it isn't a Tellomi code. Scan the QR code shown right now in Tellomi on your computer.";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "Linking Device Failed";
 
@@ -5333,6 +5433,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "Retry";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "Scan Again";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "Use this device to scan the QR code displayed on the device you want to link";
@@ -5465,6 +5568,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "Linked Devices";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "Couldn't reach the server, or the server is busy. Check your internet connection and try again in a moment.";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "Linking Device Failed";
@@ -5681,6 +5787,20 @@
 
 /* Context menu item in media viewer. Refers to saving currently displayed photo/video to the Photos app. */
 "MEDIA_VIEWER_SAVE_MEDIA_ACTION" = "Save";
+"MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT" = "All %@ Items";
+"MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT" = "All %@ Photos";
+"MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT" = "All %@ Videos";
+"MEDIA_VIEWER_TELLOMI_PAUSE" = "Pause";
+"MEDIA_VIEWER_TELLOMI_PLAY" = "Play";
+"MEDIA_VIEWER_TELLOMI_PLAYBACK_SPEED" = "Playback Speed";
+"MEDIA_VIEWER_TELLOMI_REPLY_ACTION" = "Reply";
+"MEDIA_VIEWER_TELLOMI_SHARE_ACTION" = "Share";
+"MEDIA_VIEWER_TELLOMI_SKIP_BACK" = "Back 15 Seconds";
+"MEDIA_VIEWER_TELLOMI_SKIP_FORWARD" = "Forward 15 Seconds";
+"MEDIA_VIEWER_TELLOMI_SPEED" = "Speed";
+"MEDIA_VIEWER_TELLOMI_SPEED_NORMAL" = "Normal";
+"MEDIA_VIEWER_TELLOMI_THIS_PHOTO" = "This Photo";
+"MEDIA_VIEWER_TELLOMI_THIS_VIDEO" = "This Video";
 
 /* button title to snooze a megaphone */
 "MEGAPHONE_REMIND_LATER" = "Remind Me Later";
@@ -5789,6 +5909,9 @@
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_MESSAGE" = "Forward This Message";
+
+/* Tellomi (#1174): accessibility label for saving a message into Saved Messages */
+"MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE" = "Save to Saved Messages";
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_SELECTED_MESSAGES" = "Forward selected messages";
@@ -6382,7 +6505,7 @@
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "Re-register";
 
 /* Label for 1:1 conversation with yourself. */
-"NOTE_TO_SELF" = "Note to Self";
+"NOTE_TO_SELF" = "Saved Messages";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
 "NOTIFICATION_BODY_CLOCK_SKEW" = "Tellomi can’t receive messages while your device’s date and time are incorrect. Open Settings to correct them.";
@@ -6519,6 +6642,30 @@
 /* The title for the skip restore 'choice' option */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_SKIP_RESTORE_TITLE" = "Register without Transferring";
 
+/* Tellomi: Body of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_BODY" = "Tellomi on your old phone will be logged out, and your earlier messages won't appear on this phone.";
+
+/* Tellomi: Title of the confirmation sheet shown before registering without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_CONFIRM_REGISTER_DIRECTLY_TITLE" = "Register Without Transferring?";
+
+/* Tellomi: Description on the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_DESCRIPTION" = "You can move your account and messages directly from your old iPhone, or just register. If you register without transferring, your earlier messages won't appear on this phone.";
+
+/* Tellomi: Body shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_BODY" = "Messages on an Android phone can't be transferred to an iPhone yet. You can just register: your earlier messages won't come with you, and Tellomi on your old phone will be logged out.";
+
+/* Tellomi: Title shown during registration when the old phone is an Android phone, whose messages can't be transferred to an iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_FROM_ANDROID_TITLE" = "Messages Can't Be Moved from Android";
+
+/* Tellomi: Explanation of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_BODY" = "Your earlier messages won't appear on this phone";
+
+/* Tellomi: Title of the choice to register without transferring messages. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_REGISTER_DIRECTLY_TITLE" = "Register Without Transferring";
+
+/* Tellomi: Title of the registration screen that asks whether to transfer messages from the old iPhone. */
+"ONBOARDING_CHOOSE_RESTORE_METHOD_TELLOMI_TITLE" = "Transfer Your Messages?";
+
 /* If a user is installing Signal on a new phone, they may be asked whether they want to restore their device from a backup. */
 "ONBOARDING_CHOOSE_RESTORE_METHOD_TITLE" = "Restore or Transfer Account";
 
@@ -6612,6 +6759,9 @@
 /* Label indicating that registration has been ratelimited. Embeds {{remaining time string}}. */
 "ONBOARDING_PHONE_NUMBER_RATE_LIMIT_WARNING_FORMAT" = "Please wait a few minutes before trying again. (%@)";
 
+/* Label under the phone number field when verification codes can't be sent to numbers from the entered region. */
+"ONBOARDING_PHONE_NUMBER_UNSUPPORTED_REGION_WARNING" = "Registration isn't open to numbers from this region yet. For now, only mainland China (+86) numbers can register.";
+
 /* Label indicating that the phone number is invalid in the 'onboarding phone number' view. */
 "ONBOARDING_PHONE_NUMBER_VALIDATION_WARNING" = "Invalid phone number. Please enter a valid phone number to register.";
 
@@ -6639,11 +6789,26 @@
 /* Title for the 'have my old device' choice of the 'Restore or Transfer' prompt */
 "ONBOARDING_SPLASH_HAVE_OLD_DEVICE_TITLE" = "I have my old phone";
 
+/* Tellomi: One-line text link under the 'Continue' button in the 'onboarding splash' view, for people moving to a new phone. */
+"ONBOARDING_SPLASH_NEW_PHONE_LINK_TITLE" = "New phone?";
+
 /* Text indicating Signal is a nonprofit on the 'onboarding splash' view. For non-English languages, exclude the word '501c3'. */
 "ONBOARDING_SPLASH_NONPROFIT" = "Signal is a 501c3 nonprofit";
 
 /* Button for restoring or transferring account in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_RESTORE_OR_TRANSFER_BUTTON_TITLE" = "Restore or Transfer Account";
+
+/* Tellomi: Explanation of the 'my old iPhone is here' choice: scan a QR code with the old iPhone to transfer the account and messages directly. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_BODY" = "Scan a QR code with your old iPhone to move your account and messages over directly";
+
+/* Tellomi: Title for the 'my old iPhone is here' choice after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_HAVE_OLD_IPHONE_TITLE" = "My old iPhone is here";
+
+/* Tellomi: Explanation of the 'register directly' choice: registering works, but earlier messages won't come to this phone and Tellomi on the old phone will be logged out. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_BODY" = "Just register. Your earlier messages won't come with you, and Tellomi on your old phone will be logged out.";
+
+/* Tellomi: Title for the choice to register directly (old phone is not at hand, or is an Android phone) after tapping 'New phone?' in the 'onboarding splash' view. */
+"ONBOARDING_SPLASH_TELLOMI_REGISTER_DIRECTLY_TITLE" = "My old phone isn't here, or it's an Android phone";
 
 /* Link to the 'terms and privacy policy' in the 'onboarding splash' view. */
 "ONBOARDING_SPLASH_TERM_AND_PRIVACY_POLICY" = "Terms & Privacy Policy";
@@ -6680,6 +6845,33 @@
 
 /* Format string for button counting down time until SMS code can be resent. Embeds {{time remaining}}. */
 "ONBOARDING_VERIFICATION_RESEND_CODE_COUNTDOWN_FORMAT" = "Resend Code in %@";
+
+/* Tellomi: Button in the 'didn't get the code?' sheet that goes back to the phone number screen. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CHANGE_NUMBER" = "Change Number";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet. Embeds {{the phone number the code was sent to}}. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CHECK_NUMBER_FORMAT" = "Check that the number is right: %1$@";
+
+/* Tellomi: Button in the 'didn't get the code?' sheet that composes an email to support. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_CONTACT_SUPPORT" = "Contact Support";
+
+/* Tellomi: Label for the button (and title of the sheet) that helps people who didn't receive the SMS verification code. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_LINK" = "Didn't Get the Code?";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: the SMS may have been caught by the phone's built-in spam/harassment filter. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_SPAM_FILTER" = "The text may have been filtered. Open your phone's built-in security or phone manager app and look in its blocked or spam messages.";
+
+/* Tellomi: Last bullet in the 'didn't get the code?' sheet: email support. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_SUPPORT" = "Still nothing? Email support@tellomi.app and we'll take a look.";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet, only shown when the server can call and read out the code. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_VOICE" = "You can also get the code by phone call instead of a text.";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT" = "Texts sometimes arrive a little late, so give it a moment.";
+
+/* Tellomi: Bullet in the 'didn't get the code?' sheet: SMS messages sometimes arrive late, and one registration can only send a few codes. Embeds {{how many verification codes one registration can send}}. */
+"ONBOARDING_VERIFICATION_TELLOMI_HELP_WAIT_WITH_QUOTA_FORMAT" = "Texts sometimes arrive a little late, so give it a moment. Each registration can send at most %1$@ codes, so please don't resend too often.";
 
 /* Format for the title of the 'onboarding verification' view. Embeds {{the user's phone number}}. */
 "ONBOARDING_VERIFICATION_TITLE_DEFAULT_FORMAT" = "Enter the code we sent to %@";
@@ -7776,6 +7968,12 @@
 /* Title of alert shown when push tokens sync job succeeds. */
 "PUSH_REGISTER_SUCCESS" = "Successfully re-registered for push notifications.";
 
+/* Tellomi: body of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. Warns that continuing moves the account to that phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_MESSAGE_TELLOMI" = "A new phone is asking to take over your account. Continue only if you are switching to your own new phone and registering on it right now. If someone else asked you to scan this, cancel. Continuing moves your account to their phone.";
+
+/* Tellomi: title of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_TITLE_TELLOMI" = "This QR code transfers your account";
+
 /* Body for sheet with info about scanning a Quick Restore QR code */
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_BODY" = "Use this device to scan the QR code on the device you want to transfer to";
 
@@ -8115,11 +8313,50 @@
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "About Profile Privacy";
 
+/* During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field. */
+"REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI" = "Name";
+
+/* During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting. */
+"REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI" = "Your phone number isn't shown to anyone by default.";
+
 /* During registration, users set up their profile. This is the subtitle on the screen where this is done. It tells users about the privacy of their profile. A \"learn more\" link will be added to the end of this string. */
 "REGISTRATION_PROFILE_SETUP_SUBTITLE" = "Profiles are visible to people you message, contacts, and groups.";
 
 /* During registration, users set up their profile. This is the title on the screen where this is done. */
 "REGISTRATION_PROFILE_SETUP_TITLE" = "Set up your profile";
+
+/* Tellomi: registration username is being checked with the server. */
+"REGISTRATION_PROFILE_USERNAME_CHECKING_TELLOMI" = "Checking…";
+
+/* Tellomi: registration username could not be checked because of a network or server error. */
+"REGISTRATION_PROFILE_USERNAME_CHECK_FAILED_TELLOMI" = "Couldn't check this username. Try again in a moment.";
+
+/* Tellomi: registration username contains characters other than letters, numbers and underscores. */
+"REGISTRATION_PROFILE_USERNAME_INVALID_CHARACTERS_TELLOMI" = "Use only letters, numbers and underscores";
+
+/* Tellomi: registration username is taken or reserved. */
+"REGISTRATION_PROFILE_USERNAME_NOT_AVAILABLE_TELLOMI" = "This username isn't available";
+
+/* Tellomi: during registration, placeholder of the optional username field below the name field. */
+"REGISTRATION_PROFILE_USERNAME_PLACEHOLDER_TELLOMI" = "Username (optional)";
+
+/* Tellomi: registration username does not start with a letter. */
+"REGISTRATION_PROFILE_USERNAME_START_WITH_LETTER_TELLOMI" = "Start with a letter";
+
+/* Tellomi: registration username is longer than 20 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_LONG_TELLOMI" = "Use 20 characters or fewer";
+
+/* Tellomi: registration username reservation was rate limited for less than an hour. */
+"REGISTRATION_PROFILE_USERNAME_TOO_MANY_ATTEMPTS_TELLOMI" = "Too many attempts. Try again later.";
+
+/* Tellomi: registration username is shorter than 3 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_SHORT_TELLOMI" = "Use at least 3 characters";
+
+/* Tellomi: label before the suggested usernames when the one typed is not available. */
+"REGISTRATION_PROFILE_USERNAME_TRY_TELLOMI" = "Try:";
+
+/* Tellomi: registration username is available. Embeds {{ the link, like tell.cc/kaixin }}. */
+"REGISTRATION_PROFILE_USERNAME_YOUR_LINK_TELLOMI" = "Your link: %@";
 
 /* Error shown if an SMS/call service provider is unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_PERMANENT" = "We are unable to send an SMS to your number. Please try again in several hours.";
@@ -8163,6 +8400,9 @@
 /* Tutorial text describing the second step to scanning the restore/transfer QR code with your old phone: tap the camera icon */
 "REGISTRATION_SCAN_QR_CODE_TUTORIAL_TAP_CAMERA" = "Tap the camera icon";
 
+/* Error message when sending a verification code via SMS failed and no other way of sending the code is available. */
+"REGISTRATION_SMS_CODE_FAILED_NO_VOICE_ERROR" = "We couldn't send a verification code to this number. Registration is currently open to mainland China numbers only. If yours is one, please try again later or contact support@tellomi.app.";
+
 /* Button when sending a verification code via sms failed, but resending via voice call might succeed. */
 "REGISTRATION_SMS_CODE_FAILED_TRY_VOICE_BUTTON" = "Voice Call";
 
@@ -8174,6 +8414,15 @@
 
 /* Alert shown when submitting a verification code too many times. Embeds {{ duration }}, such as \"5:00\" */
 "REGISTRATION_SUBMIT_CODE_RATE_LIMIT_ALERT_FORMAT" = "You’ve made too many attempts to enter the code. Try again in %1$@";
+
+/* Tellomi: Alert shown when the verification code can no longer be submitted, because it expired or was entered wrong too many times. */
+"REGISTRATION_TELLOMI_CODE_NO_LONGER_VALID" = "This code can no longer be used. It may have expired, or been entered wrong too many times. Please get a new code.";
+
+/* Tellomi: Alert shown when the registration verification session is no longer valid (it expired, or was reset); the user goes back to the phone number screen, where Next requests a new code. */
+"REGISTRATION_TELLOMI_SESSION_EXPIRED" = "This verification is no longer valid. Please check your number and get a new code.";
+
+/* Shown inline under the verification code field when the entered code is wrong. */
+"REGISTRATION_VERIFICATION_ERROR_INVALID_CODE_INLINE" = "Incorrect code. Check the SMS and try again.";
 
 /* During registration and re-registration, users may have to enter a code to verify ownership of their phone number. If they enter an invalid code, they will see this error message. */
 "REGISTRATION_VERIFICATION_ERROR_INVALID_VERIFICATION_CODE" = "The code you entered is not valid. Please resend the code and try again.";
@@ -10435,7 +10684,7 @@
 "THREAD_DETAILS_NO_MEMBERS" = "No other group members yet";
 
 /* Subtitle appearing at the top of the users 'note to self' conversation */
-"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "You can add notes for yourself in this chat. If your account has any linked devices, new notes will be synced.";
+"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "Forward messages here or send them to yourself to keep them handy. If your account has linked devices, new messages here are synced to them.";
 
 /* Label for a group with one member (not counting yourself), displaying their name */
 "THREAD_DETAILS_ONE_MEMBER" = "%1$@";
@@ -10716,6 +10965,12 @@
 /* Text providing instructions on how to use the username link QR code scanning. */
 "USERNAME_LINK_SCAN_QR_CODE_INSTRUCTIONS_LABEL" = "Scan the QR Code on your contact’s device.";
 
+/* Tellomi: shown when a device-linking QR code is scanned on a device that is not the primary phone. */
+"USERNAME_LINK_SCAN_DEVICE_LINK_NOT_PRIMARY_TELLOMI" = "This code is for linking a new device. Scan it from Settings > Linked Devices on your primary phone.";
+
+/* Tellomi: title of the sheet showing the content of a scanned QR code that is not a Tellomi code. */
+"USERNAME_LINK_SCAN_RESULT_TITLE_TELLOMI" = "Scanned Content";
+
 /* Text for a tappable cell that copies the user's username link when selected. */
 "USERNAME_LINK_SHARE_SHEET_COPY_LINK_ACTION" = "Copy Link";
 
@@ -10736,6 +10991,9 @@
 
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@ is not a valid username. Make sure you’ve entered the complete username followed by its set of digits.";
+
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ is not a valid username.";
 
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "Invalid Username";
@@ -10763,6 +11021,9 @@
 
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "Usernames are always paired with a set of numbers. %1$@";
+
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "People can find and message you by your username, without knowing your phone number.";
 
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "Choose your username";
@@ -10961,3 +11222,39 @@
 
 /* Info Message when you update disappearing messages duration. Embeds a {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
 "YOU_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "You set disappearing message time to %@.";
+
+/* Button in the registration consent dialog: agree to the Terms of Service and Privacy Policy and continue. */
+"TELLOMI_CONSENT_AGREE_AND_CONTINUE" = "Agree and Continue";
+
+/* Accessibility label for the consent checkbox during registration. */
+"TELLOMI_CONSENT_CHECKBOX_ACCESSIBILITY_LABEL" = "Agree to the Terms of Service and Privacy Policy";
+
+/* Body of the consent dialog during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_DIALOG_BODY_FORMAT" = "Please read and agree to the %1$@ and %2$@.";
+
+/* Title of the dialog asking the user to agree to the Terms of Service and Privacy Policy before continuing registration. */
+"TELLOMI_CONSENT_DIALOG_TITLE" = "Terms and Privacy Policy";
+
+/* Button in consent dialogs: do not agree. */
+"TELLOMI_CONSENT_DISAGREE" = "Disagree";
+
+/* Name of the Privacy Policy document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_PRIVACY_LINK" = "Privacy Policy";
+
+/* Consent sentence next to the checkbox during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links. */
+"TELLOMI_CONSENT_ROW_FORMAT" = "I'm 18 or older and have read and agree to the %1$@ and %2$@";
+
+/* Name of the Terms of Service document, shown as a tappable link inside consent sentences. */
+"TELLOMI_CONSENT_TERMS_LINK" = "Terms of Service";
+
+/* Button in the first-launch privacy notice: agree. */
+"TELLOMI_FIRST_LAUNCH_AGREE" = "Agree";
+
+/* Body of the privacy notice shown the first time the app is opened. Embeds {{Privacy Policy}} as a link. */
+"TELLOMI_FIRST_LAUNCH_BODY_FORMAT" = "We handle your personal information according to our %1$@. Signing up only needs your phone number, and your messages, profile and attachments are end-to-end encrypted — we can't read them.";
+
+/* Shown in the first-launch privacy notice after the user taps 'Disagree'. */
+"TELLOMI_FIRST_LAUNCH_DISAGREE_HINT" = "You need to agree before using Tellomi. If you don't, we won't collect any information.";
+
+/* Title of the privacy notice shown the first time the app is opened. */
+"TELLOMI_FIRST_LAUNCH_TITLE" = "Welcome to Tellomi";
