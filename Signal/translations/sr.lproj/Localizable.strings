@@ -9893,7 +9893,7 @@
 "SIGNAL_CALL" = "Позив преко Tellomi-а";
 
 /* Title for the sheet presented when user taps on Signal Proxy link in chat. */
-"SIGNAL_PROXY" = "Сигнал прокси сервер";
+"SIGNAL_PROXY" = "Tellomi прокси сервер";
 
 /* body sent to contacts when inviting to Install Signal */
 "SMS_INVITE_BODY" = "Позивам те да инсталираш Tellomi! У наставку је линк:";

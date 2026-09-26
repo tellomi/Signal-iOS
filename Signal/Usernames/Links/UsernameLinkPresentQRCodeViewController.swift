@@ -136,7 +136,9 @@ class UsernameLinkPresentQRCodeViewController: OWSTableViewController2 {
         }()
 
         var buttonConfiguration = UIButton.Configuration.plain()
-        buttonConfiguration.title = username
+        // Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：`.01` 结尾的去掉后缀显示，别的后缀完整显示；
+        // 点一下复制的也是这个样子（按 `kaixin` 搜、打开 `tell.cc/kaixin` 都认，#1106 第一刀）
+        buttonConfiguration.title = TellomiLinks.displayUsername(username)
         buttonConfiguration.titleTextAttributesTransformer = .defaultFont(.dynamicTypeHeadlineClamped.semibold())
         buttonConfiguration.image = Theme.iconImage(.buttonCopy)
         buttonConfiguration.imagePadding = 6
@@ -147,7 +149,7 @@ class UsernameLinkPresentQRCodeViewController: OWSTableViewController2 {
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
 
-                UIPasteboard.general.string = self.username
+                UIPasteboard.general.string = TellomiLinks.displayUsername(self.username)
                 self.showUsernameCopiedToast()
             },
         )
@@ -337,7 +339,8 @@ class UsernameLinkPresentQRCodeViewController: OWSTableViewController2 {
         usernameLabel.textColor = self.qrCodeColor.username
         usernameLabel.numberOfLines = 0
         usernameLabel.textAlignment = .center
-        usernameLabel.text = self.username
+        // Tellomi（#1106 第三刀）：分享出去的二维码图上同样只显示 nickname（`.01` 以外的后缀完整显示）
+        usernameLabel.text = TellomiLinks.displayUsername(self.username)
 
         let instructionsLabel = UILabel()
         stackView.addArrangedSubview(instructionsLabel)
