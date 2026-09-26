@@ -341,6 +341,7 @@ class MediaPageViewController: UIPageViewController {
             previousPage.videoPlaybackStatusObserver = nil
             previousPage.zoomOut(animated: false)
             previousPage.stopVideoIfPlaying()
+            previousPage.tellomiDidResignCurrentPage()
         }
 
         let mediaPage = buildGalleryPage(galleryItem: item)
@@ -375,6 +376,9 @@ class MediaPageViewController: UIPageViewController {
         currentViewController.videoPlaybackStatusObserver = bottomMediaPanel
         showOrHideTopAndBottomPanelsAsNecessary(animated: animated)
         updateControlsForCurrentOrientation()
+
+        // Tellomi（#1257）：翻到视频就播（手指横滑、缩略条跳转一样），见 tellomiDidBecomeCurrentPage。
+        currentViewController.tellomiDidBecomeCurrentPage()
     }
 
     // MARK: Show / hide toolbars
@@ -527,11 +531,31 @@ class MediaPageViewController: UIPageViewController {
 
         // Swapping mediaView for presentationView will be perceptible if we're not zoomed out all the way.
         currentViewController.zoomOut(animated: true)
-        currentViewController.stopVideoIfPlaying()
+
+        // Tellomi（#1257）：下拉关闭拖一半又放回去（#75 以后常见）——视频接着原处播。拖动开始时只暂停，
+        // 真关掉了才照上游 stop（回到开头）。上游一开始就 stop：取消后视频停在 0:00，而这里的控件是收起的
+        // （每页的播放键已去掉），画面上什么都点不到。
+        let wasPlaying = currentViewController.videoPlayer?.isPlaying == true
+        currentViewController.videoPlayer?.pause()
 
         navigationController?.setNavigationBarHidden(false, animated: false)
 
         dismiss(animated: isAnimated, completion: completion)
+
+        guard let transitionCoordinator else {
+            currentViewController.stopVideoIfPlaying()
+            return
+        }
+        transitionCoordinator.animate(alongsideTransition: nil) { [weak currentViewController] context in
+            guard let currentViewController else { return }
+            if context.isCancelled {
+                if wasPlaying {
+                    currentViewController.videoPlayer?.play()
+                }
+            } else {
+                currentViewController.stopVideoIfPlaying()
+            }
+        }
     }
 
     // MARK: Actions
@@ -593,7 +617,9 @@ class MediaPageViewController: UIPageViewController {
 
         switch mediaCount {
         case 0:
-            owsFail("We should always have at least one attachment stream, for the current item.")
+            // Tellomi（#1257）：「这一张」可能点在还没下载完的那一张上（横屏时导航栏上的转发键不按下载状态变灰），
+            // 这时没有可转发的——不动。上游这里是 owsFail，发布版也会崩。
+            Logger.warn("Nothing to forward: the current item has not been downloaded yet.")
         case 1:
             ForwardMessageViewController.present(
                 forAttachmentStreams: mediaAttachmentStreams,
@@ -989,12 +1015,15 @@ extension MediaPageViewController: UIPageViewControllerDelegate {
             previousPage.zoomOut(animated: false)
             previousPage.stopVideoIfPlaying()
             previousPage.videoPlaybackStatusObserver = nil
+            previousPage.tellomiDidResignCurrentPage()
         }
 
         if transitionCompleted {
             didTransitionToNewPage(animated: true, direction: currentPageSwipeDirection)
         } else {
-            updateVideoCenterControlsVisibility(animated: true)
+            // Tellomi（#1257）：横滑到一半又放回去——上面照上游把这一页的视频停了、观察者也摘了；上游每页有播放键兜底，
+            // 这里没有，停着的视频画面上没东西可点。重新接上这一页，和刚翻到时一样（视频从头播）。
+            didTransitionToNewPage(animated: true, direction: nil)
         }
     }
 }
@@ -1187,7 +1216,9 @@ extension MediaPageViewController: MediaPresentationContextProvider {
 
         view.layoutIfNeeded()
 
-        let backgroundColor: UIColor = if #available(iOS 26, *) { .Signal.mediaBackground } else { .black }
+        // Tellomi（#1257）：查看器一律深色（viewDidLoad），开合动画的底色也一律黑。上游 iOS 26 起给 mediaBackground
+        // （浅色模式下是白）——动画在转场容器里按系统的浅色取值，浅色模式下开合时会闪一下白。
+        let backgroundColor: UIColor = .black
         return MediaPresentationContext(
             mediaView: mediaView,
             presentationFrame: mediaView.frame,

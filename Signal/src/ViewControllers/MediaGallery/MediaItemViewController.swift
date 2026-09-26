@@ -332,6 +332,23 @@ class MediaItemViewController: OWSViewController, VideoPlaybackStatusProvider {
         }
     }
 
+    /// Tellomi（#1257，照 Telegram iOS `UniversalVideoGalleryItemNode.centralityUpdated`：视频成为当前那一项、文件在本地就直接播）：
+    /// 这一页成了查看器的当前页——刚打开、手指横滑、缩略条跳转都走这里。下载好的视频直接播；还没下载完的，下载完（`replaceGalleryItem`）再播。
+    /// 上游翻页不自动播，靠每页正中的播放键；那个键换成跟着四角按钮一起出现的播放 / 暂停以后，停着的视频看上去和图片一样、画面上也没有能点的。
+    func tellomiDidBecomeCurrentPage() {
+        guard isVideo else { return }
+        shouldAutoPlayVideo = true
+        guard !hasAutoPlayedVideo, isViewLoaded, videoPlayerView != nil, galleryItem.isVideoReadyToPlay else { return }
+        playVideo()
+        hasAutoPlayedVideo = true
+    }
+
+    /// 不再是当前页：之后下载完也不自己播；翻回来时再算一次「刚翻到」。
+    func tellomiDidResignCurrentPage() {
+        shouldAutoPlayVideo = false
+        hasAutoPlayedVideo = false
+    }
+
     // MARK: - VideoPlaybackStatusProvider
 
     weak var videoPlaybackStatusObserver: VideoPlaybackStatusObserver?
