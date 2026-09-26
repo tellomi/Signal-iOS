@@ -184,6 +184,7 @@
 		05FDBC292CD91B31000C87BC /* ChatListContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FDBC282CD91B31000C87BC /* ChatListContainerView.swift */; };
 		0CE014267EDFBD2538E940A0 /* Pods_Signal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FF88FB580BC19B240EEB86A /* Pods_Signal.framework */; };
 		1131E9919E2DA2E331CB59E3 /* TellomiLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D07A8FD7BAA962B78F13A15 /* TellomiLinks.swift */; };
+		DEDE73E41F50A8577766A3E4 /* TellomiNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2A71A5CD9D5CA95412756 /* TellomiNames.swift */; };
 		1404D8B3276A353B0068E2F6 /* ChatListViewController+Multiselect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1404D8B2276A353A0068E2F6 /* ChatListViewController+Multiselect.swift */; };
 		1466AB282817F7E7003B3D9F /* PluralAware.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 1466AB262817F7E7003B3D9F /* PluralAware.stringsdict */; };
 		1477630B275E20D700D1067E /* ThreadContextualActionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1477630A275E20D700D1067E /* ThreadContextualActionProvider.swift */; };
@@ -486,6 +487,9 @@
 		34A4D88F267A402100A794E7 /* ConversationViewController+Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A4D88E267A402100A794E7 /* ConversationViewController+Notifications.swift */; };
 		34A6C28021E503E700B5B12E /* OWSImagePickerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A6C27F21E503E600B5B12E /* OWSImagePickerController.swift */; };
 		34A8B3512190A40E00218A25 /* CVMediaAlbumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A8B3502190A40E00218A25 /* CVMediaAlbumView.swift */; };
+		494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */; };
+		3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */; };
+		C32B37A061F91F34FE339395 /* AlbumCarouselGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */; };
 		34A954B2271A471300B05242 /* SignalUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; };
 		34A954BD271A471300B05242 /* SignalUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; };
 		34A954BE271A471300B05242 /* SignalUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 34A954A8271A471200B05242 /* SignalUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -1003,6 +1007,7 @@
 		661170C82ABA4F3A00A1B16D /* TSAccountManagerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661170C72ABA4F3A00A1B16D /* TSAccountManagerImpl.swift */; };
 		661170CA2ABA522200A1B16D /* TSContactThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661170C92ABA522200A1B16D /* TSContactThread.swift */; };
 		661278082996BA8900A1D5A1 /* RegistrationCoordinatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661278062996BA7800A1D5A1 /* RegistrationCoordinatorTest.swift */; };
+		4E2A0DE1BA698D5D31CABA93 /* TellomiRegistrationUsernameTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03069F6E820E2D197B8FA925 /* TellomiRegistrationUsernameTest.swift */; };
 		6612780D2996BD0300A1D5A1 /* RegistrationCoordinatorTestShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661278092996BAB400A1D5A1 /* RegistrationCoordinatorTestShims.swift */; };
 		66138FB6298326C7002E0CFE /* SecureValueRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66138FB5298326C7002E0CFE /* SecureValueRecovery.swift */; };
 		661396AB28BD53EF00E0C4DF /* HiddenStoryHeaderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661396AA28BD53EF00E0C4DF /* HiddenStoryHeaderCell.swift */; };
@@ -1375,6 +1380,7 @@
 		66EB029B2BAB9F1C004F0580 /* ReferencedAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66EB029A2BAB9F1C004F0580 /* ReferencedAttachment.swift */; };
 		66F0F1DD29C1230C008C0ECE /* RegistrationCoordinatorLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F0F1DC29C1230C008C0ECE /* RegistrationCoordinatorLoader.swift */; };
 		66F0F1DF29C12363008C0ECE /* RegistrationCoordinatorDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F0F1DE29C12363008C0ECE /* RegistrationCoordinatorDependencies.swift */; };
+		FE9D3B1756087759A3C513F0 /* TellomiRegistrationUsername.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927F641625D0873CA1E53CE1 /* TellomiRegistrationUsername.swift */; };
 		66F2CE1F2A3A37CB00519342 /* EditableMessageBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F2CE1E2A3A37CB00519342 /* EditableMessageBody.swift */; };
 		66F2CE212A3CBE4A00519342 /* NSRangedValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F2CE202A3CBE4A00519342 /* NSRangedValue.swift */; };
 		66F44B4B2909EEDA004CF66C /* OWSViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66F44B4A2909EEDA004CF66C /* OWSViewController.swift */; };
@@ -1589,6 +1595,11 @@
 		76A2EB1028B578B800A29C24 /* MediaTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2EB0F28B578B800A29C24 /* MediaTextView.swift */; };
 		76A2EB1228B57AEE00A29C24 /* ColorPickerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */; };
 		76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */; };
+		4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */; };
+		CF008600BED0E24E78FCD199 /* TellomiViewerGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */; };
+		06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */; };
+		EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */; };
+		5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */; };
 		76BA0DF02A29B27100751107 /* ChatListViewController+Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BA0DEF2A29B27100751107 /* ChatListViewController+Search.swift */; };
 		76BB06FA29AD84DB00978856 /* MediaItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BB06F929AD84DB00978856 /* MediaItemViewController.swift */; };
 		76BC91EC2F883C0000BE569B /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764D8C232F72029100DA82B8 /* CircularProgressView.swift */; };
@@ -2825,6 +2836,7 @@
 		D93EDC042AE9E3CD0004BDD9 /* DonationSettingsViewController+MySupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93EDC032AE9E3CD0004BDD9 /* DonationSettingsViewController+MySupport.swift */; };
 		D93F4D5A2D800DD20042926C /* AvatarDefaultColorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93F4D552D7FAC3C0042926C /* AvatarDefaultColorManager.swift */; };
 		D93F4D5D2D801D750042926C /* AvatarDefaultColorManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93F4D5C2D801D700042926C /* AvatarDefaultColorManagerTest.swift */; };
+		D33DD45F051AA1FA8A4261BE /* TellomiAvatarInitialsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D92D4BD553B092FBE5BBDAC /* TellomiAvatarInitialsTest.swift */; };
 		D940E5C52F3CFFA9008A4120 /* BackupExportJobStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D940E5C42F3CFFA6008A4120 /* BackupExportJobStore.swift */; };
 		D941863C2ACE252D002FE2D3 /* CallRecordLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D941863B2ACE252D002FE2D3 /* CallRecordLogger.swift */; };
 		D943F3EF2892F89B008C0C8B /* NSELogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D943F3EE2892F89B008C0C8B /* NSELogger.swift */; };
@@ -4701,6 +4713,9 @@
 		34A4D88E267A402100A794E7 /* ConversationViewController+Notifications.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+Notifications.swift"; sourceTree = "<group>"; };
 		34A6C27F21E503E600B5B12E /* OWSImagePickerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSImagePickerController.swift; sourceTree = "<group>"; };
 		34A8B3502190A40E00218A25 /* CVMediaAlbumView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVMediaAlbumView.swift; sourceTree = "<group>"; };
+		5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumCarouselGeometryTest.swift; sourceTree = "<group>"; };
+		8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumViewerScreenshotTests.swift; sourceTree = "<group>"; };
+		DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumCarouselGeometry.swift; sourceTree = "<group>"; };
 		34A954A8271A471200B05242 /* SignalUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SignalUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		34A954B1271A471300B05242 /* SignalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		34A954CA271B4BE600B05242 /* ShareViewDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShareViewDelegate.swift; sourceTree = "<group>"; };
@@ -4977,6 +4992,7 @@
 		4CFF115223A9C2130007F9D7 /* UnreadIndicatorInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnreadIndicatorInteraction.swift; sourceTree = "<group>"; };
 		4CFF4C0920F55BBA005DA313 /* MessageActionsToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageActionsToolbar.swift; sourceTree = "<group>"; };
 		4D07A8FD7BAA962B78F13A15 /* TellomiLinks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TellomiLinks.swift; sourceTree = "<group>"; };
+		F5A2A71A5CD9D5CA95412756 /* TellomiNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiNames.swift; sourceTree = "<group>"; };
 		4FD665383260B4FC0A94CE02 /* Pods-Signal.testable release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Signal.testable release.xcconfig"; path = "Target Support Files/Pods-Signal/Pods-Signal.testable release.xcconfig"; sourceTree = "<group>"; };
 		5000499E28330102006A7466 /* sr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = sr; path = translations/sr.lproj/PluralAware.stringsdict; sourceTree = "<group>"; };
 		500049A328330114006A7466 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = sv; path = translations/sv.lproj/PluralAware.stringsdict; sourceTree = "<group>"; };
@@ -5374,6 +5390,7 @@
 		661170C72ABA4F3A00A1B16D /* TSAccountManagerImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TSAccountManagerImpl.swift; sourceTree = "<group>"; };
 		661170C92ABA522200A1B16D /* TSContactThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TSContactThread.swift; sourceTree = "<group>"; };
 		661278062996BA7800A1D5A1 /* RegistrationCoordinatorTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationCoordinatorTest.swift; sourceTree = "<group>"; };
+		03069F6E820E2D197B8FA925 /* TellomiRegistrationUsernameTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiRegistrationUsernameTest.swift; sourceTree = "<group>"; };
 		661278092996BAB400A1D5A1 /* RegistrationCoordinatorTestShims.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationCoordinatorTestShims.swift; sourceTree = "<group>"; };
 		66138FB5298326C7002E0CFE /* SecureValueRecovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureValueRecovery.swift; sourceTree = "<group>"; };
 		661396AA28BD53EF00E0C4DF /* HiddenStoryHeaderCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiddenStoryHeaderCell.swift; sourceTree = "<group>"; };
@@ -5751,6 +5768,7 @@
 		66EB029A2BAB9F1C004F0580 /* ReferencedAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferencedAttachment.swift; sourceTree = "<group>"; };
 		66F0F1DC29C1230C008C0ECE /* RegistrationCoordinatorLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationCoordinatorLoader.swift; sourceTree = "<group>"; };
 		66F0F1DE29C12363008C0ECE /* RegistrationCoordinatorDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationCoordinatorDependencies.swift; sourceTree = "<group>"; };
+		927F641625D0873CA1E53CE1 /* TellomiRegistrationUsername.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiRegistrationUsername.swift; sourceTree = "<group>"; };
 		66F2CE1E2A3A37CB00519342 /* EditableMessageBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableMessageBody.swift; sourceTree = "<group>"; };
 		66F2CE202A3CBE4A00519342 /* NSRangedValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSRangedValue.swift; sourceTree = "<group>"; };
 		66F44B4A2909EEDA004CF66C /* OWSViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OWSViewController.swift; sourceTree = "<group>"; };
@@ -5891,6 +5909,11 @@
 		76A2EB0F28B578B800A29C24 /* MediaTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaTextView.swift; sourceTree = "<group>"; };
 		76A2EB1128B57AEE00A29C24 /* ColorPickerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerBar.swift; sourceTree = "<group>"; };
 		76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaControlPanelView.swift; sourceTree = "<group>"; };
+		0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAlbumScrubberView.swift; sourceTree = "<group>"; };
+		41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiViewerGlass.swift; sourceTree = "<group>"; };
+		98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlaybackSpeedMenuView.swift; sourceTree = "<group>"; };
+		C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoCenterControlsView.swift; sourceTree = "<group>"; };
+		1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaVideoScrubPreviewView.swift; sourceTree = "<group>"; };
 		76BA0DEF2A29B27100751107 /* ChatListViewController+Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatListViewController+Search.swift"; sourceTree = "<group>"; };
 		76BB06F929AD84DB00978856 /* MediaItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaItemViewController.swift; sourceTree = "<group>"; };
 		76C87F18181EFCE600C4ACAB /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
@@ -7208,6 +7231,7 @@
 		D93EDC032AE9E3CD0004BDD9 /* DonationSettingsViewController+MySupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DonationSettingsViewController+MySupport.swift"; sourceTree = "<group>"; };
 		D93F4D552D7FAC3C0042926C /* AvatarDefaultColorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarDefaultColorManager.swift; sourceTree = "<group>"; };
 		D93F4D5C2D801D700042926C /* AvatarDefaultColorManagerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarDefaultColorManagerTest.swift; sourceTree = "<group>"; };
+		5D92D4BD553B092FBE5BBDAC /* TellomiAvatarInitialsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiAvatarInitialsTest.swift; sourceTree = "<group>"; };
 		D93FA5BE2DE77E440013879E /* BackupEnablingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupEnablingManager.swift; sourceTree = "<group>"; };
 		D940E5C42F3CFFA6008A4120 /* BackupExportJobStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupExportJobStore.swift; sourceTree = "<group>"; };
 		D941863B2ACE252D002FE2D3 /* CallRecordLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallRecordLogger.swift; sourceTree = "<group>"; };
@@ -9658,6 +9682,8 @@
 				F99D2C8A2926F0DD00748CCB /* DonationPaymentDetailsViewControllerTest.swift */,
 				45C845AE291467F7005F6EA5 /* JournalingOrderedDictionaryTests.swift */,
 				4585B4A4291B39F9003A8F8E /* MediaGalleryCollectionViewUpdaterTest.swift */,
+				5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */,
+				8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */,
 				1700E33A28B5684C0073D949 /* MediaGallerySectionsTest.swift */,
 				50D879692A16D2C20031345D /* MessageLoaderBatchTest.swift */,
 				4C2A538B23C5462300D28CD8 /* MessageLoaderTest.swift */,
@@ -9721,6 +9747,7 @@
 				768FC7B32F316CEF00707F72 /* CVDimmableView.swift */,
 				764B479A2F4FB076008C6337 /* CVLinkPreviewView.swift */,
 				34A8B3502190A40E00218A25 /* CVMediaAlbumView.swift */,
+				DB1A2F1C84A88EB761C51BA0 /* AlbumCarouselGeometry.swift */,
 				3488F9352191CC4000E524CC /* CVMediaView.swift */,
 				04A5736A2E4CF1BD0019651F /* CVPollView.swift */,
 				3470C8732554926200F5847C /* CVQuotedMessageView.swift */,
@@ -9798,6 +9825,11 @@
 				45C845AC291466C0005F6EA5 /* JournalingOrderedDictionary.swift */,
 				4CA46F4B219CCC630038ABDE /* MediaCaptionView.swift */,
 				76AE4D9C2A14611C000D98A4 /* MediaControlPanelView.swift */,
+				0074EC0689ED23180DD9A291 /* MediaAlbumScrubberView.swift */,
+				41DED1477EFDBB7D35C46AB0 /* TellomiViewerGlass.swift */,
+				98DA4BD03B5532D51A5C20B5 /* MediaPlaybackSpeedMenuView.swift */,
+				C84CD60D1408E1DE8B80D89C /* MediaVideoCenterControlsView.swift */,
+				1466BC8F29DE4DDEC6347363 /* MediaVideoScrubPreviewView.swift */,
 				452EC6DE205E9E30000E787C /* MediaGallery.swift */,
 				45DDD06629C1365100FD9670 /* MediaGalleryAccessoriesHelper.swift */,
 				7622B3B12A4510D7000E31DA /* MediaGalleryCellItem.swift */,
@@ -10332,6 +10364,7 @@
 				66E3C8F52994634E00BB38ED /* RegistrationCoordinator.swift */,
 				C154CB932E0C6607009F878C /* RegistrationCoordinatorBackupErrorPresenter.swift */,
 				66F0F1DE29C12363008C0ECE /* RegistrationCoordinatorDependencies.swift */,
+				927F641625D0873CA1E53CE1 /* TellomiRegistrationUsername.swift */,
 				66A93A7F29940A8200FA0291 /* RegistrationCoordinatorImpl+Service.swift */,
 				6600F38D29918A6100B1EDB7 /* RegistrationCoordinatorImpl.swift */,
 				66F0F1DC29C1230C008C0ECE /* RegistrationCoordinatorLoader.swift */,
@@ -10379,6 +10412,7 @@
 			isa = PBXGroup;
 			children = (
 				661278062996BA7800A1D5A1 /* RegistrationCoordinatorTest.swift */,
+				03069F6E820E2D197B8FA925 /* TellomiRegistrationUsernameTest.swift */,
 				661278092996BAB400A1D5A1 /* RegistrationCoordinatorTestShims.swift */,
 			);
 			path = Registration;
@@ -13806,6 +13840,7 @@
 			isa = PBXGroup;
 			children = (
 				D93F4D5C2D801D700042926C /* AvatarDefaultColorManagerTest.swift */,
+				5D92D4BD553B092FBE5BBDAC /* TellomiAvatarInitialsTest.swift */,
 			);
 			path = Avatars;
 			sourceTree = "<group>";
@@ -15946,6 +15981,7 @@
 				F9C5CB7F289453B200548EEE /* Weak.swift */,
 				F9C5CB29289453B200548EEE /* WeakTimer.swift */,
 				4D07A8FD7BAA962B78F13A15 /* TellomiLinks.swift */,
+				F5A2A71A5CD9D5CA95412756 /* TellomiNames.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -18741,6 +18777,7 @@
 				348815B325503BAA00D4F4C4 /* CVLoader.swift in Sources */,
 				3470C8772555883600F5847C /* CVLoadRequest.swift in Sources */,
 				34A8B3512190A40E00218A25 /* CVMediaAlbumView.swift in Sources */,
+				C32B37A061F91F34FE339395 /* AlbumCarouselGeometry.swift in Sources */,
 				348EE28E25B897BF00814FC2 /* CVMediaCache.swift in Sources */,
 				3488F9362191CC4000E524CC /* CVMediaView.swift in Sources */,
 				348815C8255346A500D4F4C4 /* CVNode.swift in Sources */,
@@ -18935,6 +18972,11 @@
 				45E5A6991F61E6DE001E4A8A /* MarqueeLabel.swift in Sources */,
 				4CA46F4C219CCC630038ABDE /* MediaCaptionView.swift in Sources */,
 				76AE4D9D2A14611C000D98A4 /* MediaControlPanelView.swift in Sources */,
+				4DE4B894C1449AC9C291699E /* MediaAlbumScrubberView.swift in Sources */,
+				CF008600BED0E24E78FCD199 /* TellomiViewerGlass.swift in Sources */,
+				06DB47B1D9C75740E105E3EB /* MediaPlaybackSpeedMenuView.swift in Sources */,
+				EC8607B22D218F969A8B3BBD /* MediaVideoCenterControlsView.swift in Sources */,
+				5D4C6F74AD24F693F2241477 /* MediaVideoScrubPreviewView.swift in Sources */,
 				76FCCDBC27AB8FBE00BAA7F0 /* MediaControls.swift in Sources */,
 				4CD675BE22E7BE35008010D2 /* MediaDismissAnimationController.swift in Sources */,
 				346C19E125ACE9AE00061D3A /* MediaDownloadSettingsViewController.swift in Sources */,
@@ -19097,6 +19139,7 @@
 				66E3C8F62994634E00BB38ED /* RegistrationCoordinator.swift in Sources */,
 				C154CB942E0C6607009F878C /* RegistrationCoordinatorBackupErrorPresenter.swift in Sources */,
 				66F0F1DF29C12363008C0ECE /* RegistrationCoordinatorDependencies.swift in Sources */,
+				FE9D3B1756087759A3C513F0 /* TellomiRegistrationUsername.swift in Sources */,
 				66A93A8029940A8200FA0291 /* RegistrationCoordinatorImpl+Service.swift in Sources */,
 				6600F38E29918A6100B1EDB7 /* RegistrationCoordinatorImpl.swift in Sources */,
 				66F0F1DD29C1230C008C0ECE /* RegistrationCoordinatorLoader.swift in Sources */,
@@ -19304,6 +19347,8 @@
 				45C845AF291467F7005F6EA5 /* JournalingOrderedDictionaryTests.swift in Sources */,
 				45360B911F952AA900FA666C /* MarqueeLabel.swift in Sources */,
 				4585B4A5291B39F9003A8F8E /* MediaGalleryCollectionViewUpdaterTest.swift in Sources */,
+				494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */,
+				3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */,
 				1700E33B28B5684C0073D949 /* MediaGallerySectionsTest.swift in Sources */,
 				50D8796A2A16D2C20031345D /* MessageLoaderBatchTest.swift in Sources */,
 				4C2A538C23C5462300D28CD8 /* MessageLoaderTest.swift in Sources */,
@@ -19321,6 +19366,7 @@
 				E1D827DA2BDC1F7B0022C1AF /* ReactionBurstManagerTests.swift in Sources */,
 				E16B440E2BBF242C00D2583E /* ReactionsModelTest.swift in Sources */,
 				661278082996BA8900A1D5A1 /* RegistrationCoordinatorTest.swift in Sources */,
+				4E2A0DE1BA698D5D31CABA93 /* TellomiRegistrationUsernameTest.swift in Sources */,
 				6612780D2996BD0300A1D5A1 /* RegistrationCoordinatorTestShims.swift in Sources */,
 				040507192F8416090078B769 /* RemoteAnnouncementFetcher.swift in Sources */,
 				040507172F8063E80078B769 /* RemoteMegaphoneFetcher.swift in Sources */,
@@ -20586,6 +20632,7 @@
 				72454E802C9BCEA80084B483 /* YDBStorage.swift in Sources */,
 				724D47B02B97BE13001BE973 /* ZkParamsMigrator.swift in Sources */,
 				1131E9919E2DA2E331CB59E3 /* TellomiLinks.swift in Sources */,
+				DEDE73E41F50A8577766A3E4 /* TellomiNames.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -20609,6 +20656,7 @@
 				50B6BCB62AEC68940010FB3B /* AuthorMergeHelperTest.swift in Sources */,
 				5088330C2FE0B1E500CE51AC /* AutoDownloadPolicyTest.swift in Sources */,
 				D93F4D5D2D801D750042926C /* AvatarDefaultColorManagerTest.swift in Sources */,
+				D33DD45F051AA1FA8A4261BE /* TellomiAvatarInitialsTest.swift in Sources */,
 				D90AA6192CC961ED00021CB0 /* BackupArchiveIntegrationTests.swift in Sources */,
 				66681CDF2C58174F00E50136 /* BackupAttachmentDownloadStoreTests.swift in Sources */,
 				66C795302C9B83A200C13937 /* BackupAttachmentUploadStoreTests.swift in Sources */,
