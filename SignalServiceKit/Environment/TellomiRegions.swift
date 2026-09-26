@@ -66,12 +66,12 @@ public struct TellomiRegionProfile: Equatable {
     }
 }
 
-/// 编进包里的区域表。
+/// 编进包里的区域表，和当前区。
 ///
-/// 这一刀只把表立起来、把不变量钉成测试，行为不变：global 档就是今天的常量（逐字节一致），
-/// `TSConstantsStaging` 和原来写死在使用处的三个地址（内容代理、uptime、调试日志）都改成从这里取；
-/// CN 档按契约第四节生成、`enabled = false`。
-/// 当前区、切区（重建 `Net`、`TSConstants.shared` 按区取）在 #1056 的后面几刀。
+/// global 档就是今天的常量（逐字节一致），CN 档按契约第四节生成、`enabled = false`。
+/// 各调用点在**用的时候**取 `current()`（`TSConstantsStaging` 的端点、内容代理 / uptime / 调试日志），
+/// 不在启动时存下来，这样以后切区（#1056 第三刀：重建 `Net`）之后新建的连接就用新区，不会「半切换」。
+/// 现在 CN 关着，所以当前区恒为 global，行为不变。
 public enum TellomiRegions {
     static let globalDomain = ".tellomi.app"
     static let cnDomain = ".tellomi.cn"
@@ -99,7 +99,26 @@ public enum TellomiRegions {
     /// CN 档：`enabled = false`，直到备案完成（契约第五节第 2 条）。
     public static let cn = cnOf(global)
 
-    public static let all: [TellomiRegionProfile] = [global, cn]
+    /// 包内区域表。首次访问时核一遍：坏了是构建缺陷，拒绝启动（契约第五节第 8 条，和 Desktop 启动时抛同一语义）。
+    public static let all: [TellomiRegionProfile] = {
+        let all = [global, cn]
+        let broken = problems(all)
+        guard broken.isEmpty else {
+            owsFail("packaged region table is broken: \(broken)")
+        }
+        return all
+    }()
+
+    /// 当前区（契约第六节 `currentRegion()`）。记在 app group 的 UserDefaults 里，主 App 和 NSE 读同一份。
+    /// 没有记录、不认识、那个区关着、读不出来，一律回落 global，绝不抛（契约第五节第 8 条）。
+    public static func current(store: TellomiRegionStore = .appGroup) -> TellomiRegionProfile {
+        resolve(storedId: store.storedRegionId())
+    }
+
+    /// 记住的区 id → 区。回落规则是纯函数，单测直接测它。
+    static func resolve(storedId: String?, profiles: [TellomiRegionProfile] = all) -> TellomiRegionProfile {
+        profiles.first { $0.id.rawValue == storedId && $0.enabled } ?? global
+    }
 
     /// 契约第四节：同名标签挂到 `tellomi.cn`。scheme、端口、路径都不变，只把主机名里的 `.tellomi.app` 换成 `.tellomi.cn`。
     /// 这样 CN 档的每一个主机都在 `tellomi.cn` 下（App 备案要填运行时连接的全部域名，漏一条就是漏报）。
@@ -174,5 +193,41 @@ public enum TellomiRegions {
         }
 
         return problems
+    }
+}
+
+/// 当前区记在哪（契约第六节）。
+///
+/// 存两样：记住的区 id，和上一次切区的时间（「驻留时间从哪算起」要持久化，没有记录 = 视为已满足）。
+/// 放 app group 的 UserDefaults：NSE 是独立进程，要读同一份（契约第六节 iOS 那条）。
+/// 写入（`record`）由第三刀的切区调用；这一刀只读。
+public struct TellomiRegionStore {
+    static let regionIdKey = "TellomiRegion.currentId"
+    static let lastSwitchAtKey = "TellomiRegion.lastSwitchAt"
+
+    private let userDefaults: () -> UserDefaults?
+
+    public init(userDefaults: @escaping () -> UserDefaults?) {
+        self.userDefaults = userDefaults
+    }
+
+    /// 主 App 与 NSE 共用的那一份（和 `MainAppContext` / `NSEContext` 的 `appUserDefaults()` 同一个 suite）。
+    public static let appGroup = TellomiRegionStore(userDefaults: { UserDefaults(suiteName: TSConstants.applicationGroup) })
+
+    public func storedRegionId() -> String? {
+        userDefaults()?.string(forKey: Self.regionIdKey)
+    }
+
+    /// nil = 没有记录。
+    public func lastSwitchAt() -> Date? {
+        userDefaults()?.object(forKey: Self.lastSwitchAtKey) as? Date
+    }
+
+    public func record(_ id: TellomiRegionId, at date: Date) {
+        guard let userDefaults = userDefaults() else {
+            return
+        }
+        userDefaults.set(id.rawValue, forKey: Self.regionIdKey)
+        userDefaults.set(date, forKey: Self.lastSwitchAtKey)
     }
 }
