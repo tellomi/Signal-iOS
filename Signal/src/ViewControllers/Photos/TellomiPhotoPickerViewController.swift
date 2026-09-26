@@ -27,6 +27,17 @@ protocol TellomiPhotoPickerDelegate: AnyObject {
 
     /// 说明和会话输入框是同一段字（同上游的预览页）。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?)
+
+    /// Tellomi（#1115）：附件 Sheet 底部 dock 点了「相册」以外的格子（文件 / 位置 / 投票 / 联系人 / GIF）。接收方先收起 Sheet，再打开对应的页面。
+    func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem)
+
+    /// Tellomi（#1115）：没有照片权限时，占位里点了「照片」：用系统选择器选（不要照片权限）。接收方先收起 Sheet，再弹系统选择器。
+    /// 已发布的《系统权限调用清单》TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2 承诺了这个入口，所以不给默认实现，接收方必须接上。
+    func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController)
+}
+
+extension TellomiPhotoPickerDelegate {
+    func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {}
 }
 
 /// Tellomi（tellomi/tellomi#1261，需求 docs/product/specs/media-album-forward-picker.md 第三节，照 Telegram 选图面板）：
@@ -104,6 +115,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
     private let chatBackground: UIView?
     private let bubbleColor: ColorOrGradientValue?
     private let camera: TellomiPhotoPickerCamera?
+    /// Tellomi（#1115）：从「+」打开时是附件 Sheet 的「相册」页，底部带 dock；空 = 没有 dock（旧的整页打开）。
+    private let dockItems: [TellomiAttachmentDockItem]
 
     /// 「只看已选」里取消的（按取消的先后，带原来的位置）：撤销时倒着放回原位。
     private var undoableDeselections = [(item: TellomiPhotoPickerItem, index: Int)]()
@@ -123,6 +136,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         bubbleColor: ColorOrGradientValue? = nil,
         camera: TellomiPhotoPickerCamera? = nil,
         maxSelection: Int = SignalAttachment.maxAttachmentsAllowed,
+        dockItems: [TellomiAttachmentDockItem] = [],
     ) {
         self.library = library
         self.initialMessageBody = initialMessageBody
@@ -136,6 +150,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         self.bubbleColor = bubbleColor
         self.camera = camera
         self.maxSelection = maxSelection
+        self.dockItems = dockItems
         super.init()
     }
 
@@ -308,6 +323,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         setUpCollectionView()
         setUpSelectedView()
         setUpSendBar()
+        setUpNoAccessView()
+        setUpDock()
         view.addSubview(undoBar)
 
         library.onChange = { [weak self] in self?.reloadLibrary() }
@@ -396,6 +413,104 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         ])
     }
 
+    // MARK: - No photo access (#1115)
+
+    /// 拒绝了照片权限：网格整块换成一句说明 +「设置」（上游附件面板同一句话、同一个按钮），有相机时旁边再给「相机」——
+    /// 照 Telegram（没权限时网格换成占位，占位里能去设置、也能直接拍）；相机格这时不在网格里，免得说明压在它上面。
+    /// 最前面还有「照片」：用系统选择器选，不要照片权限——已发布的《系统权限调用清单》（TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2）
+    /// 承诺「拒绝照片读取权限，附件面板仍然提供“全部相册”入口，通过系统选择器完成选择与发送」（Telegram 的占位里没有这一个）。
+    private lazy var noAccessSystemPickerButton = Self.noAccessButton(
+        title: OWSLocalizedString("ATTACHMENT_KEYBOARD_PHOTOS", comment: "A button to open the photo picker from the Attachment Keyboard"),
+    ) { [weak self] in
+        guard let self else { return }
+        self.delegate?.photoPickerDidRequestSystemPicker(self)
+    }
+
+    private lazy var noAccessSettingsButton = Self.noAccessButton(title: CommonStrings.openSystemSettingsButton) {
+        UIApplication.shared.openSystemSettings()
+    }
+
+    private lazy var noAccessCameraButton = Self.noAccessButton(
+        title: OWSLocalizedString("CAMERA_BUTTON_LABEL", comment: "Accessibility label for camera button."),
+    ) { [weak self] in
+        self?.didTapCamera()
+    }
+
+    private static func noAccessButton(title: String, action: @escaping () -> Void) -> UIButton {
+        var configuration = UIButton.Configuration.gray()
+        configuration.title = title
+        configuration.cornerStyle = .capsule
+        return UIButton(configuration: configuration, primaryAction: UIAction { _ in action() })
+    }
+
+    private lazy var noAccessView: UIView = {
+        let label = UILabel()
+        label.text = OWSLocalizedString("ATTACHMENT_KEYBOARD_NO_PHOTO_ACCESS", comment: "Text in the attachment keyboard when the user has not granted access to photos.")
+        label.font = .dynamicTypeSubheadline
+        label.textColor = .Signal.secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+
+        let buttons = UIStackView(arrangedSubviews: [noAccessSystemPickerButton, noAccessSettingsButton, noAccessCameraButton])
+        buttons.axis = .horizontal
+        buttons.spacing = 12
+
+        let stack = UIStackView(arrangedSubviews: [label, buttons])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 12
+        stack.isHidden = true
+        return stack
+    }()
+
+    private func setUpNoAccessView() {
+        noAccessView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(noAccessView)
+        NSLayoutConstraint.activate([
+            noAccessView.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor),
+            noAccessView.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor, constant: 16),
+            noAccessView.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor, constant: -16),
+        ])
+    }
+
+    // MARK: - Dock (#1115)
+
+    /// 底部 dock：没选照片时在，选了就换成说明 + 发送（同 Telegram：dock 与说明栏占同一个位置）；「只看已选」时也不在。
+    private lazy var dock: TellomiAttachmentDock? = {
+        guard !dockItems.isEmpty else { return nil }
+        let dock = TellomiAttachmentDock(items: dockItems, selectedItem: .gallery)
+        dock.onSelect = { [weak self] item in self?.didSelectDockItem(item) }
+        return dock
+    }()
+
+    private func setUpDock() {
+        guard let dock else { return }
+        dock.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(dock)
+        NSLayoutConstraint.activate([
+            dock.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: TellomiAttachmentDock.sideMargin),
+            dock.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -TellomiAttachmentDock.sideMargin),
+            dock.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -TellomiAttachmentDock.bottomMargin),
+            dock.heightAnchor.constraint(equalToConstant: TellomiAttachmentDock.height),
+        ])
+    }
+
+    private var isDockVisible: Bool {
+        dock != nil && selectedIds.isEmpty && displayMode == .all
+    }
+
+    private func didSelectDockItem(_ item: TellomiAttachmentDockItem) {
+        guard item != .gallery else {
+            // 重复点「相册」：回到网格最上面并展开到全屏（同 Telegram：重复点当前格 = requestAttachmentMenuExpansion + 回到顶部）
+            collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.adjustedContentInset.top), animated: true)
+            if let sheet = sheetPresentationController, sheet.selectedDetentIdentifier != .large {
+                sheet.animateChanges { sheet.selectedDetentIdentifier = .large }
+            }
+            return
+        }
+        delegate?.photoPicker(self, didSelectDockItem: item)
+    }
+
     private func setUpSendBar() {
         sendBar.backgroundColor = .Signal.background
         sendBar.translatesAutoresizingMaskIntoConstraints = false
@@ -479,6 +594,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             currentAlbum = albums.first
         }
         showsLimitedAccessBanner = library.isAccessLimited
+        noAccessView.isHidden = !library.isAccessDenied
+        noAccessCameraButton.isHidden = (camera?.access ?? .unavailable) == .unavailable
         titleButton.configuration?.title = currentAlbum?.title
         updateGridLayout()
         collectionView.reloadData()
@@ -511,9 +628,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         view.bounds.width > view.bounds.height ? 5 : 3
     }
 
-    /// 相机格只在「最近」里、而且有相机（没被拒）时才有。
+    /// 相机格只在「最近」里、而且有相机（没被拒）时才有；没有照片权限时网格换成占位，相机在占位的按钮里。
     private var showsCamera: Bool {
-        guard let camera, currentAlbum?.isRecents == true else { return false }
+        guard let camera, currentAlbum?.isRecents == true, !library.isAccessDenied else { return false }
         return camera.access != .unavailable
     }
 
@@ -692,6 +809,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             self.countPill.isHidden = !showPill
             self.moreButton.isHidden = !showMore
             self.sendBar.isHidden = !hasSelection
+            self.dock?.isHidden = !self.isDockVisible
             self.countPill.alpha = showPill ? 1 : 0
             self.countPill.transform = .identity
         }
@@ -706,8 +824,9 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         }
 
         view.layoutIfNeeded()
-        // 网格本来就会让出底部安全区，这里只补说明栏高出安全区的那一截。
-        let bottomInset = hasSelection ? max(0, sendBar.frame.height - view.safeAreaInsets.bottom) : 0
+        // 网格本来就会让出底部安全区，这里只补说明栏高出安全区的那一截；有 dock 时让出 dock（#1115）。
+        let dockInset = isDockVisible ? TellomiAttachmentDock.height + TellomiAttachmentDock.bottomMargin : 0
+        let bottomInset = hasSelection ? max(0, sendBar.frame.height - view.safeAreaInsets.bottom) : dockInset
         collectionView.contentInset.bottom = bottomInset
         collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
         selectedView.bottomInset = hasSelection ? sendBar.frame.height : view.safeAreaInsets.bottom
@@ -1432,6 +1551,27 @@ extension TellomiPhotoPickerViewController {
     var countPillFrameForTesting: CGRect { countPill.convert(countPill.bounds, to: view) }
     var isMoreButtonShownForTesting: Bool { !moreButton.isHidden }
     var isSendBarShownForTesting: Bool { !sendBar.isHidden }
+    var dockForTesting: TellomiAttachmentDock? { dock }
+    var isDockShownForTesting: Bool { dock.map { !$0.isHidden } ?? false }
+    var isNoAccessHintShownForTesting: Bool { !noAccessView.isHidden }
+    var noAccessHintTextForTesting: String? { (noAccessView as? UIStackView)?.arrangedSubviews.compactMap { ($0 as? UILabel)?.text }.first }
+    /// 占位里露着的按钮，按排列的先后。
+    private var noAccessButtonsForTesting: [UIButton] {
+        let rows = (noAccessView as? UIStackView)?.arrangedSubviews.compactMap { $0 as? UIStackView } ?? []
+        return rows.flatMap { $0.arrangedSubviews }.compactMap { $0 as? UIButton }.filter { !$0.isHidden }
+    }
+
+    var noAccessButtonTitlesForTesting: [String] { noAccessButtonsForTesting.compactMap { $0.configuration?.title } }
+
+    func tapNoAccessCameraForTesting() {
+        noAccessCameraButton.sendActions(for: .primaryActionTriggered)
+    }
+
+    func tapNoAccessButtonForTesting(title: String) {
+        noAccessButtonsForTesting.first { $0.configuration?.title == title }?.sendActions(for: .primaryActionTriggered)
+    }
+
+    var gridBottomInsetForTesting: CGFloat { collectionView.contentInset.bottom }
     var titleForTesting: String? { titleButton.configuration?.title }
     var captionTextForTesting: String { captionTextView.messageBodyForSending.text }
     var albumTitlesForTesting: [String] { albums.map(\.title) }

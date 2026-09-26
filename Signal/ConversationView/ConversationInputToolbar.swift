@@ -45,6 +45,9 @@ protocol ConversationInputToolbarDelegate: AnyObject {
 
     // MARK: Attachments
 
+    /// Tellomi（#1115）：「+」打开附件 Sheet（相册网格 + 底部 dock），不再切到键盘位的附件面板。
+    func attachmentSheetButtonPressed()
+
     func cameraButtonPressed()
 
     func photosButtonPressed()
@@ -3250,7 +3253,19 @@ extension ConversationInputToolbar {
             quotedReplyDraft = nil
             clearTextMessage(animated: true)
         } else {
-            toggleKeyboardType(.attachment, animated: true)
+            // Tellomi（#1115）：附件 Sheet 由会话页弹；被屏蔽的会话先走解除屏蔽，同上游 toggleKeyboardType。
+            guard let inputToolbarDelegate else {
+                owsFailDebug("inputToolbarDelegate is nil")
+                return
+            }
+            if inputToolbarDelegate.isBlockedConversation() {
+                inputToolbarDelegate.showUnblockConversationUI { [weak inputToolbarDelegate] isBlocked in
+                    guard !isBlocked else { return }
+                    inputToolbarDelegate?.attachmentSheetButtonPressed()
+                }
+                return
+            }
+            inputToolbarDelegate.attachmentSheetButtonPressed()
         }
     }
 

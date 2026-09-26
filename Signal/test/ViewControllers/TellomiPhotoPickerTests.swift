@@ -82,7 +82,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
     }
 
     /// 竖屏 3 列、横屏 5 列，间距 1，正方形；三种屏宽都一样。
-    /// 边长按屏幕像素（1/3 pt）向下取整，除不尽时剩下的不到每列 1 像素，由 flow layout 摊进列间距（最多 1.34）。
+    /// 边长按屏幕像素（1/scale pt：3x 是 1/3、SE 这类 2x 是 1/2）向下取整，除不尽时剩下的不到每列 1 像素，
+    /// 由 flow layout 摊进列间距（3x 最多 1.34、2x 最多 1.5）。
     @MainActor
     func testGridColumnsSpacingAndSquareCells() async throws {
         for (width, height) in [(375, 812), (402, 874), (440, 956)] as [(CGFloat, CGFloat)] {
@@ -92,15 +93,16 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
                 let frames = (0...columns).map { frame(of: $0, in: hosted.picker) }
                 let label = "\(Int(w))×\(Int(h))"
                 XCTAssertEqual(frames[0].size.width, frames[0].size.height, accuracy: 0.01, "\(label) 正方形")
+                let pixel = 1 / hosted.window.screen.scale
                 let gap = frames[1].minX - frames[0].maxX
                 XCTAssertGreaterThanOrEqual(gap, 0.99, "\(label) 列间距 1")
-                XCTAssertLessThanOrEqual(gap, 1.34, "\(label) 列间距 1")
+                XCTAssertLessThanOrEqual(gap, 1 + pixel + 0.01, "\(label) 列间距 1（最多再摊 1 像素）")
                 XCTAssertEqual(frames[columns - 1].minY, frames[0].minY, accuracy: 0.01, "\(label) 第一行有 \(columns) 格")
                 XCTAssertEqual(frames[columns].minX, frames[0].minX, accuracy: 0.01, "\(label) 第 \(columns + 1) 格换行")
                 XCTAssertEqual(frames[columns].minY - frames[0].maxY, 1, accuracy: 0.01, "\(label) 行间距 1")
                 let leftover = hosted.picker.collectionViewForTesting.bounds.size.width - (CGFloat(columns) * frames[0].size.width + CGFloat(columns - 1))
                 XCTAssertGreaterThanOrEqual(leftover, -0.01, "\(label) 一行放得下")
-                XCTAssertLessThan(leftover, CGFloat(columns) / 3, "\(label) 铺满一行（剩下的不到每列 1 像素）")
+                XCTAssertLessThan(leftover, CGFloat(columns) * pixel, "\(label) 铺满一行（剩下的不到每列 1 像素）")
             }
         }
     }
@@ -345,7 +347,9 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
     /// 表情键盘照 Telegram 的排法：分类在上面（占满宽）、emoji 在中间、底栏左边「键盘」右边退格；点「键盘」回到文字键盘（仍在编辑）。
     @MainActor
     func testEmojiKeyboardLayoutAndSwitchBack() async throws {
-        let hosted = host()
+        // 键盘窗口按模拟器真实的屏幕排（375 那台是 SE），宿主窗口也用真实屏幕大小，不然键盘永远比窗口窄
+        let screen = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.size }.first)
+        let hosted = host(width: screen.width, height: screen.height)
         defer { hosted.tearDown() }
         hosted.window.makeKey()
         let picker = hosted.picker
@@ -1000,6 +1004,190 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         }
     }
 
+    // MARK: - 附件 Sheet（#1115）
+
+    /// dock = 相册 · 文件 · 位置 · 投票 · 联系人（owner 2026-09-23 定），GIF 开着时最后再加一格 GIF（owner 2026-09-26 定临时加回：
+    /// 「+」改成 Sheet 后附件面板打不开了，面板上的 GIF 键是 iPhone 上唯一的 GIF 入口；表情面板 #1012 做好之前先放在 dock 里）。
+    /// 「相册」选中；没选照片时在，选了让位给说明 + 发送，取消选择又回来。
+    @MainActor
+    func testDockShowsTheItemsAndGivesWayToTheSendBar() async throws {
+        try setRemoteConfig(["global.gifSearch": "true"])
+        XCTAssertTrue(RemoteConfig.current.isGifAvailable)
+        let hosted = host(dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+        let dock = try XCTUnwrap(picker.dockForTesting)
+        XCTAssertEqual(dock.items.map(\.title), ["Gallery", "File", "Location", "Poll", "Contact", "GIF"])
+        XCTAssertEqual(
+            dock.items.map(\.imageName),
+            ["album-tilt-28", "file-28", "location-28", "poll-28", "person-circle-28", "gif-28"],
+            "图标都是 Signal 自己的（GIF 用上游附件面板 GIF 键那一个）",
+        )
+        XCTAssertEqual(dock.selectedItem, .gallery)
+        XCTAssertTrue(picker.isDockShownForTesting)
+        XCTAssertFalse(picker.isSendBarShownForTesting)
+        XCTAssertGreaterThanOrEqual(picker.gridBottomInsetForTesting, TellomiAttachmentDock.height, "网格底部让出 dock")
+
+        picker.tapCheckForTesting(itemIndex: 0)
+        XCTAssertFalse(picker.isDockShownForTesting, "选了照片：dock 让位")
+        XCTAssertTrue(picker.isSendBarShownForTesting, "选了照片：说明 + 发送")
+
+        picker.tapCheckForTesting(itemIndex: 0)
+        XCTAssertTrue(picker.isDockShownForTesting, "全部取消：dock 回来")
+        XCTAssertFalse(picker.isSendBarShownForTesting)
+    }
+
+    /// GIF 关着（上游开关 `global.gifSearch` 关了，或者这个部署没有 GIF 源 `global.gif.provider = none`，大陆包）：dock 里没有 GIF，
+    /// 同上游附件面板（`AttachmentFormatPickerView`，#1078 `isGifAvailable`）——入口一起关，包里才不会有连境外内容代理的地方。
+    @MainActor
+    func testDockHasNoGifWhenGifIsUnavailable() throws {
+        for flags in [["global.gif.provider": "none"], ["global.gifSearch": "false"]] {
+            try setRemoteConfig(flags)
+            XCTAssertFalse(RemoteConfig.current.isGifAvailable, "\(flags)")
+            let hosted = host(dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+            defer { hosted.tearDown() }
+            let dock = try XCTUnwrap(hosted.picker.dockForTesting)
+            XCTAssertEqual(dock.items.map(\.title), ["Gallery", "File", "Location", "Poll", "Contact"], "\(flags)")
+        }
+    }
+
+    /// 旧的整页打开（不是从「+」进来）没有 dock。
+    @MainActor
+    func testNoDockWithoutDockItems() {
+        let picker = host().picker
+        XCTAssertNil(picker.dockForTesting)
+        XCTAssertFalse(picker.isDockShownForTesting)
+    }
+
+    /// 点「文件 / 位置 / 投票 / 联系人 / GIF」交给会话页（它先收起 Sheet 再打开对应页面，GIF 是上游的 GIF 选择器）；
+    /// 点「相册」只是回到网格顶上，不交出去。
+    @MainActor
+    func testDockTapsReachTheDelegateExceptGallery() throws {
+        try setRemoteConfig(["global.gifSearch": "true"])
+        let hosted = host(dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+        defer { hosted.tearDown() }
+        let dock = try XCTUnwrap(hosted.picker.dockForTesting)
+        for item in dock.items where item != .gallery {
+            dock.tapForTesting(item)
+        }
+        dock.tapForTesting(.gallery)
+        XCTAssertEqual(hosted.delegate.dockSelections.map(\.title), ["File", "Location", "Poll", "Contact", "GIF"])
+    }
+
+    /// 重复点「相册」：Sheet 从收起展开到全屏（同 Telegram 重复点当前格），不交给会话页。
+    @MainActor
+    func testRetappingGalleryExpandsTheSheet() async throws {
+        guard #available(iOS 16, *) else {
+            throw XCTSkip("自定义档位要 iOS 16")
+        }
+        let hosted = host(dockItems: TellomiAttachmentDockItem.allCases, asAttachmentSheet: true)
+        try await settle()
+        let sheet = try XCTUnwrap(hosted.picker.sheetPresentationController)
+        XCTAssertEqual(sheet.selectedDetentIdentifier, ConversationViewController.attachmentSheetHalfDetent, "打开时停在收起那一档")
+        try XCTUnwrap(hosted.picker.dockForTesting).tapForTesting(.gallery)
+        XCTAssertEqual(sheet.selectedDetentIdentifier, .large)
+        XCTAssertTrue(hosted.delegate.dockSelections.isEmpty)
+        hosted.window.isHidden = true
+    }
+
+    /// 拒绝了照片权限：Sheet 照样能用，网格换成一句去「设置」的说明（上游同一句）+「照片」（系统选择器，见下一条）「设置」「相机」
+    /// （设置、相机照 Telegram 的占位）；相机格不在网格里（说明不压在它上面）；没有相机就没有「相机」；有权限时不出现。
+    @MainActor
+    func testNoPhotoAccessShowsTheSettingsHint() async throws {
+        let denied = FakePhotoLibrary()
+        denied.isAccessDenied = true
+        let photos = OWSLocalizedString("ATTACHMENT_KEYBOARD_PHOTOS", comment: "")
+        let hosted = host(library: denied, camera: FakeCamera(access: .authorized), dockItems: TellomiAttachmentDockItem.allCases)
+        try await settle()
+        let picker = hosted.picker
+        XCTAssertTrue(picker.isNoAccessHintShownForTesting)
+        XCTAssertEqual(picker.noAccessHintTextForTesting, OWSLocalizedString("ATTACHMENT_KEYBOARD_NO_PHOTO_ACCESS", comment: ""))
+        XCTAssertEqual(picker.noAccessButtonTitlesForTesting, [photos, CommonStrings.openSystemSettingsButton, OWSLocalizedString("CAMERA_BUTTON_LABEL", comment: "")])
+        XCTAssertNil(picker.cameraFrameForTesting, "相机格不在网格里")
+        picker.tapNoAccessCameraForTesting()
+        XCTAssertEqual(hosted.delegate.cameraRequests, 1, "占位里的「相机」走相机格同一条路")
+        XCTAssertTrue(picker.isDockShownForTesting, "没权限也能用 dock 的别的格子")
+        hosted.window.isHidden = true
+
+        XCTAssertEqual(host(library: denied, dockItems: TellomiAttachmentDockItem.allCases).picker.noAccessButtonTitlesForTesting, [photos, CommonStrings.openSystemSettingsButton])
+        XCTAssertFalse(host(dockItems: TellomiAttachmentDockItem.allCases).picker.isNoAccessHintShownForTesting)
+    }
+
+    /// 拒绝了照片权限，占位里照样有「照片」（上游附件面板上打开整个相册的那个键，同一个词）：点了交给会话页，
+    /// 由它收起 Sheet 再弹上游的系统选择器——不要照片权限就能选、能发（系统选择器取消了回到 Sheet）。
+    /// 已发布的《系统权限调用清单》（TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2）写的是：「如果您拒绝照片读取权限，附件面板仍然提供
+    /// “全部相册”入口，通过系统选择器完成选择与发送，不需要该权限」。有没有相机都在。
+    @MainActor
+    func testNoPhotoAccessStillOffersTheSystemPicker() async throws {
+        let denied = FakePhotoLibrary()
+        denied.isAccessDenied = true
+        let photos = OWSLocalizedString("ATTACHMENT_KEYBOARD_PHOTOS", comment: "")
+        XCTAssertEqual(photos, "Photos")
+        let cameras: [TellomiPhotoPickerCamera?] = [FakeCamera(access: .authorized), nil]
+        for camera in cameras {
+            let hosted = host(library: denied, camera: camera, dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+            defer { hosted.tearDown() }
+            try await settle()
+            XCTAssertTrue(hosted.picker.isNoAccessHintShownForTesting)
+            XCTAssertEqual(hosted.picker.noAccessButtonTitlesForTesting.first, photos, "占位里第一个就是「照片」（有相机：\(camera != nil)）")
+            hosted.picker.tapNoAccessButtonForTesting(title: photos)
+            XCTAssertEqual(hosted.delegate.systemPickerRequests, 1, "交给会话页开系统选择器（有相机：\(camera != nil)）")
+            XCTAssertEqual(hosted.delegate.cameraRequests, 0)
+            XCTAssertTrue(hosted.delegate.dockSelections.isEmpty)
+        }
+    }
+
+    /// 附件 Sheet 两档：先停在半屏（聊天露在上面、变暗），往上拖到全屏；网格滚到顶再往上拖就展开。
+    @MainActor
+    func testAttachmentSheetHasHalfAndLargeDetents() throws {
+        guard #available(iOS 16, *) else {
+            throw XCTSkip("自定义档位要 iOS 16（iOS 15 是系统的半屏 / 全屏）")
+        }
+        let viewController = UIViewController()
+        viewController.modalPresentationStyle = .pageSheet
+        let sheet = try XCTUnwrap(viewController.sheetPresentationController)
+        ConversationViewController.configureAttachmentSheet(sheet)
+        XCTAssertEqual(sheet.detents.map(\.identifier), [ConversationViewController.attachmentSheetHalfDetent, .large])
+        XCTAssertEqual(sheet.selectedDetentIdentifier, ConversationViewController.attachmentSheetHalfDetent)
+        let collapsed = try XCTUnwrap(sheet.detents.first?.resolvedValue(in: FakeDetentContext(maximumDetentValue: 800)))
+        XCTAssertEqual(collapsed, 584, accuracy: 0.5, "收起时是全屏高度的 73%（Telegram iOS 顶边低 0.2488）")
+        XCTAssertTrue(sheet.prefersScrollingExpandsWhenScrolledToEdge)
+        XCTAssertNil(sheet.largestUndimmedDetentIdentifier, "两档都把聊天压暗")
+    }
+
+    /// 截图（TELLOMI_SHOTS=1）：附件 Sheet 半屏、选了两张（dock 换成说明 + 发送）、全屏、没有照片权限。
+    /// 窗口接在模拟器真实的屏幕上（dock 离底部的距离要算上安全区），所以每台只截自己那个屏宽；同真机，网格第一格是相机。
+    @MainActor
+    func testAttachmentSheetScreenshots() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时截图")
+        let screenSize = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.size }.first)
+        for width in shotWidths where width == screenSize.width {
+            let height = screenSize.height
+            let hosted = host(width: width, height: height, camera: FakeCamera(access: .authorized), dockItems: TellomiAttachmentDockItem.allCases, asAttachmentSheet: true)
+            try await settle()
+            try save(render(hosted.window), name: "attach-sheet-half.png", width: width)
+
+            hosted.picker.tapCheckForTesting(itemIndex: 1)
+            hosted.picker.tapCheckForTesting(itemIndex: 3)
+            try await settle()
+            try save(render(hosted.window), name: "attach-sheet-selected.png", width: width)
+
+            hosted.picker.sheetPresentationController?.animateChanges {
+                hosted.picker.sheetPresentationController?.selectedDetentIdentifier = .large
+            }
+            try await settle()
+            try save(render(hosted.window), name: "attach-sheet-large.png", width: width)
+            hosted.window.isHidden = true
+
+            let denied = FakePhotoLibrary()
+            denied.isAccessDenied = true
+            let deniedHost = host(width: width, height: height, library: denied, camera: FakeCamera(access: .authorized), dockItems: TellomiAttachmentDockItem.allCases, asAttachmentSheet: true)
+            try await settle()
+            try save(render(deniedHost.window), name: "attach-sheet-no-access.png", width: width)
+            deniedHost.window.isHidden = true
+        }
+    }
+
     @MainActor
     private func host(
         width: CGFloat = 402,
@@ -1012,6 +1200,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         chatBackground: UIView? = nil,
         camera: TellomiPhotoPickerCamera? = nil,
         presentedFromRoot: Bool = false,
+        dockItems: [TellomiAttachmentDockItem] = [],
+        asAttachmentSheet: Bool = false,
     ) -> Hosted {
         let delegate = RecordingPickerDelegate()
         let dataSource = FakeApprovalDataSource()
@@ -1027,11 +1217,32 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             chatBackground: chatBackground,
             camera: camera,
             maxSelection: maxSelection,
+            dockItems: dockItems,
         )
         picker.delegate = delegate
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: height))
+        let frame = CGRect(x: 0, y: 0, width: width, height: height)
+        let window: UIWindow
+        if asAttachmentSheet, let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            // 附件 Sheet 的窗口接到真实屏幕上：安全区（底部横条）要算进 dock 的位置。
+            window = UIWindow(windowScene: scene)
+            window.frame = frame
+        } else {
+            window = UIWindow(frame: frame)
+        }
         window.backgroundColor = .Signal.background
-        if presentedFromRoot {
+        if asAttachmentSheet {
+            // 同真机（#1115）：会话页把选图面板当附件 Sheet 弹出来，聊天在后面。
+            let root = UIViewController()
+            root.view.addSubview(Self.shotChatBackground())
+            root.view.subviews.first?.autoPinEdgesToSuperviewEdges()
+            window.rootViewController = root
+            window.isHidden = false
+            picker.modalPresentationStyle = .pageSheet
+            if let sheet = picker.sheetPresentationController {
+                ConversationViewController.configureAttachmentSheet(sheet)
+            }
+            root.present(picker, animated: false)
+        } else if presentedFromRoot {
             // 同真机：会话页把选图面板弹出来。
             let root = UIViewController()
             window.rootViewController = root
@@ -1099,6 +1310,12 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         try await Task.sleep(nanoseconds: 500_000_000)
     }
 
+    /// 换掉 `RemoteConfig.current`（会话页按它决定 dock 里有没有 GIF，#1078 `isGifAvailable`）；每条用例重建环境，不串到别的用例。
+    private func setRemoteConfig(_ valueFlags: [String: String]) throws {
+        let manager = try XCTUnwrap(SSKEnvironment.shared.remoteConfigManagerRef as? StubbableRemoteConfigManager)
+        manager._currentConfig = RemoteConfig(clockSkew: 0, valueFlags: valueFlags)
+    }
+
     private func toastTexts(in view: UIView) -> [String] {
         var texts = [String]()
         if let toast = view as? ToastView, let text = toast.text {
@@ -1158,6 +1375,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
 /// 内存里的相册：「最近」24 项（第 2、8 项是视频，第 3 项是实况照片），「Screenshots」3 项；缩略图是纯色块。
 private final class FakePhotoLibrary: TellomiPhotoPickerLibrary {
     var isAccessLimited = false
+    var isAccessDenied = false
     var onChange: (() -> Void)?
 
     let recents: [TellomiPhotoPickerItem]
@@ -1193,14 +1411,19 @@ private final class FakePhotoLibrary: TellomiPhotoPickerLibrary {
     }
 
     func albums() -> [TellomiPhotoPickerAlbum] {
-        [
+        // 拒绝了照片权限：同系统相册，「最近」是空的，别的相簿一个都没有。
+        guard !isAccessDenied else {
+            return [TellomiPhotoPickerAlbum(id: "recents", title: TellomiSystemPhotoLibrary.recentsTitle, count: 0, isRecents: true)]
+        }
+        return [
             TellomiPhotoPickerAlbum(id: "recents", title: TellomiSystemPhotoLibrary.recentsTitle, count: recents.count, isRecents: true),
             TellomiPhotoPickerAlbum(id: "screenshots", title: "Screenshots", count: screenshots.count, isRecents: false),
         ]
     }
 
     private func items(in album: TellomiPhotoPickerAlbum) -> [TellomiPhotoPickerItem] {
-        album.id == "screenshots" ? screenshots : recents
+        guard !isAccessDenied else { return [] }
+        return album.id == "screenshots" ? screenshots : recents
     }
 
     func itemCount(in album: TellomiPhotoPickerAlbum) -> Int {
@@ -1266,8 +1489,18 @@ private final class RecordingPickerDelegate: TellomiPhotoPickerDelegate {
 
     var cancels = 0
     var cameraRequests = 0
+    var systemPickerRequests = 0
     var sent = [Sent]()
     var bodies = [MessageBody?]()
+    var dockSelections = [TellomiAttachmentDockItem]()
+
+    func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {
+        dockSelections.append(item)
+    }
+
+    func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController) {
+        systemPickerRequests += 1
+    }
 
     func photoPickerDidCancel(_ picker: TellomiPhotoPickerViewController) {
         cancels += 1
@@ -1287,6 +1520,18 @@ private final class RecordingPickerDelegate: TellomiPhotoPickerDelegate {
 }
 
 /// 假相机：记下起停次数；「取景」是一块深色渐变（截图用）。
+/// 算自定义档位的高度用：只给最大高度。
+@available(iOS 16, *)
+@MainActor
+private final class FakeDetentContext: NSObject, UISheetPresentationControllerDetentResolutionContext {
+    let containerTraitCollection = UITraitCollection()
+    let maximumDetentValue: CGFloat
+
+    init(maximumDetentValue: CGFloat) {
+        self.maximumDetentValue = maximumDetentValue
+    }
+}
+
 private final class FakeCamera: TellomiPhotoPickerCamera {
     let access: TellomiPhotoPickerCameraAccess
     var starts = 0
