@@ -56,8 +56,12 @@ public protocol LocalUsernameManager {
     // MARK: Usernames and the service
 
     /// Reserve a username from the given set of candidates.
+    ///
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：带 `chatServiceAuth`，注册资料页用注册拿到的凭证显式认证；
+    /// 不带的版本在下面的扩展里，等于传 `.implicit()`（上游原来的行为）。
     func reserveUsername(
         usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ReservationResult>
 
     /// Set the local user's username to the given reserved username, on the
@@ -65,6 +69,7 @@ public protocol LocalUsernameManager {
     /// corresponding username link.
     func confirmUsername(
         reservedUsername: Usernames.HashedUsername,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ConfirmationResult>
 
     /// Delete the local user's username and username link.
@@ -164,6 +169,20 @@ public extension Usernames {
         )
         case rejected
         case rateLimited
+    }
+}
+
+public extension LocalUsernameManager {
+    func reserveUsername(
+        usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+    ) async -> Usernames.RemoteMutationResult<Usernames.ReservationResult> {
+        return await reserveUsername(usernameCandidates: usernameCandidates, chatServiceAuth: .implicit())
+    }
+
+    func confirmUsername(
+        reservedUsername: Usernames.HashedUsername,
+    ) async -> Usernames.RemoteMutationResult<Usernames.ConfirmationResult> {
+        return await confirmUsername(reservedUsername: reservedUsername, chatServiceAuth: .implicit())
     }
 }
 
@@ -413,6 +432,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
 
     func reserveUsername(
         usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ReservationResult> {
         guard reachabilityManager.isReachable else {
             logger.warn("Not attempting to reserve username – Reachability indicates we will fail.")
@@ -421,7 +441,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
 
         do {
             let reservationResult = try await makeRequestWithNetworkRetries {
-                return try await usernameApiClient.reserveUsernameCandidates(usernameCandidates: usernameCandidates)
+                return try await usernameApiClient.reserveUsernameCandidates(usernameCandidates: usernameCandidates, chatServiceAuth: chatServiceAuth)
             }
             return .success(reservationResult)
         } catch {
@@ -436,6 +456,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
     /// Confirm the given reserved username, setting it as our username.
     func confirmUsername(
         reservedUsername: Usernames.HashedUsername,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ConfirmationResult> {
         guard reachabilityManager.isReachable else {
             logger.warn("Not attempting to confirm username – Reachability indicates we will fail.")
@@ -471,7 +492,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
                 return try await usernameApiClient.confirmReservedUsername(
                     reservedUsername: reservedUsername,
                     encryptedUsernameForLink: linkEncryptedUsername,
-                    chatServiceAuth: .implicit(),
+                    chatServiceAuth: chatServiceAuth,
                 )
             }
             let confirmationResult = await self.db.awaitableWrite { tx -> Usernames.ConfirmationResult in
@@ -547,6 +568,9 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
             }
             await self.db.awaitableWrite { tx in
                 self.clearLocalUsername(tx: tx)
+
+                // Tellomi（ADR-0066 §6.2）：删掉的名字保留期内再设名也算改名，记下时间好在设名前提醒。
+                TellomiUsernameHold.recordDeletion(tx: tx)
 
                 // This device changed our username hash, which we need to
                 // communicate out.
@@ -808,5 +832,57 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
                 transaction: tx,
             )
         }
+    }
+}
+
+// MARK: - Tellomi
+
+/// Tellomi（ADR-0066 §6.2）：删掉的用户名服务端给原主人保留 30 天（server `Accounts.java:883-890`），这期间设**任何**用户名
+/// 都算一次改名、开始 30 天冷却。这里记下本账号上一次删掉用户名的时间，设名前据此提醒（与 Android
+/// `SignalStore.account.tellomiUsernameDeletedAt`、Desktop `tellomiUsernameDeletedAt` 同一件事）。
+/// 只在本机：换机后没有记录，最多少提示一次，服务端照样按保留期开始冷却。
+public enum TellomiUsernameHold {
+    /// 服务端保留删掉的用户名的天数。
+    public static let holdDays = 30
+
+    /// 保存用户名前弹哪种确认框（与 Android `UsernameEditViewModel.saveConfirmation`、Desktop `getUsernameSaveConfirmation`
+    /// 同一判法）。只改大小写不走预约、到不了确认这一步，所以这里不用管。
+    public enum SaveConfirmation: Equatable {
+        /// 首次设名，或删掉已超过保留期：直接设。
+        case none
+        /// 已有用户名（含修复模式）：原来的换名确认。
+        case change
+        /// 没有用户名，但保留期内删过一个：服务端也当改名，先提醒。
+        case setAfterDelete
+    }
+
+    private static let collection = "TellomiUsernameHold"
+    private static let deletedAtKey = "deletedAt"
+
+    public static func deletedAt(tx: DBReadTransaction) -> Date? {
+        return KeyValueStore(collection: collection).getDate(deletedAtKey, transaction: tx)
+    }
+
+    /// 本机删成功时记；合并 AccountRecord 发现名字被别的设备删了也记。同步时刻晚于删除时刻，只会多提示，不会漏。
+    public static func recordDeletion(now: Date = Date(), tx: DBWriteTransaction) {
+        KeyValueStore(collection: collection).setDate(now, key: deletedAtKey, transaction: tx)
+    }
+
+    /// 时钟往回拨（`now` 早于删除时间）仍算在保留期内：多提示，不漏提示。
+    public static func isWithinHold(deletedAt: Date?, now: Date) -> Bool {
+        guard let deletedAt else {
+            return false
+        }
+        return now.timeIntervalSince(deletedAt) < TimeInterval(holdDays) * .day
+    }
+
+    public static func saveConfirmation(hasExistingUsername: Bool, deletedAt: Date?, now: Date) -> SaveConfirmation {
+        if hasExistingUsername {
+            return .change
+        }
+        if isWithinHold(deletedAt: deletedAt, now: now) {
+            return .setAfterDelete
+        }
+        return .none
     }
 }

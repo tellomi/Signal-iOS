@@ -52,7 +52,9 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
     private let fullTextSearchIndexer: BackupArchiveFullTextSearchIndexer
     private let groupRecipientArchiver: BackupArchiveGroupRecipientArchiver
     private let kvStore: KeyValueStore
-    private let libsignalNet: LibSignalClient.Net
+    /// Tellomi（#1056 第三刀）：`Net` 从 provider 现取，不存（切区时换掉的旧实例要放得掉）。
+    private let libsignalNetProvider: TellomiNetProvider
+    private var libsignalNet: LibSignalClient.Net { libsignalNetProvider.current }
     private let localStorage: AccountKeyStore
     private let localRecipientArchiver: BackupArchiveLocalRecipientArchiver
     private let logger: PrefixedLogger
@@ -93,7 +95,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         encryptedStreamProvider: BackupArchiveEncryptedProtoStreamProvider,
         fullTextSearchIndexer: BackupArchiveFullTextSearchIndexer,
         groupRecipientArchiver: BackupArchiveGroupRecipientArchiver,
-        libsignalNet: LibSignalClient.Net,
+        libsignalNetProvider: TellomiNetProvider,
         localStorage: AccountKeyStore,
         localRecipientArchiver: BackupArchiveLocalRecipientArchiver,
         messagePipelineSupervisor: MessagePipelineSupervisor,
@@ -132,7 +134,7 @@ public class BackupArchiveManagerImpl: BackupArchiveManager {
         self.fullTextSearchIndexer = fullTextSearchIndexer
         self.groupRecipientArchiver = groupRecipientArchiver
         self.kvStore = KeyValueStore(collection: Constants.keyValueStoreCollectionName)
-        self.libsignalNet = libsignalNet
+        self.libsignalNetProvider = libsignalNetProvider
         self.localStorage = localStorage
         self.localRecipientArchiver = localRecipientArchiver
         self.logger = PrefixedLogger(prefix: "[Backups]")
