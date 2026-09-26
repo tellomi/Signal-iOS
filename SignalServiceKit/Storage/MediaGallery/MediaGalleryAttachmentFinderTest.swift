@@ -364,3 +364,76 @@ class MediaGalleryAttachmentFinderTest: XCTestCase {
         }
     }
 }
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+/// 「我的收藏」的所有媒体里按类型搜：当前这一类里文件名或说明文字包含这段字的留下（需求 official-account-and-saved §3.2 第 2 条）。
+class TellomiMediaGallerySearchTest: XCTestCase {
+    private let attachmentStore = AttachmentStore()
+    private var db: InMemoryDB!
+
+    override func setUp() async throws {
+        db = InMemoryDB()
+    }
+
+    func testFileNamesAndCaptionsAreSearchedInsideTheCurrentKindOnly() throws {
+        let thread = TSThread(uniqueId: UUID().uuidString)
+        let interaction = TSInteraction(timestamp: 0, receivedAtTimestamp: 0, thread: thread)
+        db.write { tx in
+            try! thread.insert(tx.database)
+            try! interaction.asRecord().insert(tx.database)
+        }
+        let messageRowId = interaction.sqliteRowId!
+        let threadRowId = thread.sqliteRowId!
+        insert(messageRowId, threadRowId, order: 0, mimeType: "application/pdf", fileName: "第三季度报告.pdf", caption: nil)
+        insert(messageRowId, threadRowId, order: 1, mimeType: "application/pdf", fileName: "发票.pdf", caption: "报销用的")
+        insert(messageRowId, threadRowId, order: 2, mimeType: "application/pdf", fileName: "100%_done.pdf", caption: nil)
+        insert(messageRowId, threadRowId, order: 3, mimeType: "image/jpeg", fileName: "IMG_0001.jpg", caption: "季度报告的封面")
+
+        func fileNames(_ filter: AllMediaFilter, _ query: String?) throws -> Set<String?> {
+            var finder = MediaGalleryAttachmentFinder(threadId: threadRowId, filter: filter)
+            finder.tellomiQuery = query
+            let records = try db.read { tx in try finder.recentMediaAttachmentsQuery(limit: 100).fetchAll(tx.database) }
+            return Set(records.map(\.sourceFilename))
+        }
+
+        XCTAssertEqual(try fileNames(.otherFiles, nil), ["第三季度报告.pdf", "发票.pdf", "100%_done.pdf"])
+        XCTAssertEqual(try fileNames(.otherFiles, "  "), ["第三季度报告.pdf", "发票.pdf", "100%_done.pdf"])
+        XCTAssertEqual(try fileNames(.otherFiles, "季度报告"), ["第三季度报告.pdf"])
+        XCTAssertEqual(try fileNames(.otherFiles, "报销"), ["发票.pdf"])
+        XCTAssertEqual(try fileNames(.otherFiles, "%_"), ["100%_done.pdf"])
+        XCTAssertEqual(try fileNames(.allPhotoVideoCategory, "季度报告"), ["IMG_0001.jpg"])
+    }
+
+    func testTheLikePatternTreatsWildcardsAsText() {
+        XCTAssertNil(MediaGalleryAttachmentFinder.tellomiLikePattern(nil))
+        XCTAssertNil(MediaGalleryAttachmentFinder.tellomiLikePattern("  "))
+        XCTAssertEqual(MediaGalleryAttachmentFinder.tellomiLikePattern(" 报告 "), "%报告%")
+        XCTAssertEqual(MediaGalleryAttachmentFinder.tellomiLikePattern("100%_"), "%100\\%\\_%")
+    }
+
+    private func insert(_ messageRowId: Int64, _ threadRowId: Int64, order: UInt32, mimeType: String, fileName: String?, caption: String?) {
+        db.write { tx in
+            var attachmentRecord = Attachment.Record.mockStream(mimeType: mimeType)
+            try! attachmentRecord.insert(tx.database)
+            let attachment = Attachment(record: attachmentRecord)
+            let referenceParams = AttachmentReference.ConstructionParams.mock(
+                owner: .message(.bodyAttachment(.init(
+                    messageRowId: messageRowId,
+                    receivedAtTimestamp: 100 + UInt64(order),
+                    threadRowId: threadRowId,
+                    contentType: attachment.contentType,
+                    mimeType: attachment.mimeType,
+                    isPastEditRevision: false,
+                    caption: caption,
+                    renderingFlag: .default,
+                    orderInMessage: order,
+                    idInOwner: nil,
+                    isViewOnce: false,
+                ))),
+                sourceFilename: fileName,
+            )
+            attachmentStore.addReference(referenceParams, attachmentRowId: attachment.id, tx: tx)
+        }
+    }
+}

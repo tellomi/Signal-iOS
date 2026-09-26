@@ -1026,7 +1026,9 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
     private let dateProvider: DateProvider
     private let db: any DB
     private let keyValueStore: KeyValueStore
-    private let net: Net
+    /// Tellomi（#1056 第三刀）：`Net` 从 provider 现取，不存（切区时换掉的旧实例要放得掉）。
+    private let netProvider: TellomiNetProvider
+    private var net: Net { netProvider.current }
     private let networkManager: NetworkManager
     private let remoteConfigProvider: RemoteConfigProviderImpl
     private let tsAccountManager: TSAccountManager
@@ -1038,7 +1040,7 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
         appReadiness: AppReadiness,
         dateProvider: @escaping DateProvider,
         db: any DB,
-        net: Net,
+        netProvider: TellomiNetProvider,
         networkManager: NetworkManager,
         remoteConfigProvider: RemoteConfigProviderImpl,
         tsAccountManager: TSAccountManager,
@@ -1048,7 +1050,7 @@ public class RemoteConfigManagerImpl: RemoteConfigManager {
         self.dateProvider = dateProvider
         self.db = db
         self.keyValueStore = remoteConfigProvider.keyValueStore
-        self.net = net
+        self.netProvider = netProvider
         self.networkManager = networkManager
         self.remoteConfigProvider = remoteConfigProvider
         self.tsAccountManager = tsAccountManager

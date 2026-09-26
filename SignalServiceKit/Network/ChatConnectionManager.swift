@@ -114,10 +114,10 @@ public class ChatConnectionManagerImpl: ChatConnectionManager {
         clockSkewManager: ClockSkewManager,
         db: any DB,
         inactivePrimaryDeviceStore: InactivePrimaryDeviceStore,
-        libsignalNet: Net,
+        netProvider: TellomiNetProvider,
     ) {
         self.connectionIdentified = OWSAuthConnectionUsingLibSignal(
-            libsignalNet: libsignalNet,
+            netProvider: netProvider,
             accountManager: accountManager,
             appContext: appContext,
             appExpiry: appExpiry,
@@ -127,7 +127,7 @@ public class ChatConnectionManagerImpl: ChatConnectionManager {
             inactivePrimaryDeviceStore: inactivePrimaryDeviceStore,
         )
         self.connectionUnidentified = OWSUnauthConnectionUsingLibSignal(
-            libsignalNet: libsignalNet,
+            netProvider: netProvider,
             appExpiry: appExpiry,
             appReadiness: appReadiness,
             clockSkewManager: clockSkewManager,
