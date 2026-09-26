@@ -26,6 +26,9 @@ public struct MediaGalleryAttachmentFinder {
     /// Media will be restricted to this type. Otherwise there is no filtering.
     public var filter: AllMediaFilter
 
+    /// Tellomi：「我的收藏」的所有媒体里按类型搜——只留下文件名或说明文字包含这段字的（#1174）。空白 = 不筛。
+    public var tellomiQuery: String?
+
     public init(threadId: Int64, filter: AllMediaFilter) {
         self.threadId = threadId
         self.filter = filter
@@ -317,7 +320,22 @@ public struct MediaGalleryAttachmentFinder {
                 // Whether an audio attachment is a "voice message" is encoded in the rendering flag.
                 .filter(renderingFlagColumn != AttachmentReference.RenderingFlag.voiceMessage.rawValue)
         }
+        if let pattern = Self.tellomiLikePattern(tellomiQuery) {
+            query = query.filter(literal: "(sourceFilename LIKE \(pattern) ESCAPE '\\' OR caption LIKE \(pattern) ESCAPE '\\')")
+        }
         return query
+    }
+
+    /// Tellomi：搜的字做成 LIKE 的「包含」模式，% _ \ 当普通字符；空白返回 nil（#1174）。
+    static func tellomiLikePattern(_ query: String?) -> String? {
+        guard let trimmed = query?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+        let escaped = trimmed
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "%", with: "\\%")
+            .replacingOccurrences(of: "_", with: "\\_")
+        return "%\(escaped)%"
     }
 
     private func applyDateInterval(
