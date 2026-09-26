@@ -20,7 +20,12 @@ struct QRCodeGenerator {
     // MARK: -
 
     /// Generates a styled, Signal-branded QR code image encoding the given URL.
-    func generateQRCode(url: URL, stylingMode: StylingMode = .brandedWithLogo) -> UIImage? {
+    ///
+    /// Tellomi（tellomi/tellomi#947）：默认不挖空、不画中心标，与 Desktop `7f55023` 一致。我们的标是同心的，
+    /// 沿扫描线读出来是「暗亮暗亮暗」1:1:3:1:1，正是扫码器找三个定位角用的特征，会锁到标上而不是定位角：
+    /// 离线实测带标 0–12/12 可识别、不带 30/30（2026-09-22 owner 的 iPhone 因此扫不了配对码）。
+    /// 「二维码版」的标（#1146）做好前一律不画。
+    func generateQRCode(url: URL, stylingMode: StylingMode = .brandedWithoutLogo) -> UIImage? {
         let urlData = Data(url.absoluteString.utf8)
 
         guard let unstyledQRCode = generateUnstyledQRCode(data: urlData) else {

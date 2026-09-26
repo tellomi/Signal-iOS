@@ -285,13 +285,17 @@ public enum RegistrationServiceResponses {
         public let username: String?
         /// Whether the account has any data in SVR.
         public let hasPreviouslyUsedSVR: Bool
+        /// Tellomi（tellomi/tellomi#1266）：服务端说这个号码之前有没有账号（`AccountCreationResponse.reregistration`）。
+        /// 改号等别的回包里没有这个键，所以是可选的。
+        public let reregistration: Bool?
 
-        public init(aci: Aci, pni: Pni, e164: E164, username: String?, hasPreviouslyUsedSVR: Bool) {
+        public init(aci: Aci, pni: Pni, e164: E164, username: String?, hasPreviouslyUsedSVR: Bool, reregistration: Bool? = nil) {
             self._aci = aci.codableUuid
             self._pni = pni.codableUuid
             self.e164 = e164
             self.username = username
             self.hasPreviouslyUsedSVR = hasPreviouslyUsedSVR
+            self.reregistration = reregistration
         }
 
         public enum CodingKeys: String, CodingKey {
@@ -300,6 +304,7 @@ public enum RegistrationServiceResponses {
             case e164 = "number"
             case username
             case hasPreviouslyUsedSVR = "storageCapable"
+            case reregistration
         }
     }
 

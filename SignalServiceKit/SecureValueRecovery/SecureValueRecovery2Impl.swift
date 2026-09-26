@@ -590,7 +590,8 @@ public class SecureValueRecovery2Impl: SecureValueRecovery {
         // after failed handshake` 与 `wipeObsoleteEnclaves: couldn't wipe enclave; may retry eventually`
         // 反复出现。注册时已经 opt-out PIN，本来也没有要备份的东西，直接不做。
         // 见 docs/signal/ENCLAVES.md 与 TSConstantsProtocol.svrEnclaveAvailable。
-        guard TSConstants.svrEnclaveAvailable else {
+        // 读注入的 tsConstants（App 里就是 TSConstants.shared），不读全局：单测要能按用例指定部署档。
+        guard tsConstants.svrEnclaveAvailable else {
             Logger.info("No SVR enclave in this deployment; skipping backup refresh and enclave maintenance.")
             return
         }
