@@ -2633,7 +2633,7 @@
 "CONVERSATION_SETTINGS_ARCHIVE_CHAT" = "封存聊天";
 
 /* Footer for the 'attributes access' section in conversation settings view with pinned messages added. */
-"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "選擇誰可以編輯群組名稱、相片、描述、自動銷毀訊息計時器和已釘選訊息。";
+"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "選擇誰可以編輯群組名稱、相片、描述、限時訊息計時器和已釘選訊息。";
 
 /* Footer string for a contact's badges in conversation settings */
 "CONVERSATION_SETTINGS_BADGES_FOOTER" = "撐起 Tellomi 並在您的個人資料中獲贈徽章。輕觸徽章以了解詳情。";
@@ -3509,7 +3509,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_CONFIRMATION_SCREEN_TITLE" = "確認捐款";
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
-"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "此聊天已開啟「自動銷毀訊息」功能。你的捐款訊息將在 %1$@ 內消失。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "此聊天已開啟「限時訊息」功能。你的捐款訊息將在 %1$@ 內消失。";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "單次捐款";
@@ -7570,10 +7570,10 @@
 "PINNED_SECTION_TITLE" = "已釘選";
 
 /* Body for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當自動銷毀訊息時限已到和從聊天中被移除時，系統會將其解除釘選。";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當限時訊息時限已到和從聊天中被移除時，系統會將其解除釘選。";
 
 /* Title for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "釘選自動銷毀訊息";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "釘選限時訊息";
 
 /* Action text for PIN megaphone when user doesn't have a PIN */
 "PINS_MEGAPHONE_ACTION" = "建立 PIN 碼";
@@ -9094,7 +9094,7 @@
 "SETTINGS_DISAPPEARING_MESSAGES" = "限時訊息";
 
 /* Explanation for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為你開啟的所有新聊天預設一個自動銷毀訊息計時器。";
+"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為你開啟的所有新聊天預設一個限時訊息計時器。";
 
 /* Title for the 'donate to signal' link in settings. */
 "SETTINGS_DONATE" = "捐款給 Tellomi";

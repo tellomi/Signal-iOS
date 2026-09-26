@@ -227,3 +227,71 @@ final class TellomiLocalizationTest: XCTestCase {
         return try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: Any], "unreadable PluralAware.stringsdict for \(localization)")
     }
 }
+
+/// Tellomi：「消息到时间自动消失」这个功能两端统一叫「限时消息」，繁体叫「限時訊息」（owner 2026-09-26，两端差异清单 N3）。
+/// 上游中文把它叫成「阅后即焚」「自動銷毀訊息」「訊息銷毀」等，而「阅后即焚」在 Signal 中文里还指「一次性查看」，两个功能撞名。
+/// 只管点名这个功能的字符串：英文原文讲 disappearing message 的，中文三种语言里都不许再出现旧称。
+final class TellomiDisappearingMessagesTermTest: XCTestCase {
+
+    private static let featureName = ["zh_CN": "限时消息", "zh_HK": "限時訊息", "zh_TW": "限時訊息", "yue": "限時訊息"]
+    private static let oldNames = ["阅后即焚", "閱後即焚", "自動銷毀", "訊息銷毀", "銷毀的訊息", "過眼雲煙"]
+
+    func testTheFeatureHasTheSameNameEverywhere() throws {
+        for (localization, name) in Self.featureName {
+            let table = try localizable(localization)
+            XCTAssertEqual(table["DISAPPEARING_MESSAGES"], name, localization)
+            XCTAssertEqual(table["SETTINGS_DISAPPEARING_MESSAGES"], name, localization)
+        }
+    }
+
+    func testNoStringAboutDisappearingMessagesUsesAnOldName() throws {
+        let keys = try localizable("en").filter { $0.value.localizedCaseInsensitiveContains("disappearing message") }.keys
+        let pluralKeys = try plurals("en").filter { $0.value.contains { $0.localizedCaseInsensitiveContains("disappearing message") } }.keys
+        XCTAssertGreaterThan(keys.count, 10)
+        XCTAssertFalse(pluralKeys.isEmpty)
+
+        for localization in Self.featureName.keys.sorted() {
+            let table = try localizable(localization)
+            let pluralTable = try plurals(localization)
+            let texts = keys.map { ($0, [table[$0] ?? ""]) } + pluralKeys.map { ($0, pluralTable[$0] ?? []) }
+            let offenders = texts
+                .flatMap { key, values in values.map { (key, $0) } }
+                .filter { _, text in Self.oldNames.contains { text.contains($0) } }
+                .map { key, text in "\(key): \(text)" }
+                .sorted()
+            XCTAssertEqual(offenders, [], localization)
+        }
+    }
+
+    private func localizable(_ localization: String) throws -> [String: String] {
+        let path = try XCTUnwrap(
+            Bundle.main.app.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: localization),
+            "no Localizable.strings for \(localization)",
+        )
+        return try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: String], "unreadable table for \(localization)")
+    }
+
+    /// PluralAware.stringsdict：每个键下各个复数分支（one / other …）的文字。
+    private func plurals(_ localization: String) throws -> [String: [String]] {
+        let path = try XCTUnwrap(
+            Bundle.main.app.path(forResource: "PluralAware", ofType: "stringsdict", inDirectory: nil, forLocalization: localization),
+            "no PluralAware.stringsdict for \(localization)",
+        )
+        let table = try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: Any], "unreadable PluralAware.stringsdict for \(localization)")
+        return table.mapValues { Self.texts(in: $0) }
+    }
+
+    private static func texts(in value: Any) -> [String] {
+        switch value {
+        case let text as String:
+            return [text]
+        case let entry as [String: Any]:
+            return entry
+                .filter { $0.key != "NSStringFormatSpecTypeKey" && $0.key != "NSStringFormatValueTypeKey" }
+                .values
+                .flatMap { texts(in: $0) }
+        default:
+            return []
+        }
+    }
+}
