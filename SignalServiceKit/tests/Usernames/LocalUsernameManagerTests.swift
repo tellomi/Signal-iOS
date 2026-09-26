@@ -138,7 +138,7 @@ class LocalUsernameManagerTests: XCTestCase {
     /// 不传认证时仍是隐式，上游原来的行为不变。
     func testReserveAndConfirmUseTheGivenAuth() async throws {
         let explicitAuth = ChatServiceAuth.explicit(aci: Aci.randomForTesting(), deviceId: .primary, password: "registration-password")
-        let candidates = try Usernames.HashedUsername.generateCandidates(forNickname: "kaixin", minNicknameLength: 3, maxNicknameLength: 20, desiredDiscriminator: nil)
+        let candidates = try Usernames.HashedUsername.generateCandidates(forNickname: "kaixin", minNicknameLength: 3, maxNicknameLength: 20, desiredDiscriminator: nil, enforcingLetterFirst: true)
 
         var reserveAuths: [ChatServiceAuth] = []
         mockUsernameApiClient.reserveUsernameCandidatesMocks = [
@@ -634,6 +634,7 @@ class LocalUsernameManagerTests: XCTestCase {
             minNicknameLength: 3,
             maxNicknameLength: 20,
             desiredDiscriminator: nil,
+            enforcingLetterFirst: true,
         )
         XCTAssertEqual(generated.candidateHashes.count, 1)
         XCTAssertEqual(generated.candidate(matchingHash: generated.candidateHashes[0])?.usernameString, "kaixin.01")
@@ -643,6 +644,7 @@ class LocalUsernameManagerTests: XCTestCase {
             minNicknameLength: 3,
             maxNicknameLength: 20,
             desiredDiscriminator: "57",
+            enforcingLetterFirst: true,
         )
         XCTAssertEqual(custom.candidate(matchingHash: custom.candidateHashes[0])?.usernameString, "kaixin.57")
 
@@ -651,7 +653,75 @@ class LocalUsernameManagerTests: XCTestCase {
             minNicknameLength: 3,
             maxNicknameLength: 20,
             desiredDiscriminator: nil,
+            enforcingLetterFirst: true,
         ))
+    }
+
+    /// Tellomi（ADR-0066 §六 第 73 行 / ADR-0036）：新建 / 修改的用户名必须字母开头。libsignal 放行 `_` 开头，客户端收紧；
+    /// 太短 / 非法字符照旧由 libsignal 先报；`_` 在中间、结尾照旧合法。
+    func testTellomiNicknameMustStartWithLetter() throws {
+        typealias CandidateError = Usernames.HashedUsername.CandidateGenerationError
+
+        func generate(_ nickname: String) throws -> Usernames.HashedUsername.GeneratedCandidates {
+            try Usernames.HashedUsername.generateCandidates(
+                forNickname: nickname,
+                minNicknameLength: 3,
+                maxNicknameLength: 20,
+                desiredDiscriminator: nil,
+                enforcingLetterFirst: true,
+            )
+        }
+
+        func assertRejected(_ nickname: String, _ expected: CandidateError, file: StaticString = #filePath, line: UInt = #line) {
+            XCTAssertThrowsError(try generate(nickname), file: file, line: line) { error in
+                XCTAssertEqual(error as? CandidateError, expected, "\(nickname)", file: file, line: line)
+            }
+        }
+
+        assertRejected("_kaixin", .nicknameCannotStartWithUnderscore)
+        assertRejected("___", .nicknameCannotStartWithUnderscore)
+        assertRejected("_1abc", .nicknameCannotStartWithUnderscore)
+        assertRejected("_a", .nicknameTooShort)
+        assertRejected("_ab cd", .nicknameContainsInvalidCharacters)
+        assertRejected("1kaixin", .nicknameCannotStartWithDigit)
+
+        XCTAssertEqual(try generate("kai_xin").candidateHashes.count, 1)
+        XCTAssertEqual(try generate("kaixin_").candidateHashes.count, 1)
+    }
+
+    /// Tellomi（taishi 审 a4-v2 与 Signal-Desktop#4 第三版）：「字母开头」对新起的名字收紧，旧后缀迁到 `.01` 也算新名字；
+    /// 只有修复模式整段不收紧（包括全新的 `_` 名，比 Android / Desktop 宽一档）。`.01` 只改大小写走选名页的捷径，到不了这里。
+    func testTellomiLetterFirstOnlyForNewNames() throws {
+        typealias HashedUsername = Usernames.HashedUsername
+
+        let legacy = Usernames.ParsedUsername(rawUsername: "_kaixin.57")
+        XCTAssertNotNil(legacy)
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingUsername: nil, isAttemptingRecovery: false))
+        // 旧后缀迁到 .01：同一个昵称（含只差大小写）也是新名字，照拦——「同名就放过」加回来这两条会红（taishi 包 7 审 a4-v4）
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingUsername: legacy, isAttemptingRecovery: false))
+        XCTAssertTrue(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_Kaixin", existingUsername: legacy, isAttemptingRecovery: false))
+        // 修复模式整段不收紧，全新的 `_` 名也放过（taishi 审 a4-v2 同意保留）
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_kaixin", existingUsername: nil, isAttemptingRecovery: true))
+        XCTAssertFalse(HashedUsername.tellomiEnforcesLetterFirst(desiredNickname: "_other", existingUsername: legacy, isAttemptingRecovery: true))
+
+        let kept = try HashedUsername.generateCandidates(
+            forNickname: "_kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: false,
+        )
+        XCTAssertEqual(kept.candidate(matchingHash: kept.candidateHashes[0])?.usernameString, "_kaixin.01")
+
+        XCTAssertThrowsError(try HashedUsername.generateCandidates(
+            forNickname: "1kaixin",
+            minNicknameLength: 3,
+            maxNicknameLength: 20,
+            desiredDiscriminator: nil,
+            enforcingLetterFirst: false,
+        )) { error in
+            XCTAssertEqual(error as? HashedUsername.CandidateGenerationError, .nicknameCannotStartWithDigit)
+        }
     }
 
     /// Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：reserve 的 429 按 Retry-After 分成改名冷却和普通限流。
