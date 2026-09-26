@@ -311,6 +311,9 @@ extension ConversationViewController: CVLoadCoordinatorDelegate {
             viewState.selectionAnimationState = .idle
             ensureBottomViewType()
         }
+
+        // Tellomi（交互审计 A-07）：刚选的回应可能就在这一次画出来。
+        landPendingReactionFlyInIfPossible()
     }
 
     // The view's first appearance and the first load can race.
