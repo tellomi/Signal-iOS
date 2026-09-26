@@ -98,4 +98,14 @@ class UrlOpenerTest: XCTestCase {
         XCTAssertEqual(TellomiLinks.protocolUsername(" @kaixin.57 "), "kaixin.57")
         XCTAssertEqual(TellomiLinks.protocolUsername("kaixin.01"), "kaixin.01")
     }
+
+    /// tellomi/tellomi#1106（ADR-0066 §六「显示」）：只有 `.01` 结尾的去掉后缀，别的后缀完整显示（与 Android `TellomiUsernamesTest` 同一组）。
+    func testTellomiDisplayUsername() {
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.01"), "kaixin")
+        XCTAssertEqual(TellomiLinks.displayUsername("KaiXin.01"), "KaiXin")
+        // 反向：别的后缀原样——`kaixin.57` 不能显示成 `kaixin`
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.57"), "kaixin.57")
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.101"), "kaixin.101")
+        XCTAssertEqual(TellomiLinks.displayUsername("kaixin.001"), "kaixin.001")
+    }
 }
