@@ -115,8 +115,9 @@ public extension Usernames.HashedUsername {
             )
             // Tellomi（ADR-0066 §六 第 73 行 / ADR-0036）：新建 / 修改的用户名必须字母开头。libsignal 只拒数字开头、放行 `_` 开头，
             // 服务端只见到哈希、拦不了，只能在客户端收紧。放在 libsignal 判过之后：太短 / 非法字符照旧先报。
-            // 调用方只有选用户名页（显式传 `enforcingLetterFirst`，见 `tellomiEnforcesLetterFirst`）；重新注册时认领原名
-            // （RegistrationCoordinatorImpl 用 `HashedUsername(forUsername:)`）、搜索、链接都不经过，别人已有的 `_` 开头用户名照样能找到。
+            // 调用方两处：选用户名页（按 `tellomiEnforcesLetterFirst` 传）、注册资料页的 `RegistrationCoordinatorImpl.reserveTellomiUsername`
+            // （新名字，传 true）。重新注册时认领原名（RegistrationCoordinatorImpl 用 `HashedUsername(forUsername:)`）、搜索、链接都不经过，
+            // 别人已有的 `_` 开头用户名照样能找到。
             if enforcingLetterFirst, nickname.hasPrefix("_") {
                 throw CandidateGenerationError.nicknameCannotStartWithUnderscore
             }

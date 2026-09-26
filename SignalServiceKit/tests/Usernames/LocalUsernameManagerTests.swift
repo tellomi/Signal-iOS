@@ -138,7 +138,7 @@ class LocalUsernameManagerTests: XCTestCase {
     /// 不传认证时仍是隐式，上游原来的行为不变。
     func testReserveAndConfirmUseTheGivenAuth() async throws {
         let explicitAuth = ChatServiceAuth.explicit(aci: Aci.randomForTesting(), deviceId: .primary, password: "registration-password")
-        let candidates = try Usernames.HashedUsername.generateCandidates(forNickname: "kaixin", minNicknameLength: 3, maxNicknameLength: 20, desiredDiscriminator: nil)
+        let candidates = try Usernames.HashedUsername.generateCandidates(forNickname: "kaixin", minNicknameLength: 3, maxNicknameLength: 20, desiredDiscriminator: nil, enforcingLetterFirst: true)
 
         var reserveAuths: [ChatServiceAuth] = []
         mockUsernameApiClient.reserveUsernameCandidatesMocks = [
