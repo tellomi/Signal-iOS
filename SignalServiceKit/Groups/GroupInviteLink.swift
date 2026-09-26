@@ -73,7 +73,13 @@ public struct PossibleGroupInviteLinkUrl {
         self.rawValue = rawValue
     }
 
-    public static func parseFrom(_ url: URL) -> Self? {
+    public static func parseFrom(_ originalUrl: URL) -> Self? {
+        // Tellomi（tellomi/tellomi#1113、#947）：`tell.cc/g#…` 先换算成 `signal.group/#…`，**只用换算后的形状做判断**；
+        // 必须连路径一起判，`tell.cc/u#p/…` 不会被当成群邀请。
+        // `rawValue` 存**原链接**：它会进发出去的链接预览（`LinkPreviewFetcher`），三端收消息都要求「预览 URL 出现在正文里」，
+        // 存换算后的 signal.group 形状，收件人的群卡片会被丢掉（taishi 审查 2026-09-24）。
+        // 解码只读 `rawValue.fragment`（`GroupInviteLink.parseFrom`），新旧两种形状的 fragment 完全相同。
+        let url = TellomiLinks.legacyEquivalent(of: originalUrl)
         let possibleHosts: [String]
         if url.scheme == "https" {
             possibleHosts = ["signal.group"]
@@ -85,6 +91,6 @@ public struct PossibleGroupInviteLinkUrl {
         guard let host = url.host, possibleHosts.contains(host) else {
             return nil
         }
-        return Self(rawValue: url)
+        return Self(rawValue: originalUrl)
     }
 }
