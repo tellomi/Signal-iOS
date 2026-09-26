@@ -27,8 +27,16 @@ public class PaymentsHelperImpl: PaymentsHelperSwift, PaymentsHelper {
     }
 
     public var isKillSwitchActive: Bool {
-        RemoteConfig.current.paymentsResetKillSwitch || !hasValidPhoneNumberForPayments
+        // Tellomi：付款（MobileCoin 加密货币钱包）在 Tellomi 构建里永远不可用（tellomi/tellomi#1233）。
+        // 上游靠号码地区挡住 +86；可一旦服务端下发了不含 86 的 paymentsDisabledRegions，+86 就会放行。
+        // 大陆对加密货币交易有明确禁令，所以写死关闭，不依赖服务端。
+        guard Self.tellomiPaymentsEnabled else {
+            return true
+        }
+        return RemoteConfig.current.paymentsResetKillSwitch || !hasValidPhoneNumberForPayments
     }
+
+    private static let tellomiPaymentsEnabled = false
 
     public var hasValidPhoneNumberForPayments: Bool {
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
