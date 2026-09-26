@@ -686,7 +686,7 @@ class TellomiBubbleTailMarginTest: SignalBaseTest {
 
         let (cell, messageView) = try render(message, in: thread)
         let content = messageView.tellomiContentFrameForTesting(in: cell)
-        XCTAssertEqual(cell.bounds.width - content.maxX, 16 + 6, accuracy: 0.5, "我发的离屏幕右边：\(content) in \(cell.bounds)")
+        XCTAssertEqual(cell.bounds.size.width - content.maxX, 16 + 6, accuracy: 0.5, "我发的离屏幕右边：\(content) in \(cell.bounds)")
     }
 
     @MainActor
