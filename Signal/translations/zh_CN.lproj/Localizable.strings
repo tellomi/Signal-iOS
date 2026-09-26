@@ -184,6 +184,15 @@
 /* Media (i.e., graphical) file type in All Meda file type picker. */
 "ALL_MEDIA_FILE_TYPE_MEDIA" = "媒体";
 
+/* Tellomi (#1174): links file type in the All Media file type picker (iOS had no links page) */
+"ALL_MEDIA_FILE_TYPE_TELLOMI_LINKS" = "链接";
+
+/* Tellomi (#1174): shown on the All Media links page when the chat has no messages with link previews */
+"ALL_MEDIA_TELLOMI_LINKS_EMPTY" = "还没有链接";
+
+/* Tellomi (#1174): placeholder of the search bar in Saved Messages' All Media; filters the current file type */
+"ALL_MEDIA_TELLOMI_SEARCH_PLACEHOLDER" = "搜文件名、说明文字和链接";
+
 /* Menu option to limit All Media view to displaying only GIFs */
 "ALL_MEDIA_FILTER_GIFS" = "GIF";
 
@@ -2854,6 +2863,21 @@
 /* Button on truncated text messages that they can be tapped to download the entire text message. */
 "CONVERSATION_VIEW_OVERSIZE_TEXT_TAP_TO_DOWNLOAD" = "获取完整消息";
 
+/* Tellomi (#1174): categories under the Saved Messages title; All is the chat itself */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_ALL" = "全部";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on photos and videos */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_MEDIA" = "图片与视频";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on files */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_FILES" = "文件";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on audio */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_VOICE" = "语音";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on links */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_LINKS" = "链接";
+
 /* Indicator that a value has been copied to the clipboard. */
 "COPIED_TO_CLIPBOARD" = "已复制到剪贴板";
 
@@ -4029,6 +4053,45 @@
 
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "消息已发送";
+
+/* Tellomi: placeholder of the message field that is sent before the forwarded content. */
+"FORWARD_MESSAGE_TELLOMI_GRID_COMMENT_PLACEHOLDER" = "添加消息…";
+
+/* Tellomi: separator between selected chat names in the forward grid subtitle. */
+"FORWARD_MESSAGE_TELLOMI_GRID_NAME_SEPARATOR" = "、";
+
+/* Tellomi: section title of matching chats in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CHATS" = "聊天";
+
+/* Tellomi: section title of matching contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CONTACTS" = "联系人";
+
+/* Tellomi: section title of matching groups in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_GROUPS" = "群组";
+
+/* Tellomi: section title of recent contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_RECENT" = "最近联系人";
+
+/* Tellomi: toast when trying to select more chats than allowed. Embeds {{the limit}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SELECTION_LIMIT_%d" = "最多选 %d 个聊天";
+
+/* Tellomi: toast after forwarding to three or more chats. Embeds {{first chat name}} and {{total number of chats}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_MANY_%@_%d" = "已转发给 %1$@ 等 %2$d 个聊天";
+
+/* Tellomi: toast after forwarding to one chat. Embeds {{chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_ONE_%@" = "已转发给 %@";
+
+/* Tellomi: toast after forwarding to Saved Messages only. Embeds {{Saved Messages}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_SAVED_%@" = "已转发到 %@";
+
+/* Tellomi: toast after forwarding to two chats. Embeds {{first chat name}} and {{second chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_TWO_%@_%@" = "已转发给 %1$@ 和 %2$@";
+
+/* Tellomi: accessibility label of the share button in the forward grid. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SHARE_TO_OTHER_APPS" = "分享到其他 App";
+
+/* Tellomi: subtitle of the forward grid before any chat is selected. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SUBTITLE" = "选择聊天";
 
 /* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
 "FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "已收藏，点击查看";
