@@ -164,6 +164,11 @@ class InternalSettingsViewController: OWSTableViewController2 {
         }
         contents.add(buildSection)
 
+        // Tellomi（#1056 第三刀）：区域与切区。设备上验判据 1、2 用；Internal 页只有 Debug 构建进得来
+        if let provider = TellomiNetProvider.installed {
+            contents.add(tellomiRegionSection(provider))
+        }
+
         // format counts with thousands separator
         let numberFormatter = NumberFormatter()
         numberFormatter.formatterBehavior = .behavior10_4
@@ -254,6 +259,64 @@ class InternalSettingsViewController: OWSTableViewController2 {
         }
 
         self.contents = contents
+    }
+
+    private func tellomiRegionSection(_ provider: TellomiNetProvider) -> OWSTableSection {
+        let store = TellomiRegionStore.appGroup
+        let section = OWSTableSection(title: "Tellomi Region")
+        section.add(.copyableItem(label: "Active", value: "\(provider.activeRegion.id.rawValue) (\(provider.activeRegion.grpcChatHost))"))
+        section.add(.copyableItem(label: "Stored", value: store.storedRegionId() ?? "<none>"))
+        section.add(.copyableItem(label: "Last Switch", value: store.lastSwitchAt().map { "\($0)" } ?? "<none>"))
+        section.add(.copyableItem(label: "Net Generation", value: "\(provider.generation)"))
+        section.add(.copyableItem(label: "Retired Nets", value: "\(provider.retiredCount)"))
+#if TESTABLE_BUILD
+        section.add(.copyableItem(label: "Tokio Threads", value: "\(TellomiRegionDrill.tokioThreadCount())"))
+#endif
+        section.add(.actionItem(withText: "Refresh") { [weak self] in
+            self?.updateTableContents()
+        })
+        // #1056 第四刀：手动跑一次选路器的探测，看它会怎么建议（不切区）
+        section.add(.actionItem(withText: "Probe Regions") { [weak self] in
+            self?.probeTellomiRegions(provider: provider)
+        })
+        for profile in provider.profiles {
+            section.add(.actionItem(withText: "Switch to \(profile.id.rawValue)\(profile.enabled ? "" : " (disabled)")") { [weak self] in
+                self?.switchTellomiRegion(to: profile.id, provider: provider)
+            })
+        }
+        return section
+    }
+
+    private func probeTellomiRegions(provider: TellomiNetProvider) {
+        Task { @MainActor [weak self] in
+            let decision = await TellomiRegionSelector.forProvider(provider).probe()
+            let lines = decision.results
+                .sorted { $0.key.rawValue < $1.key.rawValue }
+                .map { id, result in
+                    switch result {
+                    case .ok(let rtt):
+                        return "\(id.rawValue): \(Int(rtt * 1000)) ms"
+                    case .failed(let error):
+                        return "\(id.rawValue): failed (\(error))"
+                    }
+                }
+            OWSActionSheets.showActionSheet(
+                title: "\(decision.reason.rawValue): \(decision.current.rawValue) → \(decision.recommended.rawValue)",
+                message: lines.joined(separator: "\n"),
+                fromViewController: self,
+            )
+        }
+    }
+
+    private func switchTellomiRegion(to id: TellomiRegionId, provider: TellomiNetProvider) {
+        let message: String
+        do {
+            message = try provider.switchTo(id) ? "Switched to \(id.rawValue)" : "Already on \(id.rawValue)"
+        } catch {
+            message = "Can't switch to \(id.rawValue): \(error)"
+        }
+        presentToast(text: message)
+        updateTableContents()
     }
 
     var isChatHeaderContentTrackingDisabled: Bool {

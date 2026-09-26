@@ -138,7 +138,7 @@ class QRCodeView: UIView {
 
     func setQRCode(
         url: URL,
-        stylingMode: QRCodeGenerator.StylingMode = .brandedWithLogo,
+        stylingMode: QRCodeGenerator.StylingMode = .brandedWithoutLogo, // Tellomi（#947）：不画中心标，见 QRCodeGenerator
     ) {
         let qrCodeImage = QRCodeGenerator().generateQRCode(
             url: url,
@@ -175,7 +175,7 @@ struct QRCodeViewRepresentable: UIViewRepresentable {
 
     init(
         model: Model,
-        qrCodeStylingMode: QRCodeGenerator.StylingMode = .brandedWithLogo,
+        qrCodeStylingMode: QRCodeGenerator.StylingMode = .brandedWithoutLogo, // Tellomi（#947）
         qrCodeTintColor: QRCodeColor = .blue,
         contentInset: CGFloat = 20,
         cornerRadius: CGFloat = 12,
