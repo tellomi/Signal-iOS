@@ -189,9 +189,10 @@ public enum TellomiRegions {
         return String(rest)
     }
 
-    /// 先红用的桩：下一个提交换成真的判断。
+    /// 是不是测试构建换进来的测试区（`testRegionProfiles`）：借用 `cn` 的 id，主机却不在 `tellomi.cn` 下。
+    /// 包里的区（包括将来开着的真 CN）一律 false。
     static func isTestRegion(_ region: TellomiRegionProfile) -> Bool {
-        return false
+        return region.id == .cn && !hostOf(region.chat).hasSuffix(cnDomain)
     }
 
     /// 只换主机部分；主机不在 `tellomi.app` 下的原样返回，由 `problems` 挑出来。
@@ -301,6 +302,10 @@ public enum TellomiRegions {
     }
 
     private static func isPlausibleTestDomain(_ domain: String) -> Bool {
+        // 测试区是「开着的假 CN」：填 tellomi.cn 本身或它的子域就等于把真 CN 打开，不算
+        if ("." + domain.lowercased()).hasSuffix(cnDomain) {
+            return false
+        }
         let labels = domain.split(separator: ".", omittingEmptySubsequences: false)
         return labels.count >= 2 && labels.allSatisfy { label in
             !label.isEmpty && label.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }
@@ -342,5 +347,10 @@ public struct TellomiRegionStore {
         }
         userDefaults.set(id.rawValue, forKey: Self.regionIdKey)
         userDefaults.set(date, forKey: Self.lastSwitchAtKey)
+    }
+
+    /// 只记切区时间、记住的区不动（切到测试区时用，见 `TellomiNetProvider.switchTo`）。
+    public func recordSwitchTime(at date: Date) {
+        userDefaults()?.set(date, forKey: Self.lastSwitchAtKey)
     }
 }
