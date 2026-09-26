@@ -2314,6 +2314,12 @@
 /* Multi-line label explaining why compose-screen contact picker is empty. */
 "COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "您可在 iOS 设置中启用联系人读取权限，以便查看哪些联系人使用了 Tellomi。";
 
+/* Tellomi: shown at the top of the compose / member picker before the user has been asked for contacts access. Explains what contacts are used for. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_PURPOSE_TELLOMI" = "允许访问通讯录后，Tellomi 会显示您为联系人保存的名字。通讯录不会上传。";
+
+/* Tellomi: button that asks the system for contacts access, after the purpose has been explained. */
+"COMPOSE_SCREEN_CONTACTS_PERMISSION_ALLOW_TELLOMI" = "允许访问";
+
 /* Configure reactions title text */
 "CONFIGURE_REACTIONS" = "设置回应";
 
@@ -10649,6 +10655,21 @@
 
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "点击替换表情符号";
+
+/* Chat list banner shown while system notifications for Tellomi are turned off. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER" = "通知已关闭。Tellomi 不在前台时，你不会收到新消息和来电的提醒。";
+
+/* Button on the chat list banner that opens the system notification settings for Tellomi. */
+"TELLOMI_NOTIFICATIONS_DISABLED_REMINDER_ACTION" = "去设置";
+
+/* Body of the one-time notification permission explanation sheet. Explains the purpose and that the system will ask next. */
+"TELLOMI_NOTIFICATION_PRIMER_BODY" = "Tellomi 不在前台时，用系统通知告诉你有新消息和来电。点「继续」后系统会询问一次，之后随时可以在「设置」里更改。";
+
+/* The only button on the notification permission explanation sheet. Must read 'Continue', never 'Allow'. */
+"TELLOMI_NOTIFICATION_PRIMER_CONTINUE" = "继续";
+
+/* Title of the one-time sheet shown on the chat list after registration, explaining why Tellomi asks for notification permission. */
+"TELLOMI_NOTIFICATION_PRIMER_TITLE" = "及时收到新消息";
 
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "加粗";
