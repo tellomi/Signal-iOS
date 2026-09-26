@@ -1687,6 +1687,31 @@ class TellomiSavedLinksTest: SignalBaseTest {
         }
     }
 
+    /// 编辑过的消息，旧版本（pastRevision）不算——和上游「所有媒体」一样（InteractionFinder 的 editState 条件）。
+    func testEditedMessagesOnlyCountTheirLatestVersion() {
+        let (thread, items, categories) = write { tx -> (TSThread, [TellomiSavedLinks.Item], Set<TellomiSavedCategory>) in
+            let thread = TSContactThread.getOrCreateThread(withContactAddress: SignalServiceAddress.randomForTesting(), transaction: tx)
+            // 旧版本带着链接，编辑后把链接删了
+            TSOutgoingMessageBuilder.withDefaultValues(
+                thread: thread,
+                editState: .pastRevision,
+                linkPreview: OWSLinkPreview(urlString: "https://old.example.com", title: "Old"),
+            ).build(transaction: tx).anyInsert(transaction: tx)
+            TSOutgoingMessageBuilder.withDefaultValues(thread: thread, editState: .latestRevisionRead).build(transaction: tx).anyInsert(transaction: tx)
+            return (
+                thread,
+                TellomiSavedLinks.items(threadUniqueId: thread.uniqueId, tx: tx),
+                TellomiSavedCategory.withContent(thread: thread, tx: tx),
+            )
+        }
+
+        XCTAssertEqual(items, [], "旧版本里的链接不列")
+        XCTAssertEqual(categories, [], "只有旧版本带链接时，「链接」分类不亮")
+        read { tx in
+            XCTAssertFalse(TellomiSavedLinks.hasAny(threadUniqueId: thread.uniqueId, tx: tx))
+        }
+    }
+
     func testAChatWithOnlyTextHasNoLinksAndNoCategories() {
         let (thread, categories) = write { tx -> (TSThread, Set<TellomiSavedCategory>) in
             let thread = TSContactThread.getOrCreateThread(withContactAddress: SignalServiceAddress.randomForTesting(), transaction: tx)
