@@ -943,6 +943,7 @@ extension ConversationViewController: SendMediaNavDelegate {
 
     /// Attempts to send attachments. Handles prompting to unblock or un-verify safety numbers, as well as showing failure states.
     /// Tellomi（#1261）：返回是否发出去了（「单独发送」上一条没发出就停）。
+    /// Tellomi（#1121）：`clearsDraft` = 发完清不清聊天输入框；附件 Sheet「文件」页传 false（见 `tellomiClearsInputAfterSending`）。
     @MainActor
     @discardableResult
     func sendAttachments(
@@ -950,6 +951,7 @@ extension ConversationViewController: SendMediaNavDelegate {
         messageBody: MessageBody?,
         from viewController: UIViewController,
         attachmentLimits: OutgoingAttachmentLimits,
+        clearsDraft: Bool = true,
     ) async -> Bool {
         let didSend: Bool
         do {
@@ -966,13 +968,7 @@ extension ConversationViewController: SendMediaNavDelegate {
         guard didSend else {
             return false
         }
-        if
-            approvedAttachments.attachments.count == 1,
-            let attachment = approvedAttachments.attachments.first,
-            attachment.rawValue.isBorderless
-        {
-            // This looks like a sticker, we shouldn't clear the input toolbar.
-        } else {
+        if Self.tellomiClearsInputAfterSending(approvedAttachments, clearsDraft: clearsDraft) {
             inputToolbar?.clearTextMessage(animated: false)
         }
 
@@ -1071,5 +1067,26 @@ extension ConversationViewController {
     /// （上面的 `chooseFromLibraryWithNativePicker` 在 private 扩展里）。
     func tellomiChooseFromLibraryWithNativePicker() {
         chooseFromLibraryWithNativePicker()
+    }
+
+    /// Tellomi（tellomi/tellomi#1121）：附件发出去之后要不要清掉聊天输入框（`sendAttachments` 用；上游的判断原来直接写在那里面，
+    /// 抽出来是为了能单测——会话页没法在单测里整个建出来）。
+    /// - 调用方说不清（`clearsDraft == false`）就不清：附件 Sheet「文件」页发的东西从来不带输入框里的草稿（点一行 / 系统选择器 /
+    ///   扫描都没有说明，多选的说明是文件页自己的输入框），清了那段字就既没发出去也没了。Android 同一功能
+    ///   （`ConversationFragment.sendSlidesInOrder`）传的也是 `clearCompose = false`。
+    /// - 其余照上游：贴纸样子的单个无边框附件不清，别的都清（草稿当说明一起发出去了）。
+    static func tellomiClearsInputAfterSending(_ approvedAttachments: ApprovedAttachments, clearsDraft: Bool) -> Bool {
+        guard clearsDraft else {
+            return false
+        }
+        if
+            approvedAttachments.attachments.count == 1,
+            let attachment = approvedAttachments.attachments.first,
+            attachment.rawValue.isBorderless
+        {
+            // This looks like a sticker, we shouldn't clear the input toolbar.
+            return false
+        }
+        return true
     }
 }
