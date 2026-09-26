@@ -121,6 +121,13 @@ class MediaPageViewController: UIPageViewController {
 
     private weak var playbackSpeedMenu: MediaPlaybackSpeedMenuView?
 
+    /// Tellomi（#1257）：播放中控件自动收起的计时（见 updateAutoHideControlsTimer）。
+    private var autoHideControlsTimer: Timer?
+    private var autoHideControlsIdleSince = Date()
+    private lazy var touchActivityObserver = TellomiTouchActivityObserver { [weak self] in
+        self?.noteAutoHideControlsActivity()
+    }
+
     // MARK: UIViewController
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -162,6 +169,7 @@ class MediaPageViewController: UIPageViewController {
         view.backgroundColor = .Signal.mediaBackground
 
         mediaInteractiveDismiss.addGestureRecognizer(to: view)
+        view.addGestureRecognizer(touchActivityObserver.recognizer)
 
         navigationItem.titleView = headerView
 
@@ -394,6 +402,7 @@ class MediaPageViewController: UIPageViewController {
         _shouldHideToolbars = shouldHide
         showOrHideTopAndBottomPanelsAsNecessary(animated: animated)
         setNeedsStatusBarAppearanceUpdate()
+        updateAutoHideControlsTimer()
     }
 
     private func showOrHideTopAndBottomPanelsAsNecessary(animated: Bool) {
@@ -417,6 +426,72 @@ class MediaPageViewController: UIPageViewController {
     private func updateVideoCenterControlsVisibility(animated: Bool) {
         let isPlayableVideo = (viewControllers?.first as? MediaItemViewController)?.videoPlayer != nil
         videoCenterControls.setIsHidden(shouldHideToolbars || !isPlayableVideo || isPagingBetweenItems, animated: animated)
+    }
+
+    // MARK: - Tellomi（#1257）：播放中控件自动收起
+
+    /// 照 Telegram iOS（`UniversalVideoGalleryItem` 的 `shouldHideControlsSignal`：正在播、没在交互、控件显示着，4 秒后收起；
+    /// 菜单开着、说明展开时不收）。这里按「连续 4 秒没被打断」算：控件显示着时每 0.5 秒看一次，没在播、正在拖进度条、
+    /// 「···」或倍速菜单开着、上面盖着别的页面、开着 VoiceOver、正在翻页都算打断，计时从头来；碰一下屏幕也从头来。
+    /// 这样菜单、弹出页不管怎么关掉，关掉后都再等满 4 秒，不会一关就收。照片不收（只对正在播的视频）。
+    static var autoHideControlsDelay: TimeInterval = 4
+    static var autoHideControlsTickInterval: TimeInterval = 0.5
+    static var isVoiceOverRunning: () -> Bool = { UIAccessibility.isVoiceOverRunning }
+
+    private func updateAutoHideControlsTimer() {
+        autoHideControlsIdleSince = Date()
+        guard !shouldHideToolbars, viewIfLoaded?.window != nil else {
+            autoHideControlsTimer?.invalidate()
+            autoHideControlsTimer = nil
+            return
+        }
+        guard autoHideControlsTimer == nil else { return }
+        autoHideControlsTimer = Timer.scheduledTimer(withTimeInterval: Self.autoHideControlsTickInterval, repeats: true) { [weak self] timer in
+            guard let self else {
+                timer.invalidate()
+                return
+            }
+            self.autoHideControlsTick()
+        }
+    }
+
+    private func noteAutoHideControlsActivity() {
+        autoHideControlsIdleSince = Date()
+    }
+
+    private var isAutoHideControlsBlocked: Bool {
+        guard let videoPlayer = currentViewController?.videoPlayer, videoPlayer.isPlaying else { return true }
+        if viewIfLoaded?.window == nil || presentedViewController != nil || isPagingBetweenItems { return true }
+        if bottomMediaPanel.isScrubbingVideo { return true }
+        if playbackSpeedMenu?.window != nil { return true }
+        if (navigationItem.rightBarButtonItems ?? []).contains(where: { ($0.customView as? TellomiViewerMenuButton)?.isMenuVisible == true }) {
+            return true
+        }
+        return Self.isVoiceOverRunning()
+    }
+
+    private func autoHideControlsTick() {
+        guard !shouldHideToolbars, viewIfLoaded?.window != nil else {
+            updateAutoHideControlsTimer()
+            return
+        }
+        if isAutoHideControlsBlocked {
+            autoHideControlsIdleSince = Date()
+            return
+        }
+        if Date().timeIntervalSince(autoHideControlsIdleSince) >= Self.autoHideControlsDelay {
+            setShouldHideToolbars(true, animated: true)
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateAutoHideControlsTimer()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        updateAutoHideControlsTimer()
     }
 
     /// 同上游 VideoPlaybackControlView：30 秒以上的视频才有 ±15（Telegram 是 ≥ 30 秒）。
@@ -1341,6 +1416,25 @@ extension MediaPageViewController: UINavigationBarDelegate {
 extension MediaPageViewController {
     var areToolbarsHiddenForTesting: Bool { shouldHideToolbars }
 
+    var isAutoHideControlsBlockedForTesting: Bool { isAutoHideControlsBlocked }
+
+    var contextMenuButtonForTesting: TellomiViewerMenuButton? {
+        (navigationItem.rightBarButtonItems ?? []).lazy.compactMap { $0.customView as? TellomiViewerMenuButton }.first
+    }
+
+    /// 走真实的那条路：在查看器根视图上找挂着的「碰过屏幕」识别器，像系统送触摸时那样问它的代理。
+    /// 找不到（识别器没挂上 / 代理没接）就返回 false，计时也不会从头来。
+    func noteTouchForTesting() -> Bool {
+        guard
+            let recognizer = view.gestureRecognizers?.first(where: { $0.delegate is TellomiTouchActivityObserver }),
+            let delegate = recognizer.delegate
+        else {
+            return false
+        }
+        _ = delegate.gestureRecognizer?(recognizer, shouldReceive: UITouch())
+        return true
+    }
+
     /// 标题胶囊（iOS 26 上是容器里的那块玻璃）与底栏的删除键，量它们在白底图上是不是深色。
     var headerViewForTesting: UIView { headerView.subviews.first ?? headerView }
     var deleteButtonForTesting: UIButton { bottomMediaPanel.deleteButtonForTesting }
@@ -1398,3 +1492,24 @@ extension MediaPageViewController {
 }
 
 #endif
+
+/// Tellomi（#1257）：只用来知道「刚碰过屏幕」（播放中自动收起控件的计时从头来）。这个手势识别器一个触摸都不收
+/// （`shouldReceive` 里记一下就返回 false），所以不影响任何按钮、滑动和别的手势。
+private final class TellomiTouchActivityObserver: NSObject, UIGestureRecognizerDelegate {
+    let recognizer = UIGestureRecognizer()
+    private let onTouch: () -> Void
+
+    init(onTouch: @escaping () -> Void) {
+        self.onTouch = onTouch
+        super.init()
+        recognizer.delegate = self
+        recognizer.cancelsTouchesInView = false
+        recognizer.delaysTouchesBegan = false
+        recognizer.delaysTouchesEnded = false
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        onTouch()
+        return false
+    }
+}
