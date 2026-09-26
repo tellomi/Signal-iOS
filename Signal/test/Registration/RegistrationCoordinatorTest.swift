@@ -305,7 +305,7 @@ public class RegistrationCoordinatorTest {
         contactsStore.doesNeedContactsAuthorization = true
         pushRegistrationManagerMock.doesNeedNotificationAuthorization = true
 
-        var nextStep: RegistrationStep
+        let nextStep: RegistrationStep
         switch mode {
         case .registering:
             // Gotta get the splash out of the way.
@@ -316,15 +316,11 @@ public class RegistrationCoordinatorTest {
             nextStep = await coordinator.nextStep()
         }
 
-        // Now we should show the permissions.
-        #expect(nextStep == .permissions)
-        // Doesn't change even if we try and proceed.
-        #expect(await coordinator.nextStep() == .permissions)
-
-        // Once the state is updated we can proceed.
-        nextStep = await coordinator.requestPermissions().awaitable()
-        #expect(nextStep != .registrationSplash)
+        // Tellomi（tellomi/tellomi#1112）：通讯录、通知都没授权，也**不**进权限页——注册流程里一个权限都不要。
+        // 上游这里是 `.permissions`，要 `requestPermissions()` 之后才能往下走。
         #expect(nextStep != .permissions)
+        #expect(nextStep != .registrationSplash)
+        #expect(await coordinator.nextStep() != .permissions)
     }
 
     // MARK: - Reg Recovery Password Path
@@ -3471,11 +3467,9 @@ public class RegistrationCoordinatorTest {
             break
         }
 
-        // Now we should show the permissions.
-        #expect(await coordinator.continueFromSplash().awaitable() == .permissions)
-
-        // Once the state is updated we can proceed.
-        #expect(await coordinator.requestPermissions().awaitable() == expectedNextStep)
+        // Tellomi（tellomi/tellomi#1112）：权限都没授也直达下一步；上游这里先是 `.permissions`，
+        // `requestPermissions()` 之后才到 expectedNextStep。
+        #expect(await coordinator.continueFromSplash().awaitable() == expectedNextStep)
     }
 
     @MainActor

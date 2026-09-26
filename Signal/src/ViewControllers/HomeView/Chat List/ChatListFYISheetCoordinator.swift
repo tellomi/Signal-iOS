@@ -5,6 +5,7 @@
 
 import SignalServiceKit
 import SignalUI
+import UserNotifications
 
 @MainActor
 class ChatListFYISheetCoordinator {
@@ -59,7 +60,11 @@ class ChatListFYISheetCoordinator {
 
         struct ChooseNewLocalBackupLocation {}
 
+        /// Tellomi（#1218 F-01、#1112）：注册后第一次进首屏的通知说明页（`TellomiNotificationPrimer`）。
+        struct NotificationPrimer {}
+
         case smsVerificationCodeSent(SMSVerificationCodeSent)
+        case notificationPrimer(NotificationPrimer)
         case badgeThanks(BadgeThanks)
         case badgeIssue(BadgeIssue)
         case badgeExpiration(BadgeExpiration)
@@ -123,9 +128,11 @@ class ChatListFYISheetCoordinator {
     func presentIfNecessary(
         from chatListViewController: ChatListViewController,
     ) async {
+        // Tellomi：说明页要看系统授权状态，这个只能异步拿，先取好再进同步的判定。
+        let notificationAuthorizationStatus = await TellomiNotificationPrimer.currentAuthorizationStatus()
         guard
             chatListViewController.isChatListTopmostViewController(),
-            let nextSheet = db.read(block: { nextSheetToPresent(tx: $0) })
+            let nextSheet = db.read(block: { nextSheetToPresent(notificationAuthorizationStatus: notificationAuthorizationStatus, tx: $0) })
         else {
             return
         }
@@ -135,11 +142,18 @@ class ChatListFYISheetCoordinator {
 
     // MARK: -
 
-    private func nextSheetToPresent(tx: DBReadTransaction) -> FYISheet? {
+    private func nextSheetToPresent(notificationAuthorizationStatus: UNAuthorizationStatus, tx: DBReadTransaction) -> FYISheet? {
         let now = dateProvider()
 
         if let sheet = shouldShowSMSVerificationCodeSentSheet(tx: tx) {
             return sheet
+        } else if TellomiNotificationPrimer.shouldShowPrimer(
+            authorizationStatus: notificationAuthorizationStatus,
+            hasShown: TellomiNotificationPrimer.hasShown(tx: tx),
+        ) {
+            // Tellomi（#1218 F-01）：排在「有人拿你的号码收验证码」之后、其余所有 FYI 之前——
+            // 注册后第一次进首屏，先把通知这件事问掉。
+            return .notificationPrimer(FYISheet.NotificationPrimer())
         } else if let sheet = shouldShowBadgeThanksSheet(successMode: .oneTimeBoost, tx: tx) {
             return sheet
         } else if let sheet = shouldShowBadgeThanksSheet(successMode: .recurringSubscriptionInitiation, tx: tx) {
@@ -310,6 +324,8 @@ class ChatListFYISheetCoordinator {
         switch fyiSheet {
         case .smsVerificationCodeSent(let smsVerificationCodeSent):
             await _present(smsVerificationCodeSent: smsVerificationCodeSent, from: chatListViewController)
+        case .notificationPrimer(let notificationPrimer):
+            _present(notificationPrimer: notificationPrimer, from: chatListViewController)
         case .badgeThanks(let badgeThanks):
             await _present(badgeThanks: badgeThanks, from: chatListViewController)
         case .badgeIssue(let badgeIssue):
@@ -333,6 +349,17 @@ class ChatListFYISheetCoordinator {
         case .chooseNewLocalBackupLocation(let chooseNewLocalBackupLocation):
             await _present(chooseNewLocalBackupsLocation: chooseNewLocalBackupLocation, from: chatListViewController)
         }
+    }
+
+    private func _present(
+        notificationPrimer: FYISheet.NotificationPrimer,
+        from chatListViewController: ChatListViewController,
+    ) {
+        Logger.info("Showing Tellomi notification primer.")
+        let sheet = TellomiNotificationPrimerSheet(onAuthorizationAnswered: { [weak chatListViewController] in
+            chatListViewController?.updateNotificationsDisabledReminderView()
+        })
+        chatListViewController.present(sheet, animated: true)
     }
 
     private func _present(
