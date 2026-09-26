@@ -189,6 +189,11 @@ public enum TellomiRegions {
         return String(rest)
     }
 
+    /// 先红用的桩：下一个提交换成真的判断。
+    static func isTestRegion(_ region: TellomiRegionProfile) -> Bool {
+        return false
+    }
+
     /// 只换主机部分；主机不在 `tellomi.app` 下的原样返回，由 `problems` 挑出来。
     static func toCnHost(_ urlOrHost: String, domain: String = cnDomain) -> String {
         let host = hostOf(urlOrHost)
