@@ -150,6 +150,15 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         }
     }
 
+    /// 没有照片权限时占位里的「照片」：收起 Sheet，再弹上游的系统选择器（不要照片权限就能选、能发）——
+    /// 已发布的《系统权限调用清单》TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2 承诺的「全部相册」入口。
+    /// 系统选择器取消了经 `sendMediaNavDidCancel → openAttachmentKeyboard` 回到 Sheet；发了照常发（`sendMediaNav(_:didApproveAttachments:)`）。
+    func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController) {
+        dismiss(animated: true) { [weak self] in
+            self?.tellomiChooseFromLibraryWithNativePicker()
+        }
+    }
+
     /// 相机格：走上游「+ → 相机」同一条路（自己问相机 / 麦克风权限，拍完在它自己的预览页里发），但盖在选图面板上面——
     /// 同 Telegram（`ChatControllerOpenAttachmentMenu.openCamera` 把相机叠在附件菜单上）：取消只关相机、回到面板，已选都还在；
     /// 在相机里发了照常发，发完会话页整个收起（面板里的已选不发，同 Telegram）。
