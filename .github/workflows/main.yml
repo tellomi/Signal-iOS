@@ -24,6 +24,8 @@ jobs:
   build_and_test:
     name: Build and Test
     timeout-minutes: 20
+    # Tellomi：fork 里不跑（上游的机器 / 规则，见 tellomi-ios-build.yml）
+    if: github.repository == 'signalapp/Signal-iOS'
     runs-on: macos-26-xlarge
     env:
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 7
@@ -88,7 +90,8 @@ jobs:
 
     runs-on: macos-26
 
-    if: github.event_name == 'pull_request'
+    # Tellomi：fork 里不跑
+    if: github.repository == 'signalapp/Signal-iOS' && github.event_name == 'pull_request'
 
     steps:
       - uses: actions/checkout@v6
