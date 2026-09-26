@@ -894,7 +894,7 @@ class MediaPageViewController: UIPageViewController {
             UIAction(
                 title: OWSLocalizedString(
                     "MEDIA_VIEWER_TELLOMI_REPLY_ACTION",
-                    comment: "Context menu item in media viewer. Replies to the currently displayed photo/video.",
+                    comment: "Context menu item in media viewer. Replies to the message that contains the currently displayed photo/video.",
                 ),
                 image: Theme.iconImage(.contextMenuReply),
                 handler: { [weak self] _ in
@@ -917,17 +917,15 @@ class MediaPageViewController: UIPageViewController {
         }
     }
 
-    /// 「回复」的草稿：引用正在看的这一项所在的消息。
+    /// 「回复」的草稿：和聊天里长按回复一样引用整条消息，缩略图照上游取第一项（owner 2026-09-26：
+    /// 不做「回复这一张」——协议只能引用整条消息，要让对方看到那一张就得放宽收件方的防伪）。
     private func buildReplyDraft() -> DraftQuotedReplyModel? {
-        guard let mediaItem = currentItem else {
+        guard let message = currentItem?.message else {
             return nil
         }
-        let message = mediaItem.message
-        let attachmentId = mediaItem.referencedAttachment.attachment.id
         return SSKEnvironment.shared.databaseStorageRef.read { tx in
             DependenciesBridge.shared.quotedReplyManager.buildDraftQuotedReply(
                 originalMessage: message,
-                preferredAttachmentId: attachmentId,
                 loadNormalizedImage: NormalizedImage.loadImage(imageSource:maxPixelSize:),
                 tx: tx,
             )
