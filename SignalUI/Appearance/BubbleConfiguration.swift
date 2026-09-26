@@ -201,6 +201,9 @@ public struct BubbleConfiguration {
         /// 尾巴沿气泡侧边的高度。
         public static let height: CGFloat = 14
 
+        /// 气泡在尾巴那一侧多留的外边距（规范 #1204 第 2 节的 e，A「圆润」是 6）：尾巴不贴屏幕边、不压头像。
+        public static let sideMargin: CGFloat = 6
+
         /// 气泡本体：整块去掉尾巴那一侧的 `extent`。
         public func bodyRect(in rect: CGRect) -> CGRect {
             var body = rect

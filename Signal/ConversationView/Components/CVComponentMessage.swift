@@ -1559,12 +1559,29 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
     }
 
     private var hInnerStackConfig: CVStackViewConfig {
-        CVStackViewConfig(
+        // Tellomi：尾巴那一侧的外边距。对方发的尾巴在左下：带头像时加在头像和气泡之间，单聊（没头像）加在最前面；我发的加在最后面
+        let tailMargin = tellomiTailSideMargin
+        let tailFollowsAvatar = isIncoming && hasSenderAvatarLayout && senderAvatar != nil
+        return CVStackViewConfig(
             axis: .horizontal,
             alignment: .bottom,
-            spacing: ConversationStyle.messageStackSpacing,
-            layoutMargins: .zero,
+            spacing: ConversationStyle.messageStackSpacing + (tailFollowsAvatar ? tailMargin : 0),
+            layoutMargins: UIEdgeInsets(
+                top: 0,
+                leading: isIncoming && !tailFollowsAvatar ? tailMargin : 0,
+                bottom: 0,
+                trailing: isIncoming ? 0 : tailMargin,
+            ),
         )
+    }
+
+    /// Tellomi（规范 #1204 第 2 节最后一条，owner 2026-09-26 定照规范加）：气泡在尾巴那一侧多留 `Tail.sideMargin`，
+    /// 尾巴不贴屏幕边、不压头像。一组里没画尾巴的几条也留，整列才对齐；不画尾巴的消息详情、居中显示的发布说明不留。
+    private var tellomiTailSideMargin: CGFloat {
+        guard conversationStyle.type != .messageDetails, !isReleaseNotesMessage else {
+            return 0
+        }
+        return BubbleConfiguration.Tail.sideMargin
     }
 
     private let reactionsHInset: CGFloat = 6
@@ -1637,6 +1654,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         let hOuterStackConfig = self.hOuterStackConfig
         var contentMaxWidth = maxWidth - hOuterStackConfig.layoutMargins.totalWidth
         contentMaxWidth -= ConversationStyle.messageDirectionSpacing
+        // Tellomi：尾巴那一侧多留的外边距也从内容里让出来（见 hInnerStackConfig）
+        contentMaxWidth -= tellomiTailSideMargin
         if isShowingSelectionUI || wasShowingSelectionUI {
             contentMaxWidth -= selectionViewWidth + hOuterStackConfig.spacing
             if isReleaseNotesMessage {
