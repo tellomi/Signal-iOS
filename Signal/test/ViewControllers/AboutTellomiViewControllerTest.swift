@@ -106,7 +106,8 @@ final class AboutTellomiViewControllerTest: XCTestCase {
         XCTAssertFalse(texts[0].lowercased().contains("github"))
     }
 
-    /// 四种语言都写了这一句（iOS 缺键会直接显示键名，不回落英文），都带官网地址和许可证名，都不出现 GitHub
+    /// 四种语言都写了这一句（iOS 缺键会直接显示键名，不回落英文），都带官网地址和许可证名，都不出现 GitHub；
+    /// 也不写「基于 Signal」（owner 2026-09-26，与官网 /source 同口径，超级仓库 docs/product/specs/about-page.md）
     func testSourceCodeNoticeInEveryLanguage() throws {
         for language in ["en", "zh_CN", "zh_HK", "zh_TW"] {
             let path = try XCTUnwrap(Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: language), language)
@@ -115,6 +116,7 @@ final class AboutTellomiViewControllerTest: XCTestCase {
             XCTAssertTrue(notice.contains("www.tellomi.app/source"), language)
             XCTAssertTrue(notice.contains("GNU AGPLv3"), language)
             XCTAssertFalse(notice.lowercased().contains("github"), language)
+            XCTAssertFalse(notice.contains("Signal"), language)
             XCTAssertNil(table["SETTINGS_ABOUT_TELLOMI_SOURCE_CODE"], language)
         }
     }
