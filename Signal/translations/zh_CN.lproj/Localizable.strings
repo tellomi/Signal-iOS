@@ -4,7 +4,7 @@
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
 "ABOUT_SECTION_FOOTER" = "版权所有 © Signal Messenger\n基于 AGPLv3 许可证授权\nSignal 是一个非营利组织";
 /* Tellomi: copyright + license only; upstream also claimed 501c3 nonprofit status, which is not true of Tellomi. */
-"ABOUT_SECTION_FOOTER_TELLOMI" = "版权所有 Signal Messenger\n修改部分版权所有 Tellomi\n根据 AGPLv3 授权许可";
+"ABOUT_SECTION_FOOTER_TELLOMI" = "版权所有 Signal Messenger\n修改部分版权所有 重庆半格智能科技有限公司\n根据 GNU AGPLv3 授权许可";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "关于 Tellomi";
@@ -8816,6 +8816,72 @@
 
 /* Title for the set wallpaper settings view. */
 "SET_WALLPAPER_TITLE" = "设置墙纸";
+
+/* Tellomi: row in About Tellomi that opens the download page. */
+"SETTINGS_ABOUT_TELLOMI_CHECK_FOR_UPDATES" = "版本更新";
+
+/* Tellomi: row in About Tellomi that opens the complaints and reporting rules page. */
+"SETTINGS_ABOUT_TELLOMI_COMPLAINTS_AND_REPORTS" = "投诉举报规则";
+
+/* Tellomi: row in About Tellomi showing the support email address. */
+"SETTINGS_ABOUT_TELLOMI_CONTACT_SUPPORT" = "联系客服";
+
+/* Tellomi: shown when the user long-presses an email in About Tellomi but no mail account is set up. */
+"SETTINGS_ABOUT_TELLOMI_EMAIL_UNAVAILABLE_MESSAGE" = "你的设备还没有设置邮箱。地址已复制，可以粘贴到其他邮件 App 里。";
+
+/* Tellomi: row in About Tellomi that opens the website. */
+"SETTINGS_ABOUT_TELLOMI_OFFICIAL_WEBSITE" = "官方网站";
+
+/* Tellomi: row in About Tellomi that lists third-party licenses. */
+"SETTINGS_ABOUT_TELLOMI_OPEN_SOURCE_LICENSES" = "开源许可";
+
+/* Tellomi: row in About Tellomi that opens the list of personal information collected. */
+"SETTINGS_ABOUT_TELLOMI_PERSONAL_INFORMATION_COLLECTED" = "个人信息收集清单";
+
+/* Tellomi: row in About Tellomi showing the privacy email address. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_AND_PERSONAL_DATA" = "隐私与个人数据";
+
+/* Tellomi: row in About Tellomi that opens the Privacy Policy page. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_POLICY" = "隐私政策";
+
+/* Tellomi: row in About Tellomi showing the abuse report email address. */
+"SETTINGS_ABOUT_TELLOMI_REPORT_ABUSE" = "违规举报";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_CONTACT" = "联系我们";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_LEGAL" = "法律与合规";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_OPEN_SOURCE" = "开源";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_UPDATES" = "更新";
+
+/* Tellomi: row in About Tellomi that opens the source code on GitHub. */
+"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE" = "源代码";
+
+/* Tellomi: row in About Tellomi that opens the list of system permissions the app uses. */
+"SETTINGS_ABOUT_TELLOMI_SYSTEM_PERMISSIONS" = "系统权限调用清单";
+
+/* Tellomi: accessory text on email rows in About Tellomi; tapping the row copies the address. */
+"SETTINGS_ABOUT_TELLOMI_TAP_TO_COPY" = "点击复制";
+
+/* Tellomi: row in About Tellomi that opens the Terms of Service page. */
+"SETTINGS_ABOUT_TELLOMI_TERMS_OF_SERVICE" = "服务协议";
+
+/* Tellomi: row in About Tellomi that opens the list of third-party sharing and SDKs. */
+"SETTINGS_ABOUT_TELLOMI_THIRD_PARTY_SHARING" = "第三方信息共享及 SDK 清单";
+
+/* Tellomi: title of the About Tellomi page and of its row in settings. */
+"SETTINGS_ABOUT_TELLOMI_TITLE" = "关于 Tellomi";
+
+/* Tellomi: version line at the top of About Tellomi. Embeds {{ version }} and {{ build number }}. */
+"SETTINGS_ABOUT_TELLOMI_VERSION_FORMAT" = "版本 %1$@（构建 %2$@）";
+
+/* Tellomi: context menu action on email rows in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_WRITE_EMAIL" = "写邮件";
 
 /* Title for the 'account' link in settings. */
 "SETTINGS_ACCOUNT" = "帐户";
