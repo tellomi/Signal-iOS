@@ -1689,6 +1689,38 @@ class PhotoCaptureViewController: OWSViewController, OWSNavigationChildControlle
             return
         }
 
+        // Tellomi（tellomi/tellomi#947）：裸用户名码（`tell.cc/<用户名>`，Desktop / 落地页的形状）与用户名链接同一个结果；
+        // 群邀请码直接进加群。`tell.cc/u#eu` 用户名链接已由 `Usernames.UsernameLink` 认得。其它内容这里照旧不理（这是拍照的相机）。
+        if
+            let url = URL(string: qrCodeString),
+            let username = TellomiLinks.plainUsername(in: url)
+        {
+            qrCodeScanned = true
+
+            Task {
+                guard
+                    let aci = await UsernameQuerier().queryForUsername(
+                        username: username,
+                        fromViewController: self,
+                        failureSheetDismissalDelegate: self,
+                    )
+                else {
+                    return
+                }
+
+                showUsernameLinkSheet(username: username, aci: aci)
+            }
+            return
+        }
+        if
+            let url = URL(string: qrCodeString),
+            let groupInviteLink = PossibleGroupInviteLinkUrl.parseFrom(url)
+        {
+            qrCodeScanned = true
+            GroupInviteLinksUI.openGroupInviteLink(groupInviteLink, fromViewController: self)
+            return
+        }
+
         if
             let url = URL(string: qrCodeString),
             let usernameLink = Usernames.UsernameLink(usernameLinkUrl: url)
@@ -1747,15 +1779,24 @@ class PhotoCaptureViewController: OWSViewController, OWSNavigationChildControlle
                         )
                     }
                 }
-                // If anything is presented over the phone capture view, dismiss it first -
-                // then dismiss the photo view and present the restore UI
-                if navigationController?.presentedViewController != nil {
-                    self.navigationController?.presentedViewController?.dismiss(animated: true) {
-                        presentBlock()
-                    }
-                } else {
-                    presentBlock()
-                }
+                // Tellomi：先弹防骗确认，点「继续」才进转移页，取消就接着扫（TellomiQuickRestoreScanConfirmation）
+                let confirmation = TellomiQuickRestoreScanConfirmation.actionSheet(
+                    onContinue: {
+                        // If anything is presented over the phone capture view, dismiss it first -
+                        // then dismiss the photo view and present the restore UI
+                        if self.navigationController?.presentedViewController != nil {
+                            self.navigationController?.presentedViewController?.dismiss(animated: true) {
+                                presentBlock()
+                            }
+                        } else {
+                            presentBlock()
+                        }
+                    },
+                    onCancel: {
+                        self.qrCodeScanned = false
+                    },
+                )
+                presentActionSheet(confirmation)
 
             case .linkDevice:
                 Logger.warn("Scanned linkDevice provisioning URL, but not a registered primary.")
