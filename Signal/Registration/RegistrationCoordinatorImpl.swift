@@ -3262,6 +3262,13 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         }
     }
 
+    /// Tellomi（ADR-0070 P4）：推送挑战令牌在等待窗口（`pushTokenMinWaitTime`，3 秒）之后才到时发出。
+    /// 这时验证页多半已经弹出来了，而令牌只是被存下来，没有任何东西去用它，用户会一直停在验证页上
+    /// （大陆打不开 Cloudflare 的验证页时就是卡死）。导航控制器收到后，如果还停在验证页，就重新取下一步：
+    /// `attemptToFulfillAvailableChallengesWaitingIfNeeded` 会先用这个令牌提交推送挑战，服务端把推送挑战当作验证码已过
+    /// （`VerificationController` 「a push challenge satisfies a requested captcha」），于是离开验证页。
+    static let tellomiPreAuthChallengeTokenDidArriveNotification = Notification.Name("TellomiRegistrationPreAuthChallengeTokenDidArrive")
+
     private func prepareToReceivePreAuthChallengeToken(
         session: RegistrationSession,
         transaction: DBWriteTransaction,
@@ -3288,6 +3295,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 self.db.write { transaction in
                     self.didReceive(pushChallengeToken: token, for: session, transaction: transaction)
                 }
+                NotificationCenter.default.post(name: Self.tellomiPreAuthChallengeTokenDidArriveNotification, object: self)
             }
     }
 
