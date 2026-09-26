@@ -33,7 +33,10 @@ final class ContactDiscoveryManagerTest: XCTestCase {
     }
 
     private lazy var taskQueue = MockContactDiscoveryTaskQueue()
-    private lazy var manager = ContactDiscoveryManagerImpl(contactDiscoveryTaskQueue: taskQueue)
+    /// Tellomi：缺省是上游档（`TSConstantsMock` 取 `TSConstantsProduction` 的值，有 CDSI），上游用例测的就是这一档；
+    /// 进程里全局的 `TSConstants.shared` 在 Tellomi 是没有 CDSI 的那档，拿它跑 testQueueing 会一直挂着。
+    private lazy var tsConstants = TSConstantsMock()
+    private lazy var manager = ContactDiscoveryManagerImpl(contactDiscoveryTaskQueue: taskQueue, tsConstants: tsConstants)
 
     func testQueueing() async throws {
         // Start the first stateful request, but don't resolve it yet.
@@ -134,6 +137,24 @@ final class ContactDiscoveryManagerTest: XCTestCase {
         } catch ContactDiscoveryError.rateLimit(let retryAfter) {
             return retryAfter
         }
+    }
+
+    /// Tellomi：没有 CDSI enclave 的部署（`TSConstantsStaging`，docs/signal/ENCLAVES.md）里，
+    /// 每种模式的 `lookUp` 都直接回空、不碰任务队列——按手机号找人关掉，按用户名找人。
+    func testTellomiNoCDSI_lookUpReturnsEmptyWithoutQuerying() async throws {
+        tsConstants.cdsiAvailable = false
+
+        var performCount = 0
+        taskQueue.onPerform = { phoneNumbers, _ in
+            performCount += 1
+            return MockContactDiscoveryTaskQueue.foundResponse(for: phoneNumbers)
+        }
+
+        for mode in ContactDiscoveryMode.allCasesOrderedByRateLimitPriority {
+            let result = try await lookUpAndReturnResult(phoneNumbers: ["+16505550100"], mode: mode)
+            XCTAssertEqual(result, [], "\(mode)")
+        }
+        XCTAssertEqual(performCount, 0)
     }
 
     /// Ensures that all modes are included in `allCasesOrderedByRateLimitPriority.`

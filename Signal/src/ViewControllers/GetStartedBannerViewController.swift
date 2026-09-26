@@ -12,9 +12,13 @@ protocol GetStartedBannerViewControllerDelegate: AnyObject {
     func getStartedBannerDidTapAppearance(_ banner: GetStartedBannerViewController)
     func getStartedBannerDidDismissAllCards(_ banner: GetStartedBannerViewController, animated: Bool)
     func getStartedBannerDidTapAvatarBuilder(_ banner: GetStartedBannerViewController)
+    // Tellomi（tellomi/tellomi#1218 F-02）：找朋友三条路里的前两条
+    func getStartedBannerDidTapFindByUsername(_ banner: GetStartedBannerViewController)
+    func getStartedBannerDidTapMyQRCode(_ banner: GetStartedBannerViewController)
 }
 
-private struct GetStartedCard: Hashable {
+// Tellomi：去掉 private，单测要读卡片顺序（TellomiGetStartedTest）
+struct GetStartedCard: Hashable {
     var identifier: String // this is persisted to the db
     var title: String
     var image: UIImage?
@@ -76,11 +80,46 @@ private struct GetStartedCard: Hashable {
         ),
     )
 
+    // Tellomi（tellomi/tellomi#1218 F-02）：没有 CDSI，用户名、二维码、邀请是别人找到你的全部办法
+    static let findByUsername = GetStartedCard(
+        identifier: "tellomi.findByUsername",
+        title: OWSLocalizedString(
+            "GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI",
+            comment: "'Get Started' button directing users to find someone by their username",
+        ),
+        image: UIImage(named: "search-resizable"),
+        tintColor: UIColor(
+            light: UIColor(rgbHex: 0xF6EDE0, alpha: 0.6),
+            dark: UIColor(rgbHex: 0xD7BFA9, alpha: 0.4),
+        ),
+    )
+    static let myQRCode = GetStartedCard(
+        identifier: "tellomi.myQRCode",
+        title: OWSLocalizedString(
+            "GET_STARTED_CARD_MY_QR_CODE_TELLOMI",
+            comment: "'Get Started' button directing users to their own username QR code",
+        ),
+        image: UIImage(named: "qr_code-resizable"),
+        tintColor: UIColor(
+            light: UIColor(rgbHex: 0xD6E5E5, alpha: 0.6),
+            dark: UIColor(rgbHex: 0x8ACECE, alpha: 0.4),
+        ),
+    )
+
+    // Tellomi（tellomi/tellomi#1218 F-02、第 5 条）：搜索用户名 / 我的二维码 / 邀请朋友 + 设头像。
+    // 上游的「新建群组」「聊天颜色」不出：新用户还没有可以拉进群的人，聊天颜色不是上手必需。
     static let all: [GetStartedCard] = [
-        newGroup,
+        findByUsername,
+        myQRCode,
         inviteFriends,
         avatarBuilder,
-        appearance,
+    ]
+
+    /// 找朋友三条路：出现第一个真人会话后一起收起，设头像留着。
+    static let findFriends: [GetStartedCard] = [
+        findByUsername,
+        myQRCode,
+        inviteFriends,
     ]
 
     func hash(into hasher: inout Hasher) {
@@ -372,7 +411,7 @@ class GetStartedBannerViewController: OWSViewController {
 
     private weak var delegate: GetStartedBannerViewControllerDelegate?
     private let threadFinder = ThreadFinder()
-    private var bannerContent: [GetStartedCard] = []
+    private(set) var bannerContent: [GetStartedCard] = []
 
     // MARK: - Lifecycle
 
@@ -510,6 +549,18 @@ class GetStartedBannerViewController: OWSViewController {
                 return []
             }
 
+            // Tellomi（tellomi/tellomi#1218 F-02）：有了第一个真人会话，找朋友三条路一起收起，设头像留着。
+            // 横幅订阅了线程变化（databaseChangesDidUpdate），所以正看着列表时来了第一个真人消息，卡片当场收起。
+            if
+                activeCards.contains(where: GetStartedCard.findFriends.contains),
+                TellomiGetStarted.hasRealConversation(threadFinder: self.threadFinder, tx: readTx)
+            {
+                SSKEnvironment.shared.databaseStorageRef.asyncWrite { writeTx in
+                    GetStartedCard.findFriends.forEach { Self.completeCard($0, writeTx: writeTx) }
+                }
+                activeCards.removeAll(where: GetStartedCard.findFriends.contains)
+            }
+
             // Once you have an avatar, don't show the avatar builder card.
             if
                 activeCards.contains(.avatarBuilder),
@@ -574,6 +625,10 @@ extension GetStartedBannerViewController: UICollectionViewDelegate {
             delegate?.getStartedBannerDidTapAppearance(self)
         case .avatarBuilder:
             delegate?.getStartedBannerDidTapAvatarBuilder(self)
+        case .findByUsername:
+            delegate?.getStartedBannerDidTapFindByUsername(self)
+        case .myQRCode:
+            delegate?.getStartedBannerDidTapMyQRCode(self)
         default:
             break
         }
@@ -697,6 +752,29 @@ extension GetStartedBannerViewController: DatabaseChangeDelegate {
     private func localProfileDidChange() {
         AssertIsOnMainThread()
         updateContent()
+    }
+}
+
+// MARK: - Tellomi
+
+/// Tellomi（tellomi/tellomi#1218 F-02）：首屏「开始使用」里的找朋友三条路，在出现第一个真人会话后收起。
+enum TellomiGetStarted {
+    /// 真人会话 = 不是「笔记」（自己）、也不是官方账号（release notes）的会话；消息请求也算——对方是个真人。
+    static func isRealConversation(_ thread: TSThread) -> Bool {
+        return !thread.isNoteToSelf && !(thread is TSReleaseNotesThread)
+    }
+
+    /// 只在找朋友的卡还在时才会被调用；上游在可见会话到 5 个时就收起整个横幅，所以这里最多扫几个会话。
+    static func hasRealConversation(threadFinder: ThreadFinder, tx: DBReadTransaction) -> Bool {
+        var found = false
+        for isArchived in [false, true] where !found {
+            threadFinder.enumerateVisibleThreads(isArchived: isArchived, transaction: tx) { thread in
+                if !found, isRealConversation(thread) {
+                    found = true
+                }
+            }
+        }
+        return found
     }
 }
 

@@ -31,12 +31,17 @@ public enum Upload {
             case signedUploadLocation = "signedUploadLocation"
             case cdnKey = "key"
             case cdnNumber = "cdn"
+            case tellomiRegionId = "tellomiRegionId"
         }
 
         let headers: HttpHeaders
         let signedUploadLocation: String
         let cdnKey: String
         let cdnNumber: UInt32
+        /// Tellomi（#1056 第三刀）：取这张表单时本进程生效的区，也就是这次上传「开始时的区」。
+        /// 整个续传过程都连这个区的 CDN，切区只影响之后新开始的上传（RegionProfile 契约第六节）。
+        /// 表单整个以 JSON 存在 `AttachmentUploadRecord.uploadForm` 里，所以不用迁移；没有这个键的旧记录按 global。
+        var tellomiRegionId: String?
     }
 
     // MARK: -
@@ -259,5 +264,32 @@ extension UploadEndpoint {
             dataChunk,
             dataChunk.count != remainingData.count,
         )
+    }
+}
+
+// MARK: - Tellomi（#1056 第三刀）：在途上传钉住开始时的区
+
+extension Upload.Form {
+    /// 钉住的区。没盖章的（第三刀之前取的）按 global；章不认识、或那个区现在关着 → nil：
+    /// 调用方当表单过期，重新取表单、从 0 开始、落到当前区（契约第六节「显式取消、从头重传」）。
+    var tellomiPinnedRegion: TellomiRegionProfile? {
+        let id = tellomiRegionId ?? TellomiRegionId.global.rawValue
+        return TellomiRegions.known().first { $0.id.rawValue == id && $0.enabled }
+    }
+
+    /// 这张表单钉住的区里这个 CDN 的地址。续传的每个请求（查进度、PATCH / PUT）都连它，不随切区改变。
+    /// USE_PRODUCTION（上游环境）不分区，照 TSConstants；钉住的区不可用时退到生效区。
+    var tellomiPinnedCdnBaseUrl: URL {
+        guard !TSConstants.isUsingProductionService, let region = tellomiPinnedRegion else {
+            return OWSSignalService.cdnBaseUrl(cdnNumber: cdnNumber)
+        }
+        switch cdnNumber {
+        case 0:
+            return URL(string: region.cdn0)!
+        case 3:
+            return URL(string: region.cdn3)!
+        default:
+            return URL(string: region.cdn2)!
+        }
     }
 }
