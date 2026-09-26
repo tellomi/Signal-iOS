@@ -3293,7 +3293,7 @@
 "DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "点击下方的“配对新设备”";
 
 /* table cell label in conversation settings */
-"DISAPPEARING_MESSAGES" = "阅后即焚";
+"DISAPPEARING_MESSAGES" = "限时消息";
 
 /* Info Message when added to a group which has enabled disappearing messages. Embeds {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
 "DISAPPEARING_MESSAGES_CONFIGURATION_GROUP_EXISTING_FORMAT" = "此聊天中的消息将在 %1$@后消失。";
@@ -3320,7 +3320,7 @@
 "DISAPPEARING_MESSAGES_HOURS" = "小时";
 
 /* Accessibility label for disappearing messages */
-"DISAPPEARING_MESSAGES_LABEL" = "阅后即焚消息设置";
+"DISAPPEARING_MESSAGES_LABEL" = "限时消息设置";
 
 /* The unit for a number of minutes */
 "DISAPPEARING_MESSAGES_MINUTES" = "分钟";
@@ -6808,7 +6808,7 @@
 "OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomi 很快将不再支持您设备上的 iOS 版本。如要继续使用 Tellomi，请在 %1$@之前切换到更新的设备。";
 
 /* Info Message when another user disabled disappearing messages. Embeds {{name of other user}}. */
-"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 取消了阅后即焚。";
+"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 关闭了限时消息。";
 
 /* Info Message when another user enabled disappearing messages. Embeds {{name of other user}} and {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
 "OTHER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 设置了消息 %2$@ 后消失。";
@@ -9091,7 +9091,7 @@
 "SETTINGS_DELETE_HISTORYLOG_CONFIRMATION_SECONDARY_TITLE" = "您确定要删除所有聊天记录吗？";
 
 /* Label for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES" = "阅后即焚消息";
+"SETTINGS_DISAPPEARING_MESSAGES" = "限时消息";
 
 /* Explanation for the 'disappearing messages' privacy settings. */
 "SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "对于您开启的全部新聊天，设置默认的限时消息计时器。";
@@ -10726,10 +10726,10 @@
 "UNKNOWN_USER" = "未知";
 
 /* Info Message when an unknown user disabled disappearing messages. */
-"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "阅后即焚消息已被关闭。";
+"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限时消息已关闭。";
 
 /* Info Message when an unknown user enabled disappearing messages. Embeds {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
-"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "阅后即焚消息的销毁时间被设置为 %1$@。";
+"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限时消息时间已设为 %1$@。";
 
 /* Indicates an unknown or unrecognizable value. */
 "UNKNOWN_VALUE" = "无法识别";
@@ -11098,7 +11098,7 @@
 "YOU_DELETED_THIS_MESSAGE" = "您删除了此消息";
 
 /* Info Message when you disabled disappearing messages. */
-"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您取消了阅后即焚。";
+"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您关闭了限时消息。";
 
 /* alert body shown when trying to use features in the app before completing registration-related setup. */
 "YOU_MUST_COMPLETE_ONBOARDING_BEFORE_PROCEEDING" = "你必须先完成设置才能继续。";
