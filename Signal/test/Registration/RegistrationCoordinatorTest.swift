@@ -2487,6 +2487,34 @@ public class RegistrationCoordinatorTest {
         #expect(sessionManager.latestChallengeFulfillment == nil)
     }
 
+    /// Tellomi（ADR-0070 P4）：「令牌到了」只认自己这个协调器发的。别的注册流程（比如并行跑的另一条用例）发的通知，
+    /// 不能让这个导航控制器离开验证页——否则它会替自己的协调器取下一步，发出没人备好回应的请求（模拟对象从空队列取值就崩）。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenFromAnotherFlowIsIgnored(testCase: TestCase) async throws {
+        let (_, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationCaptchaViewController(presenter: navigationController)], animated: false)
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+
+        NotificationCenter.default.post(
+            name: RegistrationCoordinatorImpl.tellomiPreAuthChallengeTokenDidArriveNotification,
+            object: NSObject(),
+        )
+        #expect(navigationController.topViewController is RegistrationCaptchaViewController)
+
+        // 收尾：让自己的令牌到，等协调器用掉它，别让这一条的异步下一步拖到后面的用例里。
+        lateToken.resolve("a late pre-auth challenge token")
+        let deadline = Date().addingTimeInterval(10)
+        while sessionManager.latestChallengeFulfillment == nil, Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+    }
+
     /// 两条 P4 用例共用：会话同时要推送挑战和验证码，推送在 0.5 秒的等待窗口里没到 → 协调器给出验证页。
     /// 返回协调器、一个真的导航控制器（它在 init 里订阅「令牌到了」的通知），以及之后用来让令牌晚到的 promise。
     @MainActor
