@@ -211,7 +211,7 @@ class RegistrationPhoneNumberViewController: OWSViewController {
             switch validationError {
             case .rateLimited:
                 return false
-            case nil, .invalidInput, .invalidE164:
+            case nil, .invalidInput, .invalidE164, .unsupportedRegion:
                 break
             }
 
@@ -296,6 +296,8 @@ class RegistrationPhoneNumberViewController: OWSViewController {
                 return !error.canSubmit(e164: parseE164())
             case let .rateLimited(error):
                 return !error.canSubmit(e164: parseE164(), dateProvider: { now })
+            case let .unsupportedRegion(error):
+                return !error.canSubmit(e164: parseE164())
             case nil:
                 return false
             }
@@ -326,7 +328,7 @@ class RegistrationPhoneNumberViewController: OWSViewController {
             validationWarningLabel.alpha = 0
         }
         switch validationError {
-        case nil, .rateLimited:
+        case nil, .rateLimited, .unsupportedRegion:
             break
         case let .invalidInput(error):
             showInvalidPhoneNumberAlertIfNecessary(for: .invalidInput(countryCode: error.invalidCountryCode, nationalNumber: error.invalidNationalNumber))

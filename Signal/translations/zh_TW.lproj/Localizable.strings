@@ -26,6 +26,7 @@
 
 /* Accessibility label for media. */
 "ACCESSIBILITY_LABEL_MEDIA" = "媒體";
+"ACCESSIBILITY_LABEL_MEDIA_TELLOMI_ALBUM_ITEM_FORMAT" = "第 %1$@ 項，共 %2$@ 項";
 
 /* Accessibility label for stickers. */
 "ACCESSIBILITY_LABEL_STICKER" = "貼圖";
@@ -182,6 +183,15 @@
 
 /* Media (i.e., graphical) file type in All Meda file type picker. */
 "ALL_MEDIA_FILE_TYPE_MEDIA" = "媒體";
+
+/* Tellomi (#1174): links file type in the All Media file type picker (iOS had no links page) */
+"ALL_MEDIA_FILE_TYPE_TELLOMI_LINKS" = "連結";
+
+/* Tellomi (#1174): shown on the All Media links page when the chat has no messages with link previews */
+"ALL_MEDIA_TELLOMI_LINKS_EMPTY" = "還沒有連結";
+
+/* Tellomi (#1174): placeholder of the search bar in Saved Messages' All Media; filters the current file type */
+"ALL_MEDIA_TELLOMI_SEARCH_PLACEHOLDER" = "搜尋檔案名稱、說明文字和連結";
 
 /* Menu option to limit All Media view to displaying only GIFs */
 "ALL_MEDIA_FILTER_GIFS" = "動態圖檔";
@@ -2160,8 +2170,17 @@
 /* Message shown in the chat list when the chat list is empty. */
 "CHAT_LIST_NO_CHATS_TITLE" = "沒有聊天";
 
+/* Chat list title while the app is connecting to the server. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_CONNECTING_TELLOMI" = "連線中…";
+
 /* Title for the chat list's default mode. */
 "CHAT_LIST_TITLE_INBOX" = "聊天";
+
+/* Chat list title while the app is receiving the messages that arrived while it was offline. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_UPDATING_TELLOMI" = "收取中…";
+
+/* Chat list title while the device has no network connection. Shown next to a small spinner. */
+"CHAT_LIST_TITLE_WAITING_FOR_NETWORK_TELLOMI" = "等待網路…";
 
 /* Title for context menu action to enable Filter by Unread */
 "CHAT_LIST_UNREAD_FILTER_MENU_ACTION" = "根據未讀訊息篩選";
@@ -2535,6 +2554,9 @@
 /* Context menu button title */
 "CONTEXT_MENU_FORWARD_MESSAGE" = "轉寄";
 
+/* Tellomi (#1174): context menu button that saves a message into Saved Messages */
+"CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏";
+
 /* Context menu button title */
 "CONTEXT_MENU_PAYMENT_DETAILS" = "付款詳情";
 
@@ -2559,8 +2581,17 @@
 /* Message for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE" = "此聊天將從你所有裝置上刪除。";
 
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when there are no linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES" = "「我的收藏」裡的內容會從這台裝置上刪除，無法復原。";
+
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when the account has linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES" = "「我的收藏」裡的內容會從這台裝置和已連結的裝置上刪除，無法復原。";
+
 /* Title for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE" = "刪除聊天？";
+
+/* Tellomi (#1174): title of the confirmation shown before deleting Saved Messages (the chat with yourself) */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES" = "刪除「我的收藏」？";
 
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that dismisses the sheet without pasting the key. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_DO_NOT_SHARE_BUTTON_TITLE" = "切勿分享金鑰";
@@ -2611,7 +2642,7 @@
 "CONVERSATION_SETTINGS_ARCHIVE_CHAT" = "封存聊天";
 
 /* Footer for the 'attributes access' section in conversation settings view with pinned messages added. */
-"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "選擇誰可以編輯群組名稱、相片、描述、自動銷毀訊息計時器和已釘選訊息。";
+"CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "選擇誰可以編輯群組名稱、相片、描述、限時訊息計時器和已釘選訊息。";
 
 /* Footer string for a contact's badges in conversation settings */
 "CONVERSATION_SETTINGS_BADGES_FOOTER" = "透過支持 Tellomi 為你的個人資料得到徽章。點擊徽章以了解更多資訊。";
@@ -2840,6 +2871,21 @@
 
 /* Button on truncated text messages that they can be tapped to download the entire text message. */
 "CONVERSATION_VIEW_OVERSIZE_TEXT_TAP_TO_DOWNLOAD" = "取得完整訊息";
+
+/* Tellomi (#1174): categories under the Saved Messages title; All is the chat itself */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_ALL" = "全部";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on photos and videos */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_MEDIA" = "圖片與影片";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on files */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_FILES" = "檔案";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on audio */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_VOICE" = "語音";
+
+/* Tellomi (#1174): Saved Messages category that opens All Media on links */
+"CONVERSATION_VIEW_TELLOMI_SAVED_CATEGORY_LINKS" = "連結";
 
 /* Indicator that a value has been copied to the clipboard. */
 "COPIED_TO_CLIPBOARD" = "複製到剪貼簿";
@@ -3256,7 +3302,7 @@
 "DEVICE_TRANSFER_TUTORIAL_TAP_PAIR_NEW_DEVICE_MESSAGE" = "輕按下方的「與新裝置配對」";
 
 /* table cell label in conversation settings */
-"DISAPPEARING_MESSAGES" = "自動銷毀訊息";
+"DISAPPEARING_MESSAGES" = "限時訊息";
 
 /* Info Message when added to a group which has enabled disappearing messages. Embeds {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
 "DISAPPEARING_MESSAGES_CONFIGURATION_GROUP_EXISTING_FORMAT" = "此聊天中的訊息將在%1$@之後消失。";
@@ -3283,7 +3329,7 @@
 "DISAPPEARING_MESSAGES_HOURS" = "小時";
 
 /* Accessibility label for disappearing messages */
-"DISAPPEARING_MESSAGES_LABEL" = "設定自動銷毀";
+"DISAPPEARING_MESSAGES_LABEL" = "限時訊息設定";
 
 /* The unit for a number of minutes */
 "DISAPPEARING_MESSAGES_MINUTES" = "分";
@@ -3472,7 +3518,7 @@
 "DONATION_ON_BEHALF_OF_A_FRIEND_CONFIRMATION_SCREEN_TITLE" = "確認捐款";
 
 /* When users make donations on a friend's behalf, a message is sent. This text tells senders that their message will disappear, if the conversation has disappearing messages enabled. Embeds {{duration}}, such as \"1 week\". */
-"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "此聊天已開啟「自動銷毀訊息」功能。你的捐款訊息將在 %1$@ 內消失。";
+"DONATION_ON_BEHALF_OF_A_FRIEND_DISAPPEARING_MESSAGES_NOTICE_FORMAT" = "此聊天已開啟「限時訊息」功能。你的捐款訊息將在 %1$@ 內消失。";
 
 /* Users can donate on a friend's behalf. This tells users that this will be a one-time donation. */
 "DONATION_ON_BEHALF_OF_A_FRIEND_PAYMENT_DESCRIPTION" = "單次捐款";
@@ -3993,6 +4039,9 @@
 /* A footer below the username text field describing what should be entered */
 "FIND_BY_USERNAME_FOOTER" = "輸入用戶名稱，後面跟著一個點及其配對數字。";
 
+/* Tellomi: footer below the find-by-username text field. Usernames have no visible numeric suffix, so this does not ask for one. */
+"FIND_BY_USERNAME_FOOTER_TELLOMI" = "輸入對方的用戶名稱。";
+
 /* A placeholder value for the text field for finding an account by their username */
 "FIND_BY_USERNAME_PLACEHOLDER" = "使用者名稱";
 
@@ -4016,6 +4065,48 @@
 
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "訊息已傳送";
+
+/* Tellomi: placeholder of the message field that is sent before the forwarded content. */
+"FORWARD_MESSAGE_TELLOMI_GRID_COMMENT_PLACEHOLDER" = "新增訊息…";
+
+/* Tellomi: separator between selected chat names in the forward grid subtitle. */
+"FORWARD_MESSAGE_TELLOMI_GRID_NAME_SEPARATOR" = "、";
+
+/* Tellomi: section title of matching chats in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CHATS" = "聊天";
+
+/* Tellomi: section title of matching contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_CONTACTS" = "聯絡人";
+
+/* Tellomi: section title of matching groups in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_GROUPS" = "群組";
+
+/* Tellomi: section title of recent contacts in forward search. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_RECENT" = "最近聯絡人";
+
+/* Tellomi: toast when trying to select more chats than allowed. Embeds {{the limit}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SELECTION_LIMIT_%d" = "最多選 %d 個聊天";
+
+/* Tellomi: toast after forwarding to three or more chats. Embeds {{first chat name}} and {{total number of chats}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_MANY_%@_%d" = "已轉寄給 %1$@ 等 %2$d 個聊天";
+
+/* Tellomi: toast after forwarding to one chat. Embeds {{chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_ONE_%@" = "已轉寄給 %@";
+
+/* Tellomi: toast after forwarding to Saved Messages only. Embeds {{Saved Messages}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_SAVED_%@" = "已轉寄到 %@";
+
+/* Tellomi: toast after forwarding to two chats. Embeds {{first chat name}} and {{second chat name}}. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SENT_TO_TWO_%@_%@" = "已轉寄給 %1$@ 和 %2$@";
+
+/* Tellomi: accessibility label of the share button in the forward grid. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SHARE_TO_OTHER_APPS" = "分享到其他 App";
+
+/* Tellomi: subtitle of the forward grid before any chat is selected. */
+"FORWARD_MESSAGE_TELLOMI_GRID_SUBTITLE" = "選擇聊天";
+
+/* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
+"FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "已收藏，點擊查看";
 
 /* Indicates that the user can add a text message to forwarded messages. */
 "FORWARD_MESSAGE_TEXT_PLACEHOLDER" = "新增訊息";
@@ -4047,8 +4138,14 @@
 /* Accessibility label for the close button in each Get Started card. */
 "GET_STARTED_CARD_CLOSE_A11YLABEL" = "移除建議";
 
+/* 'Get Started' button directing users to find someone by their username */
+"GET_STARTED_CARD_FIND_BY_USERNAME_TELLOMI" = "搜尋使用者名稱";
+
 /* 'Get Started' button directing users to invite friends */
 "GET_STARTED_CARD_INVITE_FRIENDS" = "邀請好友";
+
+/* 'Get Started' button directing users to their own username QR code */
+"GET_STARTED_CARD_MY_QR_CODE_TELLOMI" = "我的二維碼";
 
 /* 'Get Started' button directing users to create a group */
 "GET_STARTED_CARD_NEW_GROUP" = "新群組";
@@ -5319,6 +5416,9 @@
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_BODY" = "這個 QR 碼無效。請確定您正在掃描要連接的裝置上顯示的QR碼。";
 
+/* Tellomi (#1219): the server has no device waiting at the scanned code (HTTP 404): the code expired, or it isn't a Tellomi code. Doesn't name the other app. */
+"LINK_DEVICE_INVALID_CODE_TELLOMI_EXPIRED_OR_FOREIGN_BODY" = "這個 QR 碼已過期，或者不是 Tellomi 的 QR 碼。請掃描電腦上 Tellomi 目前顯示的 QR 碼。";
+
 /* report an invalid linking code */
 "LINK_DEVICE_INVALID_CODE_TITLE" = "裝置連結失敗";
 
@@ -5333,6 +5433,9 @@
 
 /* attempt another linking */
 "LINK_DEVICE_RESTART" = "重試";
+
+/* Tellomi (#1219): button that restarts the QR scanner after linking failed */
+"LINK_DEVICE_RESTART_TELLOMI_SCAN_AGAIN" = "重新掃描";
 
 /* Title for QR Scanning screen instructions sheet */
 "LINK_DEVICE_SCANNING_INSTRUCTIONS_SHEET_BODY" = "使用此裝置來掃描你想連結的裝置上所顯示的二維碼";
@@ -5465,6 +5568,9 @@
 
 /* Menu item and navbar title for the device manager */
 "LINKED_DEVICES_TITLE" = "已連結的裝置";
+
+/* Tellomi (#1219): linking failed because the server could not be reached or returned a server error */
+"LINKING_DEVICE_FAILED_TELLOMI_NETWORK_BODY" = "無法連線到伺服器，或伺服器忙碌中。請檢查網路連線，稍後再試。";
 
 /* Alert Title */
 "LINKING_DEVICE_FAILED_TITLE" = "裝置連結失敗";
@@ -5681,6 +5787,20 @@
 
 /* Context menu item in media viewer. Refers to saving currently displayed photo/video to the Photos app. */
 "MEDIA_VIEWER_SAVE_MEDIA_ACTION" = "儲存";
+"MEDIA_VIEWER_TELLOMI_ALL_ITEMS_FORMAT" = "全部 %@ 項";
+"MEDIA_VIEWER_TELLOMI_ALL_PHOTOS_FORMAT" = "全部 %@ 張圖片";
+"MEDIA_VIEWER_TELLOMI_ALL_VIDEOS_FORMAT" = "全部 %@ 部影片";
+"MEDIA_VIEWER_TELLOMI_PAUSE" = "暫停";
+"MEDIA_VIEWER_TELLOMI_PLAY" = "播放";
+"MEDIA_VIEWER_TELLOMI_PLAYBACK_SPEED" = "播放速度";
+"MEDIA_VIEWER_TELLOMI_REPLY_ACTION" = "回覆";
+"MEDIA_VIEWER_TELLOMI_SHARE_ACTION" = "分享";
+"MEDIA_VIEWER_TELLOMI_SKIP_BACK" = "倒轉 15 秒";
+"MEDIA_VIEWER_TELLOMI_SKIP_FORWARD" = "快轉 15 秒";
+"MEDIA_VIEWER_TELLOMI_SPEED" = "速度";
+"MEDIA_VIEWER_TELLOMI_SPEED_NORMAL" = "正常";
+"MEDIA_VIEWER_TELLOMI_THIS_PHOTO" = "這張圖片";
+"MEDIA_VIEWER_TELLOMI_THIS_VIDEO" = "這部影片";
 
 /* button title to snooze a megaphone */
 "MEGAPHONE_REMIND_LATER" = "稍後提醒我";
@@ -5789,6 +5909,9 @@
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_MESSAGE" = "轉寄此訊息";
+
+/* Tellomi (#1174): accessibility label for saving a message into Saved Messages */
+"MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏到「我的收藏」";
 
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_SELECTED_MESSAGES" = "轉寄已選擇的訊息";
@@ -6382,7 +6505,7 @@
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "重新註冊";
 
 /* Label for 1:1 conversation with yourself. */
-"NOTE_TO_SELF" = "給自己的筆記";
+"NOTE_TO_SELF" = "我的收藏";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
 "NOTIFICATION_BODY_CLOCK_SKEW" = "當你的裝置日期和時間不正確時，Tellomi 無法接收訊息。開啟「設定」以進行更正。";
@@ -6612,6 +6735,9 @@
 /* Label indicating that registration has been ratelimited. Embeds {{remaining time string}}. */
 "ONBOARDING_PHONE_NUMBER_RATE_LIMIT_WARNING_FORMAT" = "請等待幾分鐘，然後重試。(%1$@)";
 
+/* Label under the phone number field when verification codes can't be sent to numbers from the entered region. */
+"ONBOARDING_PHONE_NUMBER_UNSUPPORTED_REGION_WARNING" = "暫未開放該地區的手機號碼註冊，目前只支援中國大陸（+86）手機號碼。";
+
 /* Label indicating that the phone number is invalid in the 'onboarding phone number' view. */
 "ONBOARDING_PHONE_NUMBER_VALIDATION_WARNING" = "無效的電話號碼。 請輸入有效的電話號碼進行註冊。";
 
@@ -6709,10 +6835,10 @@
 "OS_SOON_TO_EXPIRE_AND_DEVICE_WILL_BE_STUCK_FORMAT" = "Tellomi 即將停止支援你裝置使用的 iOS 版本。如要繼續使用 Tellomi，請在 %1$@ 之前改用較新的裝置。";
 
 /* Info Message when another user disabled disappearing messages. Embeds {{name of other user}}. */
-"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@關閉了訊息銷毀功能。";
+"OTHER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 關閉了限時訊息。";
 
 /* Info Message when another user enabled disappearing messages. Embeds {{name of other user}} and {{time amount}} before messages disappear. See the *_TIME_AMOUNT strings for context. */
-"OTHER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@設定訊息銷毀時間為%2$@";
+"OTHER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "%1$@ 已將限時訊息時間設為 %2$@。";
 
 /* Label warning the user that the Signal service may be down. */
 "OUTAGE_WARNING" = "Tellomi 正面臨技術上的問題。我們正在盡力的盡快地恢復服務。";
@@ -7471,10 +7597,10 @@
 "PINNED_SECTION_TITLE" = "已釘選";
 
 /* Body for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當自動銷毀訊息時限已到和從聊天中被移除時，系統會將其解除釘選。";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_BODY" = "當限時訊息時限已到和從聊天中被移除時，系統會將其解除釘選。";
 
 /* Title for a sheet warning users they are pinning a disappearing message. */
-"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "釘選自動銷毀訊息";
+"PINNING_DISAPPEARING_MESSAGE_WARNING_TITLE" = "釘選限時訊息";
 
 /* Action text for PIN megaphone when user doesn't have a PIN */
 "PINS_MEGAPHONE_ACTION" = "建立 PIN碼";
@@ -7775,6 +7901,12 @@
 
 /* Title of alert shown when push tokens sync job succeeds. */
 "PUSH_REGISTER_SUCCESS" = "成功重新註冊了推播通知。";
+
+/* Tellomi: body of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. Warns that continuing moves the account to that phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_MESSAGE_TELLOMI" = "新手機正在要求轉走你的帳號。只有在你自己換手機、正在新手機上註冊時才繼續。如果是別人要你掃的，請取消——繼續會把你的帳號轉到對方手機上。";
+
+/* Tellomi: title of the prompt shown when the in-app camera scans the account-transfer QR code of a new phone. */
+"QUICK_RESTORE_SCAN_CONFIRMATION_TITLE_TELLOMI" = "這是轉移帳號的 QR 碼";
 
 /* Body for sheet with info about scanning a Quick Restore QR code */
 "QUICK_RESTORE_URL_OPENED_ACTION_SHEET_EXTERNAL_URL_ACTION_BODY" = "使用此裝置來掃描目標裝置上顯示的二維碼";
@@ -8115,11 +8247,50 @@
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "關於個人資料隱私";
 
+/* During registration, users set up their profile in a single field that holds their full name. This is the placeholder for that field. */
+"REGISTRATION_PROFILE_SETUP_NAME_FIELD_PLACEHOLDER_TELLOMI" = "名字";
+
+/* During registration, users set up their profile. Shown below the name field instead of the phone number privacy setting. */
+"REGISTRATION_PROFILE_SETUP_PHONE_NUMBER_NOT_SHOWN_TELLOMI" = "你的電話號碼預設不會向任何人顯示。";
+
 /* During registration, users set up their profile. This is the subtitle on the screen where this is done. It tells users about the privacy of their profile. A \"learn more\" link will be added to the end of this string. */
 "REGISTRATION_PROFILE_SETUP_SUBTITLE" = "與你收發訊息的使用者、聯絡人和群組將會看到你的個人檔案。";
 
 /* During registration, users set up their profile. This is the title on the screen where this is done. */
 "REGISTRATION_PROFILE_SETUP_TITLE" = "設定你的資訊";
+
+/* Tellomi: registration username is being checked with the server. */
+"REGISTRATION_PROFILE_USERNAME_CHECKING_TELLOMI" = "正在檢查…";
+
+/* Tellomi: registration username could not be checked because of a network or server error. */
+"REGISTRATION_PROFILE_USERNAME_CHECK_FAILED_TELLOMI" = "暫時無法檢查，請稍後再試";
+
+/* Tellomi: registration username contains characters other than letters, numbers and underscores. */
+"REGISTRATION_PROFILE_USERNAME_INVALID_CHARACTERS_TELLOMI" = "只能使用字母、數字和底線";
+
+/* Tellomi: registration username is taken or reserved. */
+"REGISTRATION_PROFILE_USERNAME_NOT_AVAILABLE_TELLOMI" = "這個用戶名稱無法使用";
+
+/* Tellomi: during registration, placeholder of the optional username field below the name field. */
+"REGISTRATION_PROFILE_USERNAME_PLACEHOLDER_TELLOMI" = "用戶名稱（選填）";
+
+/* Tellomi: registration username does not start with a letter. */
+"REGISTRATION_PROFILE_USERNAME_START_WITH_LETTER_TELLOMI" = "需要以字母開頭";
+
+/* Tellomi: registration username is longer than 20 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_LONG_TELLOMI" = "最多 20 個字元";
+
+/* Tellomi: registration username reservation was rate limited for less than an hour. */
+"REGISTRATION_PROFILE_USERNAME_TOO_MANY_ATTEMPTS_TELLOMI" = "嘗試次數過多，請稍後再試";
+
+/* Tellomi: registration username is shorter than 3 characters. */
+"REGISTRATION_PROFILE_USERNAME_TOO_SHORT_TELLOMI" = "至少 3 個字元";
+
+/* Tellomi: label before the suggested usernames when the one typed is not available. */
+"REGISTRATION_PROFILE_USERNAME_TRY_TELLOMI" = "可以試試：";
+
+/* Tellomi: registration username is available. Embeds {{ the link, like tell.cc/kaixin }}. */
+"REGISTRATION_PROFILE_USERNAME_YOUR_LINK_TELLOMI" = "你的連結：%@";
 
 /* Error shown if an SMS/call service provider is unable to send a verification code to the provided number. */
 "REGISTRATION_PROVIDER_FAILURE_MESSAGE_PERMANENT" = "我們無法向你的號碼發送 SMS 短訊。請於幾個小時後重試。";
@@ -8959,10 +9130,10 @@
 "SETTINGS_DELETE_HISTORYLOG_CONFIRMATION_SECONDARY_TITLE" = "你確定要刪除所有聊天紀錄嗎？";
 
 /* Label for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES" = "自動銷毀訊息";
+"SETTINGS_DISAPPEARING_MESSAGES" = "限時訊息";
 
 /* Explanation for the 'disappearing messages' privacy settings. */
-"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為你發起的所有新聊天設定預設的訊息銷毀計時器。";
+"SETTINGS_DISAPPEARING_MESSAGES_FOOTER" = "為你發起的所有新聊天設定預設的限時訊息計時器。";
 
 /* Title for the 'donate to signal' link in settings. */
 "SETTINGS_DONATE" = "贊助 Tellomi";
@@ -10399,7 +10570,7 @@
 "SYSTEM_MESSAGE_ACTION_VERIFY_SAFETY_NUMBER" = "驗證";
 
 /* Indicator that the default disappearing message timer will be applied when you send a message. Embeds {default disappearing message time} */
-"SYSTEM_MESSAGE_DEFAULT_DISAPPEARING_MESSAGE_TIMER_FORMAT" = "銷毀的訊息時間將設定為 %1$@ 當你傳送訊息給對方。";
+"SYSTEM_MESSAGE_DEFAULT_DISAPPEARING_MESSAGE_TIMER_FORMAT" = "你傳送訊息給對方時，限時訊息時間將設為 %1$@。";
 
 /* Indicator warning about an unknown contact thread */
 "SYSTEM_MESSAGE_UNKNOWN_THREAD_REVIEW_CAREFULLY_WARNING" = "仔細審核請求";
@@ -10477,7 +10648,7 @@
 "THREAD_DETAILS_NO_MEMBERS" = "尚未有其他群組成員";
 
 /* Subtitle appearing at the top of the users 'note to self' conversation */
-"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "你可以在此聊天中為自己新增註釋。 如果你的帳戶有任何已連結的裝置，則新的筆記將被同步。";
+"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "把訊息轉寄到這裡，或直接傳給自己，隨時查看。若你的帳戶有已連結的裝置，這裡的新訊息會同步過去。";
 
 /* Label for a group with one member (not counting yourself), displaying their name */
 "THREAD_DETAILS_ONE_MEMBER" = "%1$@";
@@ -10630,10 +10801,10 @@
 "UNKNOWN_USER" = "未知";
 
 /* Info Message when an unknown user disabled disappearing messages. */
-"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "自動銷毀訊息已被關閉。";
+"UNKNOWN_USER_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限時訊息已關閉。";
 
 /* Info Message when an unknown user enabled disappearing messages. Embeds {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
-"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "自動銷毀訊息時間已被設定為%1$@。";
+"UNKNOWN_USER_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "限時訊息時間已設為 %1$@。";
 
 /* Indicates an unknown or unrecognizable value. */
 "UNKNOWN_VALUE" = "未知";
@@ -10758,6 +10929,12 @@
 /* Text providing instructions on how to use the username link QR code scanning. */
 "USERNAME_LINK_SCAN_QR_CODE_INSTRUCTIONS_LABEL" = "請掃描你聯絡人裝置上的二維碼。";
 
+/* Tellomi: shown when a device-linking QR code is scanned on a device that is not the primary phone. */
+"USERNAME_LINK_SCAN_DEVICE_LINK_NOT_PRIMARY_TELLOMI" = "這是連結新裝置的 QR 碼，請在主手機的「設定 → 已連結的裝置」裡掃描。";
+
+/* Tellomi: title of the sheet showing the content of a scanned QR code that is not a Tellomi code. */
+"USERNAME_LINK_SCAN_RESULT_TITLE_TELLOMI" = "掃描到的內容";
+
 /* Text for a tappable cell that copies the user's username link when selected. */
 "USERNAME_LINK_SHARE_SHEET_COPY_LINK_ACTION" = "複製連結";
 
@@ -10778,6 +10955,9 @@
 
 /* A message indicating that a user-entered username value is not a valid username. Embeds {{ a username }}. */
 "USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT" = "%1$@ 不是有效的用戶名稱。請確保你已輸入完整的用戶名稱，以及隨後的一組數字。";
+
+/* Tellomi: message shown when a user-entered value cannot be a username. Usernames have no visible numeric suffix, so this does not ask for one. Embeds {{ a username }}. */
+"USERNAME_LOOKUP_INVALID_USERNAME_MESSAGE_FORMAT_TELLOMI" = "%1$@ 不是有效的用戶名稱。";
 
 /* Title for an action sheet indicating that a user-entered username value is not a valid username. */
 "USERNAME_LOOKUP_INVALID_USERNAME_TITLE" = "用戶名稱無效";
@@ -10805,6 +10985,9 @@
 
 /* Footer text below a text field in which users type their desired username, which explains how usernames work. Embeds a {{ \"learn more\" link. }}. */
 "USERNAME_SELECTION_EXPLANATION_FOOTER_FORMAT" = "用戶名稱都會與一組數字配對。 %1$@";
+
+/* Tellomi: footer text below the username text field. Usernames have no visible numeric suffix, so this explains what a username is for instead. */
+"USERNAME_SELECTION_EXPLANATION_FOOTER_TELLOMI" = "別人可以透過用戶名稱找到你、傳訊息給你，不需要知道你的電話號碼。";
 
 /* When the user has entered text into a text field for setting their username, a header displays the username text. This string is shown in the header when the text field is empty. */
 "USERNAME_SELECTION_HEADER_TEXT_FOR_PLACEHOLDER" = "選擇你的使用者名稱";
@@ -10996,10 +11179,10 @@
 "YOU_DELETED_THIS_MESSAGE" = "你已刪除此訊息";
 
 /* Info Message when you disabled disappearing messages. */
-"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您關閉了訊息自動銷毀";
+"YOU_DISABLED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您關閉了限時訊息。";
 
 /* alert body shown when trying to use features in the app before completing registration-related setup. */
 "YOU_MUST_COMPLETE_ONBOARDING_BEFORE_PROCEEDING" = "在繼續之前，你必須先完成設定。";
 
 /* Info Message when you update disappearing messages duration. Embeds a {{time amount}} before messages disappear. see the *_TIME_AMOUNT strings for context. */
-"YOU_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您將訊息銷毀時間設為 %1$@";
+"YOU_UPDATED_DISAPPEARING_MESSAGES_CONFIGURATION" = "您已將限時訊息時間設為 %1$@。";
