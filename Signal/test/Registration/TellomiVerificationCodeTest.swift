@@ -120,6 +120,18 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
         return result
     }
 
+    private func firstView<T: UIView>(of type: T.Type, in view: UIView) -> T? {
+        if let match = view as? T {
+            return match
+        }
+        for subview in view.subviews {
+            if let found = firstView(of: type, in: subview) {
+                return found
+            }
+        }
+        return nil
+    }
+
     private func button(withIdentifier identifier: String, in view: UIView) -> UIButton? {
         if let button = view as? UIButton, button.accessibilityIdentifier == identifier {
             return button
@@ -254,5 +266,48 @@ final class TellomiVerificationCodeTest: SignalBaseTest {
             }
         }
         return nil
+    }
+
+    /// taishi 审查 b8 不阻塞 4：ADR-0051 §二 F（`docs/adr/0051-sign-in-ux-redesign.md:108`）——
+    /// 「收不到验证码？」在左、「重新发送」在右，同一行，都在验证码格子下面。
+    func testDidntGetTheCodeSitsOnTheLeftOfResendInOneRow() throws {
+        let viewController = RegistrationVerificationViewController(
+            state: RegistrationVerificationState(
+                e164: E164("+8613800138000")!,
+                nextSMSDate: Date().addingTimeInterval(30),
+                nextCallDate: nil,
+                nextVerificationAttemptDate: nil,
+                canChangeE164: true,
+                showHelpText: false,
+                validationError: nil,
+                exitConfiguration: .noExitAllowed,
+            ),
+            presenter: Presenter(),
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        defer {
+            // Tellomi：用完把页面从窗口上摘干净，让它随用例释放（deinit 里停掉每秒一跳的 nowTimer）。只把窗口藏起来的话，
+            // 页面拿着键盘焦点留在内存里，定时器会在后面的用例之间（测试环境已拆）触发、碰到 SSKEnvironment 就崩。
+            viewController.view.endEditing(true)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        window.layoutIfNeeded()
+
+        let help = try XCTUnwrap(button(withIdentifier: "registration.verification.helpButton", in: viewController.view))
+        let resend = try XCTUnwrap(button(withIdentifier: "registration.verification.resendSMSCodeButton", in: viewController.view))
+        let code = try XCTUnwrap(firstView(of: RegistrationVerificationCodeView.self, in: viewController.view))
+        let helpFrame = help.convert(help.bounds, to: window)
+        let resendFrame = resend.convert(resend.bounds, to: window)
+        let codeFrame = code.convert(code.bounds, to: window)
+
+        XCTAssertFalse(help.isHidden)
+        XCTAssertLessThanOrEqual(helpFrame.maxX, resendFrame.minX, "help \(helpFrame) should be left of resend \(resendFrame)")
+        XCTAssertEqual(helpFrame.midY, resendFrame.midY, accuracy: 1, "help \(helpFrame) and resend \(resendFrame) should share a row")
+        XCTAssertGreaterThanOrEqual(helpFrame.minY, codeFrame.maxY, "the row should be below the code \(codeFrame)")
+        XCTAssertEqual(help.contentHorizontalAlignment, .leading)
+        XCTAssertEqual(resend.contentHorizontalAlignment, .trailing)
     }
 }
