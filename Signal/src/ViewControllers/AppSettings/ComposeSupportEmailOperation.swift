@@ -225,7 +225,8 @@ final class ComposeSupportEmailOperation: NSObject {
 
     private var emailURL: URL? {
         let linkBuilder = MailtoLink(
-            to: "support@signal.org",
+            // Tellomi：客服邮箱（docs/product/BRAND.md「官方邮箱」；tellomi/tellomi#1209）。
+            to: "support@tellomi.app",
             subject: model.localizedSubject,
             body: emailBody,
         )

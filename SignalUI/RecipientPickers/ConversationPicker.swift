@@ -441,9 +441,19 @@ open class ConversationPickerViewController: OWSTableViewController2 {
                 transaction: transaction,
             )
 
+            // Tellomi：转发 / 分享面板里「我的收藏」固定第一位，会话删了也照样给（#1174，Telegram 同）
+            var recentConversations = pinnedItems + recentItems
+            if
+                sectionOptions.contains(.recents),
+                let savedMessages = TellomiSavedMessagesConversationItem.contactItem(tx: transaction),
+                TSContactThread.getWithContactAddress(savedMessages.address, transaction: transaction).map({ self.threadFilter($0) }) ?? true
+            {
+                TellomiSavedMessagesConversationItem.pinFirst(savedMessages, recent: &recentConversations, contacts: &contactItems)
+            }
+
             return ConversationCollection(
                 contactConversations: contactItems,
-                recentConversations: pinnedItems + recentItems,
+                recentConversations: recentConversations,
                 groupConversations: groupItems,
                 storyConversations: storyItems,
                 isSearchResults: false,

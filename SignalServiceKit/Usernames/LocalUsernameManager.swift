@@ -56,8 +56,12 @@ public protocol LocalUsernameManager {
     // MARK: Usernames and the service
 
     /// Reserve a username from the given set of candidates.
+    ///
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：带 `chatServiceAuth`，注册资料页用注册拿到的凭证显式认证；
+    /// 不带的版本在下面的扩展里，等于传 `.implicit()`（上游原来的行为）。
     func reserveUsername(
         usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ReservationResult>
 
     /// Set the local user's username to the given reserved username, on the
@@ -65,6 +69,7 @@ public protocol LocalUsernameManager {
     /// corresponding username link.
     func confirmUsername(
         reservedUsername: Usernames.HashedUsername,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ConfirmationResult>
 
     /// Delete the local user's username and username link.
@@ -164,6 +169,20 @@ public extension Usernames {
         )
         case rejected
         case rateLimited
+    }
+}
+
+public extension LocalUsernameManager {
+    func reserveUsername(
+        usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+    ) async -> Usernames.RemoteMutationResult<Usernames.ReservationResult> {
+        return await reserveUsername(usernameCandidates: usernameCandidates, chatServiceAuth: .implicit())
+    }
+
+    func confirmUsername(
+        reservedUsername: Usernames.HashedUsername,
+    ) async -> Usernames.RemoteMutationResult<Usernames.ConfirmationResult> {
+        return await confirmUsername(reservedUsername: reservedUsername, chatServiceAuth: .implicit())
     }
 }
 
@@ -413,6 +432,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
 
     func reserveUsername(
         usernameCandidates: Usernames.HashedUsername.GeneratedCandidates,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ReservationResult> {
         guard reachabilityManager.isReachable else {
             logger.warn("Not attempting to reserve username – Reachability indicates we will fail.")
@@ -421,7 +441,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
 
         do {
             let reservationResult = try await makeRequestWithNetworkRetries {
-                return try await usernameApiClient.reserveUsernameCandidates(usernameCandidates: usernameCandidates)
+                return try await usernameApiClient.reserveUsernameCandidates(usernameCandidates: usernameCandidates, chatServiceAuth: chatServiceAuth)
             }
             return .success(reservationResult)
         } catch {
@@ -436,6 +456,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
     /// Confirm the given reserved username, setting it as our username.
     func confirmUsername(
         reservedUsername: Usernames.HashedUsername,
+        chatServiceAuth: ChatServiceAuth,
     ) async -> Usernames.RemoteMutationResult<Usernames.ConfirmationResult> {
         guard reachabilityManager.isReachable else {
             logger.warn("Not attempting to confirm username – Reachability indicates we will fail.")
@@ -471,7 +492,7 @@ class LocalUsernameManagerImpl: LocalUsernameManager {
                 return try await usernameApiClient.confirmReservedUsername(
                     reservedUsername: reservedUsername,
                     encryptedUsernameForLink: linkEncryptedUsername,
-                    chatServiceAuth: .implicit(),
+                    chatServiceAuth: chatServiceAuth,
                 )
             }
             let confirmationResult = await self.db.awaitableWrite { tx -> Usernames.ConfirmationResult in
