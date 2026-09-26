@@ -130,12 +130,9 @@ class ExperienceUpgradeManager {
                         )
                     }
                 case .notificationPermissionReminder:
-                    if checkPreconditionsForNotificationsPermissionsReminder() {
-                        nextMegaphone = NotificationPermissionReminderMegaphone(
-                            experienceUpgrade: upgrade,
-                            fromViewController: fromViewController,
-                        )
-                    }
+                    // Tellomi（tellomi/tellomi#1112、#1218 F-01）：通知由首屏说明页（`TellomiNotificationPrimer`）问一次，
+                    // 拒了由会话列表顶部的「通知已关闭 · 去设置」常驻提示；上游这张「开启通知」卡片不再出，免得同一件事说两遍。
+                    break
                 case .newLinkedDeviceNotification:
                     switch checkPreconditionsForNewLinkedDeviceNotification(tx: tx) {
                     case .display(let mostRecentlyLinkedDeviceDetails):
@@ -206,12 +203,9 @@ class ExperienceUpgradeManager {
                         )
                     }
                 case .contactPermissionReminder:
-                    if checkPreconditionsForContactsPermissionReminder() {
-                        nextMegaphone = ContactPermissionReminderMegaphone(
-                            experienceUpgrade: upgrade,
-                            fromViewController: fromViewController,
-                        )
-                    }
+                    // Tellomi（tellomi/tellomi#1112）：通讯录等有了按号码找人、在联系人页里说明用途再要
+                    // （docs/legal/permissions.md §十）；现在没有 CDSI，「帮你找到认识的人」不成立，这张卡片不出。
+                    break
                 case .recoveryKeyReminder:
                     if checkPreconditionsForRecoveryKeyReminder(tx: tx) {
                         nextMegaphone = RecoveryKeyReminderMegaphone(
