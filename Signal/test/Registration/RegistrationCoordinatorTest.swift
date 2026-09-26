@@ -2463,6 +2463,8 @@ public class RegistrationCoordinatorTest {
             try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
         }
         #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+        // 先等导航控制器自己那一步走完（提交推送挑战 → 发码 → 推到验证码页），再问协调器，免得两个 nextStep 并发。
+        try await waitForTellomiCodeEntry(navigationController)
         #expect(
             await coordinator.nextStep() ==
                 .verificationCodeEntry(stubs.verificationCodeEntryState(mode: testCase.mode)),
@@ -2506,13 +2508,26 @@ public class RegistrationCoordinatorTest {
         )
         #expect(navigationController.topViewController is RegistrationCaptchaViewController)
 
-        // 收尾：让自己的令牌到，等协调器用掉它，别让这一条的异步下一步拖到后面的用例里。
+        // 收尾：让自己的令牌到，等导航控制器用它走完这一步，别让这一条的异步下一步拖到后面的用例里。
         lateToken.resolve("a late pre-auth challenge token")
         let deadline = Date().addingTimeInterval(10)
         while sessionManager.latestChallengeFulfillment == nil, Date() < deadline {
             try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
         }
         #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+        try await waitForTellomiCodeEntry(navigationController)
+    }
+
+    /// 等导航控制器自己取的那一步走完：提交推送挑战 → 发码 → 推到验证码页。
+    /// 协调器的 nextStep() 没有串行保护：用例在「推送挑战已提交」时就再调一次 nextStep()，两边都会去要验证码，
+    /// 而模拟对象只备了一个回应——空队列 removeFirst，整个测试宿主崩掉（第三批预合链上运行 136、144、145、148）。
+    @MainActor
+    private func waitForTellomiCodeEntry(_ navigationController: RegistrationNavigationController) async throws {
+        let deadline = Date().addingTimeInterval(10)
+        while !(navigationController.topViewController is RegistrationVerificationViewController), Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(navigationController.topViewController is RegistrationVerificationViewController)
     }
 
     /// 两条 P4 用例共用：会话同时要推送挑战和验证码，推送在 0.5 秒的等待窗口里没到 → 协调器给出验证页。
