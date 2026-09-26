@@ -16,6 +16,8 @@ private struct ThreadContextualAction {
     let imageStroked: UIImage
     let title: String
     let action: @MainActor () -> Void
+    /// Tellomi（交互审计 A-39）：有值时，长按菜单里把这一项做成就地展开的子菜单；左滑按钮没有子菜单，仍走 [action]。
+    var contextMenuChildren: [UIMenuElement]?
 }
 
 // MARK: -
@@ -73,7 +75,7 @@ extension ThreadContextualActionProvider where Self: UIViewController {
 
     // MARK: -
 
-    func contextMenuActions(threadViewModel: ThreadViewModel) -> [UIAction] {
+    func contextMenuActions(threadViewModel: ThreadViewModel) -> [UIMenuElement] {
         AssertIsOnMainThread()
 
         var actions: [ThreadContextualAction] = [
@@ -101,13 +103,17 @@ extension ThreadContextualActionProvider where Self: UIViewController {
         actions.append(deleteContextualAction(threadViewModel: threadViewModel))
 
         return actions.map { action in
-            makeUIAction(threadContextualAction: action)
+            makeMenuElement(threadContextualAction: action)
         }
     }
 
-    private func makeUIAction(
+    private func makeMenuElement(
         threadContextualAction action: ThreadContextualAction,
-    ) -> UIAction {
+    ) -> UIMenuElement {
+        if let children = action.contextMenuChildren {
+            return UIMenu(title: action.title, image: action.imageStroked, children: children)
+        }
+
         let attributes: UIMenuElement.Attributes = switch action.style {
         case .normal: []
         case .destructive: [.destructive]
@@ -198,6 +204,7 @@ extension ThreadContextualActionProvider where Self: UIViewController {
                 action: { [weak self] in
                     self?.muteThreadWithSelection(threadViewModel: threadViewModel)
                 },
+                contextMenuChildren: muteDurationMenuChildren(threadViewModel: threadViewModel),
             )
         }
     }
@@ -299,12 +306,19 @@ extension ThreadContextualActionProvider where Self: UIViewController {
         let threadDeletionManager = DependenciesBridge.shared.threadDeletionManager
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
 
+        // Tellomi：删「我的收藏」时换成说清楚的文案（#1174）
+        let savedMessagesConfirmation = db.read { tx in
+            TellomiSavedMessagesStrings.deleteConfirmation(
+                for: [threadViewModel.threadRecord],
+                hasLinkedDevices: DependenciesBridge.shared.deviceStore.hasLinkedDevices(tx: tx),
+            )
+        }
         let alert = ActionSheetController(
-            title: OWSLocalizedString(
+            title: savedMessagesConfirmation?.title ?? OWSLocalizedString(
                 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE",
                 comment: "Title for the 'conversation delete confirmation' alert.",
             ),
-            message: OWSLocalizedString(
+            message: savedMessagesConfirmation?.message ?? OWSLocalizedString(
                 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE",
                 comment: "Message for the 'conversation delete confirmation' alert.",
             ),
@@ -384,6 +398,28 @@ extension ThreadContextualActionProvider where Self: UIViewController {
         alert.addAction(OWSActionSheets.cancelAction)
 
         presentActionSheet(alert)
+    }
+
+    /// Tellomi（交互审计 A-39）：长按菜单里的「静音」就地展开时长，不再先收起菜单、再从屏幕底部另弹一个选择面板。
+    /// 左滑的「静音」按钮没有子菜单，仍走 [muteThreadWithSelection]。
+    private func muteDurationMenuChildren(threadViewModel: ThreadViewModel) -> [UIMenuElement] {
+        let muteManager = ConversationMuteManager()
+        return ConversationMuteChoice.Option.all.compactMap { option -> UIMenuElement? in
+            let choice: ConversationMuteChoice
+            switch option {
+            case .preset(let preset):
+                choice = .preset(preset)
+            case .forever:
+                choice = .forever
+            case .custom:
+                return nil
+            }
+            return UIAction(title: option.title) { _ in
+                MainActor.assumeIsolated {
+                    muteManager.mute(threadViewModel, choice: choice)
+                }
+            }
+        }
     }
 
     private func unmuteThread(threadViewModel: ThreadViewModel) {

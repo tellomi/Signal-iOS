@@ -96,6 +96,8 @@ class MediaTileViewController: UICollectionViewController, MediaGalleryDelegate,
     func set(mediaCategory: AllMediaCategory, isGridLayout: Bool) {
         UIView.performWithoutAnimation {
             let mediaCategoryChanged = self.mediaCategory != mediaCategory
+            // Tellomi（#1174）：换段时新建的 gallery 不带搜索词，换完再按原来的词筛一次
+            let tellomiQuery = mediaGallery.tellomiQuery
             if mediaCategoryChanged {
                 mediaGallery.removeAllDelegates()
                 mediaGallery = MediaGallery(thread: thread, mediaCategory: mediaCategory, spoilerState: spoilerState)
@@ -132,6 +134,9 @@ class MediaTileViewController: UICollectionViewController, MediaGalleryDelegate,
                 } else {
                     collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
                 }
+            }
+            if mediaCategoryChanged, let tellomiQuery, !tellomiQuery.isEmpty {
+                tellomiSearch(tellomiQuery)
             }
         }
     }
@@ -1852,5 +1857,19 @@ private class MediaTileCollectionViewCell:
         }
 
         return true
+    }
+}
+
+// MARK: - Tellomi（tellomi/tellomi#1174）
+
+extension MediaTileViewController {
+
+    /// 「我的收藏」的所有媒体里按类型搜：当前这一段里文件名或说明文字包含这段字的留下。
+    func tellomiSearch(_ query: String?) {
+        guard mediaGallery.tellomiQuery != query else {
+            return
+        }
+        mediaGallery.tellomiQuery = query
+        filter(mediaGallery.mediaFilter)
     }
 }
