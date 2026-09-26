@@ -617,8 +617,12 @@ private func workAroundRotationIssue(_ window: UIWindow) {
 
 // MARK: - Tellomi
 
-/// 已注册但还没同意跨境时挡住整个 App（tellomi/tellomi#1133）。未注册的人在注册流程里单独问：
-/// 号码页「下一步」、欢迎页「恢复或转移账户」、iPad 的「关联设备」。
+/// 已注册但还没同意跨境时挡住整个 App（tellomi/tellomi#1133）。未注册的人在要连服务端的那一页单独问：
+/// - 号码页「下一步」（发号码之前）；
+/// - 欢迎页「恢复或转移账户」和 iPad 的「切换到关联」；
+/// - 关联设备的二维码页 `ProvisioningQRCodeViewController`：iPad 未注册启动、`.relinking`、号码页菜单「关联此设备」都到这一页；
+/// - 快速恢复 / 转移的二维码页 `BaseQuickRestoreQRCodeViewController`：iPad 转移选择页「转移」，以及注册流程续跑到扫码那一步。
+/// provisioning socket 是 libsignal 直连、不经过两道闸，`ProvisioningSocketManager.openNewProvisioningSocket()` 另有一道闸兜底。
 class TellomiCrossBorderConsentMonitoringManager {
     private let windowManager: WindowManager
 

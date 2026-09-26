@@ -64,6 +64,12 @@ class BaseQuickRestoreQRCodeViewController:
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // Tellomi（tellomi/tellomi#1133）：iPad 转移选择页「转移」直接推这一页，不经过注册欢迎页；这里的 provisioning socket
+        // 是 libsignal 直连。没同意跨境就先出告知，同意之后才 reset() 开 socket（不然同意前连不出去，二维码一直转圈）。
+        guard TellomiCrossBorderConsent.hasAgreed else {
+            presentTellomiCrossBorderNotice { [weak self] in self?.reset() }
+            return
+        }
         provisioningSocketManager.reset()
     }
 

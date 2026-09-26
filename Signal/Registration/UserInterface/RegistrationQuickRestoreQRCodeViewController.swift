@@ -31,6 +31,10 @@ class RegistrationQuickRestoreQRCodeViewController: BaseQuickRestoreQRCodeViewCo
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
+        // Tellomi（tellomi/tellomi#1133）：没同意跨境时基类先弹全屏告知，关掉时本页会再走一次 viewDidAppear，
+        // 到那时再等消息；不然会等两次，第二次 waitForMessage 报 OWSAssertionError（Debug 构建直接断言）。
+        guard TellomiCrossBorderConsent.hasAgreed else { return }
+
         Task { [self] in
             do {
                 let message = try await waitForMessage()
