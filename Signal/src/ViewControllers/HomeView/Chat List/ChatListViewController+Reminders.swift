@@ -396,7 +396,7 @@ extension ChatListViewController: UsernameSelectionDelegate {
                     "USERNAME_RESET_SUCCESSFUL_TOAST",
                     comment: "A message in a toast informing the user their username, link, and QR code have successfully been reset. Embeds {{ the user's new username }}.",
                 ),
-                username,
+                TellomiLinks.displayUsername(username), // Tellomi（tellomi/tellomi#1106 第三刀）
             ),
             extraVInset: 8,
         )
