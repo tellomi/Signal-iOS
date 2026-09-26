@@ -2536,6 +2536,9 @@
 /* Context menu button title */
 "CONTEXT_MENU_FORWARD_MESSAGE" = "轉發";
 
+/* Tellomi (#1174): context menu button that saves a message into Saved Messages */
+"CONTEXT_MENU_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏";
+
 /* Context menu button title */
 "CONTEXT_MENU_PAYMENT_DETAILS" = "付款詳情";
 
@@ -2560,8 +2563,17 @@
 /* Message for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE" = "此聊天將從你所有裝置上刪除。";
 
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when there are no linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES" = "「我的收藏」裡的內容會從這部裝置上刪除，無法復原。";
+
+/* Tellomi (#1174): message of the confirmation shown before deleting Saved Messages, when the account has linked devices */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE_TELLOMI_SAVED_MESSAGES_LINKED_DEVICES" = "「我的收藏」裡的內容會從這部裝置和已連結裝置上刪除，無法復原。";
+
 /* Title for the 'conversation delete confirmation' alert. */
 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE" = "是否刪除聊天？";
+
+/* Tellomi (#1174): title of the confirmation shown before deleting Saved Messages (the chat with yourself) */
+"CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE_TELLOMI_SAVED_MESSAGES" = "刪除「我的收藏」？";
 
 /* Title for the button in a warning sheet shown before the user pastes their 'Recovery Key' into the chat input text field that dismisses the sheet without pasting the key. */
 "CONVERSATION_INPUT_PASTE_RECOVERY_KEY_WARNING_SHEET_DO_NOT_SHARE_BUTTON_TITLE" = "切勿分享金鑰";
@@ -4017,6 +4029,9 @@
 
 /* Indicates that multiple messages were forwarded. */
 "FORWARD_MESSAGE_MESSAGES_SENT_N" = "訊息已傳送";
+
+/* Tellomi (#1174): toast after saving a message into Saved Messages; tapping it opens Saved Messages */
+"FORWARD_MESSAGE_TELLOMI_SAVED_TOAST" = "已收藏，輕觸查看";
 
 /* Indicates that the user can add a text message to forwarded messages. */
 "FORWARD_MESSAGE_TEXT_PLACEHOLDER" = "新增訊息";
@@ -5805,6 +5820,9 @@
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_MESSAGE" = "轉寄此訊息";
 
+/* Tellomi (#1174): accessibility label for saving a message into Saved Messages */
+"MESSAGE_ACTION_FORWARD_MESSAGE_TELLOMI_SAVE" = "收藏到「我的收藏」";
+
 /* Action sheet button title */
 "MESSAGE_ACTION_FORWARD_SELECTED_MESSAGES" = "轉寄選取的訊息";
 
@@ -6397,7 +6415,7 @@
 "NOT_REGISTERED_BOTTOM_REREGISTER" = "重新註冊";
 
 /* Label for 1:1 conversation with yourself. */
-"NOTE_TO_SELF" = "給自己的筆記";
+"NOTE_TO_SELF" = "我的收藏";
 
 /* Body for a notification shown when Signal can't fetch messages because the device's date and time are incorrect. */
 "NOTIFICATION_BODY_CLOCK_SKEW" = "當你的裝置日期和時間不正確時，Tellomi 無法接收訊息。開啟「設定」以進行更正。";
@@ -10450,7 +10468,7 @@
 "THREAD_DETAILS_NO_MEMBERS" = "尚未有其他群組成員";
 
 /* Subtitle appearing at the top of the users 'note to self' conversation */
-"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "你可在此聊天中為自己新增筆記。若你的帳戶有任何已連結裝置，新的筆記將會進行同步處理。";
+"THREAD_DETAILS_NOTE_TO_SELF_EXPLANATION" = "把訊息轉寄到這裡，或直接傳給自己，隨時查看。若你的帳戶有已連結裝置，這裡的新訊息會同步過去。";
 
 /* Label for a group with one member (not counting yourself), displaying their name */
 "THREAD_DETAILS_ONE_MEMBER" = "%1$@";

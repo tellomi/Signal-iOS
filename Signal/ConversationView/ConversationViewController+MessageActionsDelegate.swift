@@ -247,6 +247,29 @@ extension ConversationViewController: MessageActionsDelegate {
         ForwardMessageViewController.present(forItemViewModel: itemViewModel, from: self, delegate: self)
     }
 
+    /// Tellomi：长按「收藏」——直接存进「我的收藏」，提示「已收藏，点击查看」（#1174）。
+    func messageActionsTellomiSaveToSavedMessages(_ itemViewModel: CVItemViewModelImpl) {
+        AssertIsOnMainThread()
+
+        ForwardMessageViewController.tellomiSaveToSavedMessages(itemViewModel: itemViewModel) { [weak self] didSave in
+            guard didSave, let self else {
+                return
+            }
+            let toastController = ToastController(text: TellomiSavedMessagesStrings.savedToast)
+            toastController.tellomiOnTap = {
+                let thread = SSKEnvironment.shared.databaseStorageRef.write { tx in
+                    TellomiSavedMessages.list(tx: tx)
+                }
+                guard let thread else {
+                    return
+                }
+                SignalApp.shared.presentConversationForThread(threadUniqueId: thread.uniqueId, animated: true)
+            }
+            let bottomInset = 10 + self.collectionView.contentInset.bottom + self.view.layoutMargins.bottom
+            toastController.presentToastView(from: .bottom, of: self.view, inset: bottomInset)
+        }
+    }
+
     func messageActionsStartedSelect(initialItem itemViewModel: CVItemViewModelImpl) {
         uiMode = .selection
 
