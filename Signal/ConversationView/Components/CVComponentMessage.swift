@@ -131,6 +131,26 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         isLastInCluster && !hasReactions && hasBubbleBackground && styleType != .messageDetails
     }
 
+    /// Tellomi（#1205）：把内容放进气泡视图。内容先放进 `tailContentView`，由它按 `insets` 缩回：有尾巴时气泡视图在尾巴那一侧
+    /// 外扩了 `Tail.extent`，内容缩回原来的位置；没有尾巴内缩为零。
+    ///
+    /// 没有尾巴也放进这一层：壁纸模糊视图（`CVWallpaperBlurView`）一个 cell 只建一次、从不 reset，每次配置
+    /// `addSubviewToFillSuperviewEdges` 加的布局块都留在它身上，块里排的是当时加进去的子视图。子视图永远是这一层，
+    /// 旧的块就不会去排一个已经不在任何视图里的视图（Debug 下 owsFailDebug 直接崩，Release 每次布局都写错误日志）。
+    /// chatColorView 会把自己所有子视图铺满整块（ensureSubviewsFillBounds），所以缩回只能在中间这一层做。
+    static func tellomiHostContent(
+        _ contentView: UIView,
+        in bubbleView: ManualLayoutView,
+        tailContentView: ManualLayoutView,
+        insets: UIEdgeInsets,
+    ) {
+        tailContentView.addSubview(contentView)
+        tailContentView.addLayoutBlock { view in
+            ManualLayoutView.setSubviewFrame(subview: contentView, frame: view.bounds.inset(by: insets))
+        }
+        bubbleView.addSubviewToFillSuperviewEdges(tailContentView)
+    }
+
     private var sharpCornersForQuotedMessage: OWSDirectionalRectCorner {
         var sharpCorners = sharpCorners
 
@@ -573,21 +593,16 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         let contentViewSwipeToReplyWrapper = componentView.contentViewSwipeToReplyWrapper
         if let bubbleView = outerBubbleView {
-            if let tellomiTail {
-                // Tellomi（#1205）：气泡视图在尾巴那一侧外扩 `Tail.extent`，尾巴画在这一条里；内容缩回原来的位置，排版不变。
-                // chatColorView 会把自己所有子视图铺满整块（ensureSubviewsFillBounds），所以内容先放进一层中间视图，由它缩回。
-                let tailContentView = componentView.tellomiTailContentView
-                let insets = tellomiTail.contentInsets
-                tailContentView.addSubview(outerContentView)
-                tailContentView.addLayoutBlock { view in
-                    ManualLayoutView.setSubviewFrame(subview: outerContentView, frame: view.bounds.inset(by: insets))
-                }
-                bubbleView.addSubviewToFillSuperviewEdges(tailContentView)
-            } else {
-                bubbleView.addSubviewToFillSuperviewEdges(outerContentView)
-            }
+            // Tellomi（#1205）：气泡视图在尾巴那一侧外扩 `Tail.extent`，尾巴画在这一条里；内容缩回原来的位置，排版不变。
+            let tellomiInsets = tellomiTail?.contentInsets ?? .zero
+            Self.tellomiHostContent(
+                outerContentView,
+                in: bubbleView,
+                tailContentView: componentView.tellomiTailContentView,
+                insets: tellomiInsets,
+            )
             // 每次都重设：有的包装在复用时不 reset，不重设会带着上一条的外扩。
-            contentViewSwipeToReplyWrapper.tellomiSubviewOutsets = tellomiTail?.contentInsets ?? .zero
+            contentViewSwipeToReplyWrapper.tellomiSubviewOutsets = tellomiInsets
 
             if let (giftWrapView, bubbleViewPartner) = self.configureGiftWrapIfNeeded(messageView: componentView) {
                 let wrapper = ManualLayoutView(name: "containerForOverlay")
@@ -2589,7 +2604,9 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         public func contextMenuContentView() -> UIView? {
             chatColorView.animationsEnabled = true
-            return contentViewSwipeToReplyWrapper
+            // Tellomi（#1205）：交出气泡视图本身，不交包装：尾巴画在包装外扩出去的那一条里，
+            // 长按预览按视图自己的范围截图，交包装会截掉尾巴、那个角变成直角。
+            return contentViewSwipeToReplyWrapper.subview ?? contentViewSwipeToReplyWrapper
         }
 
         public func contextMenuAuxiliaryContentView() -> UIView? {

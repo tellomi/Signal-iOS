@@ -630,6 +630,39 @@ class TellomiBubbleTailTest: XCTestCase {
         wrapper.reset()
         XCTAssertEqual(wrapper.tellomiSubviewOutsets, .zero)
     }
+
+    /// 壁纸模糊视图一个 cell 只建一次、从不 reset，每次配置加的布局块都留在它身上。先配一条有尾巴的、复用、再配一条没尾巴的：
+    /// 内容还是放在中间那一层里，这层还是它的子视图——旧布局块排的视图都还在它里面，不会走到「Missing superview」。
+    func testReusedBlurViewOnlyEverHostsTheTailLayer() {
+        let blurView = ManualLayoutView(name: "blur") // 代替 CVWallpaperBlurView：整个用例里不 reset
+        let tailContentView = ManualLayoutView(name: "tail")
+        let content = UIView()
+
+        // 第一条：尾巴在右，内容缩回原来的宽度
+        blurView.frame = CGRect(x: 0, y: 0, width: 106.3, height: 40)
+        CVComponentMessage.tellomiHostContent(content, in: blurView, tailContentView: tailContentView, insets: BubbleConfiguration.Tail(isOnRight: true).contentInsets)
+        blurView.layoutIfNeeded()
+        tailContentView.layoutIfNeeded()
+        XCTAssertEqual(tailContentView.frame, blurView.bounds)
+        XCTAssertEqual(content.frame, CGRect(x: 0, y: 0, width: 100, height: 40))
+
+        // 复用：同 CVComponentMessage 的 reset()——内容和中间层摘下来，中间层 reset，模糊视图不动
+        content.removeFromSuperview()
+        tailContentView.removeFromSuperview()
+        tailContentView.reset()
+
+        // 第二条：没尾巴，还是这个模糊视图
+        CVComponentMessage.tellomiHostContent(content, in: blurView, tailContentView: tailContentView, insets: .zero)
+        XCTAssertTrue(tailContentView.superview === blurView)
+        XCTAssertTrue(content.superview === tailContentView)
+        XCTAssertEqual(blurView.subviews.count, 1)
+
+        blurView.frame = CGRect(x: 0, y: 0, width: 120, height: 40)
+        blurView.layoutIfNeeded()
+        tailContentView.layoutIfNeeded()
+        XCTAssertEqual(tailContentView.frame, blurView.bounds)
+        XCTAssertEqual(content.frame, CGRect(x: 0, y: 0, width: 120, height: 40))
+    }
 }
 
 /// Tellomi（#1205，设计规范第 2 节）：「正在输入」气泡和对方的消息一样带尾巴，在对方那侧的下角；有壁纸时才带描边（和上游一样）。
