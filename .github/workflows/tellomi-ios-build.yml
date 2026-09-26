@@ -110,7 +110,8 @@ jobs:
             -workspace Signal.xcworkspace -scheme Signal -configuration Debug \
             -sdk iphonesimulator -destination "platform=iOS Simulator,name=$INPUT_SIMULATOR" \
             -derivedDataPath "$DERIVED_DATA" \
-            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=YES ARCHS=arm64 \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER= CODE_SIGNING_REQUIRED=NO \
             2>&1 | tee "$LOG_DIR/build-for-testing.log" | grep -E "error:|warning: .*Tellomi|\*\* (TEST )?BUILD" || true
           grep -q "\*\* TEST BUILD SUCCEEDED \*\*" "$LOG_DIR/build-for-testing.log"
 
