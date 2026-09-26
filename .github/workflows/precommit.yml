@@ -44,6 +44,8 @@ jobs:
 
     timeout-minutes: 10
 
+    # Tellomi：fork 里不跑（上游的机器 / 规则，见 tellomi-ios-build.yml）
+    if: github.repository == 'signalapp/Signal-iOS'
     runs-on: macos-26
 
     steps:
