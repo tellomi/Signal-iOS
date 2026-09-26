@@ -195,7 +195,7 @@ public final class TellomiRegionSelector: Sendable {
                 switch state {
                 case .ready:
                     finish(.ok(rtt: Date().timeIntervalSince(startedAt)))
-                case .waiting(let error), .failed(let error):
+                case .failed(let error):
                     finish(.failed("\(error)"))
                 default:
                     break
