@@ -146,19 +146,26 @@ public class CVComponentTypingIndicator: CVComponentBase, CVRootComponent {
     /// Tellomi（规范 #1204 第 2 节，owner 2026-09-26）：和对方的消息一样，在尾巴那一侧多留 `Tail.sideMargin`——
     /// 群里加在头像和气泡之间（8 → 14），单聊加在最前面（16 → 22）。间距也落在气泡和后面的弹性空白之间，那段本来就会被拉伸，不影响。
     private var outerStackViewConfig: CVStackViewConfig {
-        let tailMargin = BubbleConfiguration.Tail.sideMargin
-        let hasAvatar = typingIndicator.avatarDataSource != nil
+        let tailSpace = Self.tellomiTailSideSpace(
+            hasAvatar: typingIndicator.avatarDataSource != nil,
+            margin: BubbleConfiguration.Tail.sideMargin,
+        )
         return CVStackViewConfig(
             axis: .horizontal,
             alignment: .center,
-            spacing: ConversationStyle.messageStackSpacing + (hasAvatar ? tailMargin : 0),
+            spacing: ConversationStyle.messageStackSpacing + tailSpace.afterAvatar,
             layoutMargins: UIEdgeInsets(
                 top: 0,
-                leading: conversationStyle.gutterLeading + (hasAvatar ? 0 : tailMargin),
+                leading: conversationStyle.gutterLeading + tailSpace.leading,
                 bottom: 0,
                 trailing: conversationStyle.gutterTrailing,
             ),
         )
+    }
+
+    /// Tellomi：尾巴那一侧多留的 [margin] 放在哪——带头像（群里）加在头像和气泡之间，单聊加在最前面。
+    static func tellomiTailSideSpace(hasAvatar: Bool, margin: CGFloat) -> (leading: CGFloat, afterAvatar: CGFloat) {
+        hasAvatar ? (leading: 0, afterAvatar: margin) : (leading: margin, afterAvatar: 0)
     }
 
     private var innerStackViewConfig: CVStackViewConfig {
