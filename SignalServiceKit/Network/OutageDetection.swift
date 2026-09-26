@@ -60,8 +60,8 @@ public class OutageDetection {
         // Signal 的故障挂横幅；大陆那个名字被 DNS 污染（随机公网 IP，下面走 owsFailDebug，Debug 包会断言）。
         // （这里故意不写上游的字面主机名：#1101 的判据之一是源码 grep 它 = 0。）
         // 记录还没建时 CFHostStartInfoResolution 失败 → 按「无故障」返回，不会误报。
-        // 主机从区域表取（#1056，RegionProfile 契约 v2 的 uptime 一行）。
-        let host = CFHostCreateWithName(nil, TellomiRegions.global.uptimeHost as CFString).takeRetainedValue()
+        // 主机按当前区取（#1056，RegionProfile 契约 v2 的 uptime 一行）。
+        let host = CFHostCreateWithName(nil, TellomiRegions.current().uptimeHost as CFString).takeRetainedValue()
         var resolutionError = CFStreamError()
         guard CFHostStartInfoResolution(host, .addresses, &resolutionError) else {
             Logger.warn("CFHostStartInfoResolution failed: \(resolutionError)")

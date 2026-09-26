@@ -9,8 +9,11 @@ import Network
 public enum ContentProxy {
 
     /// Tellomi（#1110）：编译期回落值。上游写死的是 Signal 自己的内容代理。
-    // Tellomi（#1056）：回落地址从区域表取（RegionProfile 契约 v2 的 contentProxy 一行）
-    static let defaultEndpoint = Endpoint(host: TellomiRegions.global.contentProxyHost, port: TellomiRegions.global.contentProxyPort)
+    // Tellomi（#1056）：回落地址按当前区现取（RegionProfile 契约 v2 的 contentProxy 一行）
+    static var defaultEndpoint: Endpoint {
+        let region = TellomiRegions.current()
+        return Endpoint(host: region.contentProxyHost, port: region.contentProxyPort)
+    }
 
     struct Endpoint: Equatable {
         let host: String
