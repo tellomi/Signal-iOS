@@ -46,7 +46,9 @@ public class TSConstants {
     // 上游指 Signal 的捐赠页——留着就是让我们的用户去给 Signal 捐钱。Android 早就是
     // values/strings.xml 的 donate_url = https://tellomi.app/，两端取同一个值。
     public static let donateUrl = URL(string: "https://tellomi.app/")!
-    public static let appStoreUrl = URL(string: "https://itunes.apple.com/us/app/signal-private-messenger/id874139669?mt=8")!
+    // Tellomi（tellomi/tellomi#1046）：上游是 Signal 的 App Store 页——构建过期提醒、注册 / 配对页的「去更新」都直接打开它，
+    // 用户点一下就去装 Signal。还没上架 App Store（上架是 owner 的决定），先落到下载页；上架后换成 App Store 地址。
+    public static let appStoreUrl = URL(string: "https://tellomi.app/download/")!
 
     public static var mainServiceURL: String { shared.mainServiceURL }
 
