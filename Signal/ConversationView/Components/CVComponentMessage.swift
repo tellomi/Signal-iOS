@@ -2333,6 +2333,11 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             ].compactMap { $0 }
         }
 
+        /// Tellomi（交互审计 A-07）：回应飞入的落点——这条消息回应胶囊里显示 [emoji] 的那个字。
+        func reactionEmojiLabel(for emoji: String) -> UILabel? {
+            (reactionsView as? CVComponentReactions.CVComponentViewReactions)?.emojiLabel(for: emoji)
+        }
+
         fileprivate func subcomponentView(key: CVComponentKey) -> CVComponentView? {
             switch key {
             case .senderName:
