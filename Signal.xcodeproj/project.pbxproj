@@ -1812,6 +1812,7 @@
 		A676B91F78D4ED46234C683F /* TellomiMotionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E28DBA3B377800CE0F5C042 /* TellomiMotionTest.swift */; };
 		AB0C401C2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0C401B2E5BADCE00A1B2C3 /* NotificationSettingsBadgeCountViewController.swift */; };
 		B60EDE041A05A01700D73516 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B60EDE031A05A01700D73516 /* AudioToolbox.framework */; };
+		B6196A7361E8D35DFA908E4C /* TellomiLocalizationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D599BA464A712488390768 /* TellomiLocalizationTest.swift */; };
 		B66DBF4A19D5BBC8006EA940 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B66DBF4919D5BBC8006EA940 /* Images.xcassets */; };
 		B69CD25119773E79005CE69A /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B69CD25019773E79005CE69A /* XCTest.framework */; };
 		B6B226971BE4B7D200860F4D /* ContactsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6B226961BE4B7D200860F4D /* ContactsUI.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
@@ -6173,6 +6174,7 @@
 		948B2FC201146EF3BA459226 /* Pods_SignalServiceKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SignalServiceKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		94A685625E25E6F3EE3CC812 /* Pods-SignalUITests.testable release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SignalUITests.testable release.xcconfig"; path = "Target Support Files/Pods-SignalUITests/Pods-SignalUITests.testable release.xcconfig"; sourceTree = "<group>"; };
 		954AEE681DF33D32002E5410 /* ContactsPickerTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactsPickerTest.swift; sourceTree = "<group>"; };
+		98D599BA464A712488390768 /* TellomiLocalizationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLocalizationTest.swift; sourceTree = "<group>"; };
 		A11CD70C17FA230600A2D1B1 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		A163E8AA16F3F6A90094D68B /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		A1C32D4D17A0652C000A904E /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
@@ -12011,6 +12013,7 @@
 				F963164A291AE06C00218FB7 /* ScrubbingLogFormatterTest.swift */,
 				F9844C482867936400B16DD4 /* SignalMeTest.swift */,
 				88F5FA9528EF7E02007AA1BF /* StorySharingTests.swift */,
+				98D599BA464A712488390768 /* TellomiLocalizationTest.swift */,
 				45A3579727DAAC6A0051CE8B /* UserProfileTest.swift */,
 			);
 			path = util;
@@ -19394,6 +19397,7 @@
 				4C3EF802210918740007EBF7 /* SSKProtoEnvelopeTest.swift in Sources */,
 				8803FF6628EF89B50023574A /* StorySharingTests.swift in Sources */,
 				E75DD3E02810CDBD00E32C36 /* SubscriptionModelsTest.swift in Sources */,
+				B6196A7361E8D35DFA908E4C /* TellomiLocalizationTest.swift in Sources */,
 				5033D47329DCB3FF007FEADA /* UrlOpenerTest.swift in Sources */,
 				45A3579827DAAC6A0051CE8B /* UserProfileTest.swift in Sources */,
 				5042EAA3287F96FB00C9B19F /* VisibleBadgeResolverTest.swift in Sources */,
