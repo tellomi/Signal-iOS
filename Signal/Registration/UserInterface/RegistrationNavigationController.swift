@@ -19,11 +19,13 @@ public class RegistrationNavigationController: OWSNavigationController {
     private init(coordinator: RegistrationCoordinator) {
         self.coordinator = coordinator
         super.init()
+        // 只收自己这个协调器发的（它发的时候 object: self）：同一进程里有别的注册流程时（并行跑的用例），
+        // 别人的令牌到了不能让这里替自己的协调器取下一步。
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(tellomiPreAuthChallengeTokenDidArrive),
             name: RegistrationCoordinatorImpl.tellomiPreAuthChallengeTokenDidArriveNotification,
-            object: nil,
+            object: coordinator as AnyObject,
         )
     }
 
