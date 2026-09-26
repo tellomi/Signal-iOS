@@ -327,6 +327,12 @@ final class AlbumViewerScreenshotTests: XCTestCase {
         let album = try await insertAlbum(thread: thread, incoming: true, sizes: sizes(3), body: nil)
         let attachments = try bodyAttachments(of: album)
         let viewer = try XCTUnwrap(MediaPageViewController(initialMediaAttachment: attachments[2], thread: thread, spoilerState: SpoilerRenderState(), showingSingleMessage: true))
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = viewer
+        window.isHidden = false
+        window.layoutIfNeeded()
+        defer { window.isHidden = true }
+        XCTAssertEqual(viewer.currentItemForTesting.referencedAttachment.attachment.id, attachments[2].attachment.id, "正在看第 3 张")
 
         let draft = viewer.replyDraftForTesting()
 
