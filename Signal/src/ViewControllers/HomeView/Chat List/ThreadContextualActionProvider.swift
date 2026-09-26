@@ -306,12 +306,19 @@ extension ThreadContextualActionProvider where Self: UIViewController {
         let threadDeletionManager = DependenciesBridge.shared.threadDeletionManager
         let tsAccountManager = DependenciesBridge.shared.tsAccountManager
 
+        // Tellomi：删「我的收藏」时换成说清楚的文案（#1174）
+        let savedMessagesConfirmation = db.read { tx in
+            TellomiSavedMessagesStrings.deleteConfirmation(
+                for: [threadViewModel.threadRecord],
+                hasLinkedDevices: DependenciesBridge.shared.deviceStore.hasLinkedDevices(tx: tx),
+            )
+        }
         let alert = ActionSheetController(
-            title: OWSLocalizedString(
+            title: savedMessagesConfirmation?.title ?? OWSLocalizedString(
                 "CONVERSATION_DELETE_CONFIRMATION_ALERT_TITLE",
                 comment: "Title for the 'conversation delete confirmation' alert.",
             ),
-            message: OWSLocalizedString(
+            message: savedMessagesConfirmation?.message ?? OWSLocalizedString(
                 "CONVERSATION_DELETE_CONFIRMATION_ALERT_MESSAGE",
                 comment: "Message for the 'conversation delete confirmation' alert.",
             ),
