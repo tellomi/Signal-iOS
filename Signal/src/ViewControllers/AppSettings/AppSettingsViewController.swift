@@ -413,6 +413,18 @@ class AppSettingsViewController: OWSTableViewController2 {
                 self?.navigationController?.pushViewController(vc, animated: true)
             },
         ))
+        // Tellomi（tellomi/tellomi#1165）：「关于 Tellomi」从「帮助」里拿出来，紧跟「帮助」
+        section3.add(.disclosureItem(
+            icon: .info,
+            withText: OWSLocalizedString(
+                "SETTINGS_ABOUT_TELLOMI_TITLE",
+                value: "About Tellomi",
+                comment: "Tellomi: title of the About Tellomi page and of its row in settings.",
+            ),
+            actionBlock: { [weak self] in
+                self?.navigationController?.pushViewController(AboutTellomiViewController(), animated: true)
+            },
+        ))
         section3.add(.item(
             icon: .settingsInvite,
             name: OWSLocalizedString("SETTINGS_INVITE_TITLE", comment: "Settings table view cell label"),

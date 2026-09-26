@@ -4,7 +4,7 @@
 /* Footer for the 'about' help section. For non-English languages, exclude the word '501c3'. */
 "ABOUT_SECTION_FOOTER" = "Copyright Signal Messenger\nLicensed under the AGPLv3\nSignal is a 501c3 nonprofit";
 /* Tellomi: copyright + license only; upstream also claimed 501c3 nonprofit status, which is not true of Tellomi. */
-"ABOUT_SECTION_FOOTER_TELLOMI" = "Copyright Signal Messenger\nModifications Copyright Tellomi\nLicensed under the AGPLv3";
+"ABOUT_SECTION_FOOTER_TELLOMI" = "Copyright Signal Messenger\nModifications Copyright 重庆半格智能科技有限公司\nLicensed under the GNU AGPLv3";
 
 /* Title for the 'about' help section */
 "ABOUT_SECTION_TITLE" = "About Tellomi";
@@ -9017,6 +9017,72 @@
 
 /* Title for the set wallpaper settings view. */
 "SET_WALLPAPER_TITLE" = "Set Wallpaper";
+
+/* Tellomi: row in About Tellomi that opens the download page. */
+"SETTINGS_ABOUT_TELLOMI_CHECK_FOR_UPDATES" = "Check for updates";
+
+/* Tellomi: row in About Tellomi that opens the complaints and reporting rules page. */
+"SETTINGS_ABOUT_TELLOMI_COMPLAINTS_AND_REPORTS" = "Complaints and reporting rules";
+
+/* Tellomi: row in About Tellomi showing the support email address. */
+"SETTINGS_ABOUT_TELLOMI_CONTACT_SUPPORT" = "Customer support";
+
+/* Tellomi: shown when the user long-presses an email in About Tellomi but no mail account is set up. */
+"SETTINGS_ABOUT_TELLOMI_EMAIL_UNAVAILABLE_MESSAGE" = "Your device isn't set up to send email. The address has been copied, so you can paste it into another email app.";
+
+/* Tellomi: row in About Tellomi that opens the website. */
+"SETTINGS_ABOUT_TELLOMI_OFFICIAL_WEBSITE" = "Official website";
+
+/* Tellomi: row in About Tellomi that lists third-party licenses. */
+"SETTINGS_ABOUT_TELLOMI_OPEN_SOURCE_LICENSES" = "Open source licenses";
+
+/* Tellomi: row in About Tellomi that opens the list of personal information collected. */
+"SETTINGS_ABOUT_TELLOMI_PERSONAL_INFORMATION_COLLECTED" = "Personal information we collect";
+
+/* Tellomi: row in About Tellomi showing the privacy email address. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_AND_PERSONAL_DATA" = "Privacy and personal data";
+
+/* Tellomi: row in About Tellomi that opens the Privacy Policy page. */
+"SETTINGS_ABOUT_TELLOMI_PRIVACY_POLICY" = "Privacy Policy";
+
+/* Tellomi: row in About Tellomi showing the abuse report email address. */
+"SETTINGS_ABOUT_TELLOMI_REPORT_ABUSE" = "Report abuse";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_CONTACT" = "Contact us";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_LEGAL" = "Legal and compliance";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_OPEN_SOURCE" = "Open source";
+
+/* Tellomi: section header in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_SECTION_UPDATES" = "Updates";
+
+/* Tellomi: row in About Tellomi that opens the source code on GitHub. */
+"SETTINGS_ABOUT_TELLOMI_SOURCE_CODE" = "Source code";
+
+/* Tellomi: row in About Tellomi that opens the list of system permissions the app uses. */
+"SETTINGS_ABOUT_TELLOMI_SYSTEM_PERMISSIONS" = "System permissions we use";
+
+/* Tellomi: accessory text on email rows in About Tellomi; tapping the row copies the address. */
+"SETTINGS_ABOUT_TELLOMI_TAP_TO_COPY" = "Tap to copy";
+
+/* Tellomi: row in About Tellomi that opens the Terms of Service page. */
+"SETTINGS_ABOUT_TELLOMI_TERMS_OF_SERVICE" = "Terms of Service";
+
+/* Tellomi: row in About Tellomi that opens the list of third-party sharing and SDKs. */
+"SETTINGS_ABOUT_TELLOMI_THIRD_PARTY_SHARING" = "Third-party sharing and SDKs";
+
+/* Tellomi: title of the About Tellomi page and of its row in settings. */
+"SETTINGS_ABOUT_TELLOMI_TITLE" = "About Tellomi";
+
+/* Tellomi: version line at the top of About Tellomi. Embeds {{ version }} and {{ build number }}. */
+"SETTINGS_ABOUT_TELLOMI_VERSION_FORMAT" = "Version %1$@ (build %2$@)";
+
+/* Tellomi: context menu action on email rows in About Tellomi. */
+"SETTINGS_ABOUT_TELLOMI_WRITE_EMAIL" = "Write email";
 
 /* Title for the 'account' link in settings. */
 "SETTINGS_ACCOUNT" = "Account";
