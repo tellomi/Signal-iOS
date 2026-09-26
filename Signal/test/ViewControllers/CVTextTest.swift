@@ -664,3 +664,114 @@ class TellomiBubbleTailTest: XCTestCase {
         XCTAssertEqual(content.frame, CGRect(x: 0, y: 0, width: 120, height: 40))
     }
 }
+
+/// Tellomi（规范 #1204 第 2 节最后一条，owner 2026-09-26 定照规范加）：气泡在尾巴那一侧多留 e = 6，尾巴不贴屏幕边、不压头像。
+/// 和 Android `TellomiBubbleTailMarginTest` 同一组数：我发的离屏幕边 16 + 6；单聊里对方的离屏幕边 16 + 6；群里对方的离头像 8 + 6。
+/// 用会话页同一套渲染（`CVLoader` 单条渲染 + `CVCellView`，同 `MockConversationView`）真排一次版，量气泡的排版位置（不含尾巴外扩）。
+class TellomiBubbleTailMarginTest: SignalBaseTest {
+
+    private let viewWidth: CGFloat = 402
+    private let otherAci = Aci.randomForTesting()
+
+    @MainActor
+    func testMyBubbleEnds16Plus6FromTheScreenEdge() throws {
+        register()
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let message = write { tx in
+            let factory = OutgoingMessageFactory()
+            factory.threadCreator = { _ in thread }
+            return factory.create(transaction: tx)
+        }
+
+        let (cell, messageView) = try render(message, in: thread)
+        let content = messageView.tellomiContentFrameForTesting(in: cell)
+        XCTAssertEqual(cell.bounds.width - content.maxX, 16 + 6, accuracy: 0.5, "我发的离屏幕右边：\(content) in \(cell.bounds)")
+    }
+
+    @MainActor
+    func testTheirBubbleStarts16Plus6FromTheScreenEdgeInA1to1Chat() throws {
+        register()
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let message = write { tx in
+            let factory = IncomingMessageFactory()
+            factory.threadCreator = { _ in thread }
+            return factory.create(transaction: tx)
+        }
+
+        let (cell, messageView) = try render(message, in: thread)
+        let content = messageView.tellomiContentFrameForTesting(in: cell)
+        XCTAssertNil(messageView.tellomiAvatarFrameForTesting(in: cell), "单聊不带头像")
+        XCTAssertEqual(content.minX, 16 + 6, accuracy: 0.5, "单聊里对方的离屏幕左边：\(content)")
+    }
+
+    @MainActor
+    func testTheirBubbleStarts8Plus6AfterTheAvatarInAGroup() throws {
+        register()
+        let otherAci = self.otherAci
+        let thread = write { tx in
+            try! GroupManager.createGroupForTests(
+                members: [LocalIdentifiers.forUnitTests.aciAddress, SignalServiceAddress(otherAci)],
+                shouldInsertInfoMessage: true,
+                name: "Tail margin",
+                transaction: tx,
+            )
+        }
+        let message = write { tx in
+            let factory = IncomingMessageFactory()
+            factory.threadCreator = { _ in thread }
+            factory.authorAciBuilder = { _ in otherAci }
+            return factory.create(transaction: tx)
+        }
+
+        let (cell, messageView) = try render(message, in: thread)
+        let content = messageView.tellomiContentFrameForTesting(in: cell)
+        let avatar = try XCTUnwrap(messageView.tellomiAvatarFrameForTesting(in: cell), "群里对方的消息带头像")
+        XCTAssertEqual(content.minX - avatar.maxX, 8 + 6, accuracy: 0.5, "群里对方的离头像：avatar \(avatar) content \(content)")
+    }
+
+    // MARK: -
+
+    private func register() {
+        write { tx in
+            (DependenciesBridge.shared.registrationStateChangeManager as! RegistrationStateChangeManagerImpl).registerForTests(
+                localIdentifiers: .forUnitTests,
+                tx: tx,
+            )
+        }
+    }
+
+    /// 同 `MockConversationView`：会话页样式单独渲染一条，放进 `CVCellView` 排版
+    @MainActor
+    private func render(_ interaction: TSInteraction, in thread: TSThread) throws -> (CVCellView, CVComponentMessage.CVComponentViewMessage) {
+        let viewWidth = self.viewWidth
+        let renderItem = try XCTUnwrap(read { tx -> CVRenderItem? in
+            let conversationStyle = ConversationStyle(
+                type: .`default`,
+                thread: thread,
+                viewWidth: viewWidth,
+                hasWallpaper: false,
+                shouldDimWallpaperInDarkMode: false,
+                chatColor: DependenciesBridge.shared.chatColorSettingStore.resolvedChatColor(for: thread, tx: tx),
+            )
+            return CVLoader.buildStandaloneRenderItem(
+                interaction: interaction,
+                thread: thread,
+                conversationStyle: conversationStyle,
+                spoilerState: SpoilerRenderState(),
+                groupNameColors: GroupNameColors.forThread(thread),
+                transaction: tx,
+            )
+        })
+        // 只是给渲染当回调对象，用例里不点任何东西（`MockConversationView` 本来就实现了全部回调）；存起来保活
+        let componentDelegate = MockConversationView(model: .init(items: []), hasWallpaper: false, customChatColor: nil)
+        componentDelegates.append(componentDelegate)
+        let cell = CVCellView()
+        cell.configure(renderItem: renderItem, componentDelegate: componentDelegate)
+        cell.frame = CGRect(origin: .zero, size: CGSize(width: viewWidth, height: renderItem.cellMeasurement.cellSize.height))
+        cell.layoutIfNeeded()
+        let messageView = try XCTUnwrap(cell.componentView as? CVComponentMessage.CVComponentViewMessage)
+        return (cell, messageView)
+    }
+
+    private var componentDelegates: [UIView] = []
+}

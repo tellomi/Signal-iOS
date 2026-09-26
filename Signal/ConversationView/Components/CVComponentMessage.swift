@@ -3384,3 +3384,20 @@ private class SwipeToReplyIndicatorView: UIView {
         }
     }
 }
+
+// MARK: - 用例
+
+extension CVComponentMessage.CVComponentViewMessage {
+    /// Tellomi 用例：气泡的排版位置（不含尾巴外扩）在 `view` 里的矩形
+    func tellomiContentFrameForTesting(in view: UIView) -> CGRect {
+        contentViewSwipeToReplyWrapper.convert(contentViewSwipeToReplyWrapper.bounds, to: view)
+    }
+
+    /// Tellomi 用例：群聊里对方的头像在 `view` 里的矩形；这一条没排头像时为 nil
+    func tellomiAvatarFrameForTesting(in view: UIView) -> CGRect? {
+        guard avatarViewSwipeToReplyWrapper.superview != nil else {
+            return nil
+        }
+        return avatarViewSwipeToReplyWrapper.convert(avatarViewSwipeToReplyWrapper.bounds, to: view)
+    }
+}
