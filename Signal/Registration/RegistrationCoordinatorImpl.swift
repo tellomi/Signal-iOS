@@ -875,6 +875,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 minNicknameLength: UInt32(TellomiRegistrationUsername.minLength),
                 maxNicknameLength: UInt32(TellomiRegistrationUsername.maxLength),
                 desiredDiscriminator: nil,
+                // 注册时设的是新名字，照「字母开头」收紧（ADR-0066 §六；TellomiRegistrationUsername.check 已在本地先拦）
+                enforcingLetterFirst: true,
             )
         } catch {
             logger.warn("Username candidate generation failed: \(error)")
