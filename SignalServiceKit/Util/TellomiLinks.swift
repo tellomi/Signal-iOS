@@ -116,15 +116,41 @@ public enum TellomiLinks {
     }
 
     /// 协议层的完整用户名 → 界面上显示的样子（与 Android `TellomiUsernames.toDisplayUsername` 同一套规则，ADR-0066 §六「显示」）：
-    /// **只有 `.01` 结尾的去掉后缀**（`kaixin.01` → `kaixin`，保留原大小写）；别的后缀**完整显示**（`kaixin.57` 原样）——
+    /// **只有 `.01` 结尾的去掉后缀**（`kaixin.01` → `kaixin`）；别的后缀**完整显示**（`kaixin.57` 原样）——
     /// §九的反向用例：别人用 `kaixin.57` 注册，官方客户端必须显示 `kaixin.57`，不能显示成 `kaixin`，否则就是冒充。
+    /// **一律显示小写**（§6.1b，owner 2026-09-27）：老数据里的大写（`KaiXin.01`）只在显示时转，不迁移——唯一性本来就不分大小写。
     /// 只用在给人看的字符串上；存储、查找、链接、hash 仍用完整用户名。
     public static func displayUsername(_ username: String) -> String {
         let suffix = ".\(fixedUsernameDiscriminator)"
         guard username.hasSuffix(suffix) else {
+            return lowercasedUsername(username)
+        }
+        return lowercasedUsername(String(username.dropLast(suffix.count)))
+    }
+
+    /// ADR-0066 §6.1b（owner 2026-09-27）：用户名一律小写。**只转 ASCII 的 A–Z**：用户名只认 `a-z 0-9 _`，
+    /// `İ`、全角 `Ａ` 这类转了也不合规，原样留给校验去报（不能让 `İ` 变成 `i̇` 混过去）。长度（UTF-16 / 标量）不变。
+    public static func lowercasedUsername(_ username: String) -> String {
+        guard containsUppercaseAsciiLetter(username) else {
             return username
         }
-        return String(username.dropLast(suffix.count))
+        var scalars = String.UnicodeScalarView()
+        for scalar in username.unicodeScalars {
+            if isUppercaseAsciiLetter(scalar), let lowercased = Unicode.Scalar(scalar.value + 0x20) {
+                scalars.append(lowercased)
+            } else {
+                scalars.append(scalar)
+            }
+        }
+        return String(scalars)
+    }
+
+    public static func containsUppercaseAsciiLetter(_ string: String) -> Bool {
+        return string.unicodeScalars.contains(where: isUppercaseAsciiLetter)
+    }
+
+    private static func isUppercaseAsciiLetter(_ scalar: Unicode.Scalar) -> Bool {
+        return ("A"..."Z").contains(scalar)
     }
 
     /// ADR-0066 §6.2：换用户名之后 30 天内不能再换（服务端 `USERNAME_CHANGE_COOLDOWN`，tellomi/Signal-Server#4；首次设置不计）。

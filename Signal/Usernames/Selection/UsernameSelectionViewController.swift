@@ -241,6 +241,14 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
         return textView
     }()
 
+    /// Tellomi（ADR-0066 §6.1b）：输入框下面常驻的灰色规则提示；大写被转成小写时换成「已自动转成小写」约 2 秒。
+    private lazy var usernameRuleHintView: TellomiUsernameInput.RuleHintView = {
+        let view = TellomiUsernameInput.RuleHintView(font: .dynamicTypeCaption1Clamped)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.accessibilityIdentifier = "username_rule_hint"
+        return view
+    }()
+
     private lazy var usernameErrorTextViewZeroHeightConstraint: NSLayoutConstraint = {
         return usernameErrorTextView.heightAnchor.constraint(equalToConstant: 0)
     }()
@@ -279,6 +287,7 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
 
         usernameErrorTextView.font = .dynamicTypeCaption1Clamped
         usernameFooterTextView.font = .dynamicTypeCaption1Clamped
+        usernameRuleHintView.font = .dynamicTypeCaption1Clamped
     }
 
     /// Only allow gesture-based dismissal when there have been no edits.
@@ -318,6 +327,7 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
 
         wrapperScrollView.addSubview(headerView)
         wrapperScrollView.addSubview(usernameTextFieldWrapper)
+        wrapperScrollView.addSubview(usernameRuleHintView)
         wrapperScrollView.addSubview(usernameErrorTextView)
         wrapperScrollView.addSubview(usernameFooterTextView)
 
@@ -355,7 +365,13 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
 
         headerView.autoPinEdge(.bottom, to: .top, of: usernameTextFieldWrapper)
 
-        usernameTextFieldWrapper.autoPinEdge(.bottom, to: .top, of: usernameErrorTextView)
+        // Tellomi（ADR-0066 §6.1b）：输入框 → 灰色规则提示 → 红字报错（有时）→ 说明
+        NSLayoutConstraint.activate([
+            usernameRuleHintView.topAnchor.constraint(equalTo: usernameTextFieldWrapper.bottomAnchor, constant: 8),
+            usernameRuleHintView.leadingAnchor.constraint(equalTo: contentLayoutGuide.leadingAnchor, constant: 16),
+            usernameRuleHintView.trailingAnchor.constraint(equalTo: contentLayoutGuide.trailingAnchor, constant: -16),
+            usernameRuleHintView.bottomAnchor.constraint(equalTo: usernameErrorTextView.topAnchor),
+        ])
 
         usernameErrorTextView.autoPinEdge(.bottom, to: .top, of: usernameFooterTextView)
         usernameErrorTextView.autoPinWidthToSuperview()
@@ -846,6 +862,12 @@ extension UsernameSelectionViewController {
         return max(Int(configuredMax), existingUsername?.nickname.unicodeScalars.count ?? 0)
     }
 
+    /// Tellomi（ADR-0066 §6.1b）：框里一律小写，老数据 `KaiXin.01` 打开时框里就是 `kaixin`——只差大小写算「没改」，
+    /// 不走上游的 caseOnlyChange（那会去服务端把显示大小写改掉）。老数据的大写只在显示时转，不迁移。
+    static func tellomiIsUnchanged(existing: ParsedUsername?, nicknameFromTextField: String?) -> Bool {
+        return existing.map { TellomiLinks.lowercasedUsername($0.nickname) } == nicknameFromTextField.map(TellomiLinks.lowercasedUsername)
+    }
+
     /// Tellomi（#1181）：新名字超过上限时的文案，和 Desktop 的 `icu:ProfileEditor--username--check-character-max-plural` 同一句。
     static func tellomiTooLongErrorText(maxNicknameLength: UInt32) -> String {
         return String.localizedStringWithFormat(
@@ -869,6 +891,9 @@ private extension UsernameSelectionViewController {
     private func usernameTextFieldContentsDidChange() {
         AssertIsOnMainThread()
 
+        // Tellomi（ADR-0066 §6.1b）：没经过 `shouldChangeCharactersIn` 进来的大写（自动填充、输入法上屏）也转小写
+        TellomiUsernameInput.lowercaseInPlace(usernameTextFieldWrapper.textField, hintView: usernameRuleHintView)
+
         let nicknameFromTextField: String? = usernameTextFieldWrapper.textField.nickname
 
         // Only set when a discriminator was manually entered. nil indicates a
@@ -890,7 +915,7 @@ private extension UsernameSelectionViewController {
 
         if
             !hasEnteredNewCustomDiscriminator,
-            existingUsernameWithFixedDiscriminator?.nickname == nicknameFromTextField
+            Self.tellomiIsUnchanged(existing: existingUsernameWithFixedDiscriminator, nicknameFromTextField: nicknameFromTextField)
         {
             currentUsernameState = .noChangesToExisting
         } else if
@@ -1098,14 +1123,27 @@ extension UsernameSelectionViewController: UITextFieldDelegate {
         shouldChangeCharactersIn range: NSRange,
         replacementString string: String,
     ) -> Bool {
+        let maxUnicodeScalarCount = Self.tellomiMaxNicknameInputLength(
+            existingUsername: existingUsername,
+            configuredMax: Constants.maxNicknameCodepointLength,
+        )
+        // Tellomi（ADR-0066 §6.1b）：打了 / 粘贴了大写，当场转小写、光标不跳，规则提示换成「已自动转成小写」
+        if
+            let shouldChange = TellomiUsernameInput.handleChange(
+                in: textField,
+                range: range,
+                replacement: string,
+                maxUnicodeScalarCount: maxUnicodeScalarCount,
+                hintView: usernameRuleHintView,
+            )
+        {
+            return shouldChange
+        }
         return TextFieldHelper.textField(
             textField,
             shouldChangeCharactersInRange: range,
             replacementString: string,
-            maxUnicodeScalarCount: Self.tellomiMaxNicknameInputLength(
-                existingUsername: existingUsername,
-                configuredMax: Constants.maxNicknameCodepointLength,
-            ),
+            maxUnicodeScalarCount: maxUnicodeScalarCount,
         )
     }
 

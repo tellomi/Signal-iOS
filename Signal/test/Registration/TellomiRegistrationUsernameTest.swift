@@ -367,6 +367,39 @@ final class TellomiRegistrationProfileUsernameTest: SignalBaseTest {
         XCTAssertTrue(page.isNextEnabled)
     }
 
+    /// ADR-0066 §6.1b：用户名框下面常驻灰色规则提示；粘贴带大写的名字当场转小写、光标在粘贴的字后面，
+    /// 提示换成「已自动转成小写」，拿去保留的是小写。自动填充这类直接进框的大写也转。
+    @MainActor
+    func testTheUsernameFieldShowsTheRuleAndLowercasesUppercase() async throws {
+        let page = makePage()
+        defer { page.close() }
+        let hintView = try XCTUnwrap(page.subview("usernameRuleHint") as? TellomiUsernameInput.RuleHintView)
+        XCTAssertTrue(page.isVisible(hintView), page.hiddenReason(hintView) ?? "")
+        XCTAssertEqual(hintView.displayedText, TellomiUsernameInput.ruleHint)
+
+        try page.type("开心", into: "givenName")
+        let field = try page.textField("username")
+        field.becomeFirstResponder()
+        XCTAssertFalse(page.viewController.textField(field, shouldChangeCharactersIn: NSRange(location: 0, length: 0), replacementString: "KaiXin"))
+        XCTAssertEqual(field.text, "kaixin")
+        let selected = try XCTUnwrap(field.selectedTextRange)
+        XCTAssertEqual(field.offset(from: field.beginningOfDocument, to: selected.start), 6)
+        XCTAssertEqual(hintView.displayedText, TellomiUsernameInput.autoLowercasedNotice)
+        XCTAssertEqual(page.viewController.tellomiUsernameStatus, .checking)
+        await waitUntil { page.viewController.tellomiUsernameStatus != .checking }
+        XCTAssertEqual(page.presenter.events, ["reserve:kaixin"])
+
+        // 不经过代理直接进框的大写（钥匙串自动填充）
+        try page.type("KaiXin2", into: "username")
+        XCTAssertEqual(field.text, "kaixin2")
+
+        // 别的不合规字符照常进框、报红字，不删
+        XCTAssertTrue(page.viewController.textField(field, shouldChangeCharactersIn: NSRange(location: 7, length: 0), replacementString: "-"))
+        try page.type("kaixin2-", into: "username")
+        XCTAssertEqual(field.text, "kaixin2-")
+        XCTAssertEqual(page.viewController.tellomiUsernameStatus, .localError(.invalidCharacters))
+    }
+
     @MainActor
     func testOnlyTheLastInputIsCheckedAndAtSignIsDropped() async throws {
         let page = makePage()

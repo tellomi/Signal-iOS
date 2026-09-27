@@ -277,6 +277,13 @@ class RegistrationProfileViewController: OWSViewController {
         return stackView
     }()
 
+    /// Tellomi（ADR-0066 §6.1b）：输入框下面常驻的灰色规则提示；大写被转成小写时换成「已自动转成小写」约 2 秒。
+    private lazy var usernameRuleHintView: TellomiUsernameInput.RuleHintView = {
+        let view = TellomiUsernameInput.RuleHintView(font: .dynamicTypeFootnoteClamped)
+        view.accessibilityIdentifier = "registration.profile.usernameRuleHint"
+        return view
+    }()
+
     /// 说明行一直占一行：出错、在查、你的链接都在这一行，界面不跳。
     private lazy var usernameStatusLabel: UILabel = {
         let label = UILabel()
@@ -376,6 +383,7 @@ class RegistrationProfileViewController: OWSViewController {
                 avatarContainerView,
                 nameStackView,
                 usernameStackView,
+                usernameRuleHintView,
                 usernameStatusLabel,
                 usernameCandidatesStackView,
                 phoneNumberNotShownLabel,
@@ -388,6 +396,7 @@ class RegistrationProfileViewController: OWSViewController {
         stackView.setCustomSpacing(12, after: titleLabel)
         stackView.setCustomSpacing(12, after: nameStackView)
         stackView.setCustomSpacing(6, after: usernameStackView)
+        stackView.setCustomSpacing(4, after: usernameRuleHintView)
         // 候选行隐藏时，状态行直接接下面那句说明，间距要够
         stackView.setCustomSpacing(16, after: usernameStatusLabel)
         stackView.setCustomSpacing(16, after: usernameCandidatesStackView)
@@ -395,6 +404,7 @@ class RegistrationProfileViewController: OWSViewController {
         // Tellomi（tellomi/tellomi#1215 第二刀）：下面还有用户名框，名字框按回车跳过去；
         // 重新注册时没有用户名框（#1266），回车就是下一步
         usernameStackView.isHidden = !state.showsTellomiUsername
+        usernameRuleHintView.isHidden = !state.showsTellomiUsername
         usernameStatusLabel.isHidden = !state.showsTellomiUsername
         givenNameTextField.returnKeyType = state.showsTellomiUsername ? .next : .done
         usernameTextField.addAction(
@@ -487,6 +497,8 @@ class RegistrationProfileViewController: OWSViewController {
     // MARK: Tellomi username
 
     private func didUsernameTextFieldChange() {
+        // Tellomi（ADR-0066 §6.1b）：没经过 `shouldChangeCharactersIn` 进来的大写（自动填充等）也转小写
+        TellomiUsernameInput.lowercaseInPlace(usernameTextField, hintView: usernameRuleHintView)
         if tellomiUsernameText.hasPrefix("@") {
             usernameTextField.text = String(tellomiUsernameText.drop(while: { $0 == "@" }))
         }
@@ -712,6 +724,21 @@ extension RegistrationProfileViewController: UITextViewDelegate {
 // MARK: - UITextFieldDelegate
 
 extension RegistrationProfileViewController: UITextFieldDelegate {
+    /// Tellomi（ADR-0066 §6.1b）：用户名框里打了 / 粘贴了大写，当场转小写、光标不跳，规则提示换成「已自动转成小写」。
+    /// 别的不合规字符照常进框，由状态行报红字。名字框照常。
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        guard textField == usernameTextField else {
+            return true
+        }
+        return TellomiUsernameInput.handleChange(
+            in: textField,
+            range: range,
+            replacement: string,
+            maxUnicodeScalarCount: nil,
+            hintView: usernameRuleHintView,
+        ) ?? true
+    }
+
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         switch textField {
         case givenNameTextField:
