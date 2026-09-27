@@ -29,9 +29,10 @@ class ChatsSettingsViewController: OWSTableViewController2 {
         let contents = OWSTableContents()
 
         let linkPreviewSection = OWSTableSection()
+        // Tellomi（ADR-0063 §8.1 第 9 行、§九.3，tellomi/tellomi#1423）：说清发送链接时设备会访问该网站
         linkPreviewSection.footerTitle = OWSLocalizedString(
-            "SETTINGS_LINK_PREVIEWS_FOOTER",
-            comment: "Footer for setting for enabling & disabling link previews.",
+            "TELLOMI_SETTINGS_LINK_PREVIEWS_FOOTER",
+            comment: "Footer for the setting that enables link previews. Says plainly that, when on, the device visits the website when the user sends a link.",
         )
         linkPreviewSection.add(.switch(
             withText: OWSLocalizedString(
@@ -46,6 +47,7 @@ class ChatsSettingsViewController: OWSTableViewController2 {
             },
         ))
         contents.add(linkPreviewSection)
+        contents.add(tellomiShortLinkSection())
 
         let sharingSuggestionsSection = OWSTableSection()
         sharingSuggestionsSection.footerTitle = OWSLocalizedString(
@@ -123,6 +125,38 @@ class ChatsSettingsViewController: OWSTableViewController2 {
             let linkPreviewSettingManager = DependenciesBridge.shared.linkPreviewSettingManager
             linkPreviewSettingManager.setAreLinkPreviewsEnabled(sender.isOn, shouldSendSyncMessage: true, tx: tx)
         }
+        // Tellomi：「展开短链接」跟着总开关变灰 / 变亮
+        updateTableContents()
+    }
+
+    /// Tellomi（ADR-0063 §8.1 第 9 行、§九.4，owner 2026-09-27）：「展开短链接」，默认开、只存本机、不跨设备同步。
+    /// 链接预览总开关关着的时候它不起作用，所以一起变灰。
+    private func tellomiShortLinkSection() -> OWSTableSection {
+        let section = OWSTableSection()
+        section.footerTitle = OWSLocalizedString(
+            "TELLOMI_SETTINGS_EXPAND_SHORT_LINKS_FOOTER",
+            comment: "Footer for the 'Expand Short Links' setting: before making a preview, the device asks the short-link service for the original address; the service sees one visit; the setting is kept on this device only.",
+        )
+        section.add(.switch(
+            withText: OWSLocalizedString(
+                "TELLOMI_SETTINGS_EXPAND_SHORT_LINKS",
+                comment: "Setting for enabling & disabling expanding short links (such as b23.tv) before generating a link preview.",
+            ),
+            accessibilityIdentifier: "tellomi_expand_short_links",
+            isOn: {
+                DependenciesBridge.shared.db.read { TellomiLinkPreviewLocalSettings.isShortLinkExpansionEnabled(tx: $0) }
+            },
+            isEnabled: {
+                DependenciesBridge.shared.db.read { DependenciesBridge.shared.linkPreviewSettingStore.areLinkPreviewsEnabled(tx: $0) }
+            },
+            actionBlock: { uiSwitch in
+                Logger.info("toggled expand short links to: \(uiSwitch.isOn)")
+                DependenciesBridge.shared.db.write { tx in
+                    TellomiLinkPreviewLocalSettings.setShortLinkExpansionEnabled(uiSwitch.isOn, tx: tx)
+                }
+            },
+        ))
+        return section
     }
 
     private func didToggleSharingSuggestionsEnabled(_ sender: UISwitch) {
