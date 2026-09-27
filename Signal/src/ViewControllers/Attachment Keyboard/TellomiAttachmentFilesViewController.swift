@@ -555,7 +555,7 @@ extension TellomiAttachmentFilesViewController: UITableViewDataSource, UITableVi
         case .entries:
             return nil
         case .recent:
-            guard let files, !files.isEmpty else { return nil }
+            // 标题常驻：加载中、一条都没有时也在（owner 2026-09-28：原来空的时候不显示，看起来像没有这个功能）。
             return OWSLocalizedString("ATTACHMENT_FILES_TELLOMI_RECENT_HEADER", comment: "Header above the list of files you recently sent, on the files page of the attachment sheet.")
         case .searchResults:
             guard !searchResults.isEmpty else { return nil }
@@ -566,6 +566,15 @@ extension TellomiAttachmentFilesViewController: UITableViewDataSource, UITableVi
     func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         guard sections[section] == .recent, let files, files.isEmpty else { return nil }
         return String.nonPluralLocalizedStringWithFormat(OWSLocalizedString("ATTACHMENT_FILES_TELLOMI_EMPTY_FORMAT", comment: "Shown on the files page when you haven't sent any files. Embeds {{maximum size of one file}}."), maxFileSizeText)
+    }
+
+    /// 一条都没有时：插画 + 说明（文字同 `titleForFooterInSection`，读屏也念它）。
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        guard let message = self.tableView(tableView, titleForFooterInSection: section) else { return nil }
+        let view = TellomiRecentFilesEmptyView(message: message)
+        view.isAccessibilityElement = true
+        view.accessibilityLabel = message
+        return view
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -733,6 +742,16 @@ extension TellomiAttachmentFilesViewController {
         return tableView(tableView, titleForFooterInSection: recent)
     }
 
+    func recentHeaderTextForTesting() -> String? {
+        guard let recent = sections.firstIndex(of: .recent) else { return nil }
+        return tableView(tableView, titleForHeaderInSection: recent)
+    }
+
+    func recentEmptyViewForTesting() -> TellomiRecentFilesEmptyView? {
+        guard let recent = sections.firstIndex(of: .recent) else { return nil }
+        return tableView(tableView, viewForFooterInSection: recent) as? TellomiRecentFilesEmptyView
+    }
+
     func tapEntryForTesting(_ entry: Entry) {
         guard let row = entries.firstIndex(of: entry) else { return }
         tableView(tableView, didSelectRowAt: IndexPath(row: row, section: 0))
@@ -823,4 +842,44 @@ final class TellomiRecentFileSkeletonCell: UITableViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
+
+/// 「最近发送的文件」一条都没有时，标题下面的插画 + 说明（owner 2026-09-28：原来只有一句说明、连标题都不显示，看起来像没有这个功能）。
+/// 照 Telegram iOS `AttachmentFileEmptyItem` 的结构（一张图 + 一句话），图用系统符号，独立实现、一行没搬（GPLv2）。
+final class TellomiRecentFilesEmptyView: UIView {
+
+    private let illustration = UIImageView()
+    private let messageLabel = UILabel()
+
+    init(message: String) {
+        super.init(frame: .zero)
+
+        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 44, weight: .light)
+        illustration.image = UIImage(systemName: "doc.on.doc", withConfiguration: symbolConfiguration)
+        illustration.tintColor = .Signal.secondaryLabel
+        illustration.contentMode = .center
+        illustration.isAccessibilityElement = false
+
+        messageLabel.text = message
+        messageLabel.font = .dynamicTypeFootnote
+        messageLabel.textColor = .Signal.secondaryLabel
+        messageLabel.textAlignment = .center
+        messageLabel.numberOfLines = 0
+
+        let stack = UIStackView(arrangedSubviews: [illustration, messageLabel])
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = 12
+        addSubview(stack)
+        stack.autoPinEdgesToSuperviewEdges(with: UIEdgeInsets(top: 20, leading: 24, bottom: 24, trailing: 24))
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    #if TESTABLE_BUILD
+    var illustrationForTesting: UIImageView { illustration }
+    var messageTextForTesting: String? { messageLabel.text }
+    #endif
 }

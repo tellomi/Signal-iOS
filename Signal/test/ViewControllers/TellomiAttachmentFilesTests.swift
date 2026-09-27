@@ -87,6 +87,26 @@ final class TellomiAttachmentFilesTests: SignalBaseTest {
         XCTAssertEqual(hosted.page.tableViewForTesting.numberOfRows(inSection: 1), 0)
     }
 
+    /// owner 2026-09-28：一条都没有时连「最近发送的文件」标题都不显示，看起来像没这个功能 → 标题常驻，
+    /// 空的时候标题下面是插画 + 说明（照 Telegram `AttachmentFileEmptyItem` 的空状态：图 + 一句话，独立实现）。
+    @MainActor
+    func testRecentHeaderStaysAndEmptyStateHasAnIllustration() throws {
+        let recentHeader = OWSLocalizedString("ATTACHMENT_FILES_TELLOMI_RECENT_HEADER", comment: "")
+        let empty = host(files: [])
+        XCTAssertEqual(empty.page.recentHeaderTextForTesting(), recentHeader)
+        let emptyView = try XCTUnwrap(empty.page.recentEmptyViewForTesting())
+        XCTAssertNotNil(emptyView.illustrationForTesting.image)
+        XCTAssertTrue(emptyView.messageTextForTesting?.contains("97.5 MB") == true, emptyView.messageTextForTesting ?? "")
+
+        let loading = host(files: nil)
+        XCTAssertEqual(loading.page.recentHeaderTextForTesting(), recentHeader)
+        XCTAssertNil(loading.page.recentEmptyViewForTesting())
+
+        let some = host(files: makeFiles(3))
+        XCTAssertEqual(some.page.recentHeaderTextForTesting(), recentHeader)
+        XCTAssertNil(some.page.recentEmptyViewForTesting())
+    }
+
     /// F-10：🔍 只在最近文件 > 10 条或加载中时出现。
     @MainActor
     func testSearchButtonOnlyWithMoreThanTenFilesOrWhileLoading() {
