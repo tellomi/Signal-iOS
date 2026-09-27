@@ -63,6 +63,16 @@ public protocol TSAccountManager {
 
     func phoneNumberDiscoverability(tx: DBReadTransaction) -> PhoneNumberDiscoverability?
     func lastSetIsDiscoverableByPhoneNumber(tx: DBReadTransaction) -> Date
+
+    // MARK: - Tellomi：退出登录（ADR-0072）
+
+    /// 主设备在本机「退出登录」了：服务端上这台设备照旧注册着（消息在服务器排队），本机锁住。
+    /// 标记在的时候 `registrationState` 报 `.deregistered`，借上游「被服务端登出」那套断网：
+    /// 不连 WebSocket、不跑要凭据的后台任务，通知扩展 / 分享扩展也按「未注册」处理。
+    /// 和被服务端登出不同的是界面：退出登录后看不到聊天，只进欢迎页（`SignalApp.showConversationSplitView` 那道闸）。
+    var isTellomiLoggedOutWithMaybeSneakyTransaction: Bool { get }
+
+    func isTellomiLoggedOut(tx: DBReadTransaction) -> Bool
 }
 
 public struct NotRegisteredError: Error {}
@@ -187,6 +197,9 @@ public protocol LocalIdentifiersSetter {
     /// but this method could still mutate underlying state which would take effect _after_ the
     /// reregistration state was also cleared.
     func setIsDeregisteredOrDelinked(_ isDeregisteredOrDelinked: Bool, tx: DBWriteTransaction) -> Bool
+
+    /// Tellomi（ADR-0072）：记下 / 清掉「本机已退出登录」。返回值同上：值没变就是 false。
+    func setIsTellomiLoggedOut(_ isLoggedOut: Bool, tx: DBWriteTransaction) -> Bool
 
     func resetForReregistration(
         aci: Aci?,

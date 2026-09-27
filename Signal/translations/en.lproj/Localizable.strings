@@ -10842,6 +10842,69 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "Tap to replace an emoji";
 
+/* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
+"TELLOMI_LOGOUT_CONFIRM_BODY" = "Your chats stay on this phone and come back when you log in again with the same phone number. Messages people send you in the meantime wait on the server for up to 30 days.";
+
+/* Tellomi: Destructive action in the log out confirmation: log out and delete all data on this phone. */
+"TELLOMI_LOGOUT_CONFIRM_DELETE_DATA" = "Log Out and Delete Data on This Phone";
+
+/* Tellomi: Default action in the log out confirmation: log out and keep the chats on this phone. */
+"TELLOMI_LOGOUT_CONFIRM_KEEP_DATA" = "Log Out";
+
+/* Tellomi: Title of the confirmation sheet for logging out. */
+"TELLOMI_LOGOUT_CONFIRM_TITLE" = "Log out?";
+
+/* Tellomi: Body of the second confirmation: all chats and files on this phone are deleted for good; the account itself is not affected and can log in on any device. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_BODY" = "All chats and files on this phone will be deleted and can't be recovered. Your account isn't affected, and you can log in again on any device.";
+
+/* Tellomi: Destructive button in the second confirmation: delete this phone's data and log out. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_BUTTON" = "Delete and Log Out";
+
+/* Tellomi: Title of the second confirmation before logging out and deleting this phone's data. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_TITLE" = "Delete data on this phone?";
+
+/* Tellomi: Caption above the masked phone number of the logged-out account on the welcome screen. Tapping the block logs back in with that number. */
+"TELLOMI_LOGOUT_LAST_LOGIN_TITLE" = "Last logged in";
+
+/* Tellomi: Shown when logging out fails because there is no network connection; the app stays logged in. */
+"TELLOMI_LOGOUT_NETWORK_ERROR" = "You need an internet connection to log out. Please try again later.";
+
+/* Tellomi: Confirmation shown on the phone number screen when this phone is logged out of one account and the user enters a different number. Deleting local data is required first. Embeds {{masked phone number of the logged-out account, e.g. +86 138****5678}}. */
+"TELLOMI_LOGOUT_NEW_NUMBER_CONFIRM_BODY_FORMAT" = "Logging in with a new number will delete the chats of %@ on this phone. Continue?";
+
+/* Tellomi: Red button at the bottom of the log out page. */
+"TELLOMI_LOGOUT_OPTIONS_BUTTON" = "Log Out";
+
+/* Tellomi: Heading above the alternatives on the log out page, suggesting the user check whether one of them helps before logging out. */
+"TELLOMI_LOGOUT_OPTIONS_INTRO" = "Before you log out, see if one of these helps:";
+
+/* Tellomi: Title of the page shown before logging out, listing alternatives (screen lock, storage, change number). */
+"TELLOMI_LOGOUT_OPTIONS_TITLE" = "Log Out";
+
+/* Tellomi: Log out alternatives: explanation under 'Change Phone Number' — got a new number? Chats and contacts are kept. */
+"TELLOMI_LOGOUT_OPTION_CHANGE_NUMBER_BODY" = "Got a new number? Your chats and contacts are kept.";
+
+/* Tellomi: Log out alternatives: title of the row that starts changing the phone number. */
+"TELLOMI_LOGOUT_OPTION_CHANGE_NUMBER_TITLE" = "Change Phone Number";
+
+/* Tellomi: Log out alternatives: explanation under 'Screen Lock' — worried others will see your chats? Turn it on and the app must be unlocked first. */
+"TELLOMI_LOGOUT_OPTION_SCREEN_LOCK_BODY" = "Worried someone might see your chats? Turn this on and Tellomi has to be unlocked before it opens.";
+
+/* Tellomi: Log out alternatives: title of the row that opens the Screen Lock setting. */
+"TELLOMI_LOGOUT_OPTION_SCREEN_LOCK_TITLE" = "Screen Lock";
+
+/* Tellomi: Log out alternatives: explanation under 'Manage Storage' — running out of space? Clean up images and files you don't need. */
+"TELLOMI_LOGOUT_OPTION_STORAGE_BODY" = "Running out of space? Clean up images and files you don't need.";
+
+/* Tellomi: Log out alternatives: title of the row that opens storage management. */
+"TELLOMI_LOGOUT_OPTION_STORAGE_TITLE" = "Manage Storage";
+
+/* Tellomi: Red row at the bottom of Settings > Account (above 'Delete Account') that opens the log out page. Logging out keeps the account; it is not account deletion. */
+"TELLOMI_LOGOUT_SETTINGS_ROW" = "Log Out";
+
+/* Tellomi: Switch on the log out page (off by default, shown only when there are linked devices): also log out the linked devices such as computers. */
+"TELLOMI_LOGOUT_UNLINK_DEVICES_SWITCH" = "Also log out linked devices";
+
 /* Chat list banner shown while system notifications for Tellomi are turned off. */
 "TELLOMI_NOTIFICATIONS_DISABLED_REMINDER" = "Notifications are off. You won't be alerted to new messages or calls while Tellomi isn't open.";
 

@@ -126,6 +126,13 @@ public protocol RegistrationStateChangeManager {
      */
     func setIsDeregisteredOrDelinked(_ isDeregisteredOrDelinked: Bool, tx: DBWriteTransaction)
 
+    /// Tellomi（ADR-0072）：主设备在本机退出登录 / 重新登录。只动本机的标记，服务端什么都不改。
+    /// 标记在的时候注册状态报 `.deregistered`（见 `TSAccountManager.isTellomiLoggedOut`）。
+    /// 和 `setIsDeregisteredOrDelinked` 不同：不发「已被登出」的通知，也不清备份凭据等——这台设备在服务端上一直是注册着的。
+    ///
+    /// Will trigger a ``NSNotification.Name.registrationStateDidChange`` if the value changed.
+    func setIsTellomiLoggedOut(_ isLoggedOut: Bool, tx: DBWriteTransaction)
+
     /// Unregisters the local user's account from Signal entirely. (Must be the
     /// primary device!)
     func unregisterFromService() async throws

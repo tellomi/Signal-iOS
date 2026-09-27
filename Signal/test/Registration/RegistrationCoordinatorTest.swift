@@ -3424,6 +3424,158 @@ public final class RegistrationCoordinatorTest {
         )
     }
 
+    // MARK: - Tellomi：退出登录后重新登录（ADR-0072 §4.2）
+    //
+    // 重新登录只用验证会话证明本人（开了注册锁的再在本机核对 PIN），然后去掉本机的「已退出」标记。
+    // 绝不能发 `POST /v1/registration`：同号码的注册在服务端走 `reclaimAccount`，退出期间排队的消息会被清掉。
+    // 每条用例都让本机带着主密钥（上游重新注册在这种情况下连短信都不发，直接拿恢复密码去注册），
+    // 并在网络 mock 里给所有 `v1/registration` 请求设了陷阱：记下来、回 400，用例最后断言一次都没有。
+
+    private final class TellomiRequestRecorder {
+        var requests = [TSRequest]()
+    }
+
+    private static let tellomiReLoginTestCase = TestCase(mode: .reRegistering(.tellomiReLogin(aci: Stubs.aci, e164: Stubs.e164)))
+
+    private func tellomiTrapRegistrationRequests() -> TellomiRequestRecorder {
+        let recorder = TellomiRequestRecorder()
+        for _ in 0..<4 {
+            mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+                matcher: { request in
+                    guard request.url.relativeString.contains("v1/registration") else {
+                        return false
+                    }
+                    recorder.requests.append(request)
+                    return true
+                },
+                statusCode: 400,
+                bodyData: nil,
+            ))
+            // 万一流程走到了建账号（不应该），上游那几步要的 mock 先备着，让用例停在断言上而不是 mock 队列空了崩掉。
+            pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+            preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+            preKeyManagerMock.addFinalizePreKeyMock { _ in }
+        }
+        registrationStateChangeManagerMock.resetForReregistrationMock = { _, _, _ in
+            Issue.record("Re-login must not reset local account state for re-registration")
+        }
+        return recorder
+    }
+
+    @MainActor
+    private func tellomiReLoginSetUp() -> (RegistrationCoordinatorImpl, TellomiRequestRecorder) {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(Self.tellomiReLoginTestCase)
+        setupDefaultAccountAttributes()
+        _ = buildKeyDataMocks(Self.tellomiReLoginTestCase)
+        let recorder = tellomiTrapRegistrationRequests()
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({
+            try! await Task.sleep(nanoseconds: TimeInterval.infinity.clampedNanoseconds)
+            fatalError()
+        })
+        return (coordinator, recorder)
+    }
+
+    private func tellomiReLoginVerificationState() -> RegistrationVerificationState {
+        let upstream = stubs.verificationCodeEntryState(mode: Self.tellomiReLoginTestCase.mode)
+        return RegistrationVerificationState(
+            e164: upstream.e164,
+            nextSMSDate: upstream.nextSMSDate,
+            nextCallDate: upstream.nextCallDate,
+            nextVerificationAttemptDate: upstream.nextVerificationAttemptDate,
+            // 重新登录的验证码页可以回号码页（上游重新注册不行）。
+            canChangeE164: true,
+            showHelpText: upstream.showHelpText,
+            validationError: upstream.validationError,
+            exitConfiguration: .exitReRegistration,
+        )
+    }
+
+    /// 欢迎页 → 点「上次登录」→ 验证码页（不经过号码页）。
+    @MainActor
+    private func tellomiReLoginGoToVerificationCode(_ coordinator: RegistrationCoordinatorImpl) async {
+        #expect(await coordinator.nextStep() == .registrationSplash)
+        #expect(coordinator.tellomiReLoginE164 == Stubs.e164)
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(nextVerificationAttempt: 0)))
+        #expect(
+            await coordinator.tellomiContinueWithLastLogin().awaitable() ==
+                .verificationCodeEntry(tellomiReLoginVerificationState()),
+        )
+    }
+
+    @MainActor @Test
+    func testTellomiReLogin_verifiedSessionUnlocksWithoutRegistering() async {
+        let (coordinator, registrationRequests) = tellomiReLoginSetUp()
+
+        await tellomiReLoginGoToVerificationCode(coordinator)
+
+        sessionManager.addSubmitCodeResponseMock(.success(stubs.session(verified: true)))
+        #expect(await coordinator.submitVerificationCode(Stubs.verificationCode).awaitable() == .done)
+
+        #expect(registrationRequests.requests.isEmpty, "re-login sent \(registrationRequests.requests.map(\.url))")
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues == [false], "解锁 = 去掉本机的「已退出」标记")
+        // 这次重新登录的进度清掉了：下次退出登录再回来是全新的一轮。
+        #expect(db.read { registrationCoordinatorLoader.restoreLastMode(transaction: $0) } == nil)
+    }
+
+    @MainActor @Test
+    func testTellomiReLogin_reglockChecksThePinLocallyBeforeUnlocking() async {
+        let (coordinator, registrationRequests) = tellomiReLoginSetUp()
+        ows2FAManagerMock.isReglockEnabledMock = { true }
+        ows2FAManagerMock.pinCodeMock = { Stubs.pinCode }
+
+        await tellomiReLoginGoToVerificationCode(coordinator)
+
+        func pinEntry(remainingAttempts: UInt, error: RegistrationPinValidationError?) -> RegistrationStep {
+            return .pinEntry(RegistrationPinState(
+                operation: .enteringExistingPin(skippability: .unskippable, remainingAttempts: remainingAttempts),
+                error: error,
+                contactSupportMode: .v2WithReglock,
+                exitConfiguration: .exitReRegistration,
+            ))
+        }
+
+        sessionManager.addSubmitCodeResponseMock(.success(stubs.session(verified: true)))
+        #expect(
+            await coordinator.submitVerificationCode(Stubs.verificationCode).awaitable() ==
+                pinEntry(remainingAttempts: 10, error: nil),
+        )
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues.isEmpty, "PIN 核对之前不解锁")
+
+        #expect(
+            await coordinator.submitPINCode("0000").awaitable() ==
+                pinEntry(remainingAttempts: 9, error: .wrongPin(wrongPin: "0000")),
+        )
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues.isEmpty, "PIN 错了不解锁")
+
+        #expect(await coordinator.submitPINCode(Stubs.pinCode).awaitable() == .done)
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues == [false])
+        #expect(registrationRequests.requests.isEmpty, "re-login sent \(registrationRequests.requests.map(\.url))")
+    }
+
+    @MainActor @Test
+    func testTellomiReLogin_verifiedSessionForAnotherNumberDoesNotUnlock() async {
+        let (coordinator, registrationRequests) = tellomiReLoginSetUp()
+        let otherE164 = E164("+17875550199")!
+
+        #expect(await coordinator.nextStep() == .registrationSplash)
+        // 服务端给回来的会话号码不是本机账号的号码（比如残留的旧会话）：就算 verified 也不能拿来解锁。
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session(e164: otherE164, verified: true)))
+        #expect(
+            await coordinator.tellomiContinueWithLastLogin().awaitable() ==
+                .phoneNumberEntry(.registration(.initialRegistration(.init(
+                    previouslyEnteredE164: Stubs.e164,
+                    validationError: nil,
+                    canExitRegistration: false,
+                    tellomiCanSwitchToLinking: false,
+                )))),
+        )
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues.isEmpty)
+        #expect(registrationRequests.requests.isEmpty, "re-login sent \(registrationRequests.requests.map(\.url))")
+    }
+
     // MARK: Happy Path Setups
 
     private func createAccountWithSession(

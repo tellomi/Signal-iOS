@@ -10971,6 +10971,69 @@
 /* Title of the privacy notice shown the first time the app is opened. */
 "TELLOMI_FIRST_LAUNCH_TITLE" = "歡迎使用 Tellomi";
 
+/* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
+"TELLOMI_LOGOUT_CONFIRM_BODY" = "聊天紀錄會保留在這部手機上，用同一個電話號碼重新登入後便會恢復。登出期間別人傳來的訊息會在伺服器上等你，最多保留 30 天。";
+
+/* Tellomi: Destructive action in the log out confirmation: log out and delete all data on this phone. */
+"TELLOMI_LOGOUT_CONFIRM_DELETE_DATA" = "登出並刪除這部手機上的資料";
+
+/* Tellomi: Default action in the log out confirmation: log out and keep the chats on this phone. */
+"TELLOMI_LOGOUT_CONFIRM_KEEP_DATA" = "登出";
+
+/* Tellomi: Title of the confirmation sheet for logging out. */
+"TELLOMI_LOGOUT_CONFIRM_TITLE" = "要登出嗎？";
+
+/* Tellomi: Body of the second confirmation: all chats and files on this phone are deleted for good; the account itself is not affected and can log in on any device. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_BODY" = "這部手機上的聊天紀錄和檔案會全部刪除，無法復原。你的帳戶不受影響，可以在任何裝置上重新登入。";
+
+/* Tellomi: Destructive button in the second confirmation: delete this phone's data and log out. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_BUTTON" = "刪除並登出";
+
+/* Tellomi: Title of the second confirmation before logging out and deleting this phone's data. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_TITLE" = "要刪除這部手機上的資料嗎？";
+
+/* Tellomi: Caption above the masked phone number of the logged-out account on the welcome screen. Tapping the block logs back in with that number. */
+"TELLOMI_LOGOUT_LAST_LOGIN_TITLE" = "上次登入";
+
+/* Tellomi: Shown when logging out fails because there is no network connection; the app stays logged in. */
+"TELLOMI_LOGOUT_NETWORK_ERROR" = "登出需要連接網絡，請稍後再試。";
+
+/* Tellomi: Confirmation shown on the phone number screen when this phone is logged out of one account and the user enters a different number. Deleting local data is required first. Embeds {{masked phone number of the logged-out account, e.g. +86 138****5678}}. */
+"TELLOMI_LOGOUT_NEW_NUMBER_CONFIRM_BODY_FORMAT" = "用新號碼登入會刪除這部手機上 %@ 的聊天紀錄。確定要繼續嗎？";
+
+/* Tellomi: Red button at the bottom of the log out page. */
+"TELLOMI_LOGOUT_OPTIONS_BUTTON" = "登出";
+
+/* Tellomi: Heading above the alternatives on the log out page, suggesting the user check whether one of them helps before logging out. */
+"TELLOMI_LOGOUT_OPTIONS_INTRO" = "登出前，看看這些能否幫到你：";
+
+/* Tellomi: Title of the page shown before logging out, listing alternatives (screen lock, storage, change number). */
+"TELLOMI_LOGOUT_OPTIONS_TITLE" = "登出";
+
+/* Tellomi: Log out alternatives: explanation under 'Change Phone Number' — got a new number? Chats and contacts are kept. */
+"TELLOMI_LOGOUT_OPTION_CHANGE_NUMBER_BODY" = "換了電話號碼？聊天紀錄和聯絡人都會保留。";
+
+/* Tellomi: Log out alternatives: title of the row that starts changing the phone number. */
+"TELLOMI_LOGOUT_OPTION_CHANGE_NUMBER_TITLE" = "變更電話號碼";
+
+/* Tellomi: Log out alternatives: explanation under 'Screen Lock' — worried others will see your chats? Turn it on and the app must be unlocked first. */
+"TELLOMI_LOGOUT_OPTION_SCREEN_LOCK_BODY" = "擔心被人看到？開啟後要先解鎖才能進入 Tellomi。";
+
+/* Tellomi: Log out alternatives: title of the row that opens the Screen Lock setting. */
+"TELLOMI_LOGOUT_OPTION_SCREEN_LOCK_TITLE" = "螢幕鎖";
+
+/* Tellomi: Log out alternatives: explanation under 'Manage Storage' — running out of space? Clean up images and files you don't need. */
+"TELLOMI_LOGOUT_OPTION_STORAGE_BODY" = "空間不足？清理不需要的圖片和檔案。";
+
+/* Tellomi: Log out alternatives: title of the row that opens storage management. */
+"TELLOMI_LOGOUT_OPTION_STORAGE_TITLE" = "管理儲存空間";
+
+/* Tellomi: Red row at the bottom of Settings > Account (above 'Delete Account') that opens the log out page. Logging out keeps the account; it is not account deletion. */
+"TELLOMI_LOGOUT_SETTINGS_ROW" = "登出";
+
+/* Tellomi: Switch on the log out page (off by default, shown only when there are linked devices): also log out the linked devices such as computers. */
+"TELLOMI_LOGOUT_UNLINK_DEVICES_SWITCH" = "同時登出已連結的裝置";
+
 /* Chat list banner shown while system notifications for Tellomi are turned off. */
 "TELLOMI_NOTIFICATIONS_DISABLED_REMINDER" = "通知已關閉。Tellomi 不在前景時，你不會收到新訊息和來電的提醒。";
 

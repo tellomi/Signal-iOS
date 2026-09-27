@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import Intents
 import SignalServiceKit
 import SignalUI
 public import UIKit
@@ -24,9 +25,65 @@ public class SignalApp {
     }
 
     func showConversationSplitView() {
+        // Tellomi（ADR-0072 §4.1 第 3 步）：本机已退出登录时绝不进聊天界面。上游「被服务端登出」时照样进聊天列表
+        // （顶上一条横幅），退出登录不能借这一点；所有要进聊天的地方（启动、注册完成、退出注册流程）都经过这里。
+        if showTellomiLoggedOutWelcomeIfNeeded() {
+            return
+        }
         let splitViewController = ConversationSplitViewController()
         UIApplication.shared.delegate?.window??.rootViewController = splitViewController
         self.conversationSplitViewController = splitViewController
+    }
+
+    // MARK: - Tellomi：退出登录（ADR-0072）
+
+    /// 本机已退出登录的账号重新登录用的模式；没退出登录（或本机身份缺失）时是 nil。
+    static func tellomiReLoginMode(tsAccountManager: TSAccountManager, tx: DBReadTransaction) -> RegistrationMode? {
+        guard
+            tsAccountManager.isTellomiLoggedOut(tx: tx),
+            let localIdentifiers = tsAccountManager.localIdentifiers(tx: tx),
+            let e164 = E164(localIdentifiers.phoneNumber)
+        else {
+            return nil
+        }
+        return .reRegistering(.tellomiReLogin(aci: localIdentifiers.aci, e164: e164))
+    }
+
+    /// 已退出登录就回欢迎页（开屏轮播 +「上次登录」），返回 true；否则什么都不做，返回 false。
+    @discardableResult
+    func showTellomiLoggedOutWelcomeIfNeeded() -> Bool {
+        let tsAccountManager = DependenciesBridge.shared.tsAccountManager
+        guard tsAccountManager.isTellomiLoggedOutWithMaybeSneakyTransaction else {
+            return false
+        }
+        let reLoginMode = SSKEnvironment.shared.databaseStorageRef.read { tx in
+            Self.tellomiReLoginMode(tsAccountManager: tsAccountManager, tx: tx)
+        }
+        let loader = RegistrationCoordinatorLoaderImpl(dependencies: .from(NSObject()))
+        if let reLoginMode {
+            showRegistration(loader: loader, desiredMode: reLoginMode)
+        } else {
+            // 不应该发生（退出登录不动本机身份）。就算这样也不进聊天，当作新装的 App。
+            owsFailDebug("Logged out without local identifiers")
+            showRegistration(loader: loader, desiredMode: .registering)
+        }
+        return true
+    }
+
+    /// 退出登录（保留聊天记录）成功之后：本机已经写了「已退出」标记（WebSocket 随之断开），
+    /// 这里清掉还留在系统里的内容——通知、图标上的未读数、系统分享建议——然后回欢迎页。
+    @MainActor
+    func tellomiDidLogOut() {
+        SSKEnvironment.shared.notificationPresenterRef.clearAllNotifications()
+        UIApplication.shared.applicationIconBadgeNumber = 0
+        INInteraction.deleteAll { error in
+            if let error {
+                Logger.warn("Couldn't delete donated interactions: \(error)")
+            }
+        }
+        dismissAllModals(animated: false) {
+            self.showTellomiLoggedOutWelcomeIfNeeded()
+        }
     }
 
     func dismissAllModals(animated: Bool, completion: (() -> Void)?) {
@@ -96,6 +153,9 @@ public class SignalApp {
         case .registering:
             logger = PrefixedLogger(prefix: "[Reg]")
             logger.info("Attempting initial registration on app launch")
+        case .reRegistering(let params) where params.isTellomiReLogin:
+            logger = PrefixedLogger(prefix: "[ReLogin]")
+            logger.info("Logged out on this device; showing the welcome page to log back in")
         case .reRegistering:
             logger = PrefixedLogger(prefix: "[ReReg]")
             logger.info("Attempting reregistration on app launch")

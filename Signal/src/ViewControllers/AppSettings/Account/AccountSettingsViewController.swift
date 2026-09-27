@@ -200,6 +200,15 @@ class AccountSettingsViewController: OWSTableViewController2 {
                     self?.requestAccountDataReport()
                 },
             ))
+            // Tellomi（ADR-0072，需求 §3.2）：最底部红字「退出登录」，在「删除账号」上方。
+            accountSection.add(.item(
+                name: TellomiLogoutOptionsViewController.Strings.settingsRow,
+                textColor: .Signal.red,
+                accessibilityIdentifier: UIView.accessibilityIdentifier(in: self, name: "tellomi_logout"),
+                actionBlock: { [weak self] in
+                    self?.showTellomiLogoutOptions()
+                },
+            ))
             accountSection.add(.item(
                 name: OWSLocalizedString("SETTINGS_DELETE_ACCOUNT_BUTTON", comment: ""),
                 textColor: .Signal.red,
@@ -330,6 +339,28 @@ class AccountSettingsViewController: OWSTableViewController2 {
     private func unregisterUser() {
         let vc = DeleteAccountConfirmationViewController()
         presentFormSheet(OWSNavigationController(rootViewController: vc), animated: true)
+    }
+
+    /// Tellomi（ADR-0072）：退出登录前的替代方案页。「更换手机号」那一行和这一页的按钮走同一条路。
+    private func showTellomiLogoutOptions() {
+        let canChangeNumber: Bool = {
+            switch changeNumberState() {
+            case .disallowed: return false
+            case .allowed: return true
+            }
+        }()
+        let vc = TellomiLogoutOptionsViewController(
+            changePhoneNumber: canChangeNumber ? { [weak self] in
+                guard let self else { return }
+                switch self.changeNumberState() {
+                case .disallowed:
+                    return
+                case .allowed(let changeNumberParams):
+                    self.changePhoneNumber(changeNumberParams)
+                }
+            } : nil,
+        )
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func deleteUnregisteredUserData() {

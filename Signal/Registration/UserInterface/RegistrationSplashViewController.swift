@@ -13,6 +13,13 @@ public protocol RegistrationSplashPresenter: AnyObject {
     func setHasOldDevice(_ hasOldDevice: Bool)
 
     func switchToDeviceLinkingMode()
+
+    /// Tellomi（ADR-0072 §4.2 第 1 步）：点了欢迎页上的「上次登录」。
+    func tellomiContinueWithLastLogin()
+}
+
+extension RegistrationSplashPresenter {
+    public func tellomiContinueWithLastLogin() {}
 }
 
 // MARK: - RegistrationSplashViewController
@@ -25,8 +32,12 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
 
     private weak var presenter: RegistrationSplashPresenter?
 
-    public init(presenter: RegistrationSplashPresenter) {
+    /// Tellomi（ADR-0072 §4.1 第 4 步）：本机已退出登录时，上方显示「上次登录」（头像 + 打码的手机号）。
+    private let tellomiLastLogin: TellomiLastLogin?
+
+    public init(presenter: RegistrationSplashPresenter, tellomiLastLogin: TellomiLastLogin? = nil) {
         self.presenter = presenter
+        self.tellomiLastLogin = tellomiLastLogin
         super.init()
     }
 
@@ -35,7 +46,8 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
 
         view.backgroundColor = .Signal.background
 
-        if UIDevice.current.isIPad {
+        // Tellomi（ADR-0072）：本机已退出登录时不给「切换成关联设备」——这台设备上还放着那个账号的数据。
+        if UIDevice.current.isIPad, tellomiLastLogin == nil {
             let modeSwitchButton = UIButton(
                 configuration: .plain(),
                 primaryAction: UIAction { [weak self] _ in
@@ -107,14 +119,31 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         )
         restoreOrTransferButton.enableMultilineLabel()
 
-        let largeButtonsContainer = UIStackView.verticalButtonStack(buttons: [continueButton, restoreOrTransferButton])
+        // Tellomi（ADR-0072）：本机已退出登录时不给「换了新手机？」——那条路是把别的手机上的账号搬过来，
+        // 会覆盖这台手机上还留着的那个账号；要换账号走「继续」输别的号码（先确认清空本机）。
+        let largeButtonsContainer = UIStackView.verticalButtonStack(
+            buttons: tellomiLastLogin == nil ? [continueButton, restoreOrTransferButton] : [continueButton],
+        )
+
+        // Tellomi（ADR-0072 §4.1 第 4 步，需求 §3.2）：欢迎页上方的「上次登录」，点一下直接进验证码页。
+        // 轮播照旧，只是被往下挤一点（它的压缩阻力本来就低）。
+        let lastLoginView = tellomiLastLogin.map { lastLogin in
+            TellomiLastLoginView(lastLogin: lastLogin) { [weak self] in
+                self?.didTapTellomiLastLogin()
+            }
+        }
 
         // Main content view.
-        let stackView = addStaticContentStackView(arrangedSubviews: [
+        let arrangedSubviews: [UIView?] = [
+            lastLoginView,
             carousel,
             wordmarkView,
             largeButtonsContainer,
-        ])
+        ]
+        let stackView = addStaticContentStackView(arrangedSubviews: arrangedSubviews.compactMap { $0 })
+        if let lastLoginView {
+            stackView.setCustomSpacing(16, after: lastLoginView)
+        }
         stackView.setCustomSpacing(24, after: carousel)
         stackView.setCustomSpacing(80, after: wordmarkView)
 
@@ -149,6 +178,26 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
     private func continuePressed() {
         Logger.info("")
         presenter?.continueFromSplash()
+    }
+
+    /// Tellomi（ADR-0072 §4.2 第 1 步）：跳过号码页，直接给本机账号的号码发验证码。
+    /// 发验证码要连服务端：协议、跨境同意这两道闸和号码页一样要过（一般注册时都已同意过，不会再弹）。
+    private func didTapTellomiLastLogin() {
+        Logger.info("")
+        guard TellomiLegalConsent.hasAgreedToTerms else {
+            presentTellomiTermsConsentDialog { [weak self] in
+                TellomiLegalConsent.setAgreedToTerms(true)
+                self?.didTapTellomiLastLogin()
+            }
+            return
+        }
+        guard TellomiCrossBorderConsent.hasGivenSeparateConsent else {
+            presentTellomiCrossBorderNotice { [weak self] in
+                self?.didTapTellomiLastLogin()
+            }
+            return
+        }
+        presenter?.tellomiContinueWithLastLogin()
     }
 
     private func didTapRestoreOrTransfer() {

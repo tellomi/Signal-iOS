@@ -145,6 +145,16 @@ public class MockTSAccountManager: TSAccountManager {
     open func lastSetIsDiscoverableByPhoneNumber(tx: DBReadTransaction) -> Date {
         return lastSetIsDiscoverableByPhoneNumberMock()
     }
+
+    // MARK: - Tellomi：退出登录（ADR-0072）
+
+    public var isTellomiLoggedOutMock: () -> Bool = { false }
+
+    open var isTellomiLoggedOutWithMaybeSneakyTransaction: Bool { isTellomiLoggedOutMock() }
+
+    open func isTellomiLoggedOut(tx: DBReadTransaction) -> Bool {
+        return isTellomiLoggedOutMock()
+    }
 }
 
 #endif

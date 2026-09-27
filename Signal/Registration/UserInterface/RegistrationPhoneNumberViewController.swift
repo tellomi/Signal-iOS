@@ -247,7 +247,7 @@ class RegistrationPhoneNumberViewController: OWSViewController {
         switch state {
         case .initialRegistration(let subState):
             canCancelChosenRegistrationMethod = true
-            canSwitchToLinking = true
+            canSwitchToLinking = subState.tellomiCanSwitchToLinking
             canExitRegistration = subState.canExitRegistration
             Logger.debug("initialRegistration")
         case .reregistration(let subState):

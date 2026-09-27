@@ -40,6 +40,12 @@ public protocol RegistrationCoordinator {
     /// Continue past the splash screen (marking it as shown).
     func continueFromSplash() -> Guarantee<RegistrationStep>
 
+    /// Tellomi（ADR-0072 §4.2）：本机已退出登录、正在重新登录时是那个账号的号码，否则 nil。
+    var tellomiReLoginE164: E164? { get }
+
+    /// Tellomi（ADR-0072 §4.2 第 1 步）：欢迎页上点「上次登录」——跳过号码页，直接给本机账号的号码发验证码。
+    func tellomiContinueWithLastLogin() -> Guarantee<RegistrationStep>
+
     /// Mark if the user has their old device available to source registration information from.
     func setHasOldDevice(_ hasOldDevice: Bool) -> Guarantee<RegistrationStep>
 
