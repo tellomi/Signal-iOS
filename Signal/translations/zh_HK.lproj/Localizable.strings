@@ -10867,7 +10867,7 @@
 "TELLOMI_CONSENT_TERMS_LINK" = "《用戶服務協議》";
 
 /* Body of the short cross-border consent dialog: where the data goes, and asking for separate consent. */
-"TELLOMI_CROSS_BORDER_DIALOG_BODY" = "Tellomi 的伺服器在中國香港，附件、頭像和備份存放在 Cloudflare（美國），您的部分個人信息會因此傳輸到中國大陸境外處理。是否單獨同意？";
+"TELLOMI_CROSS_BORDER_DIALOG_BODY" = "您的部分個人信息將傳輸到中國大陸境外處理，是否同意？";
 
 /* Link in the cross-border consent dialog that opens the full Cross-Border Transfer Notice (the 9 items). */
 "TELLOMI_CROSS_BORDER_DIALOG_FULL_NOTICE_LINK" = "查看《個人信息出境告知》";

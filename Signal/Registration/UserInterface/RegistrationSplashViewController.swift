@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
-import SafariServices
 import SignalServiceKit
 public import SignalUI
 
@@ -57,7 +56,10 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         }
 
         // Image at the top.
-        let imageView = UIImageView(image: UIImage(named: "onboarding_splash_hero"))
+        // Tellomi（owner 2026-09-27，docs/brand/README.md「插画」）：Signal 的插画换成 unDraw「Casual Chat」（亮青 #12A89D，深色另一版），
+        // asset catalog 里是 SVG + Preserve Vector Data，浅 / 深两个外观。许可见同目录的 ILLUSTRATIONS-LICENSE.md（不属于 AGPL）。
+        let imageView = UIImageView(image: UIImage(named: "tellomi_splash_casual_chat"))
+        imageView.accessibilityIdentifier = "tellomi.splash.illustration"
         imageView.contentMode = .scaleAspectFit
         imageView.layer.minificationFilter = .trilinear
         imageView.layer.magnificationFilter = .trilinear
@@ -74,34 +76,26 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
             imageView.heightAnchor.constraint(equalTo: heroImageContainer.heightAnchor, constant: 0.8),
         ])
 
-        // Welcome text.
-        // Tellomi：上游按「是不是 Signal 生产服务」决定标题，非生产显示「Internal Staging Build + 版本号」。
-        // Tellomi 的所有构建都连自建服务端（TSConstants 永远走 staging 那一档），于是每个对外的包首屏都是这行英文调试串。
-        // 版本号在「设置 → 帮助」里有，这里一律用正式标题（tellomi/tellomi#1209）。
-        let titleText = OWSLocalizedString(
-            "ONBOARDING_SPLASH_TITLE",
-            comment: "Title of the 'onboarding splash' view.",
-        )
-        let titleLabel = UILabel.titleLabelForRegistration(text: titleText)
+        // Tellomi（owner 2026-09-27，docs/product/BRAND.md「开屏」）：插画下面只放字标 Tellomi，不放任何句子（App 内不显示标语）。
+        // 字标是 docs/brand/wordmark/tellomi-wordmark-{light,dark}.svg 原样拷入（owner 2026-09-27 定稿的 Tell@mi）；只约束高度，宽高比取图本身，
+        // 换字标只换这个 imageset 里的两个 SVG。
+        // 上游这里是标题「Take privacy with you…」（更早还按是否生产服务显示调试串，tellomi/tellomi#1209）。
+        let wordmarkView = UIImageView(image: UIImage(named: "tellomi_wordmark"))
+        wordmarkView.contentMode = .scaleAspectFit
+        wordmarkView.isAccessibilityElement = true
+        wordmarkView.accessibilityLabel = "Tellomi"
+        wordmarkView.accessibilityTraits = .header
+        wordmarkView.accessibilityIdentifier = "tellomi.splash.wordmark"
+        wordmarkView.translatesAutoresizingMaskIntoConstraints = false
+        wordmarkView.heightAnchor.constraint(equalToConstant: 40).isActive = true
 
         // Tellomi：上游这里是「Signal 是一个非营利组织」。整行去掉，不做替换——
         // Tellomi 不是非营利组织，换成「Tellomi 是一个非营利组织」是假陈述；
         // 留着原文又是在我们自己的登录页上写别人的名字。捐赠 / 非营利那一整类文案同理，
         // 都在 build/brand-strings-todo.txt 里等 owner 定，不由脚本自动替换。
 
-        // Terms of service and privacy policy.
-        let tosPPButton = UIButton(
-            configuration: .smallBorderless(title: OWSLocalizedString(
-                "ONBOARDING_SPLASH_TERM_AND_PRIVACY_POLICY",
-                comment: "Link to the 'terms and privacy policy' in the 'onboarding splash' view.",
-            )),
-            primaryAction: UIAction { [weak self] _ in
-                self?.showTOSPP()
-            },
-        )
-        tosPPButton.configuration?.baseForegroundColor = .Signal.secondaryLabel
-        tosPPButton.accessibilityTraits.insert(.link)
-        tosPPButton.enableMultilineLabel()
+        // Tellomi（owner 2026-09-27，docs/product/BRAND.md「开屏」）：上游这里的「协议与隐私政策」链接去掉——
+        // 首次打开的隐私提示和号码页的勾选里都能打开《隐私政策》。
 
         // Large buttons enclosed in a container with some extra horizontal padding.
         let continueButton = UIButton(
@@ -110,6 +104,8 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
                 self?.continuePressed()
             },
         )
+        // Tellomi（owner 2026-09-27）：开屏的「继续」保持苹果原生蓝，不用 Signal 的 ultramarine（.Signal.accent）；只改这一个按钮，不动全局 tint。
+        continueButton.configuration?.baseBackgroundColor = .systemBlue
 
         // Tellomi：上游「恢复或转移账户」和「继续」一样大，而 Tellomi 能走通的只有一条路（iPhone 到 iPhone 直连传输），
         // 大多数人是第一次注册。降成主按钮下面一行文字链（tellomi/tellomi#1216）。以后有了云备份，入口还在这里，只是里面多几条路。
@@ -131,13 +127,11 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         // Main content view.
         let stackView = addStaticContentStackView(arrangedSubviews: [
             heroImageContainer,
-            titleLabel,
-            tosPPButton,
+            wordmarkView,
             largeButtonsContainer,
         ])
-        stackView.setCustomSpacing(44, after: imageView)
-        stackView.setCustomSpacing(24, after: titleLabel)
-        stackView.setCustomSpacing(80, after: tosPPButton)
+        stackView.setCustomSpacing(44, after: heroImageContainer)
+        stackView.setCustomSpacing(80, after: wordmarkView)
 
         view.sendSubviewToBack(stackView)
     }
@@ -165,11 +159,6 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
             return
         }
         presenter?.switchToDeviceLinkingMode()
-    }
-
-    private func showTOSPP() {
-        let safariVC = SFSafariViewController(url: TSConstants.legalTermsUrl)
-        present(safariVC, animated: true)
     }
 
     private func continuePressed() {
