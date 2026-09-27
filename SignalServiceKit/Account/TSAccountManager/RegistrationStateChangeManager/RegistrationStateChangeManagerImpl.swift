@@ -201,6 +201,21 @@ public class RegistrationStateChangeManagerImpl: RegistrationStateChangeManager 
         }
     }
 
+    public func setIsTellomiLoggedOut(_ isLoggedOut: Bool, tx: DBWriteTransaction) {
+        guard tsAccountManager.setIsTellomiLoggedOut(isLoggedOut, tx: tx) else {
+            return
+        }
+        Logger.warn("Updating isTellomiLoggedOut \(isLoggedOut)")
+        if !isLoggedOut, let localIdentifiers = tsAccountManager.localIdentifiers(tx: tx) {
+            // Tellomi（ADR-0072）：App 是在「已退出」时启动的话，启动时没给存储服务设过本机身份
+            // （`AppSetup.setUpLocalIdentifiers` 只在已注册时设）；重新登录不重启 App，这里补上。
+            storageServiceManager.setLocalIdentifiers(localIdentifiers)
+        }
+        tx.addSyncCompletion {
+            self.postRegistrationStateDidChangeNotification()
+        }
+    }
+
     public func resetForReregistration(
         aci: Aci?,
         phoneNumber: E164,

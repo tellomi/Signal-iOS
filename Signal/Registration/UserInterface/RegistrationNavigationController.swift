@@ -197,13 +197,25 @@ public class RegistrationNavigationController: OWSNavigationController {
     }
 
     private func registrationSplashController() -> Controller<RegistrationSplashViewController> {
-        Controller(
+        let tellomiLastLogin = tellomiLastLogin()
+        return Controller(
             type: RegistrationSplashViewController.self,
             make: { presenter in
-                return RegistrationSplashViewController(presenter: presenter)
+                return RegistrationSplashViewController(presenter: presenter, tellomiLastLogin: tellomiLastLogin)
             },
             // No state to update.
             update: nil,
+        )
+    }
+
+    /// Tellomi（ADR-0072 §4.1 第 4 步）：本机已退出登录时，欢迎页上的「上次登录」（头像 + 打码的手机号）。
+    private func tellomiLastLogin() -> TellomiLastLogin? {
+        guard let e164 = coordinator.tellomiReLoginE164 else {
+            return nil
+        }
+        return TellomiLastLogin(
+            maskedPhoneNumber: TellomiMaskedPhoneNumber.format(e164: e164, phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef),
+            localAddress: DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aciAddress,
         )
     }
 
@@ -485,6 +497,11 @@ public class RegistrationNavigationController: OWSNavigationController {
             return nil
         case .done:
             logger.info("Finished with registration!")
+            if coordinator.tellomiReLoginE164 != nil {
+                // Tellomi（ADR-0072 §4.2 第 4 步）：重新登录解锁了，重新登记推送令牌（退出时服务端清掉了）。
+                // 注册状态已经回到 registered，WebSocket 会自己连上、收排队的消息。
+                SyncPushTokensJob.run()
+            }
             SignalApp.shared.showConversationSplitView()
             return nil
         }
@@ -551,6 +568,10 @@ extension RegistrationNavigationController: RegistrationSplashPresenter {
         let controller = RegistrationConfirmModeSwitchViewController(presenter: self)
         pushViewController(controller, animated: true)
     }
+
+    public func tellomiContinueWithLastLogin() {
+        pushNextController(coordinator.tellomiContinueWithLastLogin())
+    }
 }
 
 extension RegistrationNavigationController: RegistrationConfimModeSwitchPresenter {
@@ -585,7 +606,42 @@ extension RegistrationNavigationController: RegistrationPermissionsPresenter {
 extension RegistrationNavigationController: RegistrationPhoneNumberPresenter {
 
     func goToNextStep(withE164 e164: E164) {
+        if let reLoginE164 = coordinator.tellomiReLoginE164, e164 != reLoginE164 {
+            // Tellomi（ADR-0072 §4.2 末段）：本机已退出登录，又输了另一个号码。一台手机同时只放一个账号，
+            // 先确认会删掉本机的聊天记录；确认后清空本机（App 退出），重新打开就是一次正常注册。
+            confirmTellomiLogInWithNewNumber(loggedOutE164: reLoginE164)
+            return
+        }
         pushNextController(coordinator.submitE164(e164), loadingMode: .submittingPhoneNumber(e164: e164.stringValue))
+    }
+
+    private func confirmTellomiLogInWithNewNumber(loggedOutE164: E164) {
+        let maskedPhoneNumber = TellomiMaskedPhoneNumber.format(e164: loggedOutE164, phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef)
+        let actionSheet = ActionSheetController(
+            message: String(
+                format: OWSLocalizedString(
+                    "TELLOMI_LOGOUT_NEW_NUMBER_CONFIRM_BODY_FORMAT",
+                    comment: "Tellomi: Confirmation shown on the phone number screen when this phone is logged out of one account and the user enters a different number. Deleting local data is required first. Embeds {{masked phone number of the logged-out account, e.g. +86 138****5678}}.",
+                ),
+                maskedPhoneNumber,
+            ),
+        )
+        actionSheet.addAction(ActionSheetAction(
+            title: CommonStrings.continueButton,
+            style: .destructive,
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.logger.warn("Logging in with a different number; deleting this phone's data first")
+                ModalActivityIndicatorViewController.present(
+                    fromViewController: self,
+                    title: CommonStrings.deletingModal,
+                ) { _ in
+                    SignalApp.shared.resetAppDataAndExit(keyFetcher: SSKEnvironment.shared.databaseStorageRef.keyFetcher)
+                }
+            },
+        ))
+        actionSheet.addAction(OWSActionSheets.cancelAction)
+        presentActionSheet(actionSheet)
     }
 
     func switchToDeviceLinking() {

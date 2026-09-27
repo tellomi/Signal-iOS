@@ -136,6 +136,16 @@ public class TSAccountManagerImpl: TSAccountManager {
     public func lastSetIsDiscoverableByPhoneNumber(tx: DBReadTransaction) -> Date {
         return getOrLoadAccountState(tx: tx).lastSetIsDiscoverableByPhoneNumberAt
     }
+
+    // MARK: - Tellomi：退出登录（ADR-0072）
+
+    public var isTellomiLoggedOutWithMaybeSneakyTransaction: Bool {
+        return getOrLoadAccountStateWithMaybeTransaction().isTellomiLoggedOut
+    }
+
+    public func isTellomiLoggedOut(tx: DBReadTransaction) -> Bool {
+        return getOrLoadAccountState(tx: tx).isTellomiLoggedOut
+    }
 }
 
 extension TSAccountManagerImpl: PhoneNumberDiscoverabilitySetter {
@@ -190,6 +200,8 @@ extension TSAccountManagerImpl: LocalIdentifiersSetter {
             kvStore.removeValue(forKey: Keys.reregistrationPhoneNumber, tx: tx)
             kvStore.removeValue(forKey: Keys.reregistrationAci, tx: tx)
             kvStore.removeValue(forKey: Keys.reregistrationWasPrimaryDevice, tx: tx)
+            // Tellomi（ADR-0072）：真正注册 / 关联了一次，「已退出登录」就不再成立。
+            kvStore.removeValue(forKey: Keys.tellomiLoggedOutDate, tx: tx)
         }
     }
 
@@ -234,6 +246,23 @@ extension TSAccountManagerImpl: LocalIdentifiersSetter {
         }
     }
 
+    public func setIsTellomiLoggedOut(_ isLoggedOut: Bool, tx: DBWriteTransaction) -> Bool {
+        return mutateWithLock(tx: tx) {
+            let oldValue = kvStore.fetchValue(Date.self, forKey: Keys.tellomiLoggedOutDate, tx: tx) != nil
+            guard oldValue != isLoggedOut else {
+                return false
+            }
+            if isLoggedOut {
+                Self.regStateLogger.warn("Tellomi: logged out on this device (ADR-0072)")
+                kvStore.writeValue(dateProvider(), forKey: Keys.tellomiLoggedOutDate, tx: tx)
+            } else {
+                Self.regStateLogger.info("Tellomi: logged back in on this device (ADR-0072)")
+                kvStore.removeValue(forKey: Keys.tellomiLoggedOutDate, tx: tx)
+            }
+            return true
+        }
+    }
+
     public func resetForReregistration(
         aci: Aci?,
         phoneNumber: E164,
@@ -267,6 +296,7 @@ extension TSAccountManagerImpl: LocalIdentifiersSetter {
                 Keys.registrationDate,
                 Keys.serverAuthToken,
                 Keys.wasTransferred,
+                Keys.tellomiLoggedOutDate,
             ]
             for key in kvStore.fetchKeys(tx: tx) {
                 if keysToKeep.contains(key) {
@@ -429,6 +459,9 @@ extension TSAccountManagerImpl {
 
         let isManualMessageFetchEnabled: Bool
 
+        /// Tellomi（ADR-0072）：本机「已退出登录」。
+        let isTellomiLoggedOut: Bool
+
         var serverUsername: String? {
             guard let aciString = self.localIdentifiers?.aci.serviceIdString else {
                 return nil
@@ -480,12 +513,16 @@ extension TSAccountManagerImpl {
             let isTransferInProgress = kvStore.fetchValue(Bool.self, forKey: Keys.isTransferInProgress, tx: tx) ?? false
             self.isTransferInProgress = isTransferInProgress
 
+            let isTellomiLoggedOut = kvStore.fetchValue(Date.self, forKey: Keys.tellomiLoggedOutDate, tx: tx) != nil
+            self.isTellomiLoggedOut = isTellomiLoggedOut
+
             self.registrationState = Self.loadRegistrationState(
                 aci: aci,
                 phoneNumber: phoneNumber,
                 pni: pni,
                 isPrimaryDevice: isPrimaryDevice,
                 isTransferInProgress: isTransferInProgress,
+                isTellomiLoggedOut: isTellomiLoggedOut,
                 kvStore: kvStore,
                 tx: tx,
             )
@@ -518,6 +555,7 @@ extension TSAccountManagerImpl {
             pni: Pni?,
             isPrimaryDevice: Bool?,
             isTransferInProgress: Bool,
+            isTellomiLoggedOut: Bool,
             kvStore: NewKeyValueStore,
             tx: DBReadTransaction,
         ) -> TSRegistrationState {
@@ -555,7 +593,9 @@ extension TSAccountManagerImpl {
                 }
             }
             let isDeregisteredOrDelinked = kvStore.fetchValue(Bool.self, forKey: Keys.isDeregisteredOrDelinked, tx: tx) ?? false
-            if isDeregisteredOrDelinked {
+            // Tellomi（ADR-0072）：本机「已退出登录」也报 deregistered——凡是看注册状态的地方（WebSocket、
+            // 后台任务、通知扩展、分享扩展）都按「没注册」停下；本地数据、凭据原样留着，重新登录时去掉标记即可。
+            if isDeregisteredOrDelinked || isTellomiLoggedOut {
                 // if isDeregistered is true, we may have been registered
                 // or not. But its being true means we should be deregistered
                 // (or delinked, based on whether this is a primary).
@@ -622,6 +662,9 @@ extension TSAccountManagerImpl {
             static let lastSetIsDiscoverableByPhoneNumber = "TSAccountManager_LastSetIsDiscoverableByPhoneNumberKey"
 
             static let isManualMessageFetchEnabled = "TSAccountManager_ManualMessageFetchKey"
+
+            /// Tellomi（ADR-0072）：本机退出登录的时间；有值 = 已退出登录。
+            static let tellomiLoggedOutDate = "TellomiAccountManager_LoggedOutDateKey"
         }
     }
 }

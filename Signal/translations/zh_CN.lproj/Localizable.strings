@@ -3200,7 +3200,7 @@
 "DELETED_USER" = "删除账户";
 
 /* Notification warning the user that they have been de-registered. */
-"DEREGISTRATION_NOTIFICATION" = "您在此设备上已被登出 Tellomi。";
+"DEREGISTRATION_NOTIFICATION" = "此设备上的 Tellomi 已退出登录。";
 
 /* Button that lets users re-register using the same phone number. */
 "DEREGISTRATION_REREGISTER_BUTTON" = "重新注册";
@@ -10841,6 +10841,69 @@
 
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "点击替换表情符号";
+
+/* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
+"TELLOMI_LOGOUT_CONFIRM_BODY" = "聊天记录会保留在这台手机上，用同一个手机号重新登录后恢复。退出期间别人发来的消息会在服务器上等你，最多保留 30 天。";
+
+/* Tellomi: Destructive action in the log out confirmation: log out and delete all data on this phone. */
+"TELLOMI_LOGOUT_CONFIRM_DELETE_DATA" = "退出并删除本机数据";
+
+/* Tellomi: Default action in the log out confirmation: log out and keep the chats on this phone. */
+"TELLOMI_LOGOUT_CONFIRM_KEEP_DATA" = "退出登录";
+
+/* Tellomi: Title of the confirmation sheet for logging out. */
+"TELLOMI_LOGOUT_CONFIRM_TITLE" = "退出登录？";
+
+/* Tellomi: Body of the second confirmation: all chats and files on this phone are deleted for good; the account itself is not affected and can log in on any device. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_BODY" = "这台手机上的聊天记录和文件会全部删除，不能恢复。你的账号不受影响，可以在任何设备上重新登录。";
+
+/* Tellomi: Destructive button in the second confirmation: delete this phone's data and log out. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_BUTTON" = "删除并退出";
+
+/* Tellomi: Title of the second confirmation before logging out and deleting this phone's data. */
+"TELLOMI_LOGOUT_DELETE_CONFIRM_TITLE" = "删除本机数据？";
+
+/* Tellomi: Caption above the masked phone number of the logged-out account on the welcome screen. Tapping the block logs back in with that number. */
+"TELLOMI_LOGOUT_LAST_LOGIN_TITLE" = "上次登录";
+
+/* Tellomi: Shown when logging out fails because there is no network connection; the app stays logged in. */
+"TELLOMI_LOGOUT_NETWORK_ERROR" = "退出登录需要联网，请稍后再试。";
+
+/* Tellomi: Confirmation shown on the phone number screen when this phone is logged out of one account and the user enters a different number. Deleting local data is required first. Embeds {{masked phone number of the logged-out account, e.g. +86 138****5678}}. */
+"TELLOMI_LOGOUT_NEW_NUMBER_CONFIRM_BODY_FORMAT" = "用新号码登录会删除这台手机上 %@ 的聊天记录。确定继续吗？";
+
+/* Tellomi: Red button at the bottom of the log out page. */
+"TELLOMI_LOGOUT_OPTIONS_BUTTON" = "退出登录";
+
+/* Tellomi: Heading above the alternatives on the log out page, suggesting the user check whether one of them helps before logging out. */
+"TELLOMI_LOGOUT_OPTIONS_INTRO" = "退出前，看看这些能不能帮到你：";
+
+/* Tellomi: Title of the page shown before logging out, listing alternatives (screen lock, storage, change number). */
+"TELLOMI_LOGOUT_OPTIONS_TITLE" = "退出登录";
+
+/* Tellomi: Log out alternatives: explanation under 'Change Phone Number' — got a new number? Chats and contacts are kept. */
+"TELLOMI_LOGOUT_OPTION_CHANGE_NUMBER_BODY" = "换了手机号？聊天记录和联系人都会保留。";
+
+/* Tellomi: Log out alternatives: title of the row that starts changing the phone number. */
+"TELLOMI_LOGOUT_OPTION_CHANGE_NUMBER_TITLE" = "更换手机号";
+
+/* Tellomi: Log out alternatives: explanation under 'Screen Lock' — worried others will see your chats? Turn it on and the app must be unlocked first. */
+"TELLOMI_LOGOUT_OPTION_SCREEN_LOCK_BODY" = "担心别人看到？打开后要先解锁才能进入 Tellomi。";
+
+/* Tellomi: Log out alternatives: title of the row that opens the Screen Lock setting. */
+"TELLOMI_LOGOUT_OPTION_SCREEN_LOCK_TITLE" = "屏幕锁定";
+
+/* Tellomi: Log out alternatives: explanation under 'Manage Storage' — running out of space? Clean up images and files you don't need. */
+"TELLOMI_LOGOUT_OPTION_STORAGE_BODY" = "空间不够？清理不需要的图片和文件。";
+
+/* Tellomi: Log out alternatives: title of the row that opens storage management. */
+"TELLOMI_LOGOUT_OPTION_STORAGE_TITLE" = "管理存储空间";
+
+/* Tellomi: Red row at the bottom of Settings > Account (above 'Delete Account') that opens the log out page. Logging out keeps the account; it is not account deletion. */
+"TELLOMI_LOGOUT_SETTINGS_ROW" = "退出登录";
+
+/* Tellomi: Switch on the log out page (off by default, shown only when there are linked devices): also log out the linked devices such as computers. */
+"TELLOMI_LOGOUT_UNLINK_DEVICES_SWITCH" = "同时让已链接的设备退出";
 
 /* Chat list banner shown while system notifications for Tellomi are turned off. */
 "TELLOMI_NOTIFICATIONS_DISABLED_REMINDER" = "通知已关闭。Tellomi 不在前台时，你不会收到新消息和来电的提醒。";

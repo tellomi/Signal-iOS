@@ -26,6 +26,9 @@ public enum RegistrationPhoneNumberViewState: Equatable {
         let previouslyEnteredE164: E164?
         let validationError: ValidationError?
         let canExitRegistration: Bool
+        /// Tellomi（ADR-0072）：本机已退出登录、正在重新登录时不给「关联到另一台设备」的菜单项——
+        /// 这台设备上还放着那个账号的数据，而重新登录的流程也不能切成关联。
+        var tellomiCanSwitchToLinking: Bool = true
     }
 
     public struct Reregistration: Equatable {

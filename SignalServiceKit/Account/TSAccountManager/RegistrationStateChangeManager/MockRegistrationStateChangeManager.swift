@@ -105,6 +105,13 @@ open class MockRegistrationStateChangeManager: RegistrationStateChangeManager {
         setIsDeregisteredOrDelinkedMock(isDeregisteredOrDelinked)
     }
 
+    /// Tellomi（ADR-0072）：记下每一次设置的值，用例据此判断退出 / 重新登录有没有落到本机标记上。
+    public private(set) var tellomiLoggedOutValues: [Bool] = []
+
+    open func setIsTellomiLoggedOut(_ isLoggedOut: Bool, tx: DBWriteTransaction) {
+        tellomiLoggedOutValues.append(isLoggedOut)
+    }
+
     public var unregisterFromServiceMock: () async throws -> Void = { fatalError() }
 
     open func unregisterFromService() async throws {
