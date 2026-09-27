@@ -12,6 +12,8 @@ public enum PushRegistrationError: Error {
     case assertionError(description: String)
     case pushNotSupported(description: String)
     case timeout
+    /// Tellomi（tellomi/tellomi#1338）：还没同意跨境告知，不向 Apple 要令牌，见 `requestPushTokens`。
+    case crossBorderConsentRequired
 }
 
 /**
@@ -27,6 +29,13 @@ public class PushRegistrationManager: NSObject, PKPushRegistryDelegate {
 
         super.init()
 
+        // Tellomi（tellomi/tellomi#1338）：同意跨境之后，把之前被闸挡下的那次补上，见 `requestPushTokens`。
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(crossBorderConsentDidChange),
+            name: TellomiCrossBorderConsent.didChangeNotification,
+            object: nil,
+        )
     }
 
     // Coordinates blocking of the calloutQueue while we wait for an incoming call
@@ -45,6 +54,10 @@ public class PushRegistrationManager: NSObject, PKPushRegistryDelegate {
 
     @MainActor
     private var voipRegistry: PKPushRegistry?
+
+    /// Tellomi（tellomi/tellomi#1338）：同意跨境之前有人要过令牌、被闸挡下了（已注册的人升级上来，启动 / 回前台时）。
+    @MainActor
+    private var hasHeldBackTokenRequestUntilCrossBorderConsent = false
 
     private var preauthChallengeGuarantee: Guarantee<String>
     private var preauthChallengeFuture: GuaranteeFuture<String>
@@ -66,6 +79,15 @@ public class PushRegistrationManager: NSObject, PKPushRegistryDelegate {
         timeOutEventually: Bool = false,
     ) async throws -> ApnRegistrationId {
         Logger.info("")
+        // Tellomi（tellomi/tellomi#1338）：跨境告知同意之前不向 Apple 要 APNs / PushKit 令牌（需求
+        // privacy-compliance-hk-cross-border.md 2.1：「推送注册……都等同意之后」）。已注册的人升级上来、还没同意时，
+        // 启动和回前台的 `SyncPushTokensJob` 都走到这里；以前只挡住了「把令牌传给服务端」，向 Apple 要令牌照样发生。
+        // 新用户注册、关联设备都是先同意再要令牌，不受影响。挡下的这次在同意之后补一次（`crossBorderConsentDidChange`）。
+        guard TellomiCrossBorderConsent.hasAgreed else {
+            Logger.warn("Cross-border notice not accepted yet; not requesting APNs / PushKit tokens.")
+            hasHeldBackTokenRequestUntilCrossBorderConsent = true
+            throw PushRegistrationError.crossBorderConsentRequired
+        }
         // Tellomi（tellomi/tellomi#1112、#1218 F-01）：上游在这里无条件 requestAuthorization，于是注册中途拿令牌时
         // 系统通知框会直接弹出来（没有说明、也不在用户做相关操作时）。通知授权改由首屏说明页的「继续」去问
         // （`TellomiNotificationPrimer`）；还没问过（.notDetermined）时这里只拿令牌、不弹框。
@@ -93,6 +115,24 @@ public class PushRegistrationManager: NSObject, PKPushRegistryDelegate {
 
     public func didFinishReportingIncomingCall() {
         incomingCallFuture.swap(nil)?.resolve()
+    }
+
+    // MARK: Tellomi：跨境同意之后补一次（tellomi/tellomi#1338）
+
+    @MainActor
+    @objc
+    private func crossBorderConsentDidChange() {
+        guard hasHeldBackTokenRequestUntilCrossBorderConsent, TellomiCrossBorderConsent.hasAgreed else {
+            return
+        }
+        hasHeldBackTokenRequestUntilCrossBorderConsent = false
+        Logger.info("Cross-border notice accepted; syncing the push tokens held back before.")
+        syncPushTokensAfterCrossBorderConsent()
+    }
+
+    /// 拿令牌并报给服务端（启动时那一次被闸挡掉了，不补要等下次启动）。单元测试里换掉：`SyncPushTokensJob` 要用 `AppEnvironment`。
+    func syncPushTokensAfterCrossBorderConsent() {
+        SyncPushTokensJob.run()
     }
 
     // MARK: Vanilla push token

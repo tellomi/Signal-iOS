@@ -3839,6 +3839,7 @@
 		F9B93CDC28E1FE3500B3F8A0 /* SignalProxyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B93CDB28E1FE3500B3F8A0 /* SignalProxyTest.swift */; };
 		F9B93CE028E246D900B3F8A0 /* AppDelegateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B93CDF28E246D900B3F8A0 /* AppDelegateTest.swift */; };
 		D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1139A000000000000000005 /* TellomiUpdateRequiredTest.swift */; };
+		D1338A000000000000000002 /* TellomiPushCrossBorderConsentTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1338A000000000000000001 /* TellomiPushCrossBorderConsentTest.swift */; };
 		F9BC0A2527FB8E730085B23D /* AppSettingsViewsUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9BC0A2427FB8E730085B23D /* AppSettingsViewsUtil.swift */; };
 		F9C57FAD28E5F1E2001D3596 /* MockSSKEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C57FAC28E5F1E2001D3596 /* MockSSKEnvironment.swift */; };
 		F9C5C89F289451B900548EEE /* SignalServiceKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9C5C897289451B900548EEE /* SignalServiceKit.framework */; };
@@ -8313,6 +8314,7 @@
 		F9B93CDB28E1FE3500B3F8A0 /* SignalProxyTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalProxyTest.swift; sourceTree = "<group>"; };
 		F9B93CDF28E246D900B3F8A0 /* AppDelegateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateTest.swift; sourceTree = "<group>"; };
 		D1139A000000000000000005 /* TellomiUpdateRequiredTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiUpdateRequiredTest.swift; sourceTree = "<group>"; };
+		D1338A000000000000000001 /* TellomiPushCrossBorderConsentTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiPushCrossBorderConsentTest.swift; sourceTree = "<group>"; };
 		F9BC0A2427FB8E730085B23D /* AppSettingsViewsUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsViewsUtil.swift; sourceTree = "<group>"; };
 		F9BC9C6428B7C00A0077D442 /* OutgoingGroupUpdateMessageTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutgoingGroupUpdateMessageTest.swift; sourceTree = "<group>"; };
 		F9C45D9329CB93E200B2CD2D /* UIStackView+SignalUITest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIStackView+SignalUITest.swift"; sourceTree = "<group>"; };
@@ -12084,6 +12086,7 @@
 				34BEDB0F21C41E71007B0EAE /* views */,
 				F9B93CDF28E246D900B3F8A0 /* AppDelegateTest.swift */,
 				D1139A000000000000000005 /* TellomiUpdateRequiredTest.swift */,
+				D1338A000000000000000001 /* TellomiPushCrossBorderConsentTest.swift */,
 				4C83AC4123C55D9C00D4F2E6 /* SignalBaseTest.swift */,
 			);
 			path = test;
@@ -19466,6 +19469,7 @@
 				6675F65129261E0C007A311E /* APNSRotationStoreTest.swift in Sources */,
 				F9B93CE028E246D900B3F8A0 /* AppDelegateTest.swift in Sources */,
 				D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */,
+				D1338A000000000000000002 /* TellomiPushCrossBorderConsentTest.swift in Sources */,
 				F9B3A92F293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift in Sources */,
 				50B6BCB42AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift in Sources */,
 				D962FC432E149ECF004DB623 /* BackupAttachmentDownloadTrackerTest.swift in Sources */,
