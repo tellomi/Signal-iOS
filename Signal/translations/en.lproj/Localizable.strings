@@ -11457,11 +11457,26 @@
 /* Name of the Terms of Service document, shown as a tappable link inside consent sentences. */
 "TELLOMI_CONSENT_TERMS_LINK" = "Terms of Service";
 
-/* Shown on the cross-border notice after the user taps 'Disagree'. */
-"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "If you don’t agree, the app won’t connect to any server or send any of your information, and you won’t be able to use Tellomi until our mainland China service launches. You can close the app, or come back to this page and agree later.";
+/* Body of the short cross-border consent dialog: where the data goes, and asking for separate consent. */
+"TELLOMI_CROSS_BORDER_DIALOG_BODY" = "Tellomi’s servers are in Hong Kong, China, and attachments, profile photos and backups are stored with Cloudflare (United States), so some of your personal information is transferred outside mainland China. Do you give your separate consent?";
 
-/* Introduction of the cross-border data transfer notice. */
-"TELLOMI_CROSS_BORDER_INTRO" = "Tellomi’s servers are in Hong Kong, China, and encrypted data such as attachments is stored with Cloudflare in western North America. Signing up for and using Tellomi transfers some of your personal information outside mainland China. Please read the points below before deciding whether to give your separate consent. Until you agree, the app won’t connect to any server.";
+/* Link in the cross-border consent dialog that opens the full Cross-Border Transfer Notice (the 9 items). */
+"TELLOMI_CROSS_BORDER_DIALOG_FULL_NOTICE_LINK" = "Read the Cross-Border Transfer Notice";
+
+/* Shown at the top of the cross-border consent dialog that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0. */
+"TELLOMI_CROSS_BORDER_DIALOG_POLICY_UPDATED" = "Our Privacy Policy has been updated to version 2.0.0.";
+
+/* Title of the short cross-border consent dialog. */
+"TELLOMI_CROSS_BORDER_DIALOG_TITLE" = "Cross-border transfer of personal information";
+
+/* Shown on the cross-border notice after the user taps 'Disagree'. */
+"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "If you don’t agree, the app won’t connect to any server or send any of your information, and you won’t be able to use Tellomi until our mainland China service launches. You can close the app, or agree later.";
+
+/* Button at the bottom of the full Cross-Border Transfer Notice: go back to the consent dialog. */
+"TELLOMI_CROSS_BORDER_FULL_NOTICE_CLOSE" = "Back";
+
+/* Title of the full Cross-Border Transfer Notice page (the 9 items), opened from the consent dialog. */
+"TELLOMI_CROSS_BORDER_FULL_NOTICE_TITLE" = "Cross-Border Transfer Notice";
 
 /* Cross-border notice item 9 body: this page is the separate consent and can be withdrawn. */
 "TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "Tapping “Agree and Continue” means you separately consent to the transfer described above; agreeing to the Privacy Policy is not the same as consenting to this transfer. You can withdraw at any time by emailing privacy@tellomi.app (or in the app once that option is available). Because Tellomi can currently only be provided through servers outside mainland China, after withdrawing you won’t be able to keep using Tellomi until our mainland China service launches; you can also delete your account. Withdrawing doesn’t affect processing carried out before it.";
@@ -11520,17 +11535,11 @@
 /* Only button on the read-only cross-border notice shown when linking this device: acknowledge the notice. */
 "TELLOMI_CROSS_BORDER_LINKED_ACK" = "Got It";
 
-/* Introduction of the read-only cross-border notice shown when linking this device to an existing account. */
-"TELLOMI_CROSS_BORDER_LINKED_INTRO" = "This device is about to be linked to your Tellomi account. Separate consent to the cross-border transfer is given on your phone, so this device won’t ask for it again. Below is the same notice for your reference. After linking, information on this device is processed in the same way.";
+/* Body of the read-only cross-border dialog shown when linking this device: consent is given on the phone. */
+"TELLOMI_CROSS_BORDER_LINKED_DIALOG_BODY" = "Separate consent to the cross-border transfer is given on your phone, so this device won’t ask for it again. After linking, information on this device is handled as described in the Cross-Border Transfer Notice.";
 
 /* Cross-border notice item 9 body on the read-only version shown when linking this device: consent is given on the phone. */
 "TELLOMI_CROSS_BORDER_LINKED_ITEM_CONSENT_BODY" = "Separate consent to the transfer above is given on your phone; this device doesn’t collect it again. You can withdraw at any time by emailing privacy@tellomi.app; after withdrawing, you won’t be able to keep using Tellomi until our mainland China service launches.";
-
-/* Title of the read-only cross-border notice shown when linking this device to an existing account. */
-"TELLOMI_CROSS_BORDER_LINKED_TITLE" = "Before you link this device: cross-border transfer of personal information";
-
-/* Shown above the introduction of the cross-border notice that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0. */
-"TELLOMI_CROSS_BORDER_POLICY_UPDATED" = "Our Privacy Policy has been updated to version 2.0.0: messages, calls, attachments, profiles and group information are end-to-end encrypted, and it now states that our servers are in Hong Kong, China, and describes the cross-border transfer on this page.";
 
 /* Link under the 'Privacy Policy updated' sentence on the cross-border notice for already-registered devices; opens the Privacy Policy. */
 "TELLOMI_CROSS_BORDER_POLICY_UPDATED_LINK" = "Read Privacy Policy 2.0.0";
@@ -11540,9 +11549,6 @@
 
 /* Link at the bottom of the cross-border notice that opens the Third-Party Sharing and SDK List. */
 "TELLOMI_CROSS_BORDER_THIRD_PARTY_LINK" = "Read the Third-Party Sharing and SDK List";
-
-/* Title of the cross-border data transfer notice shown before the phone number is sent during registration. */
-"TELLOMI_CROSS_BORDER_TITLE" = "Your personal information will be processed outside mainland China";
 
 /* Button in the first-launch privacy notice: agree. */
 "TELLOMI_FIRST_LAUNCH_AGREE" = "Agree";

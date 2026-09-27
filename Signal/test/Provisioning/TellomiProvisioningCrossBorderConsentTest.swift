@@ -56,6 +56,28 @@ final class TellomiProvisioningCrossBorderConsentTest: SignalBaseTest {
         }
     }
 
+    /// 注册流程续跑到扫码那一步推的就是这个类。截下 `present`，`waitForMessage` 只记次数、一直等（不连网）。
+    private final class RegistrationQuickRestoreScreen: RegistrationQuickRestoreQRCodeViewController {
+        private(set) var presentedControllers: [UIViewController] = []
+        private(set) var waitForMessageCount = 0
+
+        override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
+            presentedControllers.append(viewControllerToPresent)
+            completion?()
+        }
+
+        override func waitForMessage() async throws -> RegistrationProvisioningMessage {
+            waitForMessageCount += 1
+            try await Task.sleep(nanoseconds: 3_600_000_000_000)
+            throw CancellationError()
+        }
+    }
+
+    private final class RestorePresenterSpy: RegistrationQuickRestoreQRCodePresenter {
+        func didReceiveRegistrationMessage(_ message: RegistrationProvisioningMessage) {}
+        func cancelChosenRestoreMethod() {}
+    }
+
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
@@ -205,6 +227,51 @@ final class TellomiProvisioningCrossBorderConsentTest: SignalBaseTest {
         XCTAssertEqual(socketManager.resetCount, 1, "同意之后 reset() 一次：开 socket、出二维码")
         XCTAssertEqual(socketManager.startCount, 1)
         XCTAssertEqual(screen.presentedControllers.count, 1, "同意之后不再弹告知")
+    }
+
+    // MARK: - 注册流程续跑到扫码那一步（RegistrationQuickRestoreQRCodeViewController）
+
+    /// Tellomi（tellomi/tellomi#1338，需求 6.6）：告知改成 overFullScreen 的小弹窗以后，关掉弹窗时本页不再走 viewDidAppear
+    /// （整页 fullScreen 的时候会再走一次，原来就靠那一次开始等消息）。同意之后要直接开始等主设备的消息，不然二维码出来了却永远等不到。
+    func testRegistrationQuickRestoreStartsWaitingRightAfterAgreeing() throws {
+        XCTAssertFalse(TellomiCrossBorderConsent.hasAgreed, "前提：还没同意跨境")
+        let socketManager = SocketManagerSpy()
+        let presenter = RestorePresenterSpy()
+        let screen = RegistrationQuickRestoreScreen(presenter: presenter, provisioningSocketManager: socketManager)
+
+        screen.loadViewIfNeeded()
+        appear(screen)
+        XCTAssertEqual(screen.waitForMessageCount, 0, "没同意跨境，不等消息")
+        let notice = try XCTUnwrap(screen.presentedControllers.first as? TellomiCrossBorderNoticeViewController)
+        XCTAssertEqual(notice.mode, .consent, "恢复 / 转移是主设备，完整同意")
+
+        notice.loadViewIfNeeded()
+        let agreeButton = try XCTUnwrap(button(identifier: "tellomi.crossBorder.agree", in: notice.view))
+        agreeButton.sendActions(for: .primaryActionTriggered)
+        // 不模拟「关掉告知后本页再出现一次」：弹窗是 overFullScreen，真机上也不会有那一次。
+        let deadline = Date().addingTimeInterval(3)
+        while screen.waitForMessageCount == 0, Date() < deadline {
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        }
+
+        XCTAssertEqual(socketManager.resetCount, 1, "同意之后 reset() 一次：开 socket、出二维码")
+        XCTAssertEqual(screen.waitForMessageCount, 1, "同意之后要开始等主设备的消息")
+    }
+
+    func testRegistrationQuickRestoreWaitsOnAppearOnceConsented() {
+        TellomiCrossBorderConsent.recordAgreement()
+        let socketManager = SocketManagerSpy()
+        let screen = RegistrationQuickRestoreScreen(presenter: RestorePresenterSpy(), provisioningSocketManager: socketManager)
+
+        screen.loadViewIfNeeded()
+        appear(screen)
+        let deadline = Date().addingTimeInterval(3)
+        while screen.waitForMessageCount == 0, Date() < deadline {
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        }
+
+        XCTAssertTrue(screen.presentedControllers.isEmpty, "同意过就不再出告知")
+        XCTAssertEqual(screen.waitForMessageCount, 1, "同意过就照上游：页面一出现就等消息")
     }
 
     func testQuickRestoreScreenResetsSocketOnAppearOnceConsented() {

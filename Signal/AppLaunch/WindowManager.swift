@@ -210,7 +210,8 @@ class WindowManager: TellomiUpdateRequiredBlockHost {
         return window
     }()
 
-    /// Tellomi（tellomi/tellomi#1338）：已注册设备升级后的盖页 = 完整同意 + 导语上方「隐私政策已更新至 2.0.0」（需求第六节法务项 c）。
+    /// Tellomi（tellomi/tellomi#1338）：已注册设备升级后的盖页 = 完整同意 + 最上面「《隐私政策》已更新至 2.0.0 版。」（需求第六节法务项 c）；
+    /// 6.6 起是品牌底色空白盖页上的小弹窗，关不掉。
     /// 拆成静态方法，是为了用例能走这里真的接线（同 `makeUpdateRequiredBlockingViewController`）。
     static func makeCrossBorderConsentBlockingViewController() -> TellomiCrossBorderNoticeViewController {
         return TellomiCrossBorderNoticeViewController(mode: .consentAfterPolicyUpdate, onAgree: {})
