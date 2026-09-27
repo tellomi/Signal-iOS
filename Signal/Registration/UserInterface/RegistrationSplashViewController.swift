@@ -77,7 +77,8 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
         ])
 
         // Tellomi（owner 2026-09-27，docs/product/BRAND.md「开屏」）：插画下面只放字标 Tellomi，不放任何句子（App 内不显示标语）。
-        // 字标是 docs/brand/wordmark.svg 由 scripts/brand/make-icons.py 换色出的两版：浅色墨 #111113、深色白。
+        // 字标是 docs/brand/wordmark/tellomi-wordmark-{light,dark}.svg 原样拷入（owner 2026-09-27 定稿的 Tell@mi）；只约束高度，宽高比取图本身，
+        // 换字标只换这个 imageset 里的两个 SVG。
         // 上游这里是标题「Take privacy with you…」（更早还按是否生产服务显示调试串，tellomi/tellomi#1209）。
         let wordmarkView = UIImageView(image: UIImage(named: "tellomi_wordmark"))
         wordmarkView.contentMode = .scaleAspectFit
@@ -103,6 +104,8 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
                 self?.continuePressed()
             },
         )
+        // Tellomi（owner 2026-09-27）：开屏的「继续」保持苹果原生蓝，不用 Signal 的 ultramarine（.Signal.accent）；只改这一个按钮，不动全局 tint。
+        continueButton.configuration?.baseBackgroundColor = .systemBlue
 
         // Tellomi：上游「恢复或转移账户」和「继续」一样大，而 Tellomi 能走通的只有一条路（iPhone 到 iPhone 直连传输），
         // 大多数人是第一次注册。降成主按钮下面一行文字链（tellomi/tellomi#1216）。以后有了云备份，入口还在这里，只是里面多几条路。

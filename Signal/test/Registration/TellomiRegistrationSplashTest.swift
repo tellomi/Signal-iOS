@@ -52,6 +52,11 @@ final class TellomiRegistrationSplashTest: SignalBaseTest {
         XCTAssertTrue(wordmark.isAccessibilityElement)
         XCTAssertEqual(wordmark.accessibilityLabel, "Tellomi")
 
+        // owner 2026-09-27 定稿的字标 Tell@mi（Inter 540 + 图标里的 @）：viewBox 9188.9×2167.5。只约束高度，宽高比取图本身。
+        let image = try XCTUnwrap(wordmark.image)
+        XCTAssertEqual(Double(image.size.width / image.size.height), 9188.9 / 2167.5, accuracy: 0.01, "字标换成定稿版")
+        XCTAssertEqual(Double(wordmark.frame.size.height), 40, accuracy: 0.5, "按高度 40pt 排")
+
         let titleText = localized("ONBOARDING_SPLASH_TITLE")
         let sentences = views.compactMap { $0 as? UILabel }.filter { $0.text == titleText }
         XCTAssertTrue(sentences.isEmpty, "不放任何句子（「让隐私与您形影不离……」去掉）")
@@ -69,6 +74,15 @@ final class TellomiRegistrationSplashTest: SignalBaseTest {
         let titles = allSubviews(of: splash.view).compactMap { ($0 as? UIButton)?.configuration?.title }
         XCTAssertTrue(titles.contains(CommonStrings.continueButton), "「继续」照旧")
         XCTAssertTrue(titles.contains(localized("ONBOARDING_SPLASH_NEW_PHONE_LINK_TITLE")), "「换了新手机？」照旧")
+    }
+
+    /// owner 2026-09-27：开屏的「继续」保持苹果原生蓝（systemBlue），不用 Signal 的 ultramarine；只改这一个按钮，不动全局 tint。
+    func testContinueButtonIsSystemBlue() throws {
+        let (splash, _) = makeSplash()
+        let continueButton = try XCTUnwrap(
+            allSubviews(of: splash.view).compactMap { $0 as? UIButton }.first { $0.configuration?.title == CommonStrings.continueButton },
+        )
+        XCTAssertEqual(continueButton.configuration?.baseBackgroundColor, UIColor.systemBlue)
     }
 
     func testSplashUsesTheUnDrawIllustrationInBothAppearances() throws {
