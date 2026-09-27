@@ -7,7 +7,7 @@ import SignalServiceKit
 import SignalUI
 
 /// Tellomi（tellomi/tellomi#1261 P-8，照 Telegram `MediaPickerGridItem` 的格子）：正方形缩略图；右上角编号勾
-/// （29 的触摸区，离上、右各 3；白色 1.5 描边 + 阴影，选中填强调色并显示第几张）；视频右下角时长；实况照片左上角小图标。
+/// （29 的圆区，离上、右各 3；右上角 44 × 44 整块都算点勾；白色 1.5 描边 + 阴影，选中填强调色并显示第几张）；视频右下角时长；实况照片左上角小图标。
 /// 点勾选上 / 取消；点照片本身由网格决定（进单张预览 / 编辑，P-10）。
 final class TellomiPhotoPickerCell: UICollectionViewCell {
 
@@ -15,6 +15,9 @@ final class TellomiPhotoPickerCell: UICollectionViewCell {
 
     private enum Metrics {
         static let checkInset: CGFloat = 3
+        /// 右上角这么大一块都算点勾（owner 2026-09-28：29 的触摸区，手指落在圆旁边一点就进了预览）。
+        /// 照 Telegram Android `PhotoAttachPhotoCell` 42dp 的 checkFrame，iOS 取 44（系统最小触摸目标）。
+        static let checkHitSize: CGFloat = 44
     }
 
     private let imageView = UIImageView()
@@ -76,6 +79,8 @@ final class TellomiPhotoPickerCell: UICollectionViewCell {
             width: TellomiNumberedCheck.touchSize,
             height: TellomiNumberedCheck.touchSize,
         )
+        let extraHit = Metrics.checkHitSize - TellomiNumberedCheck.touchSize - Metrics.checkInset
+        check.hitAreaOutsets = UIEdgeInsets(top: Metrics.checkInset, left: extraHit, bottom: extraHit, right: Metrics.checkInset)
         livePhotoBadge.sizeToFit()
         livePhotoBadge.frame.origin = CGPoint(x: 6, y: 6)
         durationLabel.sizeToFit()
@@ -150,6 +155,9 @@ final class TellomiNumberedCheck: UIControl {
     private let numberLabel = UILabel()
     private var number: Int?
 
+    /// 触摸区在 frame 之外再往四边扩多少（看得见的圆不动）。选图格子里把右上角整块角区都算进来。
+    var hitAreaOutsets: UIEdgeInsets = .zero
+
     override init(frame: CGRect) {
         super.init(frame: frame)
 
@@ -175,6 +183,12 @@ final class TellomiNumberedCheck: UIControl {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let outsets = hitAreaOutsets
+        let hitArea = bounds.inset(by: UIEdgeInsets(top: -outsets.top, left: -outsets.left, bottom: -outsets.bottom, right: -outsets.right))
+        return hitArea.contains(point)
     }
 
     override func layoutSubviews() {
@@ -218,6 +232,13 @@ extension TellomiPhotoPickerCell {
 
     func tapCheckForTesting() {
         onCheckTapped?()
+    }
+
+    /// 在格子坐标里的这一点按下去，落到的是不是勾（和真实点按走同一条 hitTest）。
+    func isCheckHitForTesting(at point: CGPoint) -> Bool {
+        layoutIfNeeded()
+        guard let view = hitTest(point, with: nil) else { return false }
+        return view === check || view.isDescendant(of: check)
     }
 }
 
