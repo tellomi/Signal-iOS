@@ -11220,6 +11220,9 @@
 /* A message in a toast informing the user their username, link, and QR code have successfully been reset. Embeds {{ the user's new username }}. */
 "USERNAME_RESET_SUCCESSFUL_TOAST" = "Your QR code and link have been reset and your username is %1$@";
 
+/* Tellomi: shown for about 2 seconds in place of the username rule hint, right after uppercase letters the user typed or pasted into the username field were changed to lowercase. Not an error. */
+"USERNAME_SELECTION_AUTO_LOWERCASED_TELLOMI" = "Changed to lowercase";
+
 /* An error message shown when the user has typed a username that starts with a digit, which is invalid. */
 "USERNAME_SELECTION_CANNOT_START_WITH_DIGIT_ERROR_MESSAGE" = "Username cannot begin with a number";
 
@@ -11255,6 +11258,9 @@
 
 /* An error message shown when the user has attempted too many username reservations. */
 "USERNAME_SELECTION_RESERVATION_RATE_LIMITED_ERROR_MESSAGE" = "Too many attempts made, please try again later";
+
+/* Tellomi: permanent grey hint below every username text field (registration profile and the username settings screen). Usernames are lowercase only. */
+"USERNAME_SELECTION_RULE_HINT_TELLOMI" = "Lowercase letters, numbers and underscores only; starts with a letter; 3–20 characters.";
 
 /* The placeholder for a text field into which users can type their desired username. */
 "USERNAME_SELECTION_TEXT_FIELD_PLACEHOLDER" = "Username";

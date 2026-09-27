@@ -1490,7 +1490,8 @@ extension RecipientPickerViewController {
 
     private func findByUsernameCell(for username: String, tableView: UITableView) -> UITableViewCell? {
         guard let cell = tableView.dequeueReusableCell(NonContactTableViewCell.self) else { return nil }
-        cell.configureWithUsername(username)
+        // Tellomi（ADR-0066 §6.1b）：搜索结果里的用户名一律显示小写（查找本身照旧用输入的原文，hash 不分大小写）
+        cell.configureWithUsername(TellomiLinks.displayUsername(username))
         return cell
     }
 

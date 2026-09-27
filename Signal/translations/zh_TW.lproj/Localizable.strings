@@ -11349,6 +11349,9 @@
 /* A message in a toast informing the user their username, link, and QR code have successfully been reset. Embeds {{ the user's new username }}. */
 "USERNAME_RESET_SUCCESSFUL_TOAST" = "你的二維碼和連結已重設，你的用戶名稱為 %1$@";
 
+/* Tellomi: shown for about 2 seconds in place of the username rule hint, right after uppercase letters the user typed or pasted into the username field were changed to lowercase. Not an error. */
+"USERNAME_SELECTION_AUTO_LOWERCASED_TELLOMI" = "已自動轉成小寫";
+
 /* An error message shown when the user has typed a username that starts with a digit, which is invalid. */
 "USERNAME_SELECTION_CANNOT_START_WITH_DIGIT_ERROR_MESSAGE" = "用戶名稱不得以數字開頭";
 
@@ -11384,6 +11387,9 @@
 
 /* An error message shown when the user has attempted too many username reservations. */
 "USERNAME_SELECTION_RESERVATION_RATE_LIMITED_ERROR_MESSAGE" = "嘗試次數過多，請稍後再試";
+
+/* Tellomi: permanent grey hint below every username text field (registration profile and the username settings screen). Usernames are lowercase only. */
+"USERNAME_SELECTION_RULE_HINT_TELLOMI" = "只能使用小寫字母、數字和底線，以字母開頭，3–20 個字元。";
 
 /* The placeholder for a text field into which users can type their desired username. */
 "USERNAME_SELECTION_TEXT_FIELD_PLACEHOLDER" = "使用者名稱";

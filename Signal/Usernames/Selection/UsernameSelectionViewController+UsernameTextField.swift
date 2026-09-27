@@ -219,7 +219,8 @@ extension UsernameSelectionViewController {
             super.init(frame: .zero)
 
             if let username {
-                text = username.nickname
+                // Tellomi（ADR-0066 §6.1b）：一律小写；老数据里的大写只在显示时转，不改服务端
+                text = TellomiLinks.lowercasedUsername(username.nickname)
             }
 
             placeholder = OWSLocalizedString(

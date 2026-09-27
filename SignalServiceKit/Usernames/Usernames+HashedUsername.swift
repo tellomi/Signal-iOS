@@ -103,6 +103,9 @@ public extension Usernames.HashedUsername {
         desiredDiscriminator: String?,
         enforcingLetterFirst: Bool,
     ) throws -> GeneratedCandidates {
+        // Tellomi（ADR-0066 §6.1b，owner 2026-09-27）：用户名一律小写。hash 在 libsignal 里本来就按小写算，这里转的是
+        // 保留 / 确认之后存到本机、加密进用户名链接的那个字符串——新设的名字不再带大写。只转 ASCII A–Z，别的非法字符照旧报错。
+        let nickname = TellomiLinks.lowercasedUsername(nickname)
         do {
             let nicknameLengthRange = minNicknameLength...maxNicknameLength
             // Tellomi（tellomi/tellomi#1106 第二刀，ADR-0066 §六「生成」）：不指定判别位时只试 `<nickname>.01` 这一个候选。
