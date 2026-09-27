@@ -11,7 +11,9 @@ class ProvisioningModeSwitchConfirmationViewController: ProvisioningBaseViewCont
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let imageView = UIImageView(image: .onboardingSplashHero)
+        // Tellomi（owner 2026-09-27）：Signal 原版插画已删，换成开屏轮播的第一张（荡秋千，Open Doodles CC0，纯黑白）；
+        // 同 ProvisioningSplashViewController，静态、读屏跳过（UIImageView 默认不是无障碍元素）。
+        let imageView = UIImageView(image: UIImage(named: "tellomi_splash_swinging"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
         imageView.layer.minificationFilter = .trilinear

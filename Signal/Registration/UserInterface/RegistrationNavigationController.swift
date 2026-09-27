@@ -19,6 +19,25 @@ public class RegistrationNavigationController: OWSNavigationController {
     private init(coordinator: RegistrationCoordinator) {
         self.coordinator = coordinator
         super.init()
+        // 只收自己这个协调器发的（它发的时候 object: self）：同一进程里有别的注册流程时（并行跑的用例），
+        // 别人的令牌到了不能让这里替自己的协调器取下一步。
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(tellomiPreAuthChallengeTokenDidArrive),
+            name: RegistrationCoordinatorImpl.tellomiPreAuthChallengeTokenDidArriveNotification,
+            object: coordinator as AnyObject,
+        )
+    }
+
+    /// Tellomi（ADR-0070 P4）：推送挑战令牌晚于等待窗口才到。还停在验证页上的话就重新取下一步，
+    /// 协调器会先用这个令牌提交推送挑战，验证页随之离开；不在验证页（已经往下走了）就什么也不做。
+    @objc
+    private func tellomiPreAuthChallengeTokenDidArrive() {
+        guard topViewController is RegistrationCaptchaViewController, !isLoading else {
+            return
+        }
+        logger.info("Push challenge token arrived while showing the captcha; continuing with it")
+        pushNextController(Guarantee.wrapAsync { await self.coordinator.nextStep() })
     }
 
     override public func viewDidLoad() {
@@ -178,13 +197,25 @@ public class RegistrationNavigationController: OWSNavigationController {
     }
 
     private func registrationSplashController() -> Controller<RegistrationSplashViewController> {
-        Controller(
+        let tellomiLastLogin = tellomiLastLogin()
+        return Controller(
             type: RegistrationSplashViewController.self,
             make: { presenter in
-                return RegistrationSplashViewController(presenter: presenter)
+                return RegistrationSplashViewController(presenter: presenter, tellomiLastLogin: tellomiLastLogin)
             },
             // No state to update.
             update: nil,
+        )
+    }
+
+    /// Tellomi（ADR-0072 §4.1 第 4 步）：本机已退出登录时，欢迎页上的「上次登录」（头像 + 打码的手机号）。
+    private func tellomiLastLogin() -> TellomiLastLogin? {
+        guard let e164 = coordinator.tellomiReLoginE164 else {
+            return nil
+        }
+        return TellomiLastLogin(
+            maskedPhoneNumber: TellomiMaskedPhoneNumber.format(e164: e164, phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef),
+            localAddress: DependenciesBridge.shared.tsAccountManager.localIdentifiersWithMaybeSneakyTransaction?.aciAddress,
         )
     }
 
@@ -414,9 +445,14 @@ public class RegistrationNavigationController: OWSNavigationController {
                 return nil
             case .verificationCodeSubmissionUnavailable:
                 title = nil
-                message = OWSLocalizedString(
+                // Tellomi（tellomi/tellomi#1214）：这里既可能是输错太多次，也可能是验证码过期（见 ErrorSheet 的注释），
+                // 上游只说「输入次数过多」。两种情况下一步都是重新获取验证码，照实说。
+                message = TSConstants.isUsingProductionService ? OWSLocalizedString(
                     "REGISTRATION_SUBMIT_CODE_ATTEMPTS_EXHAUSTED_ALERT",
                     comment: "Alert shown when running out of attempts at submitting a verification code.",
+                ) : OWSLocalizedString(
+                    "REGISTRATION_TELLOMI_CODE_NO_LONGER_VALID",
+                    comment: "Tellomi: Alert shown when the verification code can no longer be submitted, because it expired or was entered wrong too many times.",
                 )
             case .submittingVerificationCodeBeforeAnyCodeSent:
                 title = nil
@@ -432,6 +468,16 @@ public class RegistrationNavigationController: OWSNavigationController {
                 message = OWSLocalizedString(
                     "REGISTRATION_NETWORK_ERROR_BODY",
                     comment: "A network error occurred during registration, and an error is shown to the user. This is the body on that error sheet.",
+                )
+            case .sessionInvalidated where !TSConstants.isUsingProductionService:
+                // Tellomi（tellomi/tellomi#1214）：会话失效时上游说「出错了，请稍后重试」，让人以为是服务器坏了。
+                // 失效不只是服务端 404 过期：协调器在「被限流且会话已不能再发码」和「等推送挑战超时」时也会先重置会话再报它，
+                // 所以文案说「已失效」而不是「已过期」（taishi 审查 b6）。
+                // 点「好」之后协调器回到手机号页（resetSession 清了 hasEnteredE164，号码还填着），再点下一步就重新开会话、重新发验证码。
+                title = nil
+                message = OWSLocalizedString(
+                    "REGISTRATION_TELLOMI_SESSION_EXPIRED",
+                    comment: "Tellomi: Alert shown when the registration verification session is no longer valid (it expired, or was reset); the user goes back to the phone number screen, where Next requests a new code.",
                 )
             case .sessionInvalidated, .genericError:
                 title = nil
@@ -451,6 +497,11 @@ public class RegistrationNavigationController: OWSNavigationController {
             return nil
         case .done:
             logger.info("Finished with registration!")
+            if coordinator.tellomiReLoginE164 != nil {
+                // Tellomi（ADR-0072 §4.2 第 4 步）：重新登录解锁了，重新登记推送令牌（退出时服务端清掉了）。
+                // 注册状态已经回到 registered，WebSocket 会自己连上、收排队的消息。
+                SyncPushTokensJob.run()
+            }
             SignalApp.shared.showConversationSplitView()
             return nil
         }
@@ -517,6 +568,10 @@ extension RegistrationNavigationController: RegistrationSplashPresenter {
         let controller = RegistrationConfirmModeSwitchViewController(presenter: self)
         pushViewController(controller, animated: true)
     }
+
+    public func tellomiContinueWithLastLogin() {
+        pushNextController(coordinator.tellomiContinueWithLastLogin())
+    }
 }
 
 extension RegistrationNavigationController: RegistrationConfimModeSwitchPresenter {
@@ -551,7 +606,42 @@ extension RegistrationNavigationController: RegistrationPermissionsPresenter {
 extension RegistrationNavigationController: RegistrationPhoneNumberPresenter {
 
     func goToNextStep(withE164 e164: E164) {
+        if let reLoginE164 = coordinator.tellomiReLoginE164, e164 != reLoginE164 {
+            // Tellomi（ADR-0072 §4.2 末段）：本机已退出登录，又输了另一个号码。一台手机同时只放一个账号，
+            // 先确认会删掉本机的聊天记录；确认后清空本机（App 退出），重新打开就是一次正常注册。
+            confirmTellomiLogInWithNewNumber(loggedOutE164: reLoginE164)
+            return
+        }
         pushNextController(coordinator.submitE164(e164), loadingMode: .submittingPhoneNumber(e164: e164.stringValue))
+    }
+
+    private func confirmTellomiLogInWithNewNumber(loggedOutE164: E164) {
+        let maskedPhoneNumber = TellomiMaskedPhoneNumber.format(e164: loggedOutE164, phoneNumberUtil: SSKEnvironment.shared.phoneNumberUtilRef)
+        let actionSheet = ActionSheetController(
+            message: String(
+                format: OWSLocalizedString(
+                    "TELLOMI_LOGOUT_NEW_NUMBER_CONFIRM_BODY_FORMAT",
+                    comment: "Tellomi: Confirmation shown on the phone number screen when this phone is logged out of one account and the user enters a different number. Deleting local data is required first. Embeds {{masked phone number of the logged-out account, e.g. +86 138****5678}}.",
+                ),
+                maskedPhoneNumber,
+            ),
+        )
+        actionSheet.addAction(ActionSheetAction(
+            title: CommonStrings.continueButton,
+            style: .destructive,
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.logger.warn("Logging in with a different number; deleting this phone's data first")
+                ModalActivityIndicatorViewController.present(
+                    fromViewController: self,
+                    title: CommonStrings.deletingModal,
+                ) { _ in
+                    SignalApp.shared.resetAppDataAndExit(keyFetcher: SSKEnvironment.shared.databaseStorageRef.keyFetcher)
+                }
+            },
+        ))
+        actionSheet.addAction(OWSActionSheets.cancelAction)
+        presentActionSheet(actionSheet)
     }
 
     func switchToDeviceLinking() {
@@ -637,6 +727,14 @@ extension RegistrationNavigationController: RegistrationPinAttemptsExhaustedAndM
 }
 
 extension RegistrationNavigationController: RegistrationProfilePresenter {
+    func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome {
+        return await coordinator.reserveTellomiUsername(nickname: nickname)
+    }
+
+    func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome {
+        return await coordinator.confirmTellomiUsername(reservedUsername)
+    }
+
     func goToNextStep(
         givenName: OWSUserProfile.NameComponent,
         familyName: OWSUserProfile.NameComponent?,

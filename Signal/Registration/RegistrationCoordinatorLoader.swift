@@ -43,27 +43,35 @@ public class RegistrationCoordinatorLoaderImpl: RegistrationCoordinatorLoader {
         public struct ReRegisteringState: Codable, Equatable {
             public let aci: Aci?
             public let e164: E164
+            /// Tellomi（ADR-0072）：见 `RegistrationMode.ReregistrationParams.isTellomiReLogin`。
+            public let isTellomiReLogin: Bool
 
             enum CodingKeys: String, CodingKey {
                 case aci
                 case e164
+                case isTellomiReLogin
             }
 
-            fileprivate init(aci: Aci?, e164: E164) {
+            fileprivate init(aci: Aci?, e164: E164, isTellomiReLogin: Bool) {
                 self.aci = aci
                 self.e164 = e164
+                self.isTellomiReLogin = isTellomiReLogin
             }
 
             public init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 self.aci = try container.decodeIfPresent(UUID.self, forKey: .aci).map({ Aci(fromUUID: $0) })
                 self.e164 = try container.decode(E164.self, forKey: .e164)
+                self.isTellomiReLogin = try container.decodeIfPresent(Bool.self, forKey: .isTellomiReLogin) ?? false
             }
 
             public func encode(to encoder: any Encoder) throws {
                 var container = encoder.container(keyedBy: CodingKeys.self)
                 try container.encodeIfPresent(self.aci?.rawUUID, forKey: .aci)
                 try container.encode(self.e164, forKey: .e164)
+                if isTellomiReLogin {
+                    try container.encode(true, forKey: .isTellomiReLogin)
+                }
             }
         }
 
@@ -127,7 +135,19 @@ public class RegistrationCoordinatorLoaderImpl: RegistrationCoordinatorLoader {
         transaction: DBWriteTransaction,
         logger: PrefixedLogger,
     ) -> RegistrationCoordinator {
-        let mode = loadMode(transaction: transaction) ?? desiredMode.asInternalMode()
+        let mode: Mode
+        if
+            case .reRegistering(let params) = desiredMode,
+            params.isTellomiReLogin,
+            loadMode(transaction: transaction)?.hasPendingChangeNumber != true
+        {
+            // Tellomi（ADR-0072）：本机已退出登录时只走重新登录。之前留下的别的模式（比如没走完的首次注册）
+            // 不能接着用——那几条路的终点是 `POST /v1/registration`。只有没走完的换号必须先走完，照上游。
+            // 重新登录自己的进度（会话等）存在协调器的持久状态里，不在这里，覆盖模式不会丢。
+            mode = desiredMode.asInternalMode()
+        } else {
+            mode = loadMode(transaction: transaction) ?? desiredMode.asInternalMode()
+        }
         do {
             try self.kvStore.setCodable(mode, key: Constants.modeKey, transaction: transaction)
         } catch {
@@ -220,6 +240,7 @@ extension RegistrationMode {
             return .reRegistering(RegistrationCoordinatorLoaderImpl.Mode.ReRegisteringState(
                 aci: params.aci,
                 e164: params.e164,
+                isTellomiReLogin: params.isTellomiReLogin,
             ))
         case .changingNumber(let params):
             return .changingNumber(RegistrationCoordinatorLoaderImpl.Mode.ChangeNumberState(
@@ -240,7 +261,11 @@ extension RegistrationCoordinatorLoaderImpl.Mode {
         case .registering:
             return .registering
         case .reRegistering(let state):
-            return .reRegistering(RegistrationMode.ReregistrationParams(aci: state.aci, e164: state.e164))
+            return .reRegistering(RegistrationMode.ReregistrationParams(
+                aci: state.aci,
+                e164: state.e164,
+                isTellomiReLogin: state.isTellomiReLogin,
+            ))
         case .changingNumber(let state):
             return .changingNumber(RegistrationMode.ChangeNumberParams(
                 oldE164: state.oldE164,
@@ -255,6 +280,8 @@ extension RegistrationCoordinatorLoaderImpl.Mode {
         switch self {
         case .registering:
             return "initial registration"
+        case .reRegistering(let reRegisteringState) where reRegisteringState.isTellomiReLogin:
+            return "Tellomi re-login aci:\(reRegisteringState.aci as Optional) e164:\(reRegisteringState.e164.stringValue)"
         case .reRegistering(let reRegisteringState):
             return "re-registration aci:\(reRegisteringState.aci as Optional) e164:\(reRegisteringState.e164.stringValue)"
         case .changingNumber(let changeNumberState):

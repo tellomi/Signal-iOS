@@ -274,6 +274,26 @@ public class PhoneNumberUtil: NSObject {
         return _parsePhoneNumber(filteredValue: phoneNumber.stringValue)
     }
 
+    /// Tellomi（tellomi/tellomi#1213）：一整串是不是完整的有效号码。比 `parseE164` 里的 `isPossibleNumber` 严：
+    /// 注册页粘贴整串号码时靠它区分「完整号码」和「号码片段」（例如「8613800138」按「可能」算得上 +86 13800138）。
+    public func isValidNumber(_ phoneNumber: E164) -> Bool {
+        guard let nbPhoneNumber = try? parse(phoneNumber.stringValue, defaultRegion: Self.defaultCountryCode()) else {
+            return false
+        }
+        return nbPhoneNumberUtil.isValidNumber(nbPhoneNumber)
+    }
+
+    /// Tellomi（tellomi/tellomi#1213）：示例号码的有效位数（不含长途前缀），取法和 `exampleNationalNumber` 相同（先手机，再固话或手机）。
+    /// 注册页判断「以区号开头的一串是不是完整号码」时比的就是它：台湾本国格式「0912 345 678」是 10 位，有效位数是 9。
+    public func tellomiExampleNationalSignificantNumberLength(forCountryCode countryCode: String) -> Int? {
+        for type in [NBEPhoneNumberType.MOBILE, .FIXED_LINE_OR_MOBILE] {
+            if let example = try? nbPhoneNumberUtil.getExampleNumber(forType: countryCode, type: type) {
+                return nbPhoneNumberUtil.getNationalSignificantNumber(example).count
+            }
+        }
+        return nil
+    }
+
     public func parsePhoneNumber(countryCode: String, nationalNumber: String) -> PhoneNumber? {
         return _parsePhoneNumber(
             filteredValue: nationalNumber.filteredAsE164,

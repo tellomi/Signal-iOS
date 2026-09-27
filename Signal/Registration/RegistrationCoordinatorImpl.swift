@@ -114,6 +114,34 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         return Guarantee.wrapAsync { await self.nextStep() }
     }
 
+    // MARK: - Tellomi：重新登录（ADR-0072 §4.2）
+
+    public var tellomiReLoginE164: E164? {
+        switch mode {
+        case .reRegistering(let state) where state.isTellomiReLogin:
+            return state.e164
+        case .registering, .reRegistering, .changingNumber:
+            return nil
+        }
+    }
+
+    private var isTellomiReLogin: Bool { tellomiReLoginE164 != nil }
+
+    public func tellomiContinueWithLastLogin() -> Guarantee<RegistrationStep> {
+        logger.info("")
+        guard let e164 = tellomiReLoginE164 else {
+            owsFailDebug("Not re-logging in", logger: logger)
+            return Guarantee.wrapAsync { await self.nextStep() }
+        }
+        db.write { tx in
+            self.updatePersistedState(tx) {
+                $0.hasShownSplash = true
+            }
+        }
+        // 号码固定为本机账号的号码：直接建会话、发验证码，进验证码页。
+        return submitE164(e164)
+    }
+
     public func requestPermissions() -> Guarantee<RegistrationStep> {
         logger.info("")
 
@@ -396,6 +424,9 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
 
     public func submitPINCode(_ code: String) -> Guarantee<RegistrationStep> {
         logger.info("")
+        if isTellomiReLogin, case .session(let session) = getPathway(), session.verified {
+            return Guarantee.wrapAsync { await self.tellomiSubmitReLoginPin(code) }
+        }
         switch getPathway() {
         case .registrationRecoveryPassword:
             if
@@ -848,6 +879,62 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         return Guarantee.wrapAsync { await self.nextStep() }
     }
 
+    /// 资料页的状态。Tellomi（tellomi/tellomi#1266）：重新注册时不显示用户名框，交给设置页。
+    static func profileState(
+        accountIdentity: AccountIdentity,
+        phoneNumberDiscoverability: PhoneNumberDiscoverability,
+    ) -> RegistrationProfileState {
+        return RegistrationProfileState(
+            e164: accountIdentity.e164,
+            phoneNumberDiscoverability: phoneNumberDiscoverability,
+            showsTellomiUsername: accountIdentity.isReregistration != true,
+        )
+    }
+
+    @MainActor
+    public func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome {
+        guard let accountIdentity = persistedState.accountIdentity else {
+            owsFailBeta("Shouldn't be reserving a username prior to registration.")
+            return .failed
+        }
+
+        let usernameCandidates: Usernames.HashedUsername.GeneratedCandidates
+        do {
+            // 不指定判别位 = 只生成 `<nickname>.01`（ADR-0066，#17）
+            usernameCandidates = try Usernames.HashedUsername.generateCandidates(
+                forNickname: nickname,
+                minNicknameLength: UInt32(TellomiRegistrationUsername.minLength),
+                maxNicknameLength: UInt32(TellomiRegistrationUsername.maxLength),
+                desiredDiscriminator: nil,
+                // 注册时设的是新名字，照「字母开头」收紧（ADR-0066 §六；TellomiRegistrationUsername.check 已在本地先拦）
+                enforcingLetterFirst: true,
+            )
+        } catch {
+            logger.warn("Username candidate generation failed: \(error)")
+            return .notAvailable
+        }
+
+        let result = await deps.localUsernameManager.reserveUsername(
+            usernameCandidates: usernameCandidates,
+            chatServiceAuth: accountIdentity.chatServiceAuth,
+        )
+        return TellomiRegistrationUsername.reservationOutcome(of: result)
+    }
+
+    @MainActor
+    public func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome {
+        guard let accountIdentity = persistedState.accountIdentity else {
+            owsFailBeta("Shouldn't be confirming a username prior to registration.")
+            return .failed
+        }
+
+        let result = await deps.localUsernameManager.confirmUsername(
+            reservedUsername: reservedUsername,
+            chatServiceAuth: accountIdentity.chatServiceAuth,
+        )
+        return TellomiRegistrationUsername.confirmationOutcome(of: result)
+    }
+
     public func acknowledgeReglockTimeout() -> AcknowledgeReglockResult {
         logger.info("")
 
@@ -968,6 +1055,9 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         // reglock was enabled, we should enable it again when done.
         var wasReglockEnabledBeforeStarting = false
         var hasSetReglock = false
+
+        /// Tellomi（ADR-0072 §4.2 第 3 步）：重新登录时开了注册锁的，这次已经在本机核对过 PIN。
+        var tellomiHasPassedReLoginPinCheck = false
 
         var pendingProfileInfo: (givenName: OWSUserProfile.NameComponent, familyName: OWSUserProfile.NameComponent?, avatarData: Data?)?
 
@@ -1816,7 +1906,10 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         // These paths are only available if the user knows their PIN.
         // If they skipped because they don't know it (or exhausted their guesses),
         // don't bother with them.
-        if !persistedState.hasSkippedPinEntry {
+        // Tellomi（ADR-0072 §4.2）：重新登录一条都不走——注册恢复密码那条会直接 `POST /v1/registration`
+        // （本机有主密钥时连短信都不发），服务端 `reclaimAccount` 会清掉退出期间排队的消息；SVR 那两条的终点也是它。
+        // 重新登录只认验证会话（短信验证码），落到下面的 `.opening` → 建会话。
+        if !persistedState.hasSkippedPinEntry, !isTellomiReLogin {
             if let password = inMemoryState.regRecoveryPw {
                 // If we have a reg recover password (but no session), try using that
                 // to register.
@@ -1829,7 +1922,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             // 服务端的 `POST v2/svr/auth/check` 仍然会回 200（它只查凭证，不查 enclave），
             // 所以客户端会以为「能恢复」，向一个从来没设过 PIN 的用户要 PIN（#964 的第二处）。
             // 跳过这两条，让它落到会话验证码那条路上——也就是上游 RRP 被拒之后的正常出口。
-            if TSConstants.svrEnclaveAvailable {
+            // 读 deps.tsConstants 而不是全局的 TSConstants：单测要能按用例指定部署档。
+            if deps.tsConstants.svrEnclaveAvailable {
                 if let credential = inMemoryState.svrAuthCredential {
                     // If we have a validated SVR auth credential, try using that
                     // to recover the SVR master key to register.
@@ -2008,8 +2102,9 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             return .registrationSplash
         case .changingNumber:
             return .changeNumberSplash
-        case .reRegistering:
-            return nil
+        case .reRegistering(let state):
+            // Tellomi（ADR-0072 §4.1 第 4 步）：退出登录后回到欢迎页（开屏轮播 +「上次登录」）。
+            return state.isTellomiReLogin ? .registrationSplash : nil
         }
     }
 
@@ -2058,7 +2153,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         // 重新注册走 registrationRecoveryPassword 这条路时再问一次 PIN，
         // 唯一的出口藏在「需要协助?」弹窗底部的「跳过 PIN 码」，普通用户会以为账号丢了（#964）。
         // 返回 nil = 不问 PIN，直接拿磁盘上的恢复密码去注册；服务端不认就照上游落回会话验证码那条路。
-        guard TSConstants.svrEnclaveAvailable else { return nil }
+        guard deps.tsConstants.svrEnclaveAvailable else { return nil }
 
         // Don't bother with gathering the PIN if now if we already have an AEP
         // and we're going through a restore path
@@ -2620,6 +2715,10 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         }
 
         if session.verified {
+            if isTellomiReLogin {
+                // Tellomi（ADR-0072 §4.2）：会话只用来证明本人，到这里就够了，不接着注册。
+                return await tellomiNextStepForVerifiedReLoginSession(session)
+            }
             // We have to complete registration.
             return await makeRegisterOrChangeNumberRequestFromSession(session, failureCount: 0)
         }
@@ -2800,6 +2899,89 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             $0.sessionState = nil
         }
         self.deps.sessionManager.clearPersistedSession(transaction)
+    }
+
+    // MARK: - Tellomi：重新登录（ADR-0072 §4.2）
+
+    /// 验证会话拿到 `verified=true` 以后：号码必须是本机账号的号码；开了注册锁的先在本机核对 PIN；然后解锁。
+    /// 这里**不调** `POST /v1/registration`（`makeRegisterOrChangeNumberRequest`）。
+    @MainActor
+    private func tellomiNextStepForVerifiedReLoginSession(_ session: RegistrationSession) async -> RegistrationStep {
+        guard let reLoginE164 = tellomiReLoginE164, session.e164 == reLoginE164 else {
+            // 会话的号码不是本机账号的号码，不能拿它解锁本机。丢掉会话，回号码页。
+            logger.warn("Verified session is for a different number; not unlocking")
+            db.write { self.resetSession($0) }
+            return .phoneNumberEntry(phoneNumberEntryState())
+        }
+        if tellomiReLoginNeedsLocalPinCheck {
+            return .pinEntry(tellomiReLoginPinEntryState(error: nil))
+        }
+        return await tellomiFinishReLogin()
+    }
+
+    /// 开了注册锁、本机又存着 PIN，就要先核对（用本机保存的 PIN，输错次数照上游 `maxLocalPINGuesses`）。
+    /// 注册锁开着但本机没有 PIN（上游在猜错太多次后会清掉本机 PIN）时核对不了，照常解锁。
+    private var tellomiReLoginNeedsLocalPinCheck: Bool {
+        return inMemoryState.wasReglockEnabledBeforeStarting
+            && inMemoryState.pinFromDisk != nil
+            && !inMemoryState.tellomiHasPassedReLoginPinCheck
+    }
+
+    private func tellomiReLoginPinEntryState(error: RegistrationPinValidationError?) -> RegistrationPinState {
+        let remainingAttempts = Constants.maxLocalPINGuesses - min(persistedState.numLocalPinGuesses, Constants.maxLocalPINGuesses)
+        return RegistrationPinState(
+            operation: .enteringExistingPin(
+                skippability: .unskippable,
+                remainingAttempts: remainingAttempts,
+            ),
+            error: error,
+            contactSupportMode: .v2WithReglock,
+            exitConfiguration: pinCodeEntryExitConfiguration(),
+        )
+    }
+
+    @MainActor
+    private func tellomiSubmitReLoginPin(_ code: String) async -> RegistrationStep {
+        guard let pinFromDisk = inMemoryState.pinFromDisk else {
+            inMemoryState.tellomiHasPassedReLoginPinCheck = true
+            return await nextStep()
+        }
+        if SVRUtil.normalizePin(code) == pinFromDisk || code == pinFromDisk {
+            inMemoryState.tellomiHasPassedReLoginPinCheck = true
+            db.write { tx in
+                self.updatePersistedState(tx) { $0.numLocalPinGuesses = 0 }
+            }
+            return await nextStep()
+        }
+        let numberOfWrongGuesses = persistedState.numLocalPinGuesses + 1
+        db.write { tx in
+            self.updatePersistedState(tx) { $0.numLocalPinGuesses = numberOfWrongGuesses }
+        }
+        if numberOfWrongGuesses >= Constants.maxLocalPINGuesses {
+            // 次数用完：这次重新登录作废（连同验证会话），回到欢迎页；本机仍然锁着。
+            logger.warn("Out of local PIN guesses; abandoning this re-login")
+            db.write { tx in
+                self.resetSession(tx)
+                self.wipePersistedState(tx)
+            }
+            inMemoryState = InMemoryState()
+            return .showErrorSheet(.genericError)
+        }
+        return .pinEntry(tellomiReLoginPinEntryState(error: .wrongPin(wrongPin: code)))
+    }
+
+    /// 解锁：去掉「已退出」标记（注册状态回到 registered → WebSocket 连上、收排队的消息），
+    /// 清掉这次的会话与进度。推送令牌由导航控制器在 `.done` 时重新登记（`SyncPushTokensJob`）。
+    @MainActor
+    private func tellomiFinishReLogin() async -> RegistrationStep {
+        logger.info("Re-login verified; unlocking this device without registering again")
+        await db.awaitableWrite { tx in
+            self.deps.sessionManager.clearPersistedSession(tx)
+            self.wipePersistedState(tx)
+            self.deps.registrationStateChangeManager.setIsTellomiLoggedOut(false, tx: tx)
+        }
+        inMemoryState = InMemoryState()
+        return .done
     }
 
     @MainActor
@@ -3088,6 +3270,17 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             self.db.write { self.resetSession($0) }
             return .showErrorSheet(.sessionInvalidated)
         case .serverFailure(let failureResponse):
+            // Tellomi：服务端只给部分地区发短信（见 `TSConstants.smsVerificationCallingCodes`）。首次注册时，
+            // 别的地区的号码不再先进空的验证码页、再弹「请稍后再试」（诱导反复重试）：丢掉这个会话，
+            // 回到手机号页，行内说明这个地区还没开放（tellomi/tellomi#1209）。
+            // 重新注册 / 换号时号码不能改或刚验证过，保持上游行为。
+            if case .registering = mode, !Self.canReceiveSmsVerificationCode(session.e164) {
+                inMemoryState.pendingCodeTransport = nil
+                db.write { self.resetSession($0) }
+                return .phoneNumberEntry(phoneNumberEntryState(
+                    validationError: .unsupportedRegion(.init(e164: session.e164)),
+                ))
+            }
             db.write { tx in
                 self.processSession(
                     session,
@@ -3196,6 +3389,13 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         }
     }
 
+    /// Tellomi（ADR-0070 P4）：推送挑战令牌在等待窗口（`pushTokenMinWaitTime`，3 秒）之后才到时发出。
+    /// 这时验证页多半已经弹出来了，而令牌只是被存下来，没有任何东西去用它，用户会一直停在验证页上
+    /// （大陆打不开 Cloudflare 的验证页时就是卡死）。导航控制器收到后，如果还停在验证页，就重新取下一步：
+    /// `attemptToFulfillAvailableChallengesWaitingIfNeeded` 会先用这个令牌提交推送挑战，服务端把推送挑战当作验证码已过
+    /// （`VerificationController` 「a push challenge satisfies a requested captcha」），于是离开验证页。
+    static let tellomiPreAuthChallengeTokenDidArriveNotification = Notification.Name("TellomiRegistrationPreAuthChallengeTokenDidArrive")
+
     private func prepareToReceivePreAuthChallengeToken(
         session: RegistrationSession,
         transaction: DBWriteTransaction,
@@ -3222,6 +3422,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 self.db.write { transaction in
                     self.didReceive(pushChallengeToken: token, for: session, transaction: transaction)
                 }
+                NotificationCenter.default.post(name: Self.tellomiPreAuthChallengeTokenDidArriveNotification, object: self)
             }
     }
 
@@ -3795,8 +3996,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                     )
                 }
             } else {
-                return .setupProfile(RegistrationProfileState(
-                    e164: accountIdentity.e164,
+                return .setupProfile(Self.profileState(
+                    accountIdentity: accountIdentity,
                     phoneNumberDiscoverability: inMemoryState.phoneNumberDiscoverability.orDefault,
                 ))
             }
@@ -3941,7 +4142,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         // 这一页没有跳过入口，用户就卡死在这里。把它当作「已跳过」——用的是上游自己的
         // hasSkippedPinEntry / hasGivenUpTryingToRestoreWithSVR，不碰 enclave。
         // 见 docs/signal/ENCLAVES.md 与 TSConstantsProtocol.svrEnclaveAvailable。
-        if !TSConstants.svrEnclaveAvailable {
+        if !deps.tsConstants.svrEnclaveAvailable {
             if !persistedState.hasSkippedPinEntry {
                 logger.info("No SVR enclave in this deployment; skipping PIN entry.")
                 // 这里在 Task 里，必须用 awaitableWrite：同步 db.write 会撞
@@ -4400,9 +4601,12 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
     // MARK: - Permissions
 
     private func requiresSystemPermissions() async -> Bool {
-        let needsContactAuthorization = deps.contactsStore.needsContactsAuthorization()
-        let needsNotificationAuthorization = await deps.pushRegistrationManager.needsNotificationAuthorization()
-        return needsContactAuthorization || needsNotificationAuthorization
+        // Tellomi（tellomi/tellomi#1112）：注册流程里一个权限都不要。上游在这里只要通讯录或通知任一没授权，
+        // 就在输手机号之前插一页 `.permissions`（先弹通知、再弹通讯录，只有「继续」）。
+        // - 通知改到注册完成、第一次进首屏时的说明页（#1218 F-01，`ChatListFYISheetCoordinator`）；
+        // - 通讯录等有了按号码找人、在联系人页里说明用途再要（docs/legal/permissions.md §十）。
+        // 拿推送令牌本身不需要用户授权，见 `PushRegistrationManager.requestPushTokens`。
+        return false
     }
 
     // MARK: - Register/Change Number Requests
@@ -4415,6 +4619,14 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         responseHandler: @escaping @MainActor (AccountResponse) async -> RegistrationStep,
     ) async -> RegistrationStep {
         logger.info("")
+
+        // Tellomi（ADR-0072 §二）：重新登录绝不注册。同号码的 `POST /v1/registration` 在服务端走 `reclaimAccount`，
+        // 会清掉退出期间排队的消息；下面 re-registering 分支的 `resetForReregistration` 还会清掉本机凭据和会话。
+        // 正常走不到这里（getPathway 不给重新登录走恢复密码 / SVR，验证会话 verified 后另有出口），这是最后一道闸。
+        guard !isTellomiReLogin else {
+            owsFailDebug("Tellomi re-login must never register", logger: logger)
+            return .showErrorSheet(.genericError)
+        }
 
         switch mode {
         case .reRegistering(let state):
@@ -4844,6 +5056,11 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         /// then use it to authenticate subsequent requests.
         let authPassword: String
 
+        /// Tellomi（tellomi/tellomi#1266）：注册回包的 `reregistration`（这个号码之前有没有账号）。为真时资料页不显示用户名框：
+        /// 旧用户名在服务端是本账号的待认领保留，本机不知道它，在注册那一刻请用户填，冷却外一填就等于换名、丢了原名。
+        /// 可选：旧版本存下来的注册状态里没有这个键，照样能解出来；改号不经过资料页，传 nil。
+        var isReregistration: Bool? = nil
+
         var authUsername: String {
             return aci.serviceIdString
         }
@@ -4904,6 +5121,7 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
     private enum RemoteValidationError {
         case invalidE164(RegistrationPhoneNumberViewState.ValidationError.InvalidE164)
         case rateLimited(RegistrationPhoneNumberViewState.ValidationError.RateLimited)
+        case unsupportedRegion(RegistrationPhoneNumberViewState.ValidationError.UnsupportedRegion)
 
         func asViewStateError() -> RegistrationPhoneNumberViewState.ValidationError {
             switch self {
@@ -4911,8 +5129,18 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 return .invalidE164(error)
             case let .rateLimited(error):
                 return .rateLimited(error)
+            case let .unsupportedRegion(error):
+                return .unsupportedRegion(error)
             }
         }
+    }
+
+    /// Tellomi：`TSConstants.smsVerificationCallingCodes` 为 nil（不限）或包含这个号码的国际区号时为 true。
+    static func canReceiveSmsVerificationCode(_ e164: E164) -> Bool {
+        guard let callingCodes = TSConstants.smsVerificationCallingCodes else {
+            return true
+        }
+        return callingCodes.contains { e164.stringValue.hasPrefix("+" + $0) }
     }
 
     private func phoneNumberEntryState(
@@ -4925,6 +5153,15 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
                 validationError: validationError?.asViewStateError(),
                 canExitRegistration: canExitRegistrationFlow().canExit,
             )))
+        case .reRegistering(let state) where state.isTellomiReLogin:
+            // Tellomi（ADR-0072 §4.2）：欢迎页上点「继续」来的号码页可以改号码。输的是同一个号码就接着重新登录；
+            // 输了别的号码，导航控制器先确认「会删除本机的聊天记录」，确认后清空本机再正常注册（§4.2 末段）。
+            return .registration(.initialRegistration(.init(
+                previouslyEnteredE164: persistedState.e164,
+                validationError: validationError?.asViewStateError(),
+                canExitRegistration: false,
+                tellomiCanSwitchToLinking: false,
+            )))
         case .reRegistering(let state):
             return .registration(.reregistration(.init(
                 e164: state.e164,
@@ -4934,7 +5171,8 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
         case .changingNumber(let state):
             var rateLimitedError: RegistrationPhoneNumberViewState.ValidationError.RateLimited?
             switch validationError {
-            case .none:
+            case .none, .unsupportedRegion:
+                // unsupportedRegion 只在首次注册时出现。
                 break
             case .rateLimited(let error):
                 rateLimitedError = error
@@ -4983,8 +5221,9 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
 
         let canChangeE164: Bool
         switch mode {
-        case .reRegistering:
-            canChangeE164 = false
+        case .reRegistering(let state):
+            // Tellomi（ADR-0072）：重新登录的验证码页可以回号码页（换号要先确认清空本机）。
+            canChangeE164 = state.isTellomiReLogin
         case .registering, .changingNumber:
             canChangeE164 = true
         }
@@ -5183,6 +5422,9 @@ public class RegistrationCoordinatorImpl: RegistrationCoordinator {
             guard inMemoryState.tsRegistrationState?.isRegistered == true else {
                 return .notAllowed
             }
+            return .allowed(shouldWipeState: true)
+        case .reRegistering(let state) where state.isTellomiReLogin:
+            // Tellomi（ADR-0072）：随时可以退出这次重新登录；清掉进度，回到欢迎页（本机仍然锁着）。
             return .allowed(shouldWipeState: true)
         case .reRegistering:
             if persistedState.hasResetForReRegistration {

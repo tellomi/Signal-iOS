@@ -10,7 +10,13 @@ import Testing
 @testable import Signal
 @testable import SignalServiceKit
 
-public class RegistrationCoordinatorTest {
+// Tellomi：整个套件串行跑。Swift Testing 默认把这里的约 100 个用例同时放到主 actor 上并发跑，GitHub 的 macOS 模拟器上
+// 主 actor 会被挤满（第三批预合链运行 148：连不 sleep 的用例也要 5 秒左右才跑完）。套件里有按真实时间算的用例——
+// 上游 `testSessionPath_pushChallengeFastResolution` 让令牌 1 秒后到、等待窗口 3 秒，挤满时令牌那一步排到 3 秒之后，
+// 就走成了验证码（运行 162，两种模式都红，这条用例跑了 6.48 秒）；本套件的 ADR-0070 P4 用例也按真实时间等。
+// 上游 `BackupAttachmentDownloadTrackerTest` 等同样用 `@Suite(.serialized)`。
+@Suite(.serialized)
+public final class RegistrationCoordinatorTest {
     // Default to the SSK AEP.
     typealias AccountEntropyPool = SignalServiceKit.AccountEntropyPool
 
@@ -46,6 +52,11 @@ public class RegistrationCoordinatorTest {
     private var svrAuthCredentialManager: SVRAuthCredentialManager!
     private var timeoutProviderMock: RegistrationCoordinatorImpl.TestMocks.TimeoutProvider!
     private var tsAccountManagerMock: MockTSAccountManager!
+    /// Tellomi：协调器按这个部署档决定走不走 SVR 那几条路。缺省是**上游档**（`TSConstantsMock` 取
+    /// `TSConstantsProduction` 的值，有 SVR enclave），上游原有用例测的就是这一档；
+    /// 进程里全局的 `TSConstants.shared` 在 Tellomi 是没有 SVR 的那档，不能拿来跑上游用例。
+    /// Tellomi 自己的行为在「Tellomi：没有 SVR enclave 的部署」一节里显式翻成 false 再测。
+    private var tsConstants: TSConstantsMock!
     private var usernameApiClientMock: RegistrationCoordinatorImpl.TestMocks.UsernameApiClient!
     private var usernameLinkManagerMock: MockUsernameLinkManager!
     private var localFileBackupManager: LocalFileBackupManager!
@@ -94,6 +105,7 @@ public class RegistrationCoordinatorTest {
         storageServiceManagerMock = RegistrationCoordinatorImpl.TestMocks.StorageServiceManager(run: testRun)
         timeoutProviderMock = RegistrationCoordinatorImpl.TestMocks.TimeoutProvider()
         tsAccountManagerMock = MockTSAccountManager()
+        tsConstants = TSConstantsMock()
         usernameApiClientMock = RegistrationCoordinatorImpl.TestMocks.UsernameApiClient()
         usernameLinkManagerMock = MockUsernameLinkManager()
 
@@ -180,6 +192,7 @@ public class RegistrationCoordinatorTest {
             svrAuthCredentialManager: svrAuthCredentialManager,
             timeoutProvider: timeoutProviderMock,
             tsAccountManager: tsAccountManagerMock,
+            tsConstants: tsConstants,
             udManager: RegistrationCoordinatorImpl.TestMocks.UDManager(),
             usernameApiClient: usernameApiClientMock,
             usernameLinkManager: usernameLinkManagerMock,
@@ -298,7 +311,7 @@ public class RegistrationCoordinatorTest {
         contactsStore.doesNeedContactsAuthorization = true
         pushRegistrationManagerMock.doesNeedNotificationAuthorization = true
 
-        var nextStep: RegistrationStep
+        let nextStep: RegistrationStep
         switch mode {
         case .registering:
             // Gotta get the splash out of the way.
@@ -309,15 +322,11 @@ public class RegistrationCoordinatorTest {
             nextStep = await coordinator.nextStep()
         }
 
-        // Now we should show the permissions.
-        #expect(nextStep == .permissions)
-        // Doesn't change even if we try and proceed.
-        #expect(await coordinator.nextStep() == .permissions)
-
-        // Once the state is updated we can proceed.
-        nextStep = await coordinator.requestPermissions().awaitable()
-        #expect(nextStep != .registrationSplash)
+        // Tellomi（tellomi/tellomi#1112）：通讯录、通知都没授权，也**不**进权限页——注册流程里一个权限都不要。
+        // 上游这里是 `.permissions`，要 `requestPermissions()` 之后才能往下走。
         #expect(nextStep != .permissions)
+        #expect(nextStep != .registrationSplash)
+        #expect(await coordinator.nextStep() != .permissions)
     }
 
     // MARK: - Reg Recovery Password Path
@@ -1873,6 +1882,89 @@ public class RegistrationCoordinatorTest {
         )
     }
 
+    /// Tellomi：香港只给中国大陆号码发短信。别的地区要验证码时服务端回 440 providerUnavailable，
+    /// 而且 permanentFailure=false（见 `TSConstants.smsVerificationCallingCodes`）。首次注册时应该回到手机号页、
+    /// 行内说明，而不是先进空的验证码页（tellomi/tellomi#1209）。换号保持上游行为。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_smsUnavailableForRegion(testCase: TestCase) async {
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        switch mode {
+        case .registering, .changingNumber:
+            break
+        case .reRegistering:
+            // no changing the number when reregistering
+            return
+        }
+
+        // Stubs.e164 是 +1，不在 Tellomi 开放短信的区号里。
+        #expect(!RegistrationCoordinatorImpl.canReceiveSmsVerificationCode(Stubs.e164))
+
+        await setUpSessionPath(coordinator: coordinator, mode: mode)
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.serverFailure(.init(
+            session: stubs.session(),
+            isPermanent: false,
+            reason: .providerUnavailable,
+        )))
+
+        let step = await coordinator.submitE164(Stubs.e164).awaitable()
+
+        switch mode {
+        case .registering:
+            #expect(step == .phoneNumberEntry(.registration(.initialRegistration(.init(
+                previouslyEnteredE164: Stubs.e164,
+                validationError: .unsupportedRegion(.init(e164: Stubs.e164)),
+                canExitRegistration: true,
+            )))))
+        case .changingNumber, .reRegistering:
+            #expect(step == .verificationCodeEntry(stubs.verificationCodeEntryState(
+                mode: mode,
+                nextVerificationAttempt: nil,
+                validationError: .providerFailure(isPermanent: false),
+            )))
+        }
+    }
+
+    /// 同一个 440 落在 +86 号码上照旧：那可能真是短信服务暂时不可用，进验证码页、说「稍后再试」。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_smsTransientFailureForMainlandNumber(testCase: TestCase) async {
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+        let mainlandE164 = E164("+8613800138000")!
+
+        switch mode {
+        case .registering, .changingNumber:
+            break
+        case .reRegistering:
+            // no changing the number when reregistering
+            return
+        }
+
+        #expect(RegistrationCoordinatorImpl.canReceiveSmsVerificationCode(mainlandE164))
+
+        await setUpSessionPath(coordinator: coordinator, mode: mode)
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session(e164: mainlandE164)))
+        sessionManager.addRequestCodeResponseMock(.serverFailure(.init(
+            session: stubs.session(e164: mainlandE164),
+            isPermanent: false,
+            reason: .providerUnavailable,
+        )))
+
+        #expect(
+            await coordinator.submitE164(mainlandE164).awaitable() ==
+                .verificationCodeEntry(stubs.verificationCodeEntryState(
+                    mode: mode,
+                    e164: mainlandE164,
+                    nextVerificationAttempt: nil,
+                    validationError: .providerFailure(isPermanent: false),
+                )),
+        )
+    }
+
     @MainActor @Test(arguments: Self.testCases())
     func testSessionPath_rateLimitSessionCreation(testCase: TestCase) async {
         let coordinator = setupTest(testCase)
@@ -2442,6 +2534,121 @@ public class RegistrationCoordinatorTest {
         #expect(nextStep == .captchaChallenge)
     }
 
+    /// Tellomi（ADR-0070 P4）：推送挑战令牌在等待窗口之后才到，这时已经停在验证页上。
+    /// 真的导航控制器收到通知后要重新取下一步，协调器用这个令牌提交推送挑战，离开验证页，不能让用户卡在验证页上。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenLeavesTheCaptcha(testCase: TestCase) async throws {
+        let (coordinator, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationCaptchaViewController(presenter: navigationController)], animated: false)
+
+        // 推送晚到：服务端把推送挑战当作验证码已过，接着发码。
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        lateToken.resolve("a late pre-auth challenge token")
+
+        let deadline = Date().addingTimeInterval(10)
+        while sessionManager.latestChallengeFulfillment == nil, Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+        // 先等导航控制器自己那一步走完（提交推送挑战 → 发码 → 推到验证码页），再问协调器，免得两个 nextStep 并发。
+        try await waitForTellomiCodeEntry(navigationController)
+        #expect(
+            await coordinator.nextStep() ==
+                .verificationCodeEntry(stubs.verificationCodeEntryState(mode: testCase.mode)),
+        )
+    }
+
+    /// Tellomi（ADR-0070 P4）反向：已经不在验证页上（这里停在加载页，比如已经往下走了），令牌晚到时导航控制器什么也不做。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenIgnoredAwayFromTheCaptcha(testCase: TestCase) async throws {
+        let (_, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationLoadingViewController(mode: .generic)], animated: false)
+
+        // 回应照样备好：万一导航控制器不该动却动了，这里会记下一次推送挑战，而不是让模拟对象从空队列取值崩掉。
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        lateToken.resolve("a late pre-auth challenge token")
+        try await Task.sleep(nanoseconds: 1 * NSEC_PER_SEC)
+        #expect(sessionManager.latestChallengeFulfillment == nil)
+    }
+
+    /// Tellomi（ADR-0070 P4）：「令牌到了」只认自己这个协调器发的。别的注册流程（比如并行跑的另一条用例）发的通知，
+    /// 不能让这个导航控制器离开验证页——否则它会替自己的协调器取下一步，发出没人备好回应的请求（模拟对象从空队列取值就崩）。
+    @MainActor @Test(arguments: Self.testCases())
+    func testSessionPath_tellomiLatePushChallengeTokenFromAnotherFlowIsIgnored(testCase: TestCase) async throws {
+        let (_, navigationController, lateToken) = try await setUpTellomiCaptchaWaitingForLatePush(testCase)
+        navigationController.setViewControllers([RegistrationCaptchaViewController(presenter: navigationController)], animated: false)
+        sessionManager.addFulfillChallengeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(
+            nextVerificationAttempt: 0,
+        )))
+
+        NotificationCenter.default.post(
+            name: RegistrationCoordinatorImpl.tellomiPreAuthChallengeTokenDidArriveNotification,
+            object: NSObject(),
+        )
+        #expect(navigationController.topViewController is RegistrationCaptchaViewController)
+
+        // 收尾：让自己的令牌到，等导航控制器用它走完这一步，别让这一条的异步下一步拖到后面的用例里。
+        lateToken.resolve("a late pre-auth challenge token")
+        let deadline = Date().addingTimeInterval(10)
+        while sessionManager.latestChallengeFulfillment == nil, Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(sessionManager.latestChallengeFulfillment == .pushChallenge("a late pre-auth challenge token"))
+        try await waitForTellomiCodeEntry(navigationController)
+    }
+
+    /// 等导航控制器自己取的那一步走完：提交推送挑战 → 发码 → 推到验证码页。
+    /// 协调器的 nextStep() 没有串行保护：用例在「推送挑战已提交」时就再调一次 nextStep()，两边都会去要验证码，
+    /// 而模拟对象只备了一个回应——空队列 removeFirst，整个测试宿主崩掉（第三批预合链上运行 136、144、145、148）。
+    @MainActor
+    private func waitForTellomiCodeEntry(_ navigationController: RegistrationNavigationController) async throws {
+        let deadline = Date().addingTimeInterval(10)
+        while !(navigationController.topViewController is RegistrationVerificationViewController), Date() < deadline {
+            try await Task.sleep(nanoseconds: 50 * NSEC_PER_MSEC)
+        }
+        #expect(navigationController.topViewController is RegistrationVerificationViewController)
+    }
+
+    /// 两条 P4 用例共用：会话同时要推送挑战和验证码，推送在 0.5 秒的等待窗口里没到 → 协调器给出验证页。
+    /// 返回协调器、一个真的导航控制器（它在 init 里订阅「令牌到了」的通知），以及之后用来让令牌晚到的 promise。
+    @MainActor
+    private func setUpTellomiCaptchaWaitingForLatePush(
+        _ testCase: TestCase,
+    ) async throws -> (RegistrationCoordinatorImpl, RegistrationNavigationController, GuaranteeFuture<String>) {
+        let coordinator = setupTest(testCase)
+        await setUpSessionPath(coordinator: coordinator, mode: testCase.mode)
+
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        let (challengeTokenPromise, challengeTokenFuture) = Guarantee<String>.pending()
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({ await challengeTokenPromise.awaitable() })
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session(
+            allowedToRequestCode: false,
+            requestedInformation: [.pushChallenge, .captcha],
+        )))
+        timeoutProviderMock.pushTokenMinWaitTime = 0.5
+        timeoutProviderMock.pushTokenTimeout = 2
+
+        let step = await coordinator.submitE164(Stubs.e164).awaitable()
+        try #require(step == .captchaChallenge)
+        #expect(sessionManager.latestChallengeFulfillment == nil)
+
+        return (coordinator, RegistrationNavigationController.withCoordinator(coordinator), challengeTokenFuture)
+    }
+
     @MainActor @Test(arguments: Self.testCases())
     func testSessionPath_pushChallengeFastResolution(testCase: TestCase) async {
         let coordinator = setupTest(testCase)
@@ -2967,6 +3174,205 @@ public class RegistrationCoordinatorTest {
         #expect(profileManagerMock.didScheduleReuploadLocalProfile)
     }
 
+    // MARK: - Tellomi：没有 SVR enclave 的部署
+
+    // 上面的上游用例都跑在上游档（有 SVR enclave，见 `tsConstants` 的注释）。这一节把协调器切到
+    // Tellomi 发出去的那一档，测 fork 里三处按 `svrEnclaveAvailable` 改道的地方（docs/signal/ENCLAVES.md）：
+    //   1. 重新注册走恢复密码时不再问 PIN（`askForUserPINIfNeeded`，#964）；
+    //   2. 磁盘上有 SVR 凭证也不走 SVR 凭证那两条路（`getPathway`，#964 的第二处）；
+    //   3. 注册成功后不出「创建 PIN」（`showPinEntryIfNeeded`）。
+
+    private func useTellomiDeploymentWithoutSVR() {
+        tsConstants.svrEnclaveAvailable = false
+    }
+
+    /// 这一节的前提：Tellomi 发出去的档（`TSConstantsStaging`，见 `TSConstants.environment`）没有 SVR enclave。
+    /// 哪天真装了 enclave、把它翻成 true，这一条会红——那时要一起判断上面三处改道还留不留。
+    @Test
+    func testTellomiNoSVR_shippedProfileHasNoSVREnclave() {
+        #expect(!TSConstantsStaging().svrEnclaveAvailable)
+    }
+
+    /// 磁盘上有主密钥和 PIN（重新安装 / 重新注册）：上游输完手机号先要用户再输一遍 PIN
+    /// （runRegRecoverPwPathTestHappyPath）。Tellomi 的用户手里没有 PIN，所以直接拿恢复密码去注册，一步到 `.done`。
+    @MainActor @Test(arguments: Self.testCases())
+    func testTellomiNoSVR_regRecoveryPwPath_registersWithoutAskingForPIN(testCase: TestCase) async throws {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        setupDefaultAccountAttributes()
+        ows2FAManagerMock.pinCodeMock = { Stubs.pinCode }
+        ows2FAManagerMock.shouldMasterKeyBeBackedUpMock = { true }
+
+        let aep = buildKeyDataMocks(testCase)
+        let initialMasterKey = aep.getMasterKey()
+
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+        preKeyManagerMock.addFinalizePreKeyMock { didSucceed in
+            #expect(didSucceed)
+        }
+
+        let expectedRequest = createAccountWithRecoveryPw(initialMasterKey.deriveRegistrationRecoveryPassword())
+        mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+            matcher: { request in
+                #expect(initialMasterKey.regRecoveryPw == (request.parameters["recoveryPassword"] as? String) ?? "")
+                return request.url == expectedRequest.url
+            },
+            statusCode: 200,
+            bodyData: try JSONEncoder().encode(Stubs.accountIdentityResponse()),
+        ))
+
+        preKeyManagerMock.addRotateOneTimePreKeyMock({ _ in })
+        storageServiceManagerMock.addRestoreOrCreateManifestIfNecessaryMock({ _, _ in .value(()) })
+        storageServiceManagerMock.addRotateManifestMock({ _, _ in .value(()) })
+
+        #expect(
+            await coordinator.nextStep() ==
+                .phoneNumberEntry(stubs.phoneNumberEntryState(mode: mode)),
+        )
+
+        // 上游这里是 .pinEntry(Stubs.pinEntryStateForRegRecoveryPath(mode: mode))。
+        #expect(await coordinator.submitE164(Stubs.e164).awaitable() == .done)
+
+        #expect(profileManagerMock.didScheduleReuploadLocalProfile)
+    }
+
+    /// 同一条路，服务端不认这个恢复密码：照上游落回短信验证码，也照上游不清本机的 PIN
+    /// （testRegRecoveryPwPath_wrongPassword），只是中间不再问 PIN。
+    @MainActor @Test(arguments: Self.onlyReRegisteringTestCases())
+    func testTellomiNoSVR_regRecoveryPwRejected_fallsBackToSession(testCase: TestCase) async {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        setupDefaultAccountAttributes()
+        ows2FAManagerMock.pinCodeMock = { Stubs.pinCode }
+        ows2FAManagerMock.shouldMasterKeyBeBackedUpMock = { true }
+        var didClearPinCode = false
+        ows2FAManagerMock.clearLocalPinCodeMock = { didClearPinCode = true }
+
+        let aep = buildKeyDataMocks(testCase)
+
+        // 与上游那条一样：注册一次、失败后建会话，各要一个推送令牌。
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+        preKeyManagerMock.addFinalizePreKeyMock { didSucceed in
+            #expect(!didSucceed)
+        }
+
+        let expectedRecoveryPwRequest = createAccountWithRecoveryPw(aep.getMasterKey().deriveRegistrationRecoveryPassword())
+        mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+            urlSuffix: expectedRecoveryPwRequest.url.absoluteString,
+            statusCode: RegistrationServiceResponses.AccountCreationResponseCodes.unauthorized.rawValue,
+        ))
+
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({ "PUSH TOKEN" })
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(nextVerificationAttempt: 0)))
+
+        #expect(
+            await coordinator.nextStep() ==
+                .phoneNumberEntry(stubs.phoneNumberEntryState(mode: mode)),
+        )
+
+        // 上游在这两步之间多一步 .pinEntry(Stubs.pinEntryStateForRegRecoveryPath(mode: mode))。
+        #expect(
+            await coordinator.submitE164(Stubs.e164).awaitable() ==
+                .verificationCodeEntry(
+                    stubs.verificationCodeEntryState(mode: mode, exitConfigOverride: .noExitAllowed),
+                ),
+        )
+
+        #expect(!didClearPinCode)
+    }
+
+    /// 磁盘上有 SVR 凭证、服务端也说「匹配」：上游会去问 PIN、拿它到 enclave 里换主密钥
+    /// （testSVRAuthCredentialPath_happyPath）。Tellomi 没有 enclave，那条路走不通，所以连凭证都不去核，直接走短信验证码。
+    @MainActor @Test(arguments: Self.testCases())
+    func testTellomiNoSVR_svrAuthCredentials_goStraightToSession(testCase: TestCase) async {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let mode = testCase.mode
+
+        setupDefaultAccountAttributes()
+
+        // 凭证和「匹配」的回应都备好：协调器要是还去核凭证，下面的 responses 断言会红，而不是整个测试进程崩掉。
+        mockSVRCredentials(isMatch: true)
+        #expect(mockURLSession.responses.count == 1)
+
+        await goThroughOpeningHappyPath(
+            coordinator: coordinator,
+            mode: mode,
+            expectedNextStep: .phoneNumberEntry(stubs.phoneNumberEntryState(mode: mode)),
+        )
+
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({
+            try! await Task.sleep(nanoseconds: TimeInterval.infinity.clampedNanoseconds)
+            fatalError()
+        })
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(nextVerificationAttempt: 0)))
+
+        // 上游这里是 .pinEntry(Stubs.pinEntryStateForSVRAuthCredentialPath(mode: mode))。
+        #expect(
+            await coordinator.submitE164(Stubs.e164).awaitable() ==
+                .verificationCodeEntry(stubs.verificationCodeEntryState(mode: mode)),
+        )
+
+        // 没发 `POST v2/svr/auth/check`：备好的回应原封不动。
+        #expect(mockURLSession.responses.count == 1)
+    }
+
+    /// 新号注册、短信验证通过之后：上游要「创建 PIN」（testSessionPath_happyPath），Tellomi 没有 enclave，
+    /// PIN 设了也存不进去，所以当作已跳过、直接 `.done`，也不去标「PIN 已开启」。主密钥照样生成（同上游跳过 PIN）。
+    @MainActor @Test(arguments: Self.testCases())
+    func testTellomiNoSVR_sessionPath_skipsCreatePINAfterRegistration(testCase: TestCase) async {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(testCase)
+        let newMasterKey = Stubs.accountEntropyPoolToGenerate.getMasterKey()
+
+        await createSessionAndRequestFirstCode(coordinator: coordinator, mode: testCase.mode)
+
+        sessionManager.addSubmitCodeResponseMock(.success(stubs.session(verified: true)))
+        pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+        preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+
+        let expectedRequest = createAccountWithSession(recoveryPassword: newMasterKey.deriveRegistrationRecoveryPassword())
+        mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+            matcher: { $0.url == expectedRequest.url },
+            statusCode: 200,
+            bodyJson: Stubs.accountIdentityResponse(),
+        ))
+
+        preKeyManagerMock.addFinalizePreKeyMock { didSucceed in
+            #expect(didSucceed)
+        }
+        preKeyManagerMock.addRotateOneTimePreKeyMock({ _ in })
+        ows2FAManagerMock.didMarkPinEnabled = { _ in
+            Issue.record("No SVR enclave, no PIN: nothing should mark a PIN enabled.")
+        }
+        storageServiceManagerMock.addRestoreOrCreateManifestIfNecessaryMock({ _, masterKeySource in
+            switch masterKeySource {
+            case .explicit(let explicitMasterKey):
+                #expect(newMasterKey.rawData == explicitMasterKey.rawData)
+            default:
+                Issue.record("Unexpected master key used in storage service operation.")
+            }
+            return .value(())
+        })
+        storageServiceManagerMock.addRotateManifestMock({ _, _ in .value(()) })
+
+        // 上游这里是 .pinEntry(Stubs.pinEntryStateForPostRegCreate(mode: mode, exitConfigOverride: .noExitAllowed))。
+        #expect(await coordinator.submitVerificationCode(Stubs.verificationCode).awaitable() == .done)
+
+        #expect(db.read { accountKeyStore.getAccountEntropyPool(tx: $0) != nil })
+        #expect(profileManagerMock.didScheduleReuploadLocalProfile)
+    }
+
     // MARK: - Profile Setup Path
 
     // TODO[Registration]: test the profile setup steps.
@@ -3018,6 +3424,158 @@ public class RegistrationCoordinatorTest {
         )
     }
 
+    // MARK: - Tellomi：退出登录后重新登录（ADR-0072 §4.2）
+    //
+    // 重新登录只用验证会话证明本人（开了注册锁的再在本机核对 PIN），然后去掉本机的「已退出」标记。
+    // 绝不能发 `POST /v1/registration`：同号码的注册在服务端走 `reclaimAccount`，退出期间排队的消息会被清掉。
+    // 每条用例都让本机带着主密钥（上游重新注册在这种情况下连短信都不发，直接拿恢复密码去注册），
+    // 并在网络 mock 里给所有 `v1/registration` 请求设了陷阱：记下来、回 400，用例最后断言一次都没有。
+
+    private final class TellomiRequestRecorder {
+        var requests = [TSRequest]()
+    }
+
+    private static let tellomiReLoginTestCase = TestCase(mode: .reRegistering(.tellomiReLogin(aci: Stubs.aci, e164: Stubs.e164)))
+
+    private func tellomiTrapRegistrationRequests() -> TellomiRequestRecorder {
+        let recorder = TellomiRequestRecorder()
+        for _ in 0..<4 {
+            mockURLSession.addResponse(TSRequestOWSURLSessionMock.Response(
+                matcher: { request in
+                    guard request.url.relativeString.contains("v1/registration") else {
+                        return false
+                    }
+                    recorder.requests.append(request)
+                    return true
+                },
+                statusCode: 400,
+                bodyData: nil,
+            ))
+            // 万一流程走到了建账号（不应该），上游那几步要的 mock 先备着，让用例停在断言上而不是 mock 队列空了崩掉。
+            pushRegistrationManagerMock.addRequestPushTokenMock({ .success(Stubs.apnsRegistrationId) })
+            preKeyManagerMock.addCreatePreKeysMock({ Stubs.prekeyBundles() })
+            preKeyManagerMock.addFinalizePreKeyMock { _ in }
+        }
+        registrationStateChangeManagerMock.resetForReregistrationMock = { _, _, _ in
+            Issue.record("Re-login must not reset local account state for re-registration")
+        }
+        return recorder
+    }
+
+    @MainActor
+    private func tellomiReLoginSetUp() -> (RegistrationCoordinatorImpl, TellomiRequestRecorder) {
+        useTellomiDeploymentWithoutSVR()
+        let coordinator = setupTest(Self.tellomiReLoginTestCase)
+        setupDefaultAccountAttributes()
+        _ = buildKeyDataMocks(Self.tellomiReLoginTestCase)
+        let recorder = tellomiTrapRegistrationRequests()
+        pushRegistrationManagerMock.setReceivePreAuthChallengeTokenMock({
+            try! await Task.sleep(nanoseconds: TimeInterval.infinity.clampedNanoseconds)
+            fatalError()
+        })
+        return (coordinator, recorder)
+    }
+
+    private func tellomiReLoginVerificationState() -> RegistrationVerificationState {
+        let upstream = stubs.verificationCodeEntryState(mode: Self.tellomiReLoginTestCase.mode)
+        return RegistrationVerificationState(
+            e164: upstream.e164,
+            nextSMSDate: upstream.nextSMSDate,
+            nextCallDate: upstream.nextCallDate,
+            nextVerificationAttemptDate: upstream.nextVerificationAttemptDate,
+            // 重新登录的验证码页可以回号码页（上游重新注册不行）。
+            canChangeE164: true,
+            showHelpText: upstream.showHelpText,
+            validationError: upstream.validationError,
+            exitConfiguration: .exitReRegistration,
+        )
+    }
+
+    /// 欢迎页 → 点「上次登录」→ 验证码页（不经过号码页）。
+    @MainActor
+    private func tellomiReLoginGoToVerificationCode(_ coordinator: RegistrationCoordinatorImpl) async {
+        #expect(await coordinator.nextStep() == .registrationSplash)
+        #expect(coordinator.tellomiReLoginE164 == Stubs.e164)
+
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session()))
+        sessionManager.addRequestCodeResponseMock(.success(stubs.session(nextVerificationAttempt: 0)))
+        #expect(
+            await coordinator.tellomiContinueWithLastLogin().awaitable() ==
+                .verificationCodeEntry(tellomiReLoginVerificationState()),
+        )
+    }
+
+    @MainActor @Test
+    func testTellomiReLogin_verifiedSessionUnlocksWithoutRegistering() async {
+        let (coordinator, registrationRequests) = tellomiReLoginSetUp()
+
+        await tellomiReLoginGoToVerificationCode(coordinator)
+
+        sessionManager.addSubmitCodeResponseMock(.success(stubs.session(verified: true)))
+        #expect(await coordinator.submitVerificationCode(Stubs.verificationCode).awaitable() == .done)
+
+        #expect(registrationRequests.requests.isEmpty, "re-login sent \(registrationRequests.requests.map(\.url))")
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues == [false], "解锁 = 去掉本机的「已退出」标记")
+        // 这次重新登录的进度清掉了：下次退出登录再回来是全新的一轮。
+        #expect(db.read { registrationCoordinatorLoader.restoreLastMode(transaction: $0) } == nil)
+    }
+
+    @MainActor @Test
+    func testTellomiReLogin_reglockChecksThePinLocallyBeforeUnlocking() async {
+        let (coordinator, registrationRequests) = tellomiReLoginSetUp()
+        ows2FAManagerMock.isReglockEnabledMock = { true }
+        ows2FAManagerMock.pinCodeMock = { Stubs.pinCode }
+
+        await tellomiReLoginGoToVerificationCode(coordinator)
+
+        func pinEntry(remainingAttempts: UInt, error: RegistrationPinValidationError?) -> RegistrationStep {
+            return .pinEntry(RegistrationPinState(
+                operation: .enteringExistingPin(skippability: .unskippable, remainingAttempts: remainingAttempts),
+                error: error,
+                contactSupportMode: .v2WithReglock,
+                exitConfiguration: .exitReRegistration,
+            ))
+        }
+
+        sessionManager.addSubmitCodeResponseMock(.success(stubs.session(verified: true)))
+        #expect(
+            await coordinator.submitVerificationCode(Stubs.verificationCode).awaitable() ==
+                pinEntry(remainingAttempts: 10, error: nil),
+        )
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues.isEmpty, "PIN 核对之前不解锁")
+
+        #expect(
+            await coordinator.submitPINCode("0000").awaitable() ==
+                pinEntry(remainingAttempts: 9, error: .wrongPin(wrongPin: "0000")),
+        )
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues.isEmpty, "PIN 错了不解锁")
+
+        #expect(await coordinator.submitPINCode(Stubs.pinCode).awaitable() == .done)
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues == [false])
+        #expect(registrationRequests.requests.isEmpty, "re-login sent \(registrationRequests.requests.map(\.url))")
+    }
+
+    @MainActor @Test
+    func testTellomiReLogin_verifiedSessionForAnotherNumberDoesNotUnlock() async {
+        let (coordinator, registrationRequests) = tellomiReLoginSetUp()
+        let otherE164 = E164("+17875550199")!
+
+        #expect(await coordinator.nextStep() == .registrationSplash)
+        // 服务端给回来的会话号码不是本机账号的号码（比如残留的旧会话）：就算 verified 也不能拿来解锁。
+        sessionManager.addBeginSessionResponseMock(.success(stubs.session(e164: otherE164, verified: true)))
+        #expect(
+            await coordinator.tellomiContinueWithLastLogin().awaitable() ==
+                .phoneNumberEntry(.registration(.initialRegistration(.init(
+                    previouslyEnteredE164: Stubs.e164,
+                    validationError: nil,
+                    canExitRegistration: false,
+                    tellomiCanSwitchToLinking: false,
+                )))),
+        )
+        #expect(registrationStateChangeManagerMock.tellomiLoggedOutValues.isEmpty)
+        #expect(registrationRequests.requests.isEmpty, "re-login sent \(registrationRequests.requests.map(\.url))")
+    }
+
     // MARK: Happy Path Setups
 
     private func createAccountWithSession(
@@ -3067,11 +3625,9 @@ public class RegistrationCoordinatorTest {
             break
         }
 
-        // Now we should show the permissions.
-        #expect(await coordinator.continueFromSplash().awaitable() == .permissions)
-
-        // Once the state is updated we can proceed.
-        #expect(await coordinator.requestPermissions().awaitable() == expectedNextStep)
+        // Tellomi（tellomi/tellomi#1112）：权限都没授也直达下一步；上游这里先是 `.permissions`，
+        // `requestPermissions()` 之后才到 expectedNextStep。
+        #expect(await coordinator.continueFromSplash().awaitable() == expectedNextStep)
     }
 
     @MainActor
@@ -3409,6 +3965,8 @@ public class RegistrationCoordinatorTest {
                     )))
                 case .invalidInput:
                     owsFail("Can't happen.")
+                case .unsupportedRegion:
+                    owsFail("Only used when registering.")
                 case .invalidE164(let error):
                     return .changingNumber(.initialEntry(.init(
                         oldE164: changeNumberParams.oldE164,

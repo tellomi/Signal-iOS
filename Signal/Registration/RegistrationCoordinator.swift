@@ -40,6 +40,12 @@ public protocol RegistrationCoordinator {
     /// Continue past the splash screen (marking it as shown).
     func continueFromSplash() -> Guarantee<RegistrationStep>
 
+    /// Tellomi（ADR-0072 §4.2）：本机已退出登录、正在重新登录时是那个账号的号码，否则 nil。
+    var tellomiReLoginE164: E164? { get }
+
+    /// Tellomi（ADR-0072 §4.2 第 1 步）：欢迎页上点「上次登录」——跳过号码页，直接给本机账号的号码发验证码。
+    func tellomiContinueWithLastLogin() -> Guarantee<RegistrationStep>
+
     /// Mark if the user has their old device available to source registration information from.
     func setHasOldDevice(_ hasOldDevice: Bool) -> Guarantee<RegistrationStep>
 
@@ -142,6 +148,15 @@ public protocol RegistrationCoordinator {
         avatarData: Data?,
         phoneNumberDiscoverability: PhoneNumberDiscoverability,
     ) -> Guarantee<RegistrationStep>
+
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：资料页上的「用户名（选填）」。保留 `<nickname>.01`；
+    /// 账号已建好、本机注册还没完成，所以用 `accountIdentity` 的凭证显式认证。
+    @MainActor
+    func reserveTellomiUsername(nickname: String) async -> TellomiRegistrationUsername.ReservationOutcome
+
+    /// Tellomi（tellomi/tellomi#1215 第二刀）：点「下一步」时确认保留着的用户名，成功才保存资料。确认成功后本地用户名与链接一起写好。
+    @MainActor
+    func confirmTellomiUsername(_ reservedUsername: Usernames.HashedUsername) async -> TellomiRegistrationUsername.ConfirmationOutcome
 
     /// The user has hit a reglock timeout and is acknowledging it.
     ///

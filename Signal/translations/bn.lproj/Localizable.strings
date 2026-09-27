@@ -2612,7 +2612,7 @@
 "CONVERSATION_SETTINGS_ATTRIBUTES_ACCESS_SECTION_FOOTER_V2" = "গ্রুপের নাম, ছবি, বিবরণ, অদৃশ্য হতে যাওয়া মেসেজের টাইমার ও পিনকৃত মেসেজ কে এডিট করতে পারবেন তা বেছে নিন।";
 
 /* Footer string for a contact's badges in conversation settings */
-"CONVERSATION_SETTINGS_BADGES_FOOTER" = "সিগন্যাল সমর্থন করে আপনার প্রোফাইলের জন্য ব্যাজ পান। আরও জানতে একটি ব্যাজ এ চাপুন।";
+"CONVERSATION_SETTINGS_BADGES_FOOTER" = "Tellomi সমর্থন করে আপনার প্রোফাইলের জন্য ব্যাজ পান। আরও জানতে একটি ব্যাজ এ চাপুন।";
 
 /* Header title for a contact's badges in conversation settings */
 "CONVERSATION_SETTINGS_BADGES_HEADER" = "ব্যাজ";
@@ -3920,10 +3920,10 @@
 "ERROR_NETWORK_FAILURE" = "নেটওয়ার্ক ত্রুটি";
 
 /* Format string for an error alert notification message. Embeds {{ error string }} */
-"ERROR_NOTIFICATION_MESSAGE_FORMAT" = "আপনার ডিভাইস থেকে support@tellomi.app-এ ডিবাগ লগ সহ এই ত্রুটিটি রিপোর্ট করে সিগন্যাল উন্নত করতে আমাদের সাহায্য করুন; %1$@";
+"ERROR_NOTIFICATION_MESSAGE_FORMAT" = "আপনার ডিভাইস থেকে support@tellomi.app-এ ডিবাগ লগ সহ এই ত্রুটিটি রিপোর্ট করে Tellomi উন্নত করতে আমাদের সাহায্য করুন; %1$@";
 
 /* Format string for an error alert notification title. */
-"ERROR_NOTIFICATION_TITLE" = "সিগন্যাল বিটা: একটি ত্রুটি ঘটেছে";
+"ERROR_NOTIFICATION_TITLE" = "Tellomi বিটা: একটি ত্রুটি ঘটেছে";
 
 /* Error indicating a send failure due to a delinked application. */
 "ERROR_SENDING_DELINKED" = "আপনার ডিভাইস আর সংযুক্ত নেই। আরও বার্তা পাঠাতে দয়া করে পুনরায় যুক্ত করুন।";
@@ -5081,7 +5081,7 @@
 "INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_LEARN_MORE_BUTTON" = "আরো জানুন";
 
 /* Title for an in-app megaphone about a user's inactive primary device. */
-"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_TITLE" = "আপনার ফোনে সিগন্যাল খুলুন";
+"INACTIVE_PRIMARY_DEVICE_REMINDER_MEGAPHONE_TITLE" = "আপনার ফোনে Tellomi খুলুন";
 
 /* Label reminding the user that they are in archive mode, and that muted chats remain archived when they receive a new message. */
 "INBOX_VIEW_ARCHIVE_MODE_MUTED_CHATS_REMINDER" = "যখন নতুন ম্যাসেজ আসবে তখন আর্কাইভ করা মিউটকৃত চ্যাট আর্কাইভ অবস্থায়ই থাকবে।";
@@ -6581,7 +6581,7 @@
 "ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "এই iPad রেজিস্টার করা হলে তা একই ফোন নম্বরে বর্তমানে রেজিস্টার করা অন্য যেকোনও ডিভাইসে Tellomi অক্ষম করবে।";
 
 /* Description of the 'Contacts' permission in the 'onboarding permissions' view. */
-"ONBOARDING_PERMISSIONS_CONTACTS_DESCRIPTION" = "আপনার পরিচিত ব্যক্তিদের খুঁজে বের করুন। আপনার কন্টাক্টগুলো এনক্রিপ্ট অবস্থায় আছে এবং সেগুলো সিগন্যাল সার্ভিসে দৃশ্যমান নয়।";
+"ONBOARDING_PERMISSIONS_CONTACTS_DESCRIPTION" = "আপনার পরিচিত ব্যক্তিদের খুঁজে বের করুন। আপনার কন্টাক্টগুলো এনক্রিপ্ট অবস্থায় আছে এবং সেগুলো Tellomi সার্ভিসে দৃশ্যমান নয়।";
 
 /* Title introducing the 'Contacts' permission in the 'onboarding permissions' view. */
 "ONBOARDING_PERMISSIONS_CONTACTS_TITLE" = "পরিচিতিসমূহ";
@@ -7352,7 +7352,7 @@
 "PIN_CREATION_WEAK_ERROR" = "একটি শক্তিশালী পিন বেছে নিন";
 
 /* If your attempted PIN is too weak, you'll see an error message. This is the text on the error dialog. */
-"PIN_CREATION_WEAK_ERROR_MESSAGE" = "পিন সিগন্যাল এনক্রিপ্টেড অবস্থায় আপনার তথ্য সংরক্ষিত রাখে, যাতে শুধুমাত্র আপনিই এতে অ্যাক্সেস করতে পারবেন। আপনার অ্যাকাউন্ট সুরক্ষিত রাখতে একটি শক্তিশালী পিন বেছে নিন।";
+"PIN_CREATION_WEAK_ERROR_MESSAGE" = "পিন Tellomi এনক্রিপ্টেড অবস্থায় আপনার তথ্য সংরক্ষিত রাখে, যাতে শুধুমাত্র আপনিই এতে অ্যাক্সেস করতে পারবেন। আপনার অ্যাকাউন্ট সুরক্ষিত রাখতে একটি শক্তিশালী পিন বেছে নিন।";
 
 /* If the user is re-registering, they need to enter their PIN to restore all their data. In some cases, they can skip this entry and lose some data. This text is shown on a button that lets them begin to do this. */
 "PIN_ENTER_EXISTING_SKIP" = "পিন এড়িয়ে যান";
@@ -7604,7 +7604,7 @@
 "PRIVACY_VERIFICATION_FAILED_WITH_OLD_REMOTE_VERSION" = "আপনার সঙ্গী Tellomi এর একটি পুরানো সংস্করণ চলাচ্ছেন। আপনি যাচাই করার আগে তাদের আপডেট করা দরকার।";
 
 /* alert body */
-"PRIVACY_VERIFICATION_FAILURE_INVALID_QRCODE" = "স্ক্যান করা কোডটি নিরাপত্তা নাম্বার বলে মনে হচ্ছে না। আপনারা দুজনেই কি সিগন্যালের একটি আধুনিক সংস্করণ ব্যবহার করছেন?";
+"PRIVACY_VERIFICATION_FAILURE_INVALID_QRCODE" = "স্ক্যান করা কোডটি নিরাপত্তা নাম্বার বলে মনে হচ্ছে না। আপনারা দুজনেই কি Tellomi-এর একটি আধুনিক সংস্করণ ব্যবহার করছেন?";
 
 /* Navbar title */
 "PRIVACY_VERIFICATION_TITLE" = "নিরাপত্তা নাম্বার যাচাই করুন";

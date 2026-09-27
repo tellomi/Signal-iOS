@@ -690,6 +690,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             DependenciesBridge.shared.orphanedAttachmentCleaner.beginObserving()
         }
 
+#if TESTABLE_BUILD
+        // Tellomi（#1056 第三刀）：判据 2 的切区演练，只在带 TELLOMI_REGION_DRILL 启动时跑
+        appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
+            TellomiRegionDrill.startIfRequested()
+        }
+#endif
+
         appReadiness.runNowOrWhenMainAppDidBecomeReadyAsync {
             AttachmentDownloadRetryRunner.shared.beginObserving()
         }
@@ -925,11 +932,22 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         let (
             tsRegistrationState,
             lastMode,
+            tellomiReLoginMode,
+            hasPendingChangeNumber,
         ) = SSKEnvironment.shared.databaseStorageRef.read { tx in
             return (
                 DependenciesBridge.shared.tsAccountManager.registrationState(tx: tx),
                 regLoader.restoreLastMode(transaction: tx),
+                SignalApp.tellomiReLoginMode(tsAccountManager: DependenciesBridge.shared.tsAccountManager, tx: tx),
+                regLoader.hasPendingChangeNumber(transaction: tx),
             )
+        }
+
+        // Tellomi（ADR-0072）：本机已退出登录 → 欢迎页（重新登录）。不能落到下面 `.deregistered` 那一支（进聊天列表），
+        // 也不接着用别的没走完的注册模式（它们的终点是 `POST /v1/registration`）；只有没走完的换号照上游先走完。
+        if let tellomiReLoginMode, !hasPendingChangeNumber {
+            Logger.info("Logged out on this device; showing the welcome page")
+            return .registration(regLoader, tellomiReLoginMode)
         }
 
         if let lastMode {

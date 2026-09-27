@@ -21,6 +21,11 @@ class AppIconBadgeUpdater {
 
 extension AppIconBadgeUpdater: BadgeObserver {
     func didUpdateBadgeCount(_ badgeManager: BadgeManager, badgeCount: BadgeCount) {
+        // Tellomi（ADR-0072 §4.1 第 3 步）：本机已退出登录时图标上不露未读数。
+        if DependenciesBridge.shared.tsAccountManager.isTellomiLoggedOutWithMaybeSneakyTransaction {
+            UIApplication.shared.applicationIconBadgeNumber = 0
+            return
+        }
         UIApplication.shared.applicationIconBadgeNumber = Int(badgeCount.unreadTotalCount)
     }
 }

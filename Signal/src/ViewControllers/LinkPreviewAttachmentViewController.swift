@@ -266,21 +266,33 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
     // MARK: - Link Preview fetching
 
-    private func updateLinkPreview(animated: Bool) {
-        let newState: LinkPreviewPanel.State
-        switch (linkPreviewFetchState.currentState, linkPreviewFetchState.currentUrl) {
+    /// Tellomi（ADR-0063 §5.1 铁律 2，tellomi/tellomi#1423）：取不到预览**不出错误提示**。
+    /// 失败时落到「纯链接」这一级：只有链接图标和域名的卡（与 §5.1 的无图卡同一个意思），照样能附到故事上；
+    /// 上游面板里那个「Couldn't load link. Check your connection and try again.」状态整个删掉了。
+    static func panelState(
+        for fetchState: LinkPreviewFetchState.State,
+        currentUrl: URL?,
+    ) -> LinkPreviewAttachmentPanelState {
+        switch (fetchState, currentUrl) {
         case (.none, _):
-            newState = .placeholder
+            return .placeholder
         case (.loading, _):
-            newState = .loading
+            return .loading
         case (.loaded(let linkPreviewDraft), _):
-            newState = .draft(linkPreviewDraft)
+            return .draft(linkPreviewDraft)
         case (.failed, .some(let linkPreviewUrl)):
-            newState = .draft(OWSLinkPreviewDraft(url: linkPreviewUrl, title: nil, isForwarded: false))
+            return .draft(OWSLinkPreviewDraft(url: linkPreviewUrl, title: nil, isForwarded: false))
         case (.failed, .none):
             owsFailDebug("Must have linkPreviewUrl in the .failed state.")
-            newState = .placeholder
+            return .placeholder
         }
+    }
+
+    private func updateLinkPreview(animated: Bool) {
+        let newState = Self.panelState(
+            for: linkPreviewFetchState.currentState,
+            currentUrl: linkPreviewFetchState.currentUrl,
+        )
         linkPreviewPanel.setState(newState, animated: animated)
 
         let isDoneEnabled: Bool
@@ -296,12 +308,7 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
     private class LinkPreviewPanel: UIView {
 
-        enum State: Equatable {
-            case placeholder
-            case loading
-            case draft(OWSLinkPreviewDraft)
-            case error
-        }
+        typealias State = LinkPreviewAttachmentPanelState
 
         private var _internalState: State = .placeholder
         var state: State {
@@ -364,30 +371,6 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
 
         private var linkPreviewView: TextAttachmentView.LinkPreviewView?
 
-        private lazy var errorView: UIView = {
-            let exclamationMark = UIImageView(image: UIImage(imageLiteralResourceName: "error-circle"))
-            exclamationMark.tintColor = .Signal.warningLabel
-            exclamationMark.setContentHuggingHigh()
-
-            let label = UILabel()
-            label.font = .dynamicTypeSubheadlineClamped
-            label.adjustsFontForContentSizeCategory = true
-            label.lineBreakMode = .byWordWrapping
-            label.numberOfLines = 0
-            label.textAlignment = .center
-            label.textColor = .Signal.warningLabel
-            label.text = OWSLocalizedString(
-                "STORY_COMPOSER_LINK_PREVIEW_ERROR",
-                comment: "Displayed when failed to fetch link preview in Text Story composer.",
-            )
-
-            let stackView = UIStackView(arrangedSubviews: [exclamationMark, label])
-            stackView.axis = .vertical
-            stackView.alignment = .center
-            stackView.spacing = 8
-            return stackView
-        }()
-
         private var contentViews = Set<UIView>()
 
         private func loadContentView(forState state: State) -> UIView {
@@ -414,8 +397,6 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
                         linkPreview: state,
                         isDraft: true,
                     )
-                case .error:
-                    return errorView
                 }
             }()
             guard !contentViews.contains(view) else { return view }
@@ -442,4 +423,12 @@ class LinkPreviewAttachmentViewController: InteractiveSheetViewController {
             viewsToHide.forEach { $0.setIsHidden(true, animated: animated) }
         }
     }
+}
+
+// MARK: -
+
+enum LinkPreviewAttachmentPanelState: Equatable {
+    case placeholder
+    case loading
+    case draft(OWSLinkPreviewDraft)
 }

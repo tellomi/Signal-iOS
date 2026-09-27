@@ -38,7 +38,12 @@ class AccountSettingsViewController: OWSTableViewController2 {
         let contents = OWSTableContents()
 
         // Show the change pin and reglock sections
-        if DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegisteredPrimaryDevice {
+        // Tellomi：没有 SVR 时 PIN 和注册锁两节都不显示——创建 / 修改 PIN 会去连 SVR，
+        // 注册锁又要先有 PIN（tellomi/tellomi#1234）。
+        if
+            TSConstants.svrEnclaveAvailable,
+            DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegisteredPrimaryDevice
+        {
             let pinSection = OWSTableSection()
             let isPinEnabled = SSKEnvironment.shared.ows2FAManagerRef.isPinEnabledWithSneakyTransaction
 
@@ -195,6 +200,15 @@ class AccountSettingsViewController: OWSTableViewController2 {
                     self?.requestAccountDataReport()
                 },
             ))
+            // Tellomi（ADR-0072，需求 §3.2）：最底部红字「退出登录」，在「删除账号」上方。
+            accountSection.add(.item(
+                name: TellomiLogoutOptionsViewController.Strings.settingsRow,
+                textColor: .Signal.red,
+                accessibilityIdentifier: UIView.accessibilityIdentifier(in: self, name: "tellomi_logout"),
+                actionBlock: { [weak self] in
+                    self?.showTellomiLogoutOptions()
+                },
+            ))
             accountSection.add(.item(
                 name: OWSLocalizedString("SETTINGS_DELETE_ACCOUNT_BUTTON", comment: ""),
                 textColor: .Signal.red,
@@ -325,6 +339,28 @@ class AccountSettingsViewController: OWSTableViewController2 {
     private func unregisterUser() {
         let vc = DeleteAccountConfirmationViewController()
         presentFormSheet(OWSNavigationController(rootViewController: vc), animated: true)
+    }
+
+    /// Tellomi（ADR-0072）：退出登录前的替代方案页。「更换手机号」那一行和这一页的按钮走同一条路。
+    private func showTellomiLogoutOptions() {
+        let canChangeNumber: Bool = {
+            switch changeNumberState() {
+            case .disallowed: return false
+            case .allowed: return true
+            }
+        }()
+        let vc = TellomiLogoutOptionsViewController(
+            changePhoneNumber: canChangeNumber ? { [weak self] in
+                guard let self else { return }
+                switch self.changeNumberState() {
+                case .disallowed:
+                    return
+                case .allowed(let changeNumberParams):
+                    self.changePhoneNumber(changeNumberParams)
+                }
+            } : nil,
+        )
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private func deleteUnregisteredUserData() {

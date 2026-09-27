@@ -25,9 +25,13 @@ extension UIWindow.Level {
 
     // In front of the status bar and CallView
     fileprivate static let _screenBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 2)
+
+    // Tellomi（tellomi/tellomi#1139）：「必须更新」在最前面，连应用锁也盖住（需求 3.4：未解锁也能先更新，
+    // 阻断页不显示任何私人内容；Telegram iOS 的 .update 层同样排在 .passcode 之上）。
+    fileprivate static let _updateRequiredBlocking: UIWindow.Level = .init(rawValue: UIWindow.Level.statusBar.rawValue + 3)
 }
 
-class WindowManager {
+class WindowManager: TellomiUpdateRequiredBlockHost {
 
     init() {
         AssertIsOnMainThread()
@@ -50,7 +54,9 @@ class WindowManager {
         case returnToCallWindow: true
         case callViewWindow: true
         case clockSkewBlockingWindow: true
+        case crossBorderConsentWindow: true
         case screenBlockingWindow: true
+        case updateRequiredBlockingWindow: true
         default: false
         }
     }
@@ -58,6 +64,19 @@ class WindowManager {
     var captchaWindow: UIWindow {
         return shouldShowCallView ? callViewWindow : rootWindow
     }
+
+    /// Tellomi（tellomi/tellomi#1139）：为真时用「必须更新」阻断页盖住整个 App（由 `TellomiUpdateRequiredMonitoringManager` 设置）。
+    var isUpdateRequiredBlockActive: Bool = false {
+        didSet {
+            AssertIsOnMainThread()
+            guard isUpdateRequiredBlockActive != oldValue else { return }
+            ensureWindowState()
+            NotificationCenter.default.post(name: .tellomiUpdateRequiredBlockDidChange, object: nil)
+        }
+    }
+
+    /// Tellomi：阻断页上确认了「暂不更新，只看聊天记录」（owner 2026-09-24 规则 1）。
+    var updateRequiredViewChatsOnlyHandler: (@MainActor () -> Void)?
 
     var isScreenBlockActive: Bool = false {
         didSet {
@@ -74,11 +93,24 @@ class WindowManager {
         }
     }
 
+    /// Tellomi：已注册但还没同意跨境（升级上来的老用户）时，跨境告知挡在所有界面前面（tellomi/tellomi#1133）。
+    /// 同意之前网络本来就是关着的（`TellomiCrossBorderConsent`），这一层只负责让用户看到并作出选择。
+    var isCrossBorderConsentBlockActive: Bool = false {
+        didSet {
+            AssertIsOnMainThread()
+            ensureWindowState()
+        }
+    }
+
     func updateWindowFrames() {
         let desiredFrame = CurrentAppContext().frame
-        for window in [rootWindow!, callViewWindow, clockSkewBlockingWindow, screenBlockingWindow!] {
+        for window in [rootWindow!, callViewWindow, clockSkewBlockingWindow, crossBorderConsentWindow, screenBlockingWindow!] {
             guard window.frame != desiredFrame else { continue }
             window.frame = desiredFrame
+        }
+        // Tellomi（tellomi/tellomi#1139）
+        if updateRequiredBlockingWindow.frame != desiredFrame {
+            updateRequiredBlockingWindow.frame = desiredFrame
         }
     }
 
@@ -162,9 +194,65 @@ class WindowManager {
         return window
     }()
 
+    // UIWindow.Level._clockSkewBlocking（两个挡板不会同时出现：没同意跨境就不联网，也就量不出时钟偏差）
+    private lazy var crossBorderConsentWindow: UIWindow = {
+        AssertIsOnMainThread()
+        guard let rootWindow else {
+            owsFail("rootWindow is nil")
+        }
+
+        let window = OWSWindow(frame: rootWindow.bounds)
+        window.windowLevel = ._clockSkewBlocking
+        window.isHidden = true
+        window.isOpaque = true
+        window.backgroundColor = Theme.launchScreenBackgroundColor
+        window.rootViewController = Self.makeCrossBorderConsentBlockingViewController()
+        return window
+    }()
+
+    /// Tellomi（tellomi/tellomi#1338）：已注册设备升级后的盖页 = 完整同意 + 最上面「《隐私政策》已更新至 2.0.0 版。」（需求第六节法务项 c）；
+    /// 6.6 起是品牌底色空白盖页上的小弹窗，关不掉。
+    /// 拆成静态方法，是为了用例能走这里真的接线（同 `makeUpdateRequiredBlockingViewController`）。
+    static func makeCrossBorderConsentBlockingViewController() -> TellomiCrossBorderNoticeViewController {
+        return TellomiCrossBorderNoticeViewController(mode: .consentAfterPolicyUpdate, onAgree: {})
+    }
+
     // UIWindow.Level._background if inactive,
     // UIWindow.Level._screenBlocking() if active.
     private var screenBlockingWindow: UIWindow!
+
+    // UIWindow.Level._updateRequiredBlocking（Tellomi，tellomi/tellomi#1139）
+    private lazy var updateRequiredBlockingViewController = Self.makeUpdateRequiredBlockingViewController(host: self)
+
+    /// 拆成静态方法，是为了用例能走这里真的接线（taishi 审查 b15 启用前置 2）。
+    static func makeUpdateRequiredBlockingViewController(host: TellomiUpdateRequiredBlockHost) -> TellomiUpdateRequiredAppBlockingViewController {
+        return TellomiUpdateRequiredAppBlockingViewController(
+            openUpdatePage: {
+                // 阻断页只在 appStoreUrl 就是我们配的更新渠道时才会出现
+                // （TellomiUpdateRequiredMonitoringManager.hasUpdateChannel），不会把人送去装别的 App。
+                UIApplication.shared.open(TSConstants.appStoreUrl)
+            },
+            viewChatsOnly: { [weak host] in
+                host?.updateRequiredViewChatsOnlyHandler?()
+            },
+        )
+    }
+
+    private lazy var updateRequiredBlockingWindow: UIWindow = {
+        AssertIsOnMainThread()
+        guard let rootWindow else {
+            owsFail("rootWindow is nil")
+        }
+
+        let window = OWSWindow(frame: rootWindow.bounds)
+        window.windowLevel = ._updateRequiredBlocking
+        window.isHidden = true
+        window.isOpaque = true
+        window.backgroundColor = Theme.launchScreenBackgroundColor
+        window.rootViewController = updateRequiredBlockingViewController
+
+        return window
+    }()
 
     // MARK: Window State
 
@@ -176,18 +264,49 @@ class WindowManager {
         // window level and are shown/hidden as necessary.
         //
         // Note that we always "hide" before we "show".
+
+        // Tellomi（tellomi/tellomi#1139）：「必须更新」照上游两个阻断窗口（应用锁、时钟偏差）的写法，先把根窗口和通话窗口藏起来，
+        // 免得会话列表在下面继续显示、被旁白读到（taishi 审查 b15 要改 2）。锁窗口照旧按 isScreenBlockActive 处理，
+        // 所以选了「只看聊天记录」、收起阻断页以后，锁上着就先看到应用锁。
+        // 通话中先不盖（上游的时钟偏差页也排在通话后面），挂断后 ensureWindowState 会再盖上。
+        if isUpdateRequiredBlockActive, !hasCall {
+            if isScreenBlockActive {
+                ensureScreenBlockWindowShown()
+            } else {
+                ensureScreenBlockWindowHidden()
+            }
+            ensureRootWindowHidden()
+            ensureReturnToCallWindowHidden()
+            ensureCallViewWindowHidden()
+            ensureClockSkewBlockWindowHidden()
+            ensureUpdateRequiredBlockWindowShown()
+            return
+        }
+        ensureUpdateRequiredBlockWindowHidden()
+
         if isScreenBlockActive {
             ensureScreenBlockWindowShown()
             ensureRootWindowHidden()
             ensureReturnToCallWindowHidden()
             ensureCallViewWindowHidden()
             ensureClockSkewBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
         }
         // Show Call View
         else if shouldShowCallView, callViewController != nil {
             ensureCallViewWindowShown()
             ensureRootWindowHidden()
             ensureReturnToCallWindowHidden()
+            ensureScreenBlockWindowHidden()
+            ensureClockSkewBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
+        }
+        // Tellomi: Show Cross-Border Consent Block (tellomi/tellomi#1133)
+        else if isCrossBorderConsentBlockActive {
+            ensureCrossBorderConsentWindowShown()
+            ensureRootWindowHidden()
+            ensureReturnToCallWindowHidden()
+            ensureCallViewWindowHidden()
             ensureScreenBlockWindowHidden()
             ensureClockSkewBlockWindowHidden()
         }
@@ -198,12 +317,14 @@ class WindowManager {
             ensureReturnToCallWindowHidden()
             ensureCallViewWindowHidden()
             ensureScreenBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
         }
         // Show Root Window
         else {
             ensureRootWindowShown()
             ensureScreenBlockWindowHidden()
             ensureClockSkewBlockWindowHidden()
+            ensureCrossBorderConsentWindowHidden()
 
             // Add "Return to Call" banner
             if callViewController != nil {
@@ -214,6 +335,25 @@ class WindowManager {
 
             ensureCallViewWindowHidden()
         }
+    }
+
+    private func ensureUpdateRequiredBlockWindowShown() {
+        AssertIsOnMainThread()
+
+        if updateRequiredBlockingWindow.isHidden {
+            Logger.info("showing update required window.")
+        }
+
+        updateRequiredBlockingWindow.makeKeyAndVisible()
+    }
+
+    private func ensureUpdateRequiredBlockWindowHidden() {
+        AssertIsOnMainThread()
+
+        guard !updateRequiredBlockingWindow.isHidden else { return }
+
+        Logger.info("hiding update required window.")
+        updateRequiredBlockingWindow.isHidden = true
     }
 
     private func ensureRootWindowShown() {
@@ -302,6 +442,25 @@ class WindowManager {
 
         Logger.info("hiding clock skew window.")
         clockSkewBlockingWindow.isHidden = true
+    }
+
+    private func ensureCrossBorderConsentWindowShown() {
+        AssertIsOnMainThread()
+
+        if crossBorderConsentWindow.isHidden {
+            Logger.info("showing cross-border consent window.")
+        }
+
+        crossBorderConsentWindow.makeKeyAndVisible()
+    }
+
+    private func ensureCrossBorderConsentWindowHidden() {
+        AssertIsOnMainThread()
+
+        guard !crossBorderConsentWindow.isHidden else { return }
+
+        Logger.info("hiding cross-border consent window.")
+        crossBorderConsentWindow.isHidden = true
     }
 
     private func ensureScreenBlockWindowShown() {
@@ -555,4 +714,48 @@ private func workAroundRotationIssue(_ window: UIWindow) {
     func3(dismissSupport, selector3)
 
     Logger.info("finished scrollView transition")
+}
+
+// MARK: - Tellomi
+
+/// 已注册但还没同意跨境时挡住整个 App（tellomi/tellomi#1133）。未注册的人在要连服务端的那一页单独问：
+/// - 号码页「下一步」（发号码之前）；
+/// - 欢迎页「恢复或转移账户」和 iPad 的「切换到关联」；
+/// - 关联设备的二维码页 `ProvisioningQRCodeViewController`：iPad 未注册启动、`.relinking`、号码页菜单「关联此设备」都到这一页；
+///   关联设备的两处（iPad「切换到关联」和这一页）出的是只读版（tellomi/tellomi#1338，需求第六节 ④）；
+/// - 快速恢复 / 转移的二维码页 `BaseQuickRestoreQRCodeViewController`：iPad 转移选择页「转移」，以及注册流程续跑到扫码那一步。
+/// provisioning socket 是 libsignal 直连、不经过两道闸，`ProvisioningSocketManager.openNewProvisioningSocket()` 另有一道闸兜底。
+class TellomiCrossBorderConsentMonitoringManager {
+    private let windowManager: WindowManager
+
+    init(windowManager: WindowManager) {
+        self.windowManager = windowManager
+    }
+
+    func start() {
+        AssertIsOnMainThread()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(update),
+            name: TellomiCrossBorderConsent.didChangeNotification,
+            object: nil,
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(update),
+            name: .registrationStateDidChange,
+            object: nil,
+        )
+
+        update()
+    }
+
+    @objc
+    private func update() {
+        AssertIsOnMainThread()
+
+        let isRegistered = DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered
+        windowManager.isCrossBorderConsentBlockActive = isRegistered && !TellomiCrossBorderConsent.hasAgreed
+    }
 }

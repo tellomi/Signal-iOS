@@ -1,0 +1,279 @@
+//
+// Copyright 2026 重庆半格智能科技有限公司
+// SPDX-License-Identifier: AGPL-3.0-only
+//
+
+import Photos
+import SignalServiceKit
+import SignalUI
+
+/// Tellomi（tellomi/tellomi#1261）：会话「+ → 照片」打开 Telegram 式的选图网格（`TellomiPhotoPickerViewController`）。
+extension ConversationViewController {
+
+    /// 读相册要「照片」权限（上游的系统选择器不要）：没给过就先问；已经拒绝 / 受限制就照旧弹系统选择器，权限引导以 #1115 为准。
+    func chooseFromLibraryWithTellomiPicker(fallback: @escaping () -> Void) {
+        AssertIsOnMainThread()
+
+        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
+        case .denied, .restricted:
+            fallback()
+        default:
+            Task { @MainActor in
+                guard await self.ows_askForMediaLibraryPermissions(for: .readWrite) else { return }
+                self.presentTellomiPhotoPicker()
+            }
+        }
+    }
+
+    // MARK: - 附件 Sheet（#1115）
+
+    /// 「+」：附件 Sheet = 选图网格 + 底部 dock（相册 · 文件 · 位置 · 投票 · 联系人，owner 2026-09-23 定；GIF 能用时最后再加一格 GIF，
+    /// owner 2026-09-26 临时加回，见 `TellomiAttachmentDockItem`），两档高度，下滑关闭。
+    /// 相册权限：没问过就先问；拒绝 / 受限制也照样打开（dock 里别的格子还要用），网格里显示去「设置」开权限的说明。
+    func presentTellomiAttachmentSheet() {
+        AssertIsOnMainThread()
+        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
+        case .notDetermined:
+            Task { @MainActor in
+                _ = await self.ows_askForMediaLibraryPermissions(for: .readWrite)
+                self.presentTellomiPhotoPicker(asAttachmentSheet: true)
+            }
+        default:
+            presentTellomiPhotoPicker(asAttachmentSheet: true)
+        }
+    }
+
+    /// 上游好几处是先 `dismiss(animated:)` 再马上「回到附件面板」：前一页还在收起时弹不出来，等它收完再弹。
+    func presentTellomiAttachmentSheetWhenPossible(attempt: Int = 0) {
+        guard let presented = presentedViewController else {
+            presentTellomiAttachmentSheet()
+            return
+        }
+        if presented.isBeingDismissed, let coordinator = presented.transitionCoordinator {
+            coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+                self?.presentTellomiAttachmentSheetWhenPossible(attempt: attempt + 1)
+            }
+            return
+        }
+        // 上面还盖着别的页面（不是正在收起）：稍等再看，最多等一秒，不叠着弹
+        guard attempt < 10 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.presentTellomiAttachmentSheetWhenPossible(attempt: attempt + 1)
+        }
+    }
+
+    static let attachmentSheetHalfDetent = UISheetPresentationController.Detent.Identifier("tellomi.attachmentSheet.half")
+
+    /// 附件 Sheet 的两档：收起（聊天露在上面、压暗）与全屏；网格滚到顶再往上拖就展开。
+    /// 收起的高度照 Telegram iOS（`AttachmentContainer.attachmentDefaultTopInset`：顶边比全屏低屏幕高度的 0.2488，约为全屏高度的 73%）；
+    /// 只有两档、没有中间档；顶上有抓手（glass 样式有，`hasPill`）。
+    static func configureAttachmentSheet(_ sheet: UISheetPresentationController) {
+        if #available(iOS 16, *) {
+            sheet.detents = [
+                .custom(identifier: attachmentSheetHalfDetent) { context in context.maximumDetentValue * 0.73 },
+                .large(),
+            ]
+            sheet.selectedDetentIdentifier = attachmentSheetHalfDetent
+        } else {
+            // iOS 15 没有自定义高度：系统的半屏 / 全屏两档
+            sheet.detents = [.medium(), .large()]
+            sheet.selectedDetentIdentifier = .medium
+        }
+        sheet.prefersScrollingExpandsWhenScrolledToEdge = true
+        sheet.prefersEdgeAttachedInCompactHeight = true
+        sheet.widthFollowsPreferredContentSizeWhenEdgeAttached = true
+        sheet.largestUndimmedDetentIdentifier = nil
+        sheet.prefersGrabberVisible = true
+    }
+
+    private func presentTellomiPhotoPicker(asAttachmentSheet: Bool = false) {
+        guard hasViewWillAppearEverBegun, let inputToolbar else { return }
+
+        let picker = TellomiPhotoPickerViewController(
+            library: TellomiSystemPhotoLibrary(),
+            initialMessageBody: inputToolbar.messageBodyForSending,
+            defaultImageQuality: SSKEnvironment.shared.databaseStorageRef.read(block: ImageQuality.fetchValue(tx:)),
+            canSendSeparately: true,
+            hasQuotedReplyDraft: inputToolbar.quotedReplyDraft != nil,
+            attachmentLimits: .currentLimits(),
+            approvalDataSource: self,
+            stickerSheetDelegate: self,
+            // 「只看已选」（P-3）铺会话的聊天背景、说明气泡用会话的颜色。
+            chatBackground: viewState.wallpaperViewBuilder?.build().asPreviewView(),
+            bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
+            camera: TellomiSystemPickerCamera(),
+            dockItems: asAttachmentSheet ? TellomiAttachmentDockItem.attachmentSheetItems : [],
+        )
+        picker.delegate = self
+
+        // #1121：附件 Sheet 是个容器，dock 的「相册」「文件」在同一个 Sheet 里换页
+        let presented: UIViewController
+        if asAttachmentSheet {
+            let container = TellomiAttachmentSheetController(photoPicker: picker) { [weak self] in
+                self?.makeTellomiFilesPage() ?? UIViewController()
+            }
+            container.modalPresentationStyle = .pageSheet
+            if let sheet = container.sheetPresentationController {
+                Self.configureAttachmentSheet(sheet)
+            }
+            presented = container
+        } else {
+            presented = picker
+        }
+
+        dismissKeyBoard()
+        let presenter = splitViewController ?? self
+        presenter.present(presented, animated: true)
+    }
+}
+
+extension ConversationViewController: TellomiPhotoPickerDelegate {
+
+    func photoPickerDidCancel(_ picker: TellomiPhotoPickerViewController) {
+        // #1115：面板本身就是附件 Sheet，✕ 就是关掉、回到聊天（不再「回到附件面板」，不然关不掉）。
+        dismiss(animated: true)
+    }
+
+    /// dock 的「文件」：同一个 Sheet 里换到「文件」页（#1121）。
+    /// 「位置 / 投票 / 联系人 / GIF」：先收起 Sheet，再走上游原来的流程（取消了会经 openAttachmentKeyboard 回到 Sheet）。
+    func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {
+        if item == .file, let container = picker.parent as? TellomiAttachmentSheetController {
+            container.show(.files)
+            return
+        }
+        dismiss(animated: true) { [weak self] in
+            guard let self else { return }
+            switch item {
+            case .gallery:
+                break
+            case .file:
+                self.fileButtonPressed()
+            case .location:
+                self.locationButtonPressed()
+            case .poll:
+                self.pollButtonPressed()
+            case .contact:
+                self.contactButtonPressed()
+            case .gif:
+                // owner 2026-09-26 临时加回：上游附件面板 GIF 键的同一个处理（didTapGif → gifButtonPressed → showGifPicker）。
+                // 下滑关掉 GIF 选择器经 presentationControllerDidDismiss → openAttachmentKeyboard 回到 Sheet。
+                self.gifButtonPressed()
+            }
+        }
+    }
+
+    /// 没有照片权限时占位里的「照片」：收起 Sheet，再弹上游的系统选择器（不要照片权限就能选、能发）——
+    /// 已发布的《系统权限调用清单》TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2 承诺的「全部相册」入口。
+    /// 系统选择器取消了经 `sendMediaNavDidCancel → openAttachmentKeyboard` 回到 Sheet；发了照常发（`sendMediaNav(_:didApproveAttachments:)`）。
+    func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController) {
+        dismiss(animated: true) { [weak self] in
+            self?.tellomiChooseFromLibraryWithNativePicker()
+        }
+    }
+
+    /// 相机格：走上游「+ → 相机」同一条路（自己问相机 / 麦克风权限，拍完在它自己的预览页里发），但盖在选图面板上面——
+    /// 同 Telegram（`ChatControllerOpenAttachmentMenu.openCamera` 把相机叠在附件菜单上）：取消只关相机、回到面板，已选都还在；
+    /// 在相机里发了照常发，发完会话页整个收起（面板里的已选不发，同 Telegram）。
+    func photoPickerDidRequestCamera(_ picker: TellomiPhotoPickerViewController) {
+        let route = TellomiPickerCameraRoute(picker: picker, conversation: self)
+        picker.cameraRoute = route
+        tellomiTakePictureOrVideo(presenter: picker, sendMediaNavDelegate: route)
+    }
+
+    func photoPicker(
+        _ picker: TellomiPhotoPickerViewController,
+        send approvedAttachments: ApprovedAttachments,
+        messageBody: MessageBody?,
+        separately: Bool,
+    ) {
+        // 从上游预览页发的时候它盖在网格上面，提示与安全码确认都从最上面那一层弹。
+        let fromViewController = picker.presentedViewController ?? picker
+        let attachmentLimits = picker.attachmentLimits
+        ModalActivityIndicatorViewController.present(
+            fromViewController: fromViewController,
+            title: CommonStrings.preparingModal,
+            asyncBlock: { modal in
+                if separately {
+                    await TellomiPhotoPickerSending.sendSeparately(approvedAttachments, messageBody: messageBody) { part, body in
+                        await self.sendAttachments(part, messageBody: body, from: fromViewController, attachmentLimits: attachmentLimits)
+                    }
+                } else {
+                    await self.sendAttachments(approvedAttachments, messageBody: messageBody, from: fromViewController, attachmentLimits: attachmentLimits)
+                }
+                modal.dismiss(completion: {
+                    self.dismiss(animated: true)
+                })
+            },
+        )
+    }
+
+    func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?) {
+        guard hasViewWillAppearEverBegun, let inputToolbar else { return }
+        inputToolbar.setMessageBody(messageBody, animated: false)
+    }
+}
+
+/// Tellomi（#1261 P-8）：从选图面板的相机格打开的相机，事件怎么走。
+/// 取消只关相机这一层、回到面板（面板接着取景）；发送、改说明、一次性查看都照会话页自己打开相机时的路子走（发完由会话页整个收起）。
+final class TellomiPickerCameraRoute: SendMediaNavDelegate {
+    private weak var picker: TellomiPhotoPickerViewController?
+    private weak var conversation: ConversationViewController?
+
+    init(picker: TellomiPhotoPickerViewController, conversation: ConversationViewController?) {
+        self.picker = picker
+        self.conversation = conversation
+    }
+
+    /// 只关相机（它自己 dismiss），面板留着；关完面板接着取景。
+    func closeCamera(_ camera: UIViewController) {
+        camera.dismiss(animated: true) { [weak picker] in
+            picker?.cameraDidClose()
+        }
+    }
+
+    func sendMediaNavDidCancel(_ sendMediaNavigationController: SendMediaNavigationController) {
+        closeCamera(sendMediaNavigationController)
+    }
+
+    func sendMediaNav(
+        _ sendMediaNavigationController: SendMediaNavigationController,
+        didApproveAttachments approvedAttachments: ApprovedAttachments,
+        messageBody: MessageBody?,
+    ) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didApproveAttachments: approvedAttachments, messageBody: messageBody)
+    }
+
+    func sendMediaNav(_ sendMediaNavigationController: SendMediaNavigationController, didFinishWithTextAttachment textAttachment: UnsentTextAttachment) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didFinishWithTextAttachment: textAttachment)
+    }
+
+    func sendMediaNav(_ sendMediaNavigationController: SendMediaNavigationController, didChangeMessageBody newMessageBody: MessageBody?) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didChangeMessageBody: newMessageBody)
+        picker?.updateCaptionFromCamera(newMessageBody)
+    }
+
+    func sendMediaNav(_ sendMediaNavigationController: SendMediaNavigationController, didChangeViewOnceState isViewOnce: Bool) {
+        conversation?.sendMediaNav(sendMediaNavigationController, didChangeViewOnceState: isViewOnce)
+    }
+}
+
+/// Tellomi（#1261 P-5「单独发送」）：一张一条，说明（连同 @ 与样式）挂最后一条；上一条没发出去（被拦下 / 取消）就不再发后面的。
+/// 引用只挂第一条：会话页每发出一条就清掉引用草稿（上游 `messageWasSent`）。
+/// 时间戳不重复、落库顺序与勾的顺序一致：上游 `MessageTimestampGenerator` 连发时逐个 +1，`ThreadUtil.enqueueSendQueue` 串行。
+enum TellomiPhotoPickerSending {
+    @MainActor
+    static func sendSeparately(
+        _ approvedAttachments: ApprovedAttachments,
+        messageBody: MessageBody?,
+        send: (ApprovedAttachments, MessageBody?) async -> Bool,
+    ) async {
+        let attachments = approvedAttachments.attachments
+        for (index, attachment) in attachments.enumerated() {
+            let isLast = index == attachments.count - 1
+            let part = ApprovedAttachments(nonViewOnceAttachments: [attachment], imageQuality: approvedAttachments.imageQuality)
+            guard await send(part, isLast ? messageBody : nil) else {
+                return
+            }
+        }
+    }
+}

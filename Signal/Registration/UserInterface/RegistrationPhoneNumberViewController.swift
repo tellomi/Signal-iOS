@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import SafariServices
 import SignalServiceKit
 import SignalUI
 
@@ -165,6 +166,15 @@ class RegistrationPhoneNumberViewController: OWSViewController {
         },
     )
 
+    /// Tellomi：协议行，默认不勾（tellomi/tellomi#1211；ADR-0038 · ADR-0051 §E）。
+    private lazy var consentRow: TellomiConsentRow = {
+        let result = TellomiConsentRow()
+        result.onOpenURL = { [weak self] url in
+            self?.present(SFSafariViewController(url: url), animated: true)
+        }
+        return result
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -181,11 +191,13 @@ class RegistrationPhoneNumberViewController: OWSViewController {
                 phoneNumberInput,
                 validationWarningLabel,
                 .vStretchingSpacer(),
+                consentRow,
                 cancelButton.enclosedInVerticalStackView(isFullWidthButton: false),
             ],
             shouldAvoidKeyboard: true,
         )
         stackView.setCustomSpacing(24, after: explanationLabel)
+        stackView.setCustomSpacing(16, after: consentRow)
 
         configureUI()
     }
@@ -199,7 +211,7 @@ class RegistrationPhoneNumberViewController: OWSViewController {
             switch validationError {
             case .rateLimited:
                 return false
-            case nil, .invalidInput, .invalidE164:
+            case nil, .invalidInput, .invalidE164, .unsupportedRegion:
                 break
             }
 
@@ -235,7 +247,7 @@ class RegistrationPhoneNumberViewController: OWSViewController {
         switch state {
         case .initialRegistration(let subState):
             canCancelChosenRegistrationMethod = true
-            canSwitchToLinking = true
+            canSwitchToLinking = subState.tellomiCanSwitchToLinking
             canExitRegistration = subState.canExitRegistration
             Logger.debug("initialRegistration")
         case .reregistration(let subState):
@@ -284,6 +296,8 @@ class RegistrationPhoneNumberViewController: OWSViewController {
                 return !error.canSubmit(e164: parseE164())
             case let .rateLimited(error):
                 return !error.canSubmit(e164: parseE164(), dateProvider: { now })
+            case let .unsupportedRegion(error):
+                return !error.canSubmit(e164: parseE164())
             case nil:
                 return false
             }
@@ -314,7 +328,7 @@ class RegistrationPhoneNumberViewController: OWSViewController {
             validationWarningLabel.alpha = 0
         }
         switch validationError {
-        case nil, .rateLimited:
+        case nil, .rateLimited, .unsupportedRegion:
             break
         case let .invalidInput(error):
             showInvalidPhoneNumberAlertIfNecessary(for: .invalidInput(countryCode: error.invalidCountryCode, nationalNumber: error.invalidNationalNumber))
@@ -374,6 +388,27 @@ class RegistrationPhoneNumberViewController: OWSViewController {
         }
         localValidationError = nil
 
+        // Tellomi：先同意、再发号码。没勾就点「下一步」→ 二次确认；同意 = 勾选框看得见地打勾后再继续，
+        // 不同意 = 什么都不发生。客户端绝不静默替用户打勾（ADR-0051 §E；tellomi/tellomi#1211）。
+        guard consentRow.isChecked else {
+            presentTellomiTermsConsentDialog { [weak self] in
+                guard let self else { return }
+                self.consentRow.setChecked(true, animated: true)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { self.goToNextStep() }
+            }
+            return
+        }
+
+        // Tellomi：跨境单独告知与同意（tellomi/tellomi#1133）。手机号是第一条发往境外（香港）服务端的个人信息，
+        // 所以这一页排在协议同意之后、发出号码之前；同意过同一版本就不再出现。
+        // Tellomi（tellomi/tellomi#1338）：关联设备的只读版「知道了」不算——那一页说的是「同意在手机上取得」，这里是主设备注册。
+        guard TellomiCrossBorderConsent.hasGivenSeparateConsent else {
+            presentTellomiCrossBorderNotice { [weak self] in
+                self?.goToNextStep()
+            }
+            return
+        }
+
         guard canChangePhoneNumber else {
             presenter?.goToNextStep(withE164: e164)
             return
@@ -402,5 +437,846 @@ extension RegistrationPhoneNumberViewController: RegistrationPhoneNumberInputVie
 
     func didPressReturn() {
         goToNextStep()
+    }
+}
+
+// MARK: - Tellomi：注册同意（tellomi/tellomi#1211；ADR-0038 · ADR-0051 §E）
+
+/// owner 定的规则（ADR-0038 / ADR-0051 §E）：
+/// - 勾选框默认不勾；没勾就点「下一步」→ 二次确认「同意并继续 / 不同意」，同意 = 勾选框看得见地打勾并继续；
+///   **客户端绝不静默替用户打勾**。
+/// - 第一次打开 App 先弹一次隐私提示（2019《App 违法违规收集使用个人信息行为认定方法》：
+///   首次运行要用弹窗等明显方式提示隐私政策）。
+/// - 只记在本机（文档版本 + 时间）；服务端留存与跨境告知（tellomi/tellomi#1133）一起设计。
+enum TellomiLegalConsent {
+    // Tellomi（tellomi/tellomi#1338）：用官网的规范地址（需求第六节 6.3；`tellomi.app/legal/…` 会 301 到 `www`），和 Android、关于页一致。
+    static let termsURL = URL(string: "https://www.tellomi.app/legal/terms/")!
+    static let privacyURL = URL(string: "https://www.tellomi.app/legal/privacy/")!
+    /// Tellomi（tellomi/tellomi#1338）：跨境告知底部的《第三方信息共享及 SDK 清单》链接（需求第六节 6.3）。
+    static let thirdPartyURL = URL(string: "https://www.tellomi.app/legal/third-party/")!
+
+    /// 《用户服务协议》《隐私政策》的版本。文本改版时改这里：记下的版本对不上，就会重新要求同意。
+    /// Tellomi（tellomi/tellomi#1338）：2.0.0（需求第六节 ①；生效日期以官网发布为准）。1.0.0 是 2026-09-11 生效的那一版。
+    static let documentsVersion = "2.0.0"
+
+    private static let termsKey = "TellomiLegalConsent.termsAndPrivacy.version"
+    private static let termsDateKey = "TellomiLegalConsent.termsAndPrivacy.date"
+    private static let noticeKey = "TellomiLegalConsent.firstLaunchNotice.version"
+
+    static var hasAgreedToTerms: Bool {
+        UserDefaults.standard.string(forKey: termsKey) == documentsVersion
+    }
+
+    static func setAgreedToTerms(_ agreed: Bool) {
+        let defaults = UserDefaults.standard
+        if agreed {
+            defaults.set(documentsVersion, forKey: termsKey)
+            defaults.set(Date(), forKey: termsDateKey)
+        } else {
+            defaults.removeObject(forKey: termsKey)
+            defaults.removeObject(forKey: termsDateKey)
+        }
+    }
+
+    static var hasAcceptedFirstLaunchNotice: Bool {
+        UserDefaults.standard.string(forKey: noticeKey) == documentsVersion
+    }
+
+    static func acceptFirstLaunchNotice() {
+        UserDefaults.standard.set(documentsVersion, forKey: noticeKey)
+    }
+
+    static var termsLink: (String, URL) {
+        (
+            OWSLocalizedString(
+                "TELLOMI_CONSENT_TERMS_LINK",
+                comment: "Name of the Terms of Service document, shown as a tappable link inside consent sentences.",
+            ),
+            termsURL,
+        )
+    }
+
+    static var privacyLink: (String, URL) {
+        (
+            OWSLocalizedString(
+                "TELLOMI_CONSENT_PRIVACY_LINK",
+                comment: "Name of the Privacy Policy document, shown as a tappable link inside consent sentences.",
+            ),
+            privacyURL,
+        )
+    }
+
+    /// 把格式串里的 `%1$@`、`%2$@` 依次换成可点的文档链接。
+    static func linkedSentence(format: String, links: [(String, URL)]) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        var remainder = Substring(format)
+        while let range = remainder.range(of: #"%\d\$@"#, options: .regularExpression) {
+            result.append(NSAttributedString(string: String(remainder[..<range.lowerBound])))
+            let digit = remainder[range].dropFirst().prefix(while: { $0.isNumber })
+            let index = (Int(digit) ?? 1) - 1
+            if links.indices.contains(index) {
+                result.append(NSAttributedString(string: links[index].0, attributes: [.link: links[index].1]))
+            }
+            remainder = remainder[range.upperBound...]
+        }
+        result.append(NSAttributedString(string: String(remainder)))
+        return result
+    }
+}
+
+/// 「○ 我已年满 18 周岁，已阅读并同意《用户服务协议》和《隐私政策》」这一行。
+final class TellomiConsentRow: UIView {
+    var onOpenURL: ((URL) -> Void)?
+
+    private(set) var isChecked = TellomiLegalConsent.hasAgreedToTerms
+
+    private let checkbox = UIButton(type: .system)
+
+    private lazy var sentenceView: LinkingTextView = {
+        let result = LinkingTextView(shouldInteractWithURL: { [weak self] url in
+            self?.onOpenURL?(url)
+            return false
+        })
+        result.attributedText = TellomiLegalConsent.linkedSentence(
+            format: OWSLocalizedString(
+                "TELLOMI_CONSENT_ROW_FORMAT",
+                comment: "Consent sentence next to the checkbox during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links.",
+            ),
+            links: [TellomiLegalConsent.termsLink, TellomiLegalConsent.privacyLink],
+        )
+        result.font = .dynamicTypeFootnote
+        result.textColor = .Signal.secondaryLabel
+        return result
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        checkbox.accessibilityLabel = OWSLocalizedString(
+            "TELLOMI_CONSENT_CHECKBOX_ACCESSIBILITY_LABEL",
+            comment: "Accessibility label for the consent checkbox during registration.",
+        )
+        checkbox.accessibilityIdentifier = "registration.phonenumber.consentCheckbox"
+        checkbox.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            self.setChecked(!self.isChecked, animated: true)
+        }, for: .primaryActionTriggered)
+
+        let stack = UIStackView(arrangedSubviews: [checkbox, sentenceView])
+        stack.axis = .horizontal
+        stack.alignment = .top
+        stack.spacing = 8
+        addSubview(stack)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        checkbox.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            checkbox.widthAnchor.constraint(equalToConstant: 24),
+            checkbox.heightAnchor.constraint(equalToConstant: 24),
+        ])
+        updateCheckbox()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        owsFail("Not implemented")
+    }
+
+    /// 勾上 = 记下同意（文档版本 + 时间）；取消勾 = 撤回。动画只在用户看得见的时候做。
+    func setChecked(_ checked: Bool, animated: Bool) {
+        isChecked = checked
+        TellomiLegalConsent.setAgreedToTerms(checked)
+        updateCheckbox()
+        guard animated, checked, !UIAccessibility.isReduceMotionEnabled else { return }
+        checkbox.transform = CGAffineTransform(scaleX: 1.35, y: 1.35)
+        UIView.animate(
+            withDuration: 0.4,
+            delay: 0,
+            usingSpringWithDamping: 0.45,
+            initialSpringVelocity: 0,
+            options: [.allowUserInteraction],
+        ) {
+            self.checkbox.transform = .identity
+        }
+    }
+
+    private func updateCheckbox() {
+        checkbox.setImage(UIImage(systemName: isChecked ? "checkmark.circle.fill" : "circle"), for: .normal)
+        checkbox.tintColor = isChecked ? .Signal.label : .Signal.secondaryLabel
+        checkbox.accessibilityValue = isChecked ? CommonStrings.yesButton : CommonStrings.noButton
+    }
+}
+
+/// 居中的确认卡片：标题 + 带可点链接的正文 + 主按钮 + 次按钮。系统的 alert 正文里放不了可点的链接。
+final class TellomiConsentDialogViewController: OWSViewController {
+    private let titleText: String
+    private let body: NSAttributedString
+    private let primaryTitle: String
+    private let secondaryTitle: String
+    private let onPrimary: () -> Void
+    private let onSecondary: (TellomiConsentDialogViewController) -> Void
+
+    /// 卡片内边距。正文宽度 = 卡片宽度 − 左右边距，量正文高度时要用。
+    private static let contentInsets = NSDirectionalEdgeInsets(top: 24, leading: 20, bottom: 12, trailing: 20)
+
+    private let hintLabel = UILabel()
+    private let card = UIView()
+    private var bodyView: LinkingTextView?
+    private var bodyHeightConstraint: NSLayoutConstraint?
+
+    init(
+        title: String,
+        body: NSAttributedString,
+        primaryTitle: String,
+        secondaryTitle: String,
+        onPrimary: @escaping () -> Void,
+        onSecondary: @escaping (TellomiConsentDialogViewController) -> Void,
+    ) {
+        self.titleText = title
+        self.body = body
+        self.primaryTitle = primaryTitle
+        self.secondaryTitle = secondaryTitle
+        self.onPrimary = onPrimary
+        self.onSecondary = onSecondary
+        super.init()
+        modalPresentationStyle = .overFullScreen
+        modalTransitionStyle = .crossDissolve
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .Signal.backdrop
+
+        let titleLabel = UILabel()
+        titleLabel.text = titleText
+        titleLabel.font = .dynamicTypeHeadline
+        titleLabel.textColor = .Signal.label
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 0
+
+        let bodyView = LinkingTextView(shouldInteractWithURL: { [weak self] url in
+            self?.present(SFSafariViewController(url: url), animated: true)
+            return false
+        })
+        bodyView.attributedText = body
+        bodyView.font = .dynamicTypeSubheadline
+        bodyView.textColor = .Signal.secondaryLabel
+        bodyView.textAlignment = .center
+        // 正文不许把卡片撑宽：卡片宽度只由屏幕宽度定（见下面的 preferredWidth），正文按那个宽度折行。
+        bodyView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        self.bodyView = bodyView
+        let bodyHeight = bodyView.heightAnchor.constraint(equalToConstant: bodyView.font?.lineHeight ?? 20)
+        bodyHeight.isActive = true
+        self.bodyHeightConstraint = bodyHeight
+
+        hintLabel.font = .dynamicTypeFootnote
+        hintLabel.textColor = .Signal.secondaryLabel
+        hintLabel.textAlignment = .center
+        hintLabel.numberOfLines = 0
+        hintLabel.isHidden = true
+
+        let primaryButton = UIButton(
+            configuration: .largePrimary(title: primaryTitle),
+            primaryAction: UIAction { [weak self] _ in
+                guard let self else { return }
+                let onPrimary = self.onPrimary
+                self.dismiss(animated: true) { onPrimary() }
+            },
+        )
+        primaryButton.accessibilityIdentifier = "tellomi.consentDialog.primary"
+
+        let secondaryButton = UIButton(
+            configuration: .mediumBorderless(title: secondaryTitle),
+            primaryAction: UIAction { [weak self] _ in
+                guard let self else { return }
+                self.onSecondary(self)
+            },
+        )
+        secondaryButton.accessibilityIdentifier = "tellomi.consentDialog.secondary"
+
+        let stack = UIStackView(arrangedSubviews: [titleLabel, bodyView, hintLabel, primaryButton, secondaryButton])
+        stack.axis = .vertical
+        stack.spacing = 12
+        stack.setCustomSpacing(20, after: bodyView)
+        stack.setCustomSpacing(16, after: hintLabel)
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.directionalLayoutMargins = Self.contentInsets
+
+        // 浅色白、深色 #1C1C1E。overFullScreen 呈现不带 elevated 特征，用 .Signal.background 在深色下是纯黑，
+        // 和后面的黑底融成一片、看不出卡片（模拟器深色实测）。
+        card.backgroundColor = .Signal.secondaryGroupedBackground
+        card.layer.cornerRadius = 24
+        card.layer.cornerCurve = .continuous
+        card.addSubview(stack)
+        view.addSubview(card)
+
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        card.translatesAutoresizingMaskIntoConstraints = false
+        let preferredWidth = card.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -64)
+        preferredWidth.priority = .defaultHigh
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: card.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            card.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            card.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            card.widthAnchor.constraint(lessThanOrEqualToConstant: 360),
+            preferredWidth,
+        ])
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // 不滚动的 UITextView 在 stack 里自己报的高度靠不住：正文只比一行稍长时（「请阅读并同意《用户服务协议》和《隐私政策》」），
+        // 模拟器实测折成了两行、高度却只有一行，《隐私政策》被裁掉。这个回调里正文自己还没排版（实测宽度 0），
+        // 卡片已经有宽度了——按卡片宽度减边距量出正文高度，直接写进高度约束。
+        guard let bodyView, let bodyHeightConstraint else { return }
+        let bodyWidth = card.bounds.width - Self.contentInsets.leading - Self.contentInsets.trailing
+        guard bodyWidth > 0 else { return }
+        let fitting = ceil(bodyView.sizeThatFits(CGSize(width: bodyWidth, height: .greatestFiniteMagnitude)).height)
+        if bodyHeightConstraint.constant != fitting {
+            bodyHeightConstraint.constant = fitting
+        }
+    }
+
+    func showHint(_ text: String) {
+        hintLabel.text = text
+        hintLabel.isHidden = false
+        UIAccessibility.post(notification: .announcement, argument: text)
+    }
+}
+
+extension UIViewController {
+    /// 没勾协议就点主按钮时的二次确认（ADR-0051 §E）。「不同意」= 什么都不发生。
+    func presentTellomiTermsConsentDialog(onAgree: @escaping () -> Void) {
+        let dialog = TellomiConsentDialogViewController(
+            title: OWSLocalizedString(
+                "TELLOMI_CONSENT_DIALOG_TITLE",
+                comment: "Title of the dialog asking the user to agree to the Terms of Service and Privacy Policy before continuing registration.",
+            ),
+            body: TellomiLegalConsent.linkedSentence(
+                format: OWSLocalizedString(
+                    "TELLOMI_CONSENT_DIALOG_BODY_FORMAT",
+                    comment: "Body of the consent dialog during registration. Embeds {{Terms of Service}} and {{Privacy Policy}} as links.",
+                ),
+                links: [TellomiLegalConsent.termsLink, TellomiLegalConsent.privacyLink],
+            ),
+            primaryTitle: OWSLocalizedString(
+                "TELLOMI_CONSENT_AGREE_AND_CONTINUE",
+                comment: "Button in the registration consent dialog: agree to the Terms of Service and Privacy Policy and continue.",
+            ),
+            secondaryTitle: OWSLocalizedString(
+                "TELLOMI_CONSENT_DISAGREE",
+                comment: "Button in consent dialogs: do not agree.",
+            ),
+            onPrimary: onAgree,
+            onSecondary: { dialog in dialog.dismiss(animated: true) },
+        )
+        present(dialog, animated: true)
+    }
+
+    /// 第一次打开 App 时的隐私提示。「不同意」不关闭——说明后果，留在这里等用户决定。
+    func presentTellomiFirstLaunchNotice() {
+        let dialog = TellomiConsentDialogViewController(
+            title: OWSLocalizedString(
+                "TELLOMI_FIRST_LAUNCH_TITLE",
+                comment: "Title of the privacy notice shown the first time the app is opened.",
+            ),
+            body: TellomiLegalConsent.linkedSentence(
+                format: OWSLocalizedString(
+                    "TELLOMI_FIRST_LAUNCH_BODY_FORMAT",
+                    comment: "Body of the privacy notice shown the first time the app is opened. Embeds {{Privacy Policy}} as a link.",
+                ),
+                links: [TellomiLegalConsent.privacyLink],
+            ),
+            primaryTitle: OWSLocalizedString(
+                "TELLOMI_FIRST_LAUNCH_AGREE",
+                comment: "Button in the first-launch privacy notice: agree.",
+            ),
+            secondaryTitle: OWSLocalizedString(
+                "TELLOMI_CONSENT_DISAGREE",
+                comment: "Button in consent dialogs: do not agree.",
+            ),
+            onPrimary: { TellomiLegalConsent.acceptFirstLaunchNotice() },
+            onSecondary: { dialog in
+                dialog.showHint(OWSLocalizedString(
+                    "TELLOMI_FIRST_LAUNCH_DISAGREE_HINT",
+                    comment: "Shown in the first-launch privacy notice after the user taps 'Disagree'.",
+                ))
+            },
+        )
+        present(dialog, animated: true)
+    }
+}
+
+// MARK: - Tellomi：跨境单独告知与同意（tellomi/tellomi#1133）
+
+// 跨境同意的记录和网络闸在 SignalServiceKit（`AppExpiry.swift` 末尾的 `TellomiCrossBorderConsent`）：
+// 同意之前聊天连接不开、URLSession 请求直接失败，这里只负责告知和取得同意。
+
+/// Tellomi（tellomi/tellomi#1338，需求 6.6，owner 2026-09-27 下午改版）：两行的「个人信息出境」小弹窗（居中卡片）。
+/// 9 项全文放到「查看《个人信息出境告知》」打开的全文页（`TellomiCrossBorderFullNoticeViewController`），用本地字符串渲染。
+/// 两个按钮一样的样式、一样宽；不预选、不倒计时、不默认聚焦「同意」。「不同意」不关弹窗，在正文下面说明后果，不发送任何信息。
+/// 系统的 `UIAlertController` 放不了链接，所以自己画卡片（和 `TellomiConsentDialogViewController` 同一种外观）。
+final class TellomiCrossBorderNoticeViewController: OWSViewController {
+    /// 同一个弹窗的三种用法（需求 6.6「三种弹窗」）。
+    enum Mode {
+        /// 新用户注册、恢复 / 转移：完整同意；点弹窗外面 = 关掉，什么都不发。
+        case consent
+        /// 已注册设备升级后的盖页：完整同意，最上面是「《隐私政策》已更新至 2.0.0 版。」和链接（法务项 c）；关不掉，背后是空白盖页。
+        case consentAfterPolicyUpdate
+        /// 关联设备：只读，只有「知道了」；点了和同意一样在本机记下告知版本（第六节 ④）。关不掉（和 6.3 的整页一样）。
+        case linkedDevice
+    }
+
+    let mode: Mode
+
+    /// 只有新用户 / 恢复 / 转移的弹窗能不回答就关掉（点弹窗外面，回到原来那一页，什么都没发出去）。
+    var allowsClosingWithoutAnswer: Bool { mode == .consent }
+
+    private let onAgree: () -> Void
+    private let disagreeHintLabel = UILabel()
+    private let card = UIView()
+
+    init(mode: Mode = .consent, onAgree: @escaping () -> Void) {
+        self.mode = mode
+        self.onAgree = onAgree
+        super.init()
+        modalPresentationStyle = .overFullScreen
+        modalTransitionStyle = .crossDissolve
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // 升级盖页是盖页窗口的根，背后什么都不该露出来：品牌底色的空白盖页，上面照样压一层遮罩（不然浅色下白卡片贴在白底上看不出来，
+        // 模拟器实测）。弹出来的只用半透明遮罩，后面的页面看得见。
+        if mode == .consentAfterPolicyUpdate {
+            view.backgroundColor = Theme.launchScreenBackgroundColor
+            let dimmingView = UIView()
+            dimmingView.backgroundColor = .Signal.backdrop
+            view.addSubview(dimmingView)
+            dimmingView.autoPinEdgesToSuperviewEdges()
+        } else {
+            view.backgroundColor = .Signal.backdrop
+        }
+        let backgroundTap = UITapGestureRecognizer(target: self, action: #selector(didTapBackground(_:)))
+        backgroundTap.cancelsTouchesInView = false
+        view.addGestureRecognizer(backgroundTap)
+
+        let titleLabel = Self.centeredLabel(
+            OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_DIALOG_TITLE",
+                comment: "Title of the short cross-border consent dialog.",
+            ),
+            font: .dynamicTypeHeadline,
+            color: .Signal.label,
+        )
+        titleLabel.accessibilityTraits.insert(.header)
+
+        var contentViews: [UIView] = [titleLabel]
+        if mode == .consentAfterPolicyUpdate {
+            // 法务项 c：升级盖页就是隐私政策第三十二节的「以显著方式提示」，不再另弹一次。
+            contentViews.append(Self.centeredLabel(
+                OWSLocalizedString(
+                    "TELLOMI_CROSS_BORDER_DIALOG_POLICY_UPDATED",
+                    comment: "Shown at the top of the cross-border consent dialog that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0.",
+                ),
+                font: .dynamicTypeSubheadline,
+                color: .Signal.label,
+            ))
+            contentViews.append(makeLinkButton(
+                title: OWSLocalizedString(
+                    "TELLOMI_CROSS_BORDER_POLICY_UPDATED_LINK",
+                    comment: "Link under the 'Privacy Policy updated' sentence on the cross-border notice for already-registered devices; opens the Privacy Policy.",
+                ),
+                accessibilityIdentifier: "tellomi.crossBorder.policyUpdatedLink",
+                action: { [weak self] in self?.present(SFSafariViewController(url: TellomiLegalConsent.privacyURL), animated: true) },
+            ))
+        }
+        let bodyLabel = Self.centeredLabel(
+            mode == .linkedDevice ? OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_LINKED_DIALOG_BODY",
+                comment: "Body of the read-only cross-border dialog shown when linking this device: consent is given on the phone.",
+            ) : OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_DIALOG_BODY",
+                comment: "Body of the short cross-border consent dialog: where the data goes, and asking for separate consent.",
+            ),
+            font: .dynamicTypeSubheadline,
+            color: .Signal.secondaryLabel,
+        )
+        contentViews.append(bodyLabel)
+
+        // 点「不同意」后出现在正文下面（6.6）。
+        disagreeHintLabel.text = OWSLocalizedString(
+            "TELLOMI_CROSS_BORDER_DISAGREE_HINT",
+            comment: "Shown on the cross-border notice after the user taps 'Disagree'.",
+        )
+        disagreeHintLabel.font = .dynamicTypeFootnote
+        disagreeHintLabel.textColor = .Signal.secondaryLabel
+        disagreeHintLabel.textAlignment = .center
+        disagreeHintLabel.numberOfLines = 0
+        disagreeHintLabel.isHidden = true
+        contentViews.append(disagreeHintLabel)
+
+        let fullNoticeButton = makeLinkButton(
+            title: OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_DIALOG_FULL_NOTICE_LINK",
+                comment: "Link in the cross-border consent dialog that opens the full Cross-Border Transfer Notice (the 9 items).",
+            ),
+            accessibilityIdentifier: "tellomi.crossBorder.fullNoticeLink",
+            action: { [weak self] in self?.showFullNotice() },
+        )
+        contentViews.append(fullNoticeButton)
+
+        let contentStack = UIStackView(arrangedSubviews: contentViews)
+        contentStack.axis = .vertical
+        contentStack.spacing = 8
+        contentStack.setCustomSpacing(12, after: titleLabel)
+
+        // 字号调大时正文可能超过一屏：内容可以滚，按钮始终在卡片底部。
+        let scrollView = UIScrollView()
+        scrollView.addSubview(contentStack)
+
+        let footer: UIView
+        if mode == .linkedDevice {
+            let ackButton = UIButton(
+                configuration: .largePrimary(title: OWSLocalizedString(
+                    "TELLOMI_CROSS_BORDER_LINKED_ACK",
+                    comment: "Only button on the read-only cross-border notice shown when linking this device: acknowledge the notice.",
+                )),
+                primaryAction: UIAction { [weak self] _ in
+                    self?.didTapLinkedDeviceAcknowledge()
+                },
+            )
+            ackButton.accessibilityIdentifier = "tellomi.crossBorder.linkedAck"
+            footer = ackButton
+        } else {
+            // 两个按钮同样的样式、同样宽，谁也不比谁醒目（需求 2.2）。
+            let disagreeButton = UIButton(
+                configuration: .largeSecondary(title: OWSLocalizedString(
+                    "TELLOMI_CONSENT_DISAGREE",
+                    comment: "Button in consent dialogs: do not agree.",
+                )),
+                primaryAction: UIAction { [weak self] _ in
+                    self?.didTapDisagree()
+                },
+            )
+            disagreeButton.accessibilityIdentifier = "tellomi.crossBorder.disagree"
+            let agreeButton = UIButton(
+                configuration: .largeSecondary(title: OWSLocalizedString(
+                    "TELLOMI_CONSENT_AGREE_AND_CONTINUE",
+                    comment: "Button in the registration consent dialog: agree to the Terms of Service and Privacy Policy and continue.",
+                )),
+                primaryAction: UIAction { [weak self] _ in
+                    self?.didTapAgree()
+                },
+            )
+            agreeButton.accessibilityIdentifier = "tellomi.crossBorder.agree"
+            let buttonRow = UIStackView(arrangedSubviews: [disagreeButton, agreeButton])
+            buttonRow.axis = .horizontal
+            buttonRow.distribution = .fillEqually
+            buttonRow.spacing = 12
+            footer = buttonRow
+        }
+
+        // 浅色白、深色 #1C1C1E（同 `TellomiConsentDialogViewController`：overFullScreen 下 .Signal.background 在深色是纯黑，看不出卡片）。
+        card.backgroundColor = .Signal.secondaryGroupedBackground
+        card.layer.cornerRadius = 24
+        card.layer.cornerCurve = .continuous
+        card.accessibilityViewIsModal = true
+        card.addSubview(scrollView)
+        card.addSubview(footer)
+        view.addSubview(card)
+
+        for subview in [card, scrollView, contentStack, footer] {
+            subview.translatesAutoresizingMaskIntoConstraints = false
+        }
+        // 卡片宽度只由屏幕宽度定（不超过 400），正文按这个宽度折行；优先级要高过标签的抗压缩，不然长句子会把卡片撑宽（模拟器实测）。
+        let preferredWidth = card.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -48)
+        preferredWidth.priority = .required - 1
+        // 内容不长时卡片刚好包住内容；长了由上下两条不等式顶住，内容在卡片里滚。
+        let scrollFitsContent = scrollView.heightAnchor.constraint(equalTo: contentStack.heightAnchor)
+        scrollFitsContent.priority = .defaultHigh
+        NSLayoutConstraint.activate([
+            card.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            card.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            card.widthAnchor.constraint(lessThanOrEqualToConstant: 400),
+            card.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, constant: -48),
+            preferredWidth,
+            card.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            card.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
+
+            scrollView.topAnchor.constraint(equalTo: card.topAnchor, constant: 24),
+            scrollView.leadingAnchor.constraint(equalTo: card.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: card.trailingAnchor),
+            scrollFitsContent,
+
+            contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            contentStack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 20),
+            contentStack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -20),
+
+            footer.topAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: 16),
+            footer.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 20),
+            footer.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -20),
+            footer.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -20),
+        ])
+    }
+
+    /// 点弹窗外面：只有新用户 / 恢复 / 转移的弹窗能这样关掉（6.6）；关掉不是同意，`onAgree` 不调。
+    func didTapOutsideDialog() {
+        guard allowsClosingWithoutAnswer, presentingViewController != nil else { return }
+        dismiss(animated: true)
+    }
+
+    @objc
+    private func didTapBackground(_ gesture: UITapGestureRecognizer) {
+        guard !card.frame.contains(gesture.location(in: view)) else { return }
+        didTapOutsideDialog()
+    }
+
+    override func accessibilityPerformEscape() -> Bool {
+        guard allowsClosingWithoutAnswer else { return false }
+        didTapOutsideDialog()
+        return true
+    }
+
+    /// 全文页盖在弹窗上面，「返回」回到弹窗。
+    private func showFullNotice() {
+        present(TellomiCrossBorderFullNoticeViewController(linkedDevice: mode == .linkedDevice), animated: true)
+    }
+
+    private func makeLinkButton(title: String, accessibilityIdentifier: String, action: @escaping () -> Void) -> UIButton {
+        let button = UIButton(
+            configuration: .smallBorderless(title: title),
+            primaryAction: UIAction { _ in action() },
+        )
+        button.accessibilityTraits.insert(.link)
+        button.accessibilityIdentifier = accessibilityIdentifier
+        return button
+    }
+
+    private static func centeredLabel(_ text: String, font: UIFont, color: UIColor) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = font
+        label.textColor = color
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        return label
+    }
+
+    private func didTapAgree() {
+        TellomiCrossBorderConsent.recordAgreement()
+        finish()
+    }
+
+    private func didTapLinkedDeviceAcknowledge() {
+        TellomiCrossBorderConsent.recordLinkedDeviceAcknowledgement()
+        finish()
+    }
+
+    private func finish() {
+        let onAgree = self.onAgree
+        // 注册流程里是弹出来的，关掉再回调；已注册用户升级后它是独立窗口的根，没有可关的，直接回调。
+        if presentingViewController != nil {
+            dismiss(animated: true) { onAgree() }
+        } else {
+            onAgree()
+        }
+    }
+
+    private func didTapDisagree() {
+        disagreeHintLabel.isHidden = false
+        UIAccessibility.post(notification: .announcement, argument: disagreeHintLabel.text)
+    }
+}
+
+/// Tellomi（tellomi/tellomi#1338，需求 6.6）：《个人信息出境告知》全文——标题 + 9 项 + 隐私政策 / 第三方清单链接 + 「返回」。
+/// 全文用本地字符串渲染（同意之前不联网，不能去官网取）；两个链接用户点了才打开。关联设备那一版第 9 项正文用只读版。
+final class TellomiCrossBorderFullNoticeViewController: OWSViewController {
+    private let linkedDevice: Bool
+
+    init(linkedDevice: Bool) {
+        self.linkedDevice = linkedDevice
+        super.init()
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .Signal.background
+
+        let titleLabel = UILabel()
+        titleLabel.text = OWSLocalizedString(
+            "TELLOMI_CROSS_BORDER_FULL_NOTICE_TITLE",
+            comment: "Title of the full Cross-Border Transfer Notice page (the 9 items), opened from the consent dialog.",
+        )
+        titleLabel.font = .dynamicTypeTitle2.semibold()
+        titleLabel.textColor = .Signal.label
+        titleLabel.numberOfLines = 0
+        titleLabel.accessibilityTraits.insert(.header)
+
+        var arrangedSubviews: [UIView] = [titleLabel]
+        arrangedSubviews += Self.items(linkedDevice: linkedDevice).map { Self.itemView(title: $0.title, body: $0.body) }
+
+        let privacyButton = makeLinkButton(
+            title: OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_PRIVACY_LINK",
+                comment: "Link at the bottom of the cross-border notice that opens the Privacy Policy sections about storage location and cross-border transfer.",
+            ),
+            url: TellomiLegalConsent.privacyURL,
+            accessibilityIdentifier: "tellomi.crossBorder.privacyLink",
+        )
+        arrangedSubviews.append(privacyButton)
+        arrangedSubviews.append(makeLinkButton(
+            title: OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_THIRD_PARTY_LINK",
+                comment: "Link at the bottom of the cross-border notice that opens the Third-Party Sharing and SDK List.",
+            ),
+            url: TellomiLegalConsent.thirdPartyURL,
+            accessibilityIdentifier: "tellomi.crossBorder.thirdPartyLink",
+        ))
+
+        let contentStack = UIStackView(arrangedSubviews: arrangedSubviews)
+        contentStack.axis = .vertical
+        contentStack.spacing = 16
+        contentStack.setCustomSpacing(24, after: titleLabel)
+        contentStack.setCustomSpacing(0, after: privacyButton)
+
+        let scrollView = UIScrollView()
+        scrollView.alwaysBounceVertical = true
+        scrollView.addSubview(contentStack)
+
+        let closeButton = UIButton(
+            configuration: .largeSecondary(title: OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_FULL_NOTICE_CLOSE",
+                comment: "Button at the bottom of the full Cross-Border Transfer Notice: go back to the consent dialog.",
+            )),
+            primaryAction: UIAction { [weak self] _ in
+                self?.dismiss(animated: true)
+            },
+        )
+        closeButton.accessibilityIdentifier = "tellomi.crossBorder.fullNoticeClose"
+
+        view.addSubview(scrollView)
+        view.addSubview(closeButton)
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        let margins = view.layoutMarginsGuide
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: closeButton.topAnchor, constant: -12),
+
+            contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 24),
+            contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -12),
+            contentStack.leadingAnchor.constraint(equalTo: margins.leadingAnchor),
+            contentStack.trailingAnchor.constraint(equalTo: margins.trailingAnchor),
+
+            closeButton.leadingAnchor.constraint(equalTo: margins.leadingAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: margins.trailingAnchor),
+            closeButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+        ])
+    }
+
+    private func makeLinkButton(title: String, url: URL, accessibilityIdentifier: String) -> UIButton {
+        let button = UIButton(
+            configuration: .smallBorderless(title: title),
+            primaryAction: UIAction { [weak self] _ in
+                self?.present(SFSafariViewController(url: url), animated: true)
+            },
+        )
+        button.contentHorizontalAlignment = .leading
+        // 去掉按钮自带的左右内边距，让链接和上面的正文左对齐。
+        button.configuration?.contentInsets.leading = 0
+        button.configuration?.contentInsets.trailing = 0
+        button.accessibilityTraits.insert(.link)
+        button.accessibilityIdentifier = accessibilityIdentifier
+        return button
+    }
+
+    private static func bodyLabel(_ text: String) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = .dynamicTypeSubheadline
+        label.textColor = .Signal.secondaryLabel
+        label.numberOfLines = 0
+        return label
+    }
+
+    private static func itemView(title: String, body: String) -> UIView {
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = .dynamicTypeHeadline
+        titleLabel.textColor = .Signal.label
+        titleLabel.numberOfLines = 0
+
+        let stack = UIStackView(arrangedSubviews: [titleLabel, bodyLabel(body)])
+        stack.axis = .vertical
+        stack.spacing = 4
+        stack.isAccessibilityElement = true
+        stack.accessibilityLabel = "\(title)\n\(body)"
+        return stack
+    }
+
+    /// 需求 2.3 的 9 项，顺序与隐私政策第二十一节一致。关联设备只读版只换第 9 项的正文（第六节 6.3）。
+    private static func items(linkedDevice: Bool) -> [(title: String, body: String)] {
+        return [
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_WHERE_TITLE", comment: "Cross-border notice item 1 title: whether data leaves mainland China."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY", comment: "Cross-border notice item 1 body: where servers and storage are located."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_TITLE", comment: "Cross-border notice item 2 title: overseas recipients."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY", comment: "Cross-border notice item 2 body: who receives the data outside mainland China."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_CONTACT_TITLE", comment: "Cross-border notice item 3 title: contact."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY", comment: "Cross-border notice item 3 body: how to contact the personal information protection team."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_PURPOSE_TITLE", comment: "Cross-border notice item 4 title: purposes of processing."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY", comment: "Cross-border notice item 4 body: purposes of processing."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE", comment: "Cross-border notice item 5 title: how the data is processed."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY", comment: "Cross-border notice item 5 body: end-to-end encryption and what is processed in plaintext."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_KINDS_TITLE", comment: "Cross-border notice item 6 title: kinds of personal information."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY", comment: "Cross-border notice item 6 body: kinds of personal information transferred."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_RIGHTS_TITLE", comment: "Cross-border notice item 7 title: your rights."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY", comment: "Cross-border notice item 7 body: how to exercise personal information rights."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_TITLE", comment: "Cross-border notice item 8 title: legal procedure for the transfer."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY", comment: "Cross-border notice item 8 body: legal procedure for the transfer."),
+            ),
+            (
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE", comment: "Cross-border notice item 9 title: separate consent."),
+                linkedDevice
+                    ? OWSLocalizedString("TELLOMI_CROSS_BORDER_LINKED_ITEM_CONSENT_BODY", comment: "Cross-border notice item 9 body on the read-only version shown when linking this device: consent is given on the phone.")
+                    : OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY", comment: "Cross-border notice item 9 body: this page is the separate consent and can be withdrawn."),
+            ),
+        ]
+    }
+}
+
+extension UIViewController {
+    /// 跨境单独告知（tellomi/tellomi#1133）。同意 → 记录后关掉弹窗再回调；不同意 → 弹窗不关，说明后果；
+    /// 点弹窗外面 → 关掉，不回调（6.6）。关联设备传 `.linkedDevice`（tellomi/tellomi#1338）：只读，点「知道了」→ 记录后关掉再回调。
+    func presentTellomiCrossBorderNotice(
+        mode: TellomiCrossBorderNoticeViewController.Mode = .consent,
+        onAgree: @escaping () -> Void,
+    ) {
+        present(TellomiCrossBorderNoticeViewController(mode: mode, onAgree: onAgree), animated: true)
     }
 }

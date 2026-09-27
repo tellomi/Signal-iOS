@@ -478,6 +478,12 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
         takePictureOrVideo()
     }
 
+    public func attachmentSheetButtonPressed() {
+        AssertIsOnMainThread()
+
+        presentTellomiAttachmentSheet()
+    }
+
     public func photosButtonPressed() {
         AssertIsOnMainThread()
 
@@ -671,7 +677,9 @@ private extension ConversationViewController {
 
     // MARK: - Media Library
 
-    func takePictureOrVideo() {
+    /// Tellomi（#1261 P-8）：`presenter` / `sendMediaNavDelegate` 给选图面板的相机格用（见文件末尾 `tellomiTakePictureOrVideo`）；
+    /// 其它入口照旧（都是 nil = 会话页自己）。
+    func takePictureOrVideo(presenter: UIViewController? = nil, sendMediaNavDelegate: SendMediaNavDelegate? = nil) {
         AssertIsOnMainThread()
 
         let attachmentLimits = OutgoingAttachmentLimits.currentLimits()
@@ -693,7 +701,7 @@ private extension ConversationViewController {
                     hasQuotedReplyDraft: self.inputToolbar?.quotedReplyDraft != nil,
                     attachmentLimits: attachmentLimits,
                 )
-                pickerModal.sendMediaNavDelegate = self
+                pickerModal.sendMediaNavDelegate = sendMediaNavDelegate ?? self
                 pickerModal.sendMediaNavDataSource = self
                 pickerModal.modalPresentationStyle = .overFullScreen
                 // Defer hiding status bar until modal is fully onscreen
@@ -703,7 +711,7 @@ private extension ConversationViewController {
                     pickerModal.modalPresentationCapturesStatusBarAppearance = true
                 }
                 self.dismissKeyBoard()
-                self.present(pickerModal, animated: true) {
+                (presenter ?? self).present(pickerModal, animated: true) {
                     if pickerHidesStatusBar {
                         pickerModal.modalPresentationCapturesStatusBarAppearance = true
                         pickerModal.setNeedsStatusBarAppearanceUpdate()
@@ -714,6 +722,13 @@ private extension ConversationViewController {
     }
 
     func chooseFromLibrary() {
+        AssertIsOnMainThread()
+
+        // Tellomi（tellomi/tellomi#1261）：换成 Telegram 式的选图网格；没有「照片」权限时照旧用下面的系统选择器。
+        chooseFromLibraryWithTellomiPicker { [weak self] in self?.chooseFromLibraryWithNativePicker() }
+    }
+
+    func chooseFromLibraryWithNativePicker() {
         AssertIsOnMainThread()
 
         let pickerModal = SendMediaNavigationController.showingNativePicker(
@@ -927,13 +942,17 @@ extension ConversationViewController: SendMediaNavDelegate {
     }
 
     /// Attempts to send attachments. Handles prompting to unblock or un-verify safety numbers, as well as showing failure states.
+    /// Tellomi（#1261）：返回是否发出去了（「单独发送」上一条没发出就停）。
+    /// Tellomi（#1121）：`clearsDraft` = 发完清不清聊天输入框；附件 Sheet「文件」页传 false（见 `tellomiClearsInputAfterSending`）。
     @MainActor
+    @discardableResult
     func sendAttachments(
         _ approvedAttachments: ApprovedAttachments,
         messageBody: MessageBody?,
         from viewController: UIViewController,
         attachmentLimits: OutgoingAttachmentLimits,
-    ) async {
+        clearsDraft: Bool = true,
+    ) async -> Bool {
         let didSend: Bool
         do {
             didSend = try await tryToSendAttachments(
@@ -944,24 +963,19 @@ extension ConversationViewController: SendMediaNavDelegate {
             )
         } catch {
             self.showErrorAlert(attachmentError: error as? SignalAttachmentError)
-            return
+            return false
         }
         guard didSend else {
-            return
+            return false
         }
-        if
-            approvedAttachments.attachments.count == 1,
-            let attachment = approvedAttachments.attachments.first,
-            attachment.rawValue.isBorderless
-        {
-            // This looks like a sticker, we shouldn't clear the input toolbar.
-        } else {
+        if Self.tellomiClearsInputAfterSending(approvedAttachments, clearsDraft: clearsDraft) {
             inputToolbar?.clearTextMessage(animated: false)
         }
 
         // we want to already be at the bottom when the user returns, rather than have to watch
         // the new message scroll into view.
         scrollToBottomOfConversation(animated: true)
+        return true
     }
 
     func sendMediaNav(
@@ -1038,5 +1052,41 @@ extension ConversationViewController: PollSendDelegate {
             ),
             thread: self.thread,
         )
+    }
+}
+
+// MARK: - Tellomi
+
+extension ConversationViewController {
+    /// Tellomi（tellomi/tellomi#1261 P-8）：选图面板的相机格从面板上面打开相机（上面的 `takePictureOrVideo` 在 private 扩展里）。
+    func tellomiTakePictureOrVideo(presenter: UIViewController, sendMediaNavDelegate: SendMediaNavDelegate) {
+        takePictureOrVideo(presenter: presenter, sendMediaNavDelegate: sendMediaNavDelegate)
+    }
+
+    /// Tellomi（tellomi/tellomi#1115）：没有照片权限时附件 Sheet 占位里的「照片」走上游的系统选择器
+    /// （上面的 `chooseFromLibraryWithNativePicker` 在 private 扩展里）。
+    func tellomiChooseFromLibraryWithNativePicker() {
+        chooseFromLibraryWithNativePicker()
+    }
+
+    /// Tellomi（tellomi/tellomi#1121）：附件发出去之后要不要清掉聊天输入框（`sendAttachments` 用；上游的判断原来直接写在那里面，
+    /// 抽出来是为了能单测——会话页没法在单测里整个建出来）。
+    /// - 调用方说不清（`clearsDraft == false`）就不清：附件 Sheet「文件」页发的东西从来不带输入框里的草稿（点一行 / 系统选择器 /
+    ///   扫描都没有说明，多选的说明是文件页自己的输入框），清了那段字就既没发出去也没了。Android 同一功能
+    ///   （`ConversationFragment.sendSlidesInOrder`）传的也是 `clearCompose = false`。
+    /// - 其余照上游：贴纸样子的单个无边框附件不清，别的都清（草稿当说明一起发出去了）。
+    static func tellomiClearsInputAfterSending(_ approvedAttachments: ApprovedAttachments, clearsDraft: Bool) -> Bool {
+        guard clearsDraft else {
+            return false
+        }
+        if
+            approvedAttachments.attachments.count == 1,
+            let attachment = approvedAttachments.attachments.first,
+            attachment.rawValue.isBorderless
+        {
+            // This looks like a sticker, we shouldn't clear the input toolbar.
+            return false
+        }
+        return true
     }
 }
