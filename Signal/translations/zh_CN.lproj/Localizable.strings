@@ -10920,6 +10920,15 @@
 /* Title of the one-time sheet shown on the chat list after registration, explaining why Tellomi asks for notification permission. */
 "TELLOMI_NOTIFICATION_PRIMER_TITLE" = "及时收到新消息";
 
+/* Tellomi: Setting in Chats settings for expanding short links (such as b23.tv) before generating a link preview. On by default, kept on this device only. */
+"TELLOMI_SETTINGS_EXPAND_SHORT_LINKS" = "展开短链接";
+
+/* Tellomi: Footer for the 'Expand Short Links' setting: before making a preview, the device asks the short-link service for the original address; the service sees one visit; the setting is kept on this device only. */
+"TELLOMI_SETTINGS_EXPAND_SHORT_LINKS_FOOTER" = "生成预览前，你的设备会先向短链接服务查询原网址，短链接服务会看到这次访问。此设置只保存在此设备。";
+
+/* Tellomi: Footer for the Generate Link Previews setting. Says plainly that, when on, the device visits the website when the user sends a link. */
+"TELLOMI_SETTINGS_LINK_PREVIEWS_FOOTER" = "开启后，发送链接时你的设备会访问该网站。";
+
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "加粗";
 

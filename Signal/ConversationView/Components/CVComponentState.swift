@@ -1974,18 +1974,17 @@ private extension CVComponentState.Builder {
             let groupInviteLinkUrl = PossibleGroupInviteLinkUrl.parseFrom(url),
             let groupInviteLink = try? GroupInviteLink.parseFrom(groupInviteLinkUrl)
         {
-            let groupInviteLinkViewModel = CVComponentState.configureGroupInviteLink(
-                url,
-                message: message,
-                groupInviteLink: groupInviteLink,
-            )
-            if !groupInviteLinkViewModel.isExpired {
-                let state = LinkPreviewGroupLink(
-                    linkType: isIncoming ? .incomingMessageGroupInviteLink : .outgoingMessageGroupInviteLink,
+            // Tellomi（ADR-0063 §4.1，tellomi/tellomi#1423）：只用 snapshot 和本地库，渲染时不联网
+            if
+                let state = CVComponentState.localGroupInviteLinkPreviewState(
                     linkPreview: linkPreview,
-                    groupInviteLinkViewModel: groupInviteLinkViewModel,
+                    messageRowId: message.sqliteRowId,
+                    groupInviteLink: groupInviteLink,
+                    linkType: isIncoming ? .incomingMessageGroupInviteLink : .outgoingMessageGroupInviteLink,
                     conversationStyle: conversationStyle,
+                    transaction: transaction,
                 )
+            {
                 self.linkPreview = LinkPreview(
                     linkPreview: linkPreview,
                     state: state,

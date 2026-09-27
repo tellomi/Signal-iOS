@@ -32,6 +32,8 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
     private let groupsV2: any GroupsV2
     private let linkPreviewSettingStore: LinkPreviewSettingStore
     private let tsAccountManager: any TSAccountManager
+    // Tellomi（ADR-0063 §4.4，tellomi/tellomi#1423）：第三方抓取一律经这个抓取器
+    private let linkFetcher: TellomiLinkFetcher
 
     public init(
         authCredentialManager: any AuthCredentialManager,
@@ -39,12 +41,14 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         groupsV2: any GroupsV2,
         linkPreviewSettingStore: LinkPreviewSettingStore,
         tsAccountManager: any TSAccountManager,
+        linkFetcher: TellomiLinkFetcher = .shared,
     ) {
         self.authCredentialManager = authCredentialManager
         self.db = db
         self.groupsV2 = groupsV2
         self.linkPreviewSettingStore = linkPreviewSettingStore
         self.tsAccountManager = tsAccountManager
+        self.linkFetcher = linkFetcher
     }
 
     public func fetchLinkPreview(for url: URL) async throws -> OWSLinkPreviewDraft {
@@ -61,6 +65,8 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         } else if let callLink = CallLink(url: url) {
             let linkName = try await self.fetchName(forCallLink: callLink)
             linkPreviewDraft = OWSLinkPreviewDraft(url: url, title: linkName, isForwarded: false)
+        } else if let firstPartyShape = TellomiLinks.firstPartyShape(of: url) {
+            linkPreviewDraft = try await self.linkPreviewDraft(forTellCCUrl: url, shape: firstPartyShape)
         } else {
             linkPreviewDraft = try await self.fetchLinkPreview(forGenericUrl: url)
         }
@@ -76,7 +82,8 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         let previewThumbnail: PreviewThumbnail?
         let dateForLinkPreview: Date?
 
-        switch try await self.fetchStringOrImageResource(from: url) {
+        let budget = linkFetcher.makeBudget()
+        switch try await self.fetchStringOrImageResource(from: url, budget: budget) {
         case .string(let respondingUrl, let rawHtml):
             let content = HTMLMetadata.construct(parsing: rawHtml)
             let rawTitle = content.ogTitle ?? content.titleTag
@@ -92,7 +99,7 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
                 let imageUrlString = content.ogImageUrlString ?? content.faviconUrlString,
                 let imageUrl = URL(string: imageUrlString, relativeTo: respondingUrl),
                 LinkPreviewHelper.isPermittedLinkPreviewUrl(imageUrl),
-                let imageData = try? await self.fetchImageResource(from: imageUrl)
+                let imageData = try? await self.fetchImageResource(from: imageUrl, budget: budget)
             {
                 previewThumbnail = await Self.previewThumbnail(srcImageData: imageData)
             } else {
@@ -127,100 +134,89 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         )
     }
 
-    private func buildOWSURLSession() -> OWSURLSessionProtocol {
-        let sessionConfig = URLSessionConfiguration.ephemeral
-        sessionConfig.urlCache = nil
-        sessionConfig.requestCachePolicy = .reloadIgnoringLocalCacheData
-
-        // Twitter doesn't return OpenGraph tags to Signal
-        // `curl -A Signal "https://twitter.com/signalapp/status/1280166087577997312?s=20"`
-        // If this ever changes, we can switch back to our default User-Agent
-        let userAgentString = "WhatsApp/2"
-        let extraHeaders: HttpHeaders = [HttpHeaders.userAgentHeaderKey: userAgentString]
-
-        let urlSession = OWSURLSession(
-            securityPolicy: OWSURLSession.defaultSecurityPolicy,
-            configuration: sessionConfig,
-            extraHeaders: extraHeaders,
-        )
-        urlSession.allowRedirects = true
-        urlSession.customRedirectHandler = { request in
-            guard request.url.map({ LinkPreviewHelper.isPermittedLinkPreviewUrl($0) }) == true else {
-                return nil
-            }
-            return request
-        }
-        return urlSession
-    }
-
     enum StringOrImageResource {
         case string(url: URL, contents: String)
         case image(url: URL, contents: Data)
-
-        static func dataForImage(_ response: HTTPResponse) -> Data? {
-            guard let rawData = response.responseBodyData, rawData.count < maxFetchedContentSize else {
-                return nil
-            }
-            return rawData
-        }
     }
 
     func fetchStringOrImageResource(from url: URL) async throws -> StringOrImageResource {
-        let response: HTTPResponse
-        do {
-            response = try await self.buildOWSURLSession().performRequest(url.absoluteString, method: .get, maxResponseSize: Self.maxFetchedContentSize, ignoreAppExpiry: true)
-        } catch {
-            Logger.warn("Invalid response: \(error.shortDescription).")
-            throw LinkPreviewError.fetchFailure
-        }
-        let statusCode = response.responseStatusCode
-        guard statusCode >= 200, statusCode < 300 else {
-            Logger.warn("Invalid response: \(statusCode).")
-            throw LinkPreviewError.fetchFailure
-        }
+        return try await fetchStringOrImageResource(from: url, budget: linkFetcher.makeBudget())
+    }
 
-        // TODO: Add support for HEIC, HEIF, JPEG XL, etc.
-        if
-            let mimeType = response.headers.value(forHeader: "Content-Type"),
-            MimeTypeUtil.isSupportedImageMimeType(mimeType)
-        {
-            guard let imageData = StringOrImageResource.dataForImage(response) else {
-                Logger.warn("Response object could not be parsed")
+    // Tellomi（ADR-0063 §4.4，tellomi/tellomi#1423）：原来经 OWSURLSession（会带上用户的 Accept-Language、不限跳数、
+    // 不校验私网地址、不看 Content-Type），改成 §4.4 的抓取器。日志只记失败类别，不记 URL（§6.5）。
+    private func fetchStringOrImageResource(from url: URL, budget: TellomiLinkFetchBudget) async throws -> StringOrImageResource {
+        let response: TellomiLinkFetcher.Response
+        do {
+            response = try await linkFetcher.fetch(url, step: .page, budget: budget)
+        } catch {
+            Logger.warn("Link preview page fetch failed: \(error.logCategory)")
+            throw LinkPreviewError.fetchFailure
+        }
+        switch response.kind {
+        case .image:
+            guard !response.body.isEmpty else {
                 throw LinkPreviewError.invalidPreview
             }
-            return .image(url: response.requestUrl, contents: imageData)
-        }
-
-        guard let string = response.responseBodyString, !string.isEmpty else {
-            Logger.warn("Response object could not be parsed")
+            return .image(url: response.finalUrl, contents: response.body)
+        case .html:
+            guard let string = response.bodyString, !string.isEmpty else {
+                Logger.warn("Link preview page could not be decoded")
+                throw LinkPreviewError.invalidPreview
+            }
+            return .string(url: response.finalUrl, contents: string)
+        case .json:
             throw LinkPreviewError.invalidPreview
         }
-        return .string(url: response.requestUrl, contents: string)
     }
 
-    private func fetchImageResource(from url: URL) async throws -> Data {
-        let response: HTTPResponse
+    private func fetchImageResource(from url: URL, budget: TellomiLinkFetchBudget) async throws -> Data {
+        let response: TellomiLinkFetcher.Response
         do {
-            response = try await self.buildOWSURLSession().performRequest(url.absoluteString, method: .get, maxResponseSize: Self.maxFetchedContentSize, ignoreAppExpiry: true)
+            response = try await linkFetcher.fetch(url, step: .image, budget: budget)
         } catch {
-            Logger.warn("Invalid response: \(error.shortDescription).")
+            Logger.warn("Link preview image fetch failed: \(error.logCategory)")
             throw LinkPreviewError.fetchFailure
         }
-        let statusCode = response.responseStatusCode
-        guard statusCode >= 200, statusCode < 300 else {
-            Logger.warn("Invalid response: \(statusCode).")
-            throw LinkPreviewError.fetchFailure
-        }
-        guard let rawData = StringOrImageResource.dataForImage(response) else {
-            Logger.warn("Response object could not be parsed")
+        guard !response.body.isEmpty else {
             throw LinkPreviewError.invalidPreview
         }
-        return rawData
+        return response.body
     }
 
-    // MARK: - Private, Constants
+    /// 短链展开（§4.4：只对注册表声明的 `short_domains`，只读 `Location`）。「展开短链接」关着就不发请求、返回 nil。
+    /// 由 `rust/links` 的 Planner 决定什么时候调；crate 就绪前没有调用方。
+    func expandShortLinkIfEnabled(_ url: URL, budget: TellomiLinkFetchBudget) async -> URL? {
+        let isEnabled = db.read { TellomiLinkPreviewLocalSettings.isShortLinkExpansionEnabled(tx: $0) }
+        guard isEnabled else {
+            return nil
+        }
+        do {
+            return try await linkFetcher.expandShortLink(url, budget: budget)
+        } catch {
+            Logger.info("Short link expansion failed: \(error.logCategory)")
+            return nil
+        }
+    }
 
-    private static let maxFetchedContentSize: UInt64 = 2 * 1024 * 1024
+    // MARK: - tell.cc（ADR-0063 §4.8）
+
+    /// tell.cc 不放网页：认得出的对象走 Signal 现有的取数，认不出的（以及用户卡、预留路径）**不抓取、不出卡片**。
+    /// 以前会按 generic 去抓落地页，把 `/用户名` 送进 CDN 日志（§6.5）；用户卡在接收端按 URL 本地画，随 §8.1 第 4 / 6 行做。
+    private func linkPreviewDraft(forTellCCUrl url: URL, shape: TellomiLinks.FirstPartyShape) async throws -> OWSLinkPreviewDraft? {
+        switch shape {
+        case .stickerPack:
+            // 上游的 StickerPackInfo 只认 signal.art：换算后解析，草稿里仍放正文里那条 tell.cc 链接
+            let legacyUrl = TellomiLinks.legacyEquivalent(of: url)
+            guard StickerPackInfo.isStickerPackShare(legacyUrl) else {
+                throw LinkPreviewError.noPreview
+            }
+            return try await self.linkPreviewDraft(forStickerShare: legacyUrl, draftUrl: url)
+        case .user, .userEncryptedLink, .userPhoneNumber, .group, .call, .reservedPath, .notAnObject:
+            // 群邀请、通话在上面已经按 Signal 现有的取数处理；走到这里的都不抓
+            throw LinkPreviewError.noPreview
+        }
+    }
 
     // MARK: - Preview Thumbnails
 
@@ -286,7 +282,7 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
 
     // MARK: - Stickers
 
-    private func linkPreviewDraft(forStickerShare url: URL) async throws -> OWSLinkPreviewDraft? {
+    private func linkPreviewDraft(forStickerShare url: URL, draftUrl: URL? = nil) async throws -> OWSLinkPreviewDraft? {
         guard let stickerPackInfo = StickerPackInfo.parseStickerPackShare(url) else {
             Logger.error("Could not parse url.")
             throw LinkPreviewError.invalidPreview
@@ -303,7 +299,7 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         }
 
         return OWSLinkPreviewDraft(
-            url: url,
+            url: draftUrl ?? url,
             title: title,
             imageData: previewThumbnail?.imageData,
             imageMimeType: previewThumbnail?.mimetype,
