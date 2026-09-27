@@ -10866,11 +10866,26 @@
 /* Name of the Terms of Service document, shown as a tappable link inside consent sentences. */
 "TELLOMI_CONSENT_TERMS_LINK" = "《用戶服務協議》";
 
-/* Shown on the cross-border notice after the user taps 'Disagree'. */
-"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "不同意的話，App 不會連接任何伺服器，也不會發送您的任何資訊；在中國大陸服務上線之前，您將無法使用 Tellomi。您可以退出 App，或者之後回到這一頁再同意。";
+/* Body of the short cross-border consent dialog: where the data goes, and asking for separate consent. */
+"TELLOMI_CROSS_BORDER_DIALOG_BODY" = "Tellomi 的伺服器在中國香港，附件、頭像和備份存放在 Cloudflare（美國），您的部分個人信息會因此傳輸到中國大陸境外處理。是否單獨同意？";
 
-/* Introduction of the cross-border data transfer notice. */
-"TELLOMI_CROSS_BORDER_INTRO" = "Tellomi 的伺服器位於中國香港，附件等加密資料存放在 Cloudflare 位於北美西部的儲存區域。註冊和使用 Tellomi，會把您的部分個人信息傳輸到中國大陸境外處理。請讀完下面幾項，再決定是否單獨同意。同意之前，App 不會連接任何伺服器。";
+/* Link in the cross-border consent dialog that opens the full Cross-Border Transfer Notice (the 9 items). */
+"TELLOMI_CROSS_BORDER_DIALOG_FULL_NOTICE_LINK" = "查看《個人信息出境告知》";
+
+/* Shown at the top of the cross-border consent dialog that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0. */
+"TELLOMI_CROSS_BORDER_DIALOG_POLICY_UPDATED" = "《隱私政策》已更新至 2.0.0 版。";
+
+/* Title of the short cross-border consent dialog. */
+"TELLOMI_CROSS_BORDER_DIALOG_TITLE" = "個人信息出境";
+
+/* Shown on the cross-border notice after the user taps 'Disagree'. */
+"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "不同意的話，App 不會連接任何伺服器，也不會發送您的任何資訊；在中國大陸服務上線之前，您將無法使用 Tellomi。您可以退出 App，或者之後再同意。";
+
+/* Button at the bottom of the full Cross-Border Transfer Notice: go back to the consent dialog. */
+"TELLOMI_CROSS_BORDER_FULL_NOTICE_CLOSE" = "返回";
+
+/* Title of the full Cross-Border Transfer Notice page (the 9 items), opened from the consent dialog. */
+"TELLOMI_CROSS_BORDER_FULL_NOTICE_TITLE" = "個人信息出境告知";
 
 /* Cross-border notice item 9 body: this page is the separate consent and can be withdrawn. */
 "TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "點「同意並繼續」，即表示您單獨同意上述跨境傳輸；同意《隱私政策》不等於同意跨境傳輸。您可以隨時電郵至 privacy@tellomi.app 撤回（App 內的撤回入口上線後，也可以在 App 內操作）。現階段 Tellomi 只能透過境外的伺服器提供服務，撤回後，在中國大陸服務上線之前您將無法繼續使用 Tellomi，您可以同時註銷帳號。撤回不影響撤回之前已經進行的處理。";
@@ -10929,17 +10944,11 @@
 /* Only button on the read-only cross-border notice shown when linking this device: acknowledge the notice. */
 "TELLOMI_CROSS_BORDER_LINKED_ACK" = "知道了";
 
-/* Introduction of the read-only cross-border notice shown when linking this device to an existing account. */
-"TELLOMI_CROSS_BORDER_LINKED_INTRO" = "這部裝置將關聯到您的 Tellomi 帳號。個人信息跨境傳輸的單獨同意在您的手機上取得，這部裝置不再另行詢問；下面是同一份告知，供您了解。關聯之後，這部裝置上的資訊也按下面的方式處理。";
+/* Body of the read-only cross-border dialog shown when linking this device: consent is given on the phone. */
+"TELLOMI_CROSS_BORDER_LINKED_DIALOG_BODY" = "跨境傳輸的單獨同意已在您的手機上取得，這部裝置不再另行詢問。關聯之後，這部裝置上的資訊也按《個人信息出境告知》處理。";
 
 /* Cross-border notice item 9 body on the read-only version shown when linking this device: consent is given on the phone. */
 "TELLOMI_CROSS_BORDER_LINKED_ITEM_CONSENT_BODY" = "上述跨境傳輸的單獨同意在您的手機上取得，這部裝置不另行收集。您可以隨時電郵至 privacy@tellomi.app 撤回；撤回後，在中國大陸服務上線之前您將無法繼續使用 Tellomi。";
-
-/* Title of the read-only cross-border notice shown when linking this device to an existing account. */
-"TELLOMI_CROSS_BORDER_LINKED_TITLE" = "關聯裝置前請了解：個人信息跨境傳輸";
-
-/* Shown above the introduction of the cross-border notice that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0. */
-"TELLOMI_CROSS_BORDER_POLICY_UPDATED" = "《隱私政策》已更新至 2.0.0 版：訊息、通話、附件、個人資料和群組資訊都是端到端加密的；同時寫明了伺服器位於中國香港，以及本頁所說的個人信息跨境傳輸。";
 
 /* Link under the 'Privacy Policy updated' sentence on the cross-border notice for already-registered devices; opens the Privacy Policy. */
 "TELLOMI_CROSS_BORDER_POLICY_UPDATED_LINK" = "查看《隱私政策》2.0.0";
@@ -10949,9 +10958,6 @@
 
 /* Link at the bottom of the cross-border notice that opens the Third-Party Sharing and SDK List. */
 "TELLOMI_CROSS_BORDER_THIRD_PARTY_LINK" = "查看《第三方信息共享及 SDK 清單》";
-
-/* Title of the cross-border data transfer notice shown before the phone number is sent during registration. */
-"TELLOMI_CROSS_BORDER_TITLE" = "您的個人信息將傳輸到中國大陸境外處理";
 
 /* Button in the first-launch privacy notice: agree. */
 "TELLOMI_FIRST_LAUNCH_AGREE" = "同意";
