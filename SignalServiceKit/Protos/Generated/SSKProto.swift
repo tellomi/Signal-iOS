@@ -1060,6 +1060,9 @@ public class SSKProtoPreview: NSObject, Codable, NSSecureCoding {
     public let image: SSKProtoAttachmentPointer?
 
     @objc
+    public let rich: SSKProtoRichContent?
+
+    @objc
     public var title: String? {
         guard hasTitle else {
             return nil
@@ -1102,10 +1105,12 @@ public class SSKProtoPreview: NSObject, Codable, NSSecureCoding {
 
     private init(proto: SignalServiceProtos_Preview,
                  url: String,
-                 image: SSKProtoAttachmentPointer?) {
+                 image: SSKProtoAttachmentPointer?,
+                 rich: SSKProtoRichContent?) {
         self.proto = proto
         self.url = url
         self.image = image
+        self.rich = rich
     }
 
     @objc
@@ -1130,9 +1135,15 @@ public class SSKProtoPreview: NSObject, Codable, NSSecureCoding {
             image = SSKProtoAttachmentPointer(proto.image)
         }
 
+        var rich: SSKProtoRichContent?
+        if proto.hasRich {
+            rich = SSKProtoRichContent(proto.rich)
+        }
+
         self.init(proto: proto,
                   url: url,
-                  image: image)
+                  image: image,
+                  rich: rich)
     }
 
     public required convenience init(from decoder: Swift.Decoder) throws {
@@ -1192,6 +1203,9 @@ extension SSKProtoPreview {
         }
         if hasDate {
             builder.setDate(date)
+        }
+        if let _value = rich {
+            builder.setRich(_value)
         }
         if let _value = unknownFields {
             builder.setUnknownFields(_value)
@@ -1264,6 +1278,17 @@ public class SSKProtoPreviewBuilder: NSObject {
         proto.date = valueParam
     }
 
+    @objc
+    @available(swift, obsoleted: 1.0)
+    public func setRich(_ valueParam: SSKProtoRichContent?) {
+        guard let valueParam = valueParam else { return }
+        proto.rich = valueParam.proto
+    }
+
+    public func setRich(_ valueParam: SSKProtoRichContent) {
+        proto.rich = valueParam.proto
+    }
+
     public func setUnknownFields(_ unknownFields: SwiftProtobuf.UnknownStorage) {
         proto.unknownFields = unknownFields
     }
@@ -1292,6 +1317,446 @@ extension SSKProtoPreviewBuilder {
     @objc
     public func buildIgnoringErrors() -> SSKProtoPreview? {
         return try! self.build()
+    }
+}
+
+#endif
+
+// MARK: - SSKProtoRichContent
+
+@objc
+public class SSKProtoRichContent: NSObject, Codable, NSSecureCoding {
+
+    fileprivate let proto: SignalServiceProtos_RichContent
+
+    @objc
+    public let attrs: [SSKProtoAttr]
+
+    @objc
+    public var kind: String? {
+        guard hasKind else {
+            return nil
+        }
+        return proto.kind
+    }
+    @objc
+    public var hasKind: Bool {
+        return proto.hasKind
+    }
+
+    @objc
+    public var provider: String? {
+        guard hasProvider else {
+            return nil
+        }
+        return proto.provider
+    }
+    @objc
+    public var hasProvider: Bool {
+        return proto.hasProvider
+    }
+
+    @objc
+    public var schema: UInt32 {
+        return proto.schema
+    }
+    @objc
+    public var hasSchema: Bool {
+        return proto.hasSchema
+    }
+
+    @objc
+    public var canonicalURL: String? {
+        guard hasCanonicalURL else {
+            return nil
+        }
+        return proto.canonicalURL
+    }
+    @objc
+    public var hasCanonicalURL: Bool {
+        return proto.hasCanonicalURL
+    }
+
+    @objc
+    public var level: UInt32 {
+        return proto.level
+    }
+    @objc
+    public var hasLevel: Bool {
+        return proto.hasLevel
+    }
+
+    public var hasUnknownFields: Bool {
+        return !proto.unknownFields.data.isEmpty
+    }
+    public var unknownFields: SwiftProtobuf.UnknownStorage? {
+        guard hasUnknownFields else { return nil }
+        return proto.unknownFields
+    }
+
+    private init(proto: SignalServiceProtos_RichContent,
+                 attrs: [SSKProtoAttr]) {
+        self.proto = proto
+        self.attrs = attrs
+    }
+
+    @objc
+    public func serializedData() throws -> Data {
+        return try self.proto.serializedData()
+    }
+
+    @objc
+    public required convenience init(serializedData: Data) throws {
+        let proto = try SignalServiceProtos_RichContent(serializedBytes: serializedData)
+        self.init(proto)
+    }
+
+    fileprivate convenience init(_ proto: SignalServiceProtos_RichContent) {
+        var attrs: [SSKProtoAttr] = []
+        attrs = proto.attrs.map { SSKProtoAttr($0) }
+
+        self.init(proto: proto,
+                  attrs: attrs)
+    }
+
+    public required convenience init(from decoder: Swift.Decoder) throws {
+        let singleValueContainer = try decoder.singleValueContainer()
+        let serializedData = try singleValueContainer.decode(Data.self)
+        try self.init(serializedData: serializedData)
+    }
+    public func encode(to encoder: Swift.Encoder) throws {
+        var singleValueContainer = encoder.singleValueContainer()
+        try singleValueContainer.encode(try serializedData())
+    }
+
+    public static var supportsSecureCoding: Bool { true }
+
+    public required convenience init?(coder: NSCoder) {
+        guard let serializedData = coder.decodeData() else { return nil }
+        do {
+            try self.init(serializedData: serializedData)
+        } catch {
+            owsFailDebug("Failed to decode serialized data \(error)")
+            return nil
+        }
+    }
+
+    public func encode(with coder: NSCoder) {
+        do {
+            coder.encode(try serializedData())
+        } catch {
+            owsFailDebug("Failed to encode serialized data \(error)")
+        }
+    }
+
+    @objc
+    public override var debugDescription: String {
+        return "\(proto)"
+    }
+}
+
+extension SSKProtoRichContent {
+    @objc
+    public static func builder() -> SSKProtoRichContentBuilder {
+        return SSKProtoRichContentBuilder()
+    }
+
+    // asBuilder() constructs a builder that reflects the proto's contents.
+    @objc
+    public func asBuilder() -> SSKProtoRichContentBuilder {
+        let builder = SSKProtoRichContentBuilder()
+        if let _value = kind {
+            builder.setKind(_value)
+        }
+        if let _value = provider {
+            builder.setProvider(_value)
+        }
+        if hasSchema {
+            builder.setSchema(schema)
+        }
+        if let _value = canonicalURL {
+            builder.setCanonicalURL(_value)
+        }
+        builder.setAttrs(attrs)
+        if hasLevel {
+            builder.setLevel(level)
+        }
+        if let _value = unknownFields {
+            builder.setUnknownFields(_value)
+        }
+        return builder
+    }
+}
+
+@objc
+public class SSKProtoRichContentBuilder: NSObject {
+
+    private var proto = SignalServiceProtos_RichContent()
+
+    @objc
+    fileprivate override init() {}
+
+    @objc
+    @available(swift, obsoleted: 1.0)
+    public func setKind(_ valueParam: String?) {
+        guard let valueParam = valueParam else { return }
+        proto.kind = valueParam
+    }
+
+    public func setKind(_ valueParam: String) {
+        proto.kind = valueParam
+    }
+
+    @objc
+    @available(swift, obsoleted: 1.0)
+    public func setProvider(_ valueParam: String?) {
+        guard let valueParam = valueParam else { return }
+        proto.provider = valueParam
+    }
+
+    public func setProvider(_ valueParam: String) {
+        proto.provider = valueParam
+    }
+
+    @objc
+    public func setSchema(_ valueParam: UInt32) {
+        proto.schema = valueParam
+    }
+
+    @objc
+    @available(swift, obsoleted: 1.0)
+    public func setCanonicalURL(_ valueParam: String?) {
+        guard let valueParam = valueParam else { return }
+        proto.canonicalURL = valueParam
+    }
+
+    public func setCanonicalURL(_ valueParam: String) {
+        proto.canonicalURL = valueParam
+    }
+
+    @objc
+    public func addAttrs(_ valueParam: SSKProtoAttr) {
+        proto.attrs.append(valueParam.proto)
+    }
+
+    @objc
+    public func setAttrs(_ wrappedItems: [SSKProtoAttr]) {
+        proto.attrs = wrappedItems.map { $0.proto }
+    }
+
+    @objc
+    public func setLevel(_ valueParam: UInt32) {
+        proto.level = valueParam
+    }
+
+    public func setUnknownFields(_ unknownFields: SwiftProtobuf.UnknownStorage) {
+        proto.unknownFields = unknownFields
+    }
+
+    @objc
+    public func buildInfallibly() -> SSKProtoRichContent {
+        return SSKProtoRichContent(proto)
+    }
+
+    @objc
+    public func buildSerializedData() throws -> Data {
+        return try SSKProtoRichContent(proto).serializedData()
+    }
+}
+
+#if TESTABLE_BUILD
+
+extension SSKProtoRichContent {
+    @objc
+    public func serializedDataIgnoringErrors() -> Data? {
+        return try! self.serializedData()
+    }
+}
+
+extension SSKProtoRichContentBuilder {
+    @objc
+    public func buildIgnoringErrors() -> SSKProtoRichContent? {
+        return self.buildInfallibly()
+    }
+}
+
+#endif
+
+// MARK: - SSKProtoAttr
+
+@objc
+public class SSKProtoAttr: NSObject, Codable, NSSecureCoding {
+
+    fileprivate let proto: SignalServiceProtos_Attr
+
+    @objc
+    public var key: String? {
+        guard hasKey else {
+            return nil
+        }
+        return proto.key
+    }
+    @objc
+    public var hasKey: Bool {
+        return proto.hasKey
+    }
+
+    @objc
+    public var value: String? {
+        guard hasValue else {
+            return nil
+        }
+        return proto.value
+    }
+    @objc
+    public var hasValue: Bool {
+        return proto.hasValue
+    }
+
+    public var hasUnknownFields: Bool {
+        return !proto.unknownFields.data.isEmpty
+    }
+    public var unknownFields: SwiftProtobuf.UnknownStorage? {
+        guard hasUnknownFields else { return nil }
+        return proto.unknownFields
+    }
+
+    private init(proto: SignalServiceProtos_Attr) {
+        self.proto = proto
+    }
+
+    @objc
+    public func serializedData() throws -> Data {
+        return try self.proto.serializedData()
+    }
+
+    @objc
+    public required convenience init(serializedData: Data) throws {
+        let proto = try SignalServiceProtos_Attr(serializedBytes: serializedData)
+        self.init(proto)
+    }
+
+    fileprivate convenience init(_ proto: SignalServiceProtos_Attr) {
+        self.init(proto: proto)
+    }
+
+    public required convenience init(from decoder: Swift.Decoder) throws {
+        let singleValueContainer = try decoder.singleValueContainer()
+        let serializedData = try singleValueContainer.decode(Data.self)
+        try self.init(serializedData: serializedData)
+    }
+    public func encode(to encoder: Swift.Encoder) throws {
+        var singleValueContainer = encoder.singleValueContainer()
+        try singleValueContainer.encode(try serializedData())
+    }
+
+    public static var supportsSecureCoding: Bool { true }
+
+    public required convenience init?(coder: NSCoder) {
+        guard let serializedData = coder.decodeData() else { return nil }
+        do {
+            try self.init(serializedData: serializedData)
+        } catch {
+            owsFailDebug("Failed to decode serialized data \(error)")
+            return nil
+        }
+    }
+
+    public func encode(with coder: NSCoder) {
+        do {
+            coder.encode(try serializedData())
+        } catch {
+            owsFailDebug("Failed to encode serialized data \(error)")
+        }
+    }
+
+    @objc
+    public override var debugDescription: String {
+        return "\(proto)"
+    }
+}
+
+extension SSKProtoAttr {
+    @objc
+    public static func builder() -> SSKProtoAttrBuilder {
+        return SSKProtoAttrBuilder()
+    }
+
+    // asBuilder() constructs a builder that reflects the proto's contents.
+    @objc
+    public func asBuilder() -> SSKProtoAttrBuilder {
+        let builder = SSKProtoAttrBuilder()
+        if let _value = key {
+            builder.setKey(_value)
+        }
+        if let _value = value {
+            builder.setValue(_value)
+        }
+        if let _value = unknownFields {
+            builder.setUnknownFields(_value)
+        }
+        return builder
+    }
+}
+
+@objc
+public class SSKProtoAttrBuilder: NSObject {
+
+    private var proto = SignalServiceProtos_Attr()
+
+    @objc
+    fileprivate override init() {}
+
+    @objc
+    @available(swift, obsoleted: 1.0)
+    public func setKey(_ valueParam: String?) {
+        guard let valueParam = valueParam else { return }
+        proto.key = valueParam
+    }
+
+    public func setKey(_ valueParam: String) {
+        proto.key = valueParam
+    }
+
+    @objc
+    @available(swift, obsoleted: 1.0)
+    public func setValue(_ valueParam: String?) {
+        guard let valueParam = valueParam else { return }
+        proto.value = valueParam
+    }
+
+    public func setValue(_ valueParam: String) {
+        proto.value = valueParam
+    }
+
+    public func setUnknownFields(_ unknownFields: SwiftProtobuf.UnknownStorage) {
+        proto.unknownFields = unknownFields
+    }
+
+    @objc
+    public func buildInfallibly() -> SSKProtoAttr {
+        return SSKProtoAttr(proto)
+    }
+
+    @objc
+    public func buildSerializedData() throws -> Data {
+        return try SSKProtoAttr(proto).serializedData()
+    }
+}
+
+#if TESTABLE_BUILD
+
+extension SSKProtoAttr {
+    @objc
+    public func serializedDataIgnoringErrors() -> Data? {
+        return try! self.serializedData()
+    }
+}
+
+extension SSKProtoAttrBuilder {
+    @objc
+    public func buildIgnoringErrors() -> SSKProtoAttr? {
+        return self.buildInfallibly()
     }
 }
 

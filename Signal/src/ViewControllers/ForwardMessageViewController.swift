@@ -770,6 +770,7 @@ struct ForwardMessageItem {
             previewDescription: linkPreview.previewDescription,
             date: linkPreview.date,
             isForwarded: true,
+            rich: linkPreview.rich, // Tellomi（ADR-0063 §7.4）：转发时 rich 原样带过去
         )
     }
 }

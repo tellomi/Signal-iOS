@@ -125,6 +125,7 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
             title: draft.title,
             previewDescription: draft.previewDescription,
             date: draft.date,
+            rich: draft.rich, // Tellomi（ADR-0063 §7.4）：转发时 rich 原样带过去
         )
 
         if
@@ -242,6 +243,8 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
                 title: title,
                 previewDescription: previewDescription,
                 date: date,
+                // Tellomi（ADR-0063 §7.4）：rich（1000 号字段）按收到的字节带着，含本机不认识的字段。
+                rich: TellomiRichContent.receivedBytes(proto),
             )),
             imageProto: proto.image,
         )
@@ -278,6 +281,11 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
 
         if let date = linkPreview.date, date.timeIntervalSince1970 > 0 {
             builder.setDate(date.ows_millisecondsSince1970)
+        }
+
+        // Tellomi（ADR-0063 §7.4）：rich 原样发出；没有就不带，与上游逐字节相同。
+        if let rich = TellomiRichContent.forSending(linkPreview.rich) {
+            builder.setRich(rich)
         }
 
         return try builder.build()

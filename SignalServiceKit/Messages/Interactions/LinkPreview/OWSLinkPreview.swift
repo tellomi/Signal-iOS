@@ -34,6 +34,9 @@ public class OWSLinkPreviewDraft: Equatable {
 
     public let isForwarded: Bool
 
+    /// Tellomi（ADR-0063 §7.4，tellomi/tellomi#1420）：`Preview.rich`（1000 号字段）的字节，原样发出。
+    public let rich: Data?
+
     public init(
         url: URL,
         title: String?,
@@ -42,6 +45,7 @@ public class OWSLinkPreviewDraft: Equatable {
         previewDescription: String? = nil,
         date: Date? = nil,
         isForwarded: Bool,
+        rich: Data? = nil,
     ) {
         self.url = url
         self.title = title
@@ -50,6 +54,7 @@ public class OWSLinkPreviewDraft: Equatable {
         self.previewDescription = previewDescription
         self.date = date
         self.isForwarded = isForwarded
+        self.rich = rich
     }
 
     public var displayDomain: String? {
@@ -75,6 +80,7 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         self.previewDescription = coder.decodeObject(of: NSString.self, forKey: "previewDescription") as String?
         self.title = coder.decodeObject(of: NSString.self, forKey: "title") as String?
         self.urlString = coder.decodeObject(of: NSString.self, forKey: "urlString") as String?
+        self.rich = coder.decodeObject(of: NSData.self, forKey: "rich") as Data?
     }
 
     public func encode(with coder: NSCoder) {
@@ -90,6 +96,9 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         if let urlString {
             coder.encode(urlString, forKey: "urlString")
         }
+        if let rich {
+            coder.encode(rich, forKey: "rich")
+        }
     }
 
     override public var hash: Int {
@@ -98,6 +107,7 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         hasher.combine(previewDescription)
         hasher.combine(title)
         hasher.combine(urlString)
+        hasher.combine(rich)
         return hasher.finalize()
     }
 
@@ -108,6 +118,7 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         guard self.previewDescription == object.previewDescription else { return false }
         guard self.title == object.title else { return false }
         guard self.urlString == object.urlString else { return false }
+        guard self.rich == object.rich else { return false }
         return true
     }
 
@@ -120,6 +131,8 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         public let title: String?
         public let previewDescription: String?
         public let date: Date?
+        /// Tellomi（ADR-0063 §7.4）：`Preview.rich` 的字节。
+        public var rich: Data? = nil
     }
 
     public let urlString: String?
@@ -127,16 +140,22 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
     public let previewDescription: String?
     public let date: Date?
 
+    /// Tellomi（ADR-0063 §7.4，tellomi/tellomi#1420）：`Preview.rich`（1000 号字段）收到时的字节，含本机不认识的字段；
+    /// 落库、读回、转发都原样带着，发送时原样发出。没有就是 nil。
+    public let rich: Data?
+
     public init(
         urlString: String,
         title: String? = nil,
         previewDescription: String? = nil,
         date: Date? = nil,
+        rich: Data? = nil,
     ) {
         self.urlString = urlString
         self.title = title
         self.previewDescription = previewDescription
         self.date = date
+        self.rich = rich
 
         super.init()
     }
@@ -147,6 +166,7 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
             title: metadata.title,
             previewDescription: metadata.previewDescription,
             date: metadata.date,
+            rich: metadata.rich,
         )
     }
 
@@ -171,6 +191,7 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         case imageAttachmentId
         case previewDescription
         case date
+        case rich
     }
 
     public required init(from decoder: Decoder) throws {
@@ -179,6 +200,7 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         title = try container.decodeIfPresent(String.self, forKey: .title)
         previewDescription = try container.decodeIfPresent(String.self, forKey: .previewDescription)
         date = try container.decodeIfPresent(Date.self, forKey: .date)
+        rich = try container.decodeIfPresent(Data.self, forKey: .rich)
         super.init()
     }
 
@@ -195,6 +217,9 @@ public final class OWSLinkPreview: NSObject, NSSecureCoding, NSCopying, Codable 
         }
         if let date {
             try container.encode(date, forKey: .date)
+        }
+        if let rich {
+            try container.encode(rich, forKey: .rich)
         }
     }
 }

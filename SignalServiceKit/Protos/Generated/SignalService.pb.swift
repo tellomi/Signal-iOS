@@ -395,11 +395,119 @@ nonisolated struct SignalServiceProtos_Preview: @unchecked Sendable {
   /// Clears the value of `date`. Subsequent reads from it will return its default value.
   mutating func clearDate() {_uniqueStorage()._date = nil}
 
+  /// Tellomi (ADR-0063 §4.5): field numbers >= 1000 are Tellomi's reserved range in every proto,
+  /// so upstream additions never collide. Fields 1–5 stay the snapshot every client can show.
+  var rich: SignalServiceProtos_RichContent {
+    get {_storage._rich ?? SignalServiceProtos_RichContent()}
+    set {_uniqueStorage()._rich = newValue}
+  }
+  /// Returns true if `rich` has been explicitly set.
+  var hasRich: Bool {_storage._rich != nil}
+  /// Clears the value of `rich`. Subsequent reads from it will return its default value.
+  mutating func clearRich() {_uniqueStorage()._rich = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
   fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+/// Tellomi (ADR-0063 §4.5). Field for field the same as libsignal
+/// rust/links/proto/rich_content.proto (schema 1, frozen: add-only). A received value is stored
+/// and forwarded as its original bytes, unknown fields included (§7.4).
+nonisolated struct SignalServiceProtos_RichContent: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var kind: String {
+    get {_kind ?? String()}
+    set {_kind = newValue}
+  }
+  /// Returns true if `kind` has been explicitly set.
+  var hasKind: Bool {self._kind != nil}
+  /// Clears the value of `kind`. Subsequent reads from it will return its default value.
+  mutating func clearKind() {self._kind = nil}
+
+  var provider: String {
+    get {_provider ?? String()}
+    set {_provider = newValue}
+  }
+  /// Returns true if `provider` has been explicitly set.
+  var hasProvider: Bool {self._provider != nil}
+  /// Clears the value of `provider`. Subsequent reads from it will return its default value.
+  mutating func clearProvider() {self._provider = nil}
+
+  var schema: UInt32 {
+    get {_schema ?? 0}
+    set {_schema = newValue}
+  }
+  /// Returns true if `schema` has been explicitly set.
+  var hasSchema: Bool {self._schema != nil}
+  /// Clears the value of `schema`. Subsequent reads from it will return its default value.
+  mutating func clearSchema() {self._schema = nil}
+
+  var canonicalURL: String {
+    get {_canonicalURL ?? String()}
+    set {_canonicalURL = newValue}
+  }
+  /// Returns true if `canonicalURL` has been explicitly set.
+  var hasCanonicalURL: Bool {self._canonicalURL != nil}
+  /// Clears the value of `canonicalURL`. Subsequent reads from it will return its default value.
+  mutating func clearCanonicalURL() {self._canonicalURL = nil}
+
+  var attrs: [SignalServiceProtos_Attr] = []
+
+  var level: UInt32 {
+    get {_level ?? 0}
+    set {_level = newValue}
+  }
+  /// Returns true if `level` has been explicitly set.
+  var hasLevel: Bool {self._level != nil}
+  /// Clears the value of `level`. Subsequent reads from it will return its default value.
+  mutating func clearLevel() {self._level = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _kind: String? = nil
+  fileprivate var _provider: String? = nil
+  fileprivate var _schema: UInt32? = nil
+  fileprivate var _canonicalURL: String? = nil
+  fileprivate var _level: UInt32? = nil
+}
+
+nonisolated struct SignalServiceProtos_Attr: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var key: String {
+    get {_key ?? String()}
+    set {_key = newValue}
+  }
+  /// Returns true if `key` has been explicitly set.
+  var hasKey: Bool {self._key != nil}
+  /// Clears the value of `key`. Subsequent reads from it will return its default value.
+  mutating func clearKey() {self._key = nil}
+
+  var value: String {
+    get {_value ?? String()}
+    set {_value = newValue}
+  }
+  /// Returns true if `value` has been explicitly set.
+  var hasValue: Bool {self._value != nil}
+  /// Clears the value of `value`. Subsequent reads from it will return its default value.
+  mutating func clearValue() {self._value = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _key: String? = nil
+  fileprivate var _value: String? = nil
 }
 
 nonisolated struct SignalServiceProtos_TextAttachment: Sendable {
@@ -5148,7 +5256,7 @@ nonisolated extension SignalServiceProtos_StoryMessage: SwiftProtobuf.Message, S
 
 nonisolated extension SignalServiceProtos_Preview: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".Preview"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}url\0\u{1}title\0\u{1}image\0\u{1}previewDescription\0\u{1}date\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}url\0\u{1}title\0\u{1}image\0\u{1}previewDescription\0\u{1}date\0\u{2}c\u{f}rich\0")
 
   fileprivate class _StorageClass {
     var _url: String? = nil
@@ -5156,6 +5264,7 @@ nonisolated extension SignalServiceProtos_Preview: SwiftProtobuf.Message, SwiftP
     var _image: SignalServiceProtos_AttachmentPointer? = nil
     var _previewDescription: String? = nil
     var _date: UInt64? = nil
+    var _rich: SignalServiceProtos_RichContent? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -5171,6 +5280,7 @@ nonisolated extension SignalServiceProtos_Preview: SwiftProtobuf.Message, SwiftP
       _image = source._image
       _previewDescription = source._previewDescription
       _date = source._date
+      _rich = source._rich
     }
   }
 
@@ -5194,6 +5304,7 @@ nonisolated extension SignalServiceProtos_Preview: SwiftProtobuf.Message, SwiftP
         case 3: try { try decoder.decodeSingularMessageField(value: &_storage._image) }()
         case 4: try { try decoder.decodeSingularStringField(value: &_storage._previewDescription) }()
         case 5: try { try decoder.decodeSingularUInt64Field(value: &_storage._date) }()
+        case 1000: try { try decoder.decodeSingularMessageField(value: &_storage._rich) }()
         default: break
         }
       }
@@ -5221,6 +5332,9 @@ nonisolated extension SignalServiceProtos_Preview: SwiftProtobuf.Message, SwiftP
       try { if let v = _storage._date {
         try visitor.visitSingularUInt64Field(value: v, fieldNumber: 5)
       } }()
+      try { if let v = _storage._rich {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1000)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -5235,10 +5349,109 @@ nonisolated extension SignalServiceProtos_Preview: SwiftProtobuf.Message, SwiftP
         if _storage._image != rhs_storage._image {return false}
         if _storage._previewDescription != rhs_storage._previewDescription {return false}
         if _storage._date != rhs_storage._date {return false}
+        if _storage._rich != rhs_storage._rich {return false}
         return true
       }
       if !storagesAreEqual {return false}
     }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension SignalServiceProtos_RichContent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".RichContent"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}provider\0\u{1}schema\0\u{3}canonical_url\0\u{1}attrs\0\u{1}level\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self._kind) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._provider) }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self._schema) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._canonicalURL) }()
+      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.attrs) }()
+      case 6: try { try decoder.decodeSingularUInt32Field(value: &self._level) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._kind {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._provider {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._schema {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._canonicalURL {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    if !self.attrs.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.attrs, fieldNumber: 5)
+    }
+    try { if let v = self._level {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 6)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: SignalServiceProtos_RichContent, rhs: SignalServiceProtos_RichContent) -> Bool {
+    if lhs._kind != rhs._kind {return false}
+    if lhs._provider != rhs._provider {return false}
+    if lhs._schema != rhs._schema {return false}
+    if lhs._canonicalURL != rhs._canonicalURL {return false}
+    if lhs.attrs != rhs.attrs {return false}
+    if lhs._level != rhs._level {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension SignalServiceProtos_Attr: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Attr"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}key\0\u{1}value\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self._key) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._value) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._key {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._value {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: SignalServiceProtos_Attr, rhs: SignalServiceProtos_Attr) -> Bool {
+    if lhs._key != rhs._key {return false}
+    if lhs._value != rhs._value {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -82,6 +82,26 @@ message Preview {
   optional AttachmentPointer image = 3;
   optional string previewDescription = 4;
   optional uint64 date = 5;
+  // Tellomi (ADR-0063 §4.5): field numbers >= 1000 are Tellomi's reserved range in every proto,
+  // so upstream additions never collide. Fields 1–5 stay the snapshot every client can show.
+  optional RichContent rich = 1000;
+}
+
+// Tellomi (ADR-0063 §4.5). Field for field the same as libsignal
+// rust/links/proto/rich_content.proto (schema 1, frozen: add-only). A received value is stored
+// and forwarded as its original bytes, unknown fields included (§7.4).
+message RichContent {
+  optional string kind = 1;
+  optional string provider = 2;
+  optional uint32 schema = 3;
+  optional string canonical_url = 4;
+  repeated Attr attrs = 5;
+  optional uint32 level = 6;
+}
+
+message Attr {
+  optional string key = 1;
+  optional string value = 2;
 }
 
 message TextAttachment {
