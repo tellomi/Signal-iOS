@@ -340,4 +340,23 @@ final class TellomiCrossBorderNoticeTest: SignalBaseTest {
             XCTAssertNotNil(table["TELLOMI_CROSS_BORDER_DIALOG_TITLE"], "\(localization) 缺 DIALOG_TITLE")
         }
     }
+
+    // MARK: - owner 2026-09-27：弹窗正文缩成一句（需求 6.6 `DIALOG_BODY`）
+
+    func testDialogBodyIsOneSentenceInAllFourLanguages() throws {
+        let expected = [
+            "en": "Some of your personal information will be transferred outside mainland China for processing. Do you agree?",
+            "zh_CN": "您的部分个人信息将传输到中国大陆境外处理，是否同意？",
+            "zh_HK": "您的部分個人信息將傳輸到中國大陸境外處理，是否同意？",
+            "zh_TW": "您的部分個人信息將傳輸到中國大陸境外處理，是否同意？",
+        ]
+        for (localization, body) in expected {
+            let path = try XCTUnwrap(
+                Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: localization),
+                localization,
+            )
+            let table = try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: String], localization)
+            XCTAssertEqual(table["TELLOMI_CROSS_BORDER_DIALOG_BODY"], body, localization)
+        }
+    }
 }

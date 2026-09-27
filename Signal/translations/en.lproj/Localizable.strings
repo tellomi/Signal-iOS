@@ -11458,7 +11458,7 @@
 "TELLOMI_CONSENT_TERMS_LINK" = "Terms of Service";
 
 /* Body of the short cross-border consent dialog: where the data goes, and asking for separate consent. */
-"TELLOMI_CROSS_BORDER_DIALOG_BODY" = "Tellomi’s servers are in Hong Kong, China, and attachments, profile photos and backups are stored with Cloudflare (United States), so some of your personal information is transferred outside mainland China. Do you give your separate consent?";
+"TELLOMI_CROSS_BORDER_DIALOG_BODY" = "Some of your personal information will be transferred outside mainland China for processing. Do you agree?";
 
 /* Link in the cross-border consent dialog that opens the full Cross-Border Transfer Notice (the 9 items). */
 "TELLOMI_CROSS_BORDER_DIALOG_FULL_NOTICE_LINK" = "Read the Cross-Border Transfer Notice";
