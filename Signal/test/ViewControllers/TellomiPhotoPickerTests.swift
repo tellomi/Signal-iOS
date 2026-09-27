@@ -81,6 +81,27 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(cell.bounds.size.width - check.maxX, 3, accuracy: 0.01)
     }
 
+    /// owner 2026-09-28：「点右上角的勾，有时会跳到发送预览」——勾只有 29 的触摸区，手指落在圆旁边一点就算点了照片。
+    /// 照 Telegram Android `PhotoAttachPhotoCell` 的 checkFrame（42dp 角区），iOS 取 44：右上角 44 × 44 整块都算点勾，
+    /// 看得见的圆不动；角区外才是点照片（进单张预览）。
+    @MainActor
+    func testCheckHitAreaCoversTheTopTrailingCorner() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let cell = try XCTUnwrap(hosted.picker.cellForTesting(itemIndex: 0))
+        let cellWidth: CGFloat = cell.bounds.size.width
+        // 离右边、离上边各多少
+        let insideCorner: [CGPoint] = [CGPoint(x: 40, y: 38), CGPoint(x: 43, y: 5), CGPoint(x: 5, y: 43), CGPoint(x: 1, y: 1)]
+        let outsideCorner: [CGPoint] = [CGPoint(x: 46, y: 20), CGPoint(x: 20, y: 46), CGPoint(x: cellWidth / 2, y: cellWidth / 2)]
+
+        for offset in insideCorner {
+            XCTAssertTrue(cell.isCheckHitForTesting(at: CGPoint(x: cellWidth - offset.x, y: offset.y)), "\(offset)")
+        }
+        for offset in outsideCorner {
+            XCTAssertFalse(cell.isCheckHitForTesting(at: CGPoint(x: cellWidth - offset.x, y: offset.y)), "\(offset)")
+        }
+    }
+
     /// 竖屏 3 列、横屏 5 列，间距 1，正方形；三种屏宽都一样。
     /// 边长按屏幕像素（1/scale pt：3x 是 1/3、SE 这类 2x 是 1/2）向下取整，除不尽时剩下的不到每列 1 像素，
     /// 由 flow layout 摊进列间距（3x 最多 1.34、2x 最多 1.5）。
