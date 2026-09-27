@@ -38,7 +38,10 @@ class ProvisioningSplashViewController: ProvisioningBaseViewController {
         ])
 
         // Image at the top.
-        let imageView = UIImageView(image: .onboardingSplashHero)
+        // Tellomi（owner 2026-09-27，docs/brand/README.md「插画」）：Signal 的插画换成开屏轮播的第一张 Open Doodles（荡秋千），静态；插画是装饰，读屏跳过。
+        let imageView = UIImageView(image: UIImage(named: "tellomi_splash_swinging"))
+        imageView.accessibilityIdentifier = "tellomi.provisioningSplash.illustration"
+        imageView.accessibilityElementsHidden = true
         imageView.contentMode = .scaleAspectFit
         imageView.layer.minificationFilter = .trilinear
         imageView.layer.magnificationFilter = .trilinear

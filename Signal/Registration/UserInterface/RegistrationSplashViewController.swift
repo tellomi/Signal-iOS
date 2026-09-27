@@ -55,28 +55,13 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
             ])
         }
 
-        // Image at the top.
-        // Tellomi（owner 2026-09-27，docs/brand/README.md「插画」）：Signal 的插画换成 unDraw「Casual Chat」（亮青 #12A89D，深色另一版），
-        // asset catalog 里是 SVG + Preserve Vector Data，浅 / 深两个外观。许可见同目录的 ILLUSTRATIONS-LICENSE.md（不属于 AGPL）。
-        let imageView = UIImageView(image: UIImage(named: "tellomi_splash_casual_chat"))
-        imageView.accessibilityIdentifier = "tellomi.splash.illustration"
-        imageView.contentMode = .scaleAspectFit
-        imageView.layer.minificationFilter = .trilinear
-        imageView.layer.magnificationFilter = .trilinear
-        imageView.setCompressionResistanceLow()
-        imageView.setContentHuggingVerticalLow()
-        let heroImageContainer = UIView.container()
-        heroImageContainer.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        // Center image vertically in the available space above title text.
-        NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: heroImageContainer.centerXAnchor),
-            imageView.widthAnchor.constraint(equalTo: heroImageContainer.widthAnchor),
-            imageView.centerYAnchor.constraint(equalTo: heroImageContainer.centerYAnchor),
-            imageView.heightAnchor.constraint(equalTo: heroImageContainer.heightAnchor, constant: 0.8),
-        ])
+        // Tellomi（owner 2026-09-27，docs/brand/README.md「插画」「开屏轮播」）：上面是四张 Open Doodles（黑白）的轮播，
+        // 取代上游的插画。见文件末尾的 TellomiSplashCarouselView。
+        let carousel = TellomiSplashCarouselView()
+        carousel.setCompressionResistanceLow()
+        carousel.setContentHuggingVerticalLow()
 
-        // Tellomi（owner 2026-09-27，docs/product/BRAND.md「开屏」）：插画下面只放字标 Tellomi，不放任何句子（App 内不显示标语）。
+        // Tellomi（owner 2026-09-27，docs/product/BRAND.md「开屏」）：轮播下面只放字标 Tellomi，不放任何句子（App 内不显示标语）。
         // 字标是 docs/brand/wordmark/tellomi-wordmark-{light,dark}.svg 原样拷入（owner 2026-09-27 定稿的 Tell@mi）；只约束高度，宽高比取图本身，
         // 换字标只换这个 imageset 里的两个 SVG。
         // 上游这里是标题「Take privacy with you…」（更早还按是否生产服务显示调试串，tellomi/tellomi#1209）。
@@ -126,11 +111,11 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
 
         // Main content view.
         let stackView = addStaticContentStackView(arrangedSubviews: [
-            heroImageContainer,
+            carousel,
             wordmarkView,
             largeButtonsContainer,
         ])
-        stackView.setCustomSpacing(44, after: heroImageContainer)
+        stackView.setCustomSpacing(24, after: carousel)
         stackView.setCustomSpacing(80, after: wordmarkView)
 
         view.sendSubviewToBack(stackView)
@@ -312,3 +297,250 @@ private class PreviewRegistrationSplashPresenter: RegistrationSplashPresenter {
     return RegistrationSplashViewController(presenter: presenter)
 }
 #endif
+
+// MARK: - Tellomi：开屏轮播
+
+/// Tellomi（owner 2026-09-27，docs/brand/README.md「开屏轮播」）：四张 Open Doodles（Pablo Stanley，CC0）按顺序横向轮播——
+/// 荡秋千 → 自拍 → 捧心 → 悬浮。每张停 3 秒后滑到下一张（约 0.35 秒），第 4 张后面接第 1 张；左右可以滑；
+/// 手指按住（或拖动）时暂停，松手 3 秒后继续；系统开了「减弱动态效果」就不自动播，只能手动滑。
+/// 下面一排小圆点（墨 / 灰，不用 Signal 蓝）。插画是装饰，读屏整块跳过——下面的字标读作「Tellomi」。
+///
+/// 做法：一个开了分页的 UIScrollView，前后各多放一张（第 4 张、第 1 张的副本），滑过头时无动画地跳回对应的真实页，左右都能无缝接上。
+/// Telegram 的开屏（RMIntroViewController）也是分页的 UIScrollView + 不可点的 UIPageControl，但它不自动播、不循环；
+/// 自动播、循环、按住暂停是 owner 的要求，这里是独立实现（Telegram 是 GPLv2，一行没搬）。
+final class TellomiSplashCarouselView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
+    static let illustrationNames = [
+        "tellomi_splash_swinging",
+        "tellomi_splash_selfie",
+        "tellomi_splash_loving",
+        "tellomi_splash_float",
+    ]
+    static let autoAdvanceInterval: TimeInterval = 3
+    static let slideDuration: TimeInterval = 0.35
+
+    let scrollView = UIScrollView()
+    let pageControl = UIPageControl()
+
+    /// 四张真实的页（按顺序）。滚动视图里一共六格：[第 4 张副本, 1, 2, 3, 4, 第 1 张副本]。
+    private(set) var pageImageViews: [UIImageView] = []
+    private var slotImageViews: [UIImageView] = []
+    private(set) var currentPage = 0
+
+    private let isReduceMotionEnabled: () -> Bool
+    private var autoAdvanceTimer: Timer?
+    private var isTouching = false
+    private var isSliding = false
+    private var laidOutPageWidth: CGFloat = 0
+
+    /// 下一次自动翻页的时间；nil = 现在不会自动翻（不在屏幕上、手指按着、或开了「减弱动态效果」）。
+    var autoAdvanceFireDate: Date? { autoAdvanceTimer?.fireDate }
+
+    /// 滚动视图眼下停在哪张图上（按实际偏移算，不是按 currentPage 推）。
+    var visiblePageImage: UIImage? {
+        guard laidOutPageWidth > 0 else { return nil }
+        let slot = Int((scrollView.contentOffset.x / laidOutPageWidth).rounded())
+        return slotImageViews.indices.contains(slot) ? slotImageViews[slot].image : nil
+    }
+
+    init(isReduceMotionEnabled: @escaping () -> Bool = { UIAccessibility.isReduceMotionEnabled }) {
+        self.isReduceMotionEnabled = isReduceMotionEnabled
+        super.init(frame: .zero)
+
+        let names = Self.illustrationNames
+        for name in [names[names.count - 1]] + names + [names[0]] {
+            let imageView = UIImageView(image: UIImage(named: name))
+            imageView.contentMode = .scaleAspectFit
+            scrollView.addSubview(imageView)
+            slotImageViews.append(imageView)
+        }
+        pageImageViews = Array(slotImageViews[1...names.count])
+
+        scrollView.isPagingEnabled = true
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.scrollsToTop = false
+        scrollView.contentInsetAdjustmentBehavior = .never
+        scrollView.delegate = self
+
+        // 手指一按下就暂停（不必等到拖动），和滚动视图自己的拖动手势同时识别。
+        let touchRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(didTouch(_:)))
+        touchRecognizer.minimumPressDuration = 0
+        touchRecognizer.allowableMovement = .greatestFiniteMagnitude
+        touchRecognizer.cancelsTouchesInView = false
+        touchRecognizer.delegate = self
+        scrollView.addGestureRecognizer(touchRecognizer)
+
+        pageControl.numberOfPages = names.count
+        pageControl.currentPage = 0
+        pageControl.hidesForSinglePage = true
+        pageControl.isUserInteractionEnabled = false
+        pageControl.currentPageIndicatorTintColor = .Signal.label
+        pageControl.pageIndicatorTintColor = .Signal.tertiaryLabel
+
+        addSubview(scrollView)
+        addSubview(pageControl)
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        pageControl.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            pageControl.topAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: 8),
+            pageControl.centerXAnchor.constraint(equalTo: centerXAnchor),
+            pageControl.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+
+        // 插画和圆点都是装饰；页面读字标「Tellomi」。
+        accessibilityElementsHidden = true
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(reduceMotionStatusDidChange),
+            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
+            object: nil,
+        )
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        owsFail("Not implemented")
+    }
+
+    deinit {
+        autoAdvanceTimer?.invalidate()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let pageSize = scrollView.bounds.size
+        guard pageSize.width > 0 else { return }
+        for (slot, imageView) in slotImageViews.enumerated() {
+            imageView.frame = CGRect(x: CGFloat(slot) * pageSize.width, y: 0, width: pageSize.width, height: pageSize.height)
+        }
+        scrollView.contentSize = CGSize(width: CGFloat(slotImageViews.count) * pageSize.width, height: pageSize.height)
+        // 尺寸变了（第一次排版、转屏）才把偏移对回当前页；滑动 / 拖动中不碰。
+        if pageSize.width != laidOutPageWidth, !isSliding, !scrollView.isDragging, !scrollView.isDecelerating {
+            laidOutPageWidth = pageSize.width
+            scrollView.contentOffset = CGPoint(x: CGFloat(currentPage + 1) * pageSize.width, y: 0)
+        }
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        // 只在屏幕上时自动播（推到号码页后开屏离开窗口，计时器跟着停）。
+        scheduleAutoAdvance()
+    }
+
+    // MARK: 翻页
+
+    func showNextPage(animated: Bool) {
+        let pageWidth = scrollView.bounds.width
+        let targetSlot = currentPage + 2
+        currentPage = (currentPage + 1) % Self.illustrationNames.count
+        pageControl.currentPage = currentPage
+        guard animated, pageWidth > 0 else {
+            scrollView.contentOffset = CGPoint(x: CGFloat(currentPage + 1) * pageWidth, y: 0)
+            return
+        }
+        isSliding = true
+        UIView.animate(
+            withDuration: Self.slideDuration,
+            delay: 0,
+            options: [.curveEaseInOut, .allowUserInteraction],
+            animations: {
+                self.scrollView.contentOffset = CGPoint(x: CGFloat(targetSlot) * pageWidth, y: 0)
+            },
+            completion: { _ in
+                self.isSliding = false
+                self.settleOnCurrentPage()
+                self.scheduleAutoAdvance()
+            },
+        )
+    }
+
+    /// 停在副本格上时无动画地跳回对应的真实页。
+    private func settleOnCurrentPage() {
+        let pageWidth = scrollView.bounds.width
+        guard pageWidth > 0 else { return }
+        scrollView.contentOffset = CGPoint(x: CGFloat(currentPage + 1) * pageWidth, y: 0)
+        pageControl.currentPage = currentPage
+    }
+
+    // MARK: 自动播
+
+    private func scheduleAutoAdvance() {
+        autoAdvanceTimer?.invalidate()
+        autoAdvanceTimer = nil
+        guard window != nil, !isTouching, !isReduceMotionEnabled() else { return }
+        autoAdvanceTimer = Timer.scheduledTimer(withTimeInterval: Self.autoAdvanceInterval, repeats: false) { [weak self] _ in
+            self?.autoAdvanceTimerDidFire()
+        }
+    }
+
+    private func autoAdvanceTimerDidFire() {
+        autoAdvanceTimer = nil
+        guard !isTouching, !scrollView.isDragging, !scrollView.isDecelerating, !isSliding else {
+            scheduleAutoAdvance()
+            return
+        }
+        showNextPage(animated: true)
+    }
+
+    func userInteractionBegan() {
+        isTouching = true
+        autoAdvanceTimer?.invalidate()
+        autoAdvanceTimer = nil
+    }
+
+    func userInteractionEnded() {
+        isTouching = false
+        scheduleAutoAdvance()
+    }
+
+    @objc
+    private func didTouch(_ recognizer: UILongPressGestureRecognizer) {
+        switch recognizer.state {
+        case .began:
+            userInteractionBegan()
+        case .ended, .cancelled, .failed:
+            userInteractionEnded()
+        default:
+            break
+        }
+    }
+
+    @objc
+    private func reduceMotionStatusDidChange() {
+        scheduleAutoAdvance()
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        true
+    }
+
+    // MARK: UIScrollViewDelegate
+
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        userInteractionBegan()
+    }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            updateCurrentPageFromOffset()
+        }
+    }
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        updateCurrentPageFromOffset()
+    }
+
+    /// 用户滑完以后按停下的格子算出第几张（副本格对应第 4 / 第 1 张），再对回真实页。
+    private func updateCurrentPageFromOffset() {
+        let pageWidth = scrollView.bounds.width
+        guard pageWidth > 0 else { return }
+        let slot = Int((scrollView.contentOffset.x / pageWidth).rounded())
+        let count = Self.illustrationNames.count
+        currentPage = ((slot - 1) % count + count) % count
+        settleOnCurrentPage()
+    }
+}
