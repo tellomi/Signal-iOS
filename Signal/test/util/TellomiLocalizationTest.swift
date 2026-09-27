@@ -295,3 +295,46 @@ final class TellomiDisappearingMessagesTermTest: XCTestCase {
         }
     }
 }
+
+/// Tellomi（tellomi/tellomi#1401）：`PluralAware.stringsdict` 里用户看得见的文字不许再出现「Signal」。
+/// 品牌替换脚本（超级仓库 `scripts/brand/rename-strings.py`）原来只扫 `.strings`，漏了 `.stringsdict`，
+/// 中文界面上还写着「Signal 群组…」「所有 Signal 密友…」。需要点名 Signal 的法律 / 署名文字要进白名单并写明理由——目前一条都没有。
+final class TellomiStringsdictBrandTest: XCTestCase {
+
+    private static let localizations = ["en", "zh_CN", "zh_HK", "zh_TW"]
+    /// 键 → 理由。只放法律或署名上必须点名 Signal 的。
+    private static let allowlist: [String: String] = [:]
+
+    func testNoUserVisiblePluralStringSaysSignal() throws {
+        for localization in Self.localizations {
+            let path = try XCTUnwrap(
+                Bundle.main.app.path(forResource: "PluralAware", ofType: "stringsdict", inDirectory: nil, forLocalization: localization),
+                "no PluralAware.stringsdict for \(localization)",
+            )
+            let table = try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: Any], "unreadable PluralAware.stringsdict for \(localization)")
+            XCTAssertGreaterThan(table.count, 50, localization)
+            let offenders = table
+                .filter { Self.allowlist[$0.key] == nil }
+                .flatMap { key, value in Self.texts(in: value).map { (key, $0) } }
+                .filter { _, text in text.contains("Signal") }
+                .map { key, text in "\(key): \(text)" }
+                .sorted()
+            XCTAssertEqual(offenders, [], localization)
+        }
+    }
+
+    /// 用户看得见的是 NSStringLocalizedFormatKey 和各复数分支；两个类型键的值（NSStringPluralRuleType / d）不是文字。
+    private static func texts(in value: Any) -> [String] {
+        switch value {
+        case let text as String:
+            return [text]
+        case let entry as [String: Any]:
+            return entry
+                .filter { $0.key != "NSStringFormatSpecTypeKey" && $0.key != "NSStringFormatValueTypeKey" }
+                .values
+                .flatMap { texts(in: $0) }
+        default:
+            return []
+        }
+    }
+}
