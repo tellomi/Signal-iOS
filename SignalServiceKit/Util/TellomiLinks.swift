@@ -30,6 +30,92 @@ public enum TellomiLinks {
         public static let sticker = "/s"     // `#pack_id=…&pack_key=…`
         public static let call = "/call"     // `#key=…`
         public static let inviteReserved = "/i"
+        // ADR-0063 §4.8 / ADR-0066 §五：预留给以后的对象，今天不是对象（不抓取、不出卡片）
+        public static let messageReserved = "/m"
+        public static let eventReserved = "/e"
+        public static let reservedA = "/a"
+        public static let appReserved = "/app"
+        public static let reservedB = "/b"
+    }
+
+    /// tell.cc 的一级路径与预留路径（ADR-0063 §4.8、ADR-0066 §五：都进了用户名保留词）。
+    /// 与超级仓库 `docs/adr/0063/registry/providers/first-party/tellomi.toml` 的 `reserved_paths`、Android `TellomiLinks.kt`
+    /// 的 `RESERVED_FIRST_LEVEL_PATHS`、落地页、policy `reserved-system.toml` 是同一张表（L19 一致性测试对照这五处）。
+    /// 保留路径表只增不减（§7.5）。
+    public static let reservedFirstLevelPaths: [String] = ["u", "g", "s", "call", "i", "m", "e", "a", "app", "b"]
+
+    /// tell.cc 链接按 ADR-0063 §4.8 的匹配顺序认出来的形状。
+    public enum FirstPartyShape: Equatable, Sendable {
+        /// `/<nickname>` · `/<nickname>.<数字>` · `/u#u/<username>`；值是协议层的完整用户名（裸 nickname 补 `.01`）
+        case user(username: String)
+        /// `/u#eu/<加密用户名链接>`
+        case userEncryptedLink
+        /// `/u#p/<E.164>`
+        case userPhoneNumber
+        /// `/g#<invite>`
+        case group
+        /// `/call#key=…`
+        case call
+        /// `/s#pack_id=…&pack_key=…`
+        case stickerPack
+        /// 预留的一级路径（`/i` `/m` `/e` `/a` `/app` `/b`）：以后的对象，今天不是
+        case reservedPath(String)
+        /// 两条都不是（根路径、`/.well-known/`、多段路径、一级路径带了不认识的片段、不合用户名语法）：
+        /// **不是 Tellomi 对象，不抓取、不出卡片**——tell.cc 不放网页，抓回来只会是落地页自己的 OG（§4.8 第 3 条）
+        case notAnObject
+    }
+
+    /// `https://tell.cc/…`（或 `tellomi://tell.cc/…`）的形状；不是 tell.cc 返回 nil。
+    ///
+    /// 匹配顺序（ADR-0063 §4.8，ADR-0066 之后）：① 一级路径优先，`/.well-known/` 不是对象；② 其余单段路径按用户名；③ 都不是 → `.notAnObject`。
+    public static func firstPartyShape(of url: URL) -> FirstPartyShape? {
+        let scheme = url.scheme?.lowercased()
+        guard scheme == "https" || scheme == self.scheme, url.host?.lowercased() == host else {
+            return nil
+        }
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return .notAnObject
+        }
+        var path = components.percentEncodedPath
+        if path.count > 1, path.hasSuffix("/") {
+            path.removeLast()
+        }
+        let fragment = components.percentEncodedFragment ?? ""
+        let segments = path.split(separator: "/", omittingEmptySubsequences: false).dropFirst()
+        guard segments.count == 1, let firstSegment = segments.first.map(String.init), !firstSegment.isEmpty else {
+            // 根路径、多段路径（含 `/.well-known/…`）
+            return .notAnObject
+        }
+
+        switch "/" + firstSegment {
+        case Path.contact:
+            if fragment.hasPrefix("u/") {
+                return plainUsername(in: url).map { .user(username: $0) } ?? .notAnObject
+            }
+            if fragment.hasPrefix("eu/"), fragment.count > 3 {
+                return .userEncryptedLink
+            }
+            if fragment.hasPrefix("p/"), fragment.count > 2 {
+                return .userPhoneNumber
+            }
+            return .notAnObject
+        case Path.group:
+            return fragment.isEmpty ? .notAnObject : .group
+        case Path.call:
+            return fragment.hasPrefix("key=") ? .call : .notAnObject
+        case Path.sticker:
+            return fragment.contains("pack_id=") && fragment.contains("pack_key=") ? .stickerPack : .notAnObject
+        default:
+            break
+        }
+        // 一级路径大小写不敏感地挡在用户名前面（`tell.cc/CALL` 不是用户名）
+        if reservedFirstLevelPaths.contains(firstSegment.lowercased()) {
+            return .reservedPath(firstSegment.lowercased())
+        }
+        if let username = plainUsername(in: url) {
+            return .user(username: username)
+        }
+        return .notAnObject
     }
 
     /// 是不是 Tellomi 自己的形状（`tellomi://…`、`tellomicaptcha://…`、`{https,tellomi}://tell.cc/…`）。
@@ -168,9 +254,6 @@ public enum TellomiLinks {
         return max(1, Int((retryAfter / 86400).rounded(.up)))
     }
 
-    /// tell.cc 的一级路径与预留路径（ADR-0066 §五：都进了用户名保留词）。1–2 位的已被长度规则挡住，列全是为了和 ADR 一一对得上。
-    private static let reservedFirstLevelPaths: Set<String> = ["u", "g", "s", "call", "i", "m", "e", "a", "app", "b"]
-
     /// `{https,tellomi}://tell.cc/u#u/<username>` 或 `{https,tellomi}://tell.cc/<username>` 里的用户名，不是这两种形状返回 nil。
     ///
     /// **返回的总是协议层的完整用户名**（tellomi/tellomi#1106）：裸 nickname 补 `.01`（`tell.cc/kaixin` → `kaixin.01`），
@@ -182,6 +265,7 @@ public enum TellomiLinks {
             if let m = pattern.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
                let r = Range(m.range(at: 1), in: s) {
                 let raw = String(s[r])
+                // 1–2 位的一级路径已被长度规则挡住；3 位以上的（`call`、`app`）在这里显式排除
                 if !raw.contains("."), reservedFirstLevelPaths.contains(raw.lowercased()) {
                     return nil
                 }
