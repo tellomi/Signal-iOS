@@ -449,8 +449,9 @@ extension RegistrationPhoneNumberViewController: RegistrationPhoneNumberInputVie
 ///   首次运行要用弹窗等明显方式提示隐私政策）。
 /// - 只记在本机（文档版本 + 时间）；服务端留存与跨境告知（tellomi/tellomi#1133）一起设计。
 enum TellomiLegalConsent {
-    static let termsURL = URL(string: "https://tellomi.app/legal/terms/")!
-    static let privacyURL = URL(string: "https://tellomi.app/legal/privacy/")!
+    // Tellomi（tellomi/tellomi#1338）：用官网的规范地址（需求第六节 6.3；`tellomi.app/legal/…` 会 301 到 `www`），和 Android、关于页一致。
+    static let termsURL = URL(string: "https://www.tellomi.app/legal/terms/")!
+    static let privacyURL = URL(string: "https://www.tellomi.app/legal/privacy/")!
     /// Tellomi（tellomi/tellomi#1338）：跨境告知底部的《第三方信息共享及 SDK 清单》链接（需求第六节 6.3）。
     static let thirdPartyURL = URL(string: "https://www.tellomi.app/legal/third-party/")!
 

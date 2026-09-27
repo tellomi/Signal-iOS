@@ -95,6 +95,13 @@ final class TellomiCrossBorderNoticeTest: SignalBaseTest {
         XCTAssertFalse(TellomiLegalConsent.hasAgreedToTerms, "勾过 1.0.0 的，号码页的勾选框要重新变成未勾")
     }
 
+    func testLegalLinksUseTheCanonicalWwwAddresses() {
+        // 需求第六节 6.3：PRIVACY_LINK / POLICY_UPDATED_LINK / THIRD_PARTY_LINK 打开 www 下的地址，和 Android、关于页一致。
+        XCTAssertEqual(TellomiLegalConsent.privacyURL.absoluteString, "https://www.tellomi.app/legal/privacy/")
+        XCTAssertEqual(TellomiLegalConsent.termsURL.absoluteString, "https://www.tellomi.app/legal/terms/")
+        XCTAssertEqual(TellomiLegalConsent.thirdPartyURL.absoluteString, "https://www.tellomi.app/legal/third-party/")
+    }
+
     // MARK: - ④ 关联设备只读版
 
     func testLinkedDeviceAcknowledgementRecordsCb1AndLiftsTheGates() async {
