@@ -11458,70 +11458,91 @@
 "TELLOMI_CONSENT_TERMS_LINK" = "《用户服务协议》";
 
 /* Shown on the cross-border notice after the user taps 'Disagree'. */
-"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "不同意的话，在中国大陆服务上线之前您将无法使用 Tellomi，我们也不会发送您的任何信息。您可以退出 App，或者之后回到这一页再同意。";
+"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "不同意的话，App 不会连接任何服务器，也不会发送您的任何信息；在中国大陆服务上线之前，您将无法使用 Tellomi。您可以退出 App，或者之后回到这一页再同意。";
 
 /* Introduction of the cross-border data transfer notice. */
-"TELLOMI_CROSS_BORDER_INTRO" = "注册和使用 Tellomi 时，您的部分个人信息会发送到位于中国大陆境外的服务器处理。请读完下面几项，再决定是否同意。";
+"TELLOMI_CROSS_BORDER_INTRO" = "Tellomi 的服务器位于中国香港，附件等加密数据存放在 Cloudflare 位于北美西部的存储区域。注册和使用 Tellomi，会把您的部分个人信息传输到中国大陆境外处理。请读完下面几项，再决定是否单独同意。同意之前，App 不会连接任何服务器。";
 
 /* Cross-border notice item 9 body: this page is the separate consent and can be withdrawn. */
-"TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "点「同意并继续」即表示您单独同意上述跨境传输。您可以随时撤回；撤回后，在中国大陆服务上线之前将无法继续使用 Tellomi。";
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "点「同意并继续」，即表示您单独同意上述跨境传输；同意《隐私政策》不等于同意跨境传输。您可以随时发邮件至 privacy@tellomi.app 撤回（App 内的撤回入口上线后，也可以在 App 内操作）。现阶段 Tellomi 只能通过境外的服务器提供服务，撤回后，在中国大陆服务上线之前您将无法继续使用 Tellomi，您可以同时注销账号。撤回不影响撤回之前已经进行的处理。";
 
 /* Cross-border notice item 9 title: separate consent. */
-"TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE" = "单独同意";
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE" = "单独同意和撤回";
 
 /* Cross-border notice item 3 body: how to contact the personal information protection team. */
-"TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY" = "个人信息保护相关问题，请发邮件至 privacy@tellomi.app。";
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY" = "个人信息处理者：重庆半格智能科技有限公司。个人信息保护和跨境传输相关问题，请发邮件至 privacy@tellomi.app。";
 
 /* Cross-border notice item 3 title: contact. */
 "TELLOMI_CROSS_BORDER_ITEM_CONTACT_TITLE" = "联系方式";
 
 /* Cross-border notice item 6 body: kinds of personal information transferred. */
-"TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY" = "手机号；账号和设备标识；推送令牌；连接时的 IP 地址等网络信息；加密后的消息、附件和资料（密文）；使用 GIF 搜索时的搜索词。";
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY" = "手机号码；账号和设备标识；公钥；推送令牌（Android 版另有 Firebase 安装标识）；连接时的 IP 地址；用户名的哈希值；人机验证时的浏览器和设备信息；加密的消息、附件、头像、个人资料、群组信息和数据库备份（密文）；您主动提交的调试日志；使用 GIF 搜索时的搜索词。";
 
 /* Cross-border notice item 6 title: kinds of personal information. */
 "TELLOMI_CROSS_BORDER_ITEM_KINDS_TITLE" = "涉及的个人信息";
 
 /* Cross-border notice item 5 body: end-to-end encryption and what is processed in plaintext. */
-"TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY" = "消息正文、个人资料、群信息和附件内容都经过端到端加密，服务器和附件存储里只有密文，我们无法读取。以明文处理的只有注册用的手机号、连接所需的网络信息等少数几项。";
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY" = "消息正文、个人资料、群组信息和附件内容都经过端到端加密，境外的服务器和存储服务里只有密文，Tellomi 和上述接收方都无法读取。以明文处理的只有注册所需的手机号码、账号和设备标识、推送令牌、连接时的 IP 地址等少数几项。\n保存期限：账号数据在账号存续期间保存，注销时删除；等待投递的消息送达后立即删除；附件上传后 50 天删除；服务器的网络请求日志保存 186 天。详见《隐私政策》第二十二节。";
 
 /* Cross-border notice item 5 title: how the data is processed. */
-"TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE" = "处理方式";
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE" = "处理方式和保存期限";
 
-/* Cross-border notice item 8 body: legal procedure for the transfer (pending legal review). */
-"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY" = "我们会依法完成个人信息出境所需的程序，具体方式待法务确认后在这里写明。";
+/* Cross-border notice item 8 body: legal procedure for the transfer. */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY" = "根据《促进和规范数据跨境流动规定》第五条第（四）项，关键信息基础设施运营者以外的个人信息处理者，自当年 1 月 1 日起累计向境外提供不满 10 万人个人信息（不含敏感个人信息）的，免予申报数据出境安全评估、订立个人信息出境标准合同和通过个人信息保护认证。Tellomi 目前属于这一情形；人数接近上述标准时，我们将依法办理。免予这些程序，不影响我们告知您、取得您的单独同意和开展个人信息保护影响评估的义务。";
 
 /* Cross-border notice item 8 title: legal procedure for the transfer. */
 "TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_TITLE" = "出境的法定程序";
 
 /* Cross-border notice item 4 body: purposes of processing. */
-"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY" = "注册和登录；投递和暂存消息与附件；推送通知；接通语音和视频通话；GIF 搜索。";
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY" = "注册和登录（含人机验证）；投递和暂存消息；存放附件、头像和数据库备份；接通语音和视频通话（含通话中继）；推送通知；域名解析；GIF 搜索；保存您主动提交的调试日志。";
 
 /* Cross-border notice item 4 title: purposes of processing. */
 "TELLOMI_CROSS_BORDER_ITEM_PURPOSE_TITLE" = "处理目的";
 
 /* Cross-border notice item 2 body: who receives the data outside mainland China. */
-"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY" = "Tellomi 在香港部署的服务，以及为我们提供基础设施的阿里云（香港）、Cloudflare, Inc.（附件存储、通话中继）、Apple（iOS 推送通知）；使用 GIF 搜索时，搜索词经我们的代理发给 GIPHY。";
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY" = "· 重庆半格智能科技有限公司部署在香港的 Tellomi 服务端（中国香港）\n· 阿里云计算有限公司：为上述服务端提供云服务器（中国香港数据中心）\n· Cloudflare, Inc.（美国）：存放附件、头像、数据库备份和调试日志；通话中继；注册时的人机验证；域名解析\n· Apple Inc.（美国）：推送通知（APNs）\n· GIPHY, Inc.（美国）：仅在您使用 GIF 搜索时，经我们在香港的代理收到搜索词，看不到您的 IP 地址";
 
 /* Cross-border notice item 2 title: overseas recipients. */
 "TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_TITLE" = "境外接收方";
 
 /* Cross-border notice item 7 body: how to exercise personal information rights. */
-"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY" = "您可以按《隐私政策》第二十六、二十七节的方式查阅、更正、删除个人信息，注销账号，或者撤回本同意；也可以发邮件至 privacy@tellomi.app。";
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY" = "您可以按《隐私政策》第二十六、二十七节的方式查阅、复制、更正、删除您的个人信息，注销账号，或者撤回本同意。境外接收方处理的个人信息，也可以发邮件至 privacy@tellomi.app，由我们负责处理并协调相应接收方。";
 
 /* Cross-border notice item 7 title: your rights. */
 "TELLOMI_CROSS_BORDER_ITEM_RIGHTS_TITLE" = "您的权利";
 
 /* Cross-border notice item 1 body: where servers and storage are located. */
-"TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY" = "是。Tellomi 的服务器在香港；附件存放在 Cloudflare R2，存储节点可能不在中国大陆。";
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY" = "是。Tellomi 的服务端部署在阿里云位于中国香港的数据中心；附件、头像和服务端数据库备份存放在 Cloudflare R2（存储区域：北美西部）。您的聊天记录保存在您自己的设备上，不保存在服务器上。";
 
 /* Cross-border notice item 1 title: whether data leaves mainland China. */
 "TELLOMI_CROSS_BORDER_ITEM_WHERE_TITLE" = "是否出境";
 
+/* Only button on the read-only cross-border notice shown when linking this device: acknowledge the notice. */
+"TELLOMI_CROSS_BORDER_LINKED_ACK" = "知道了";
+
+/* Introduction of the read-only cross-border notice shown when linking this device to an existing account. */
+"TELLOMI_CROSS_BORDER_LINKED_INTRO" = "这台设备将关联到您的 Tellomi 账号。个人信息跨境传输的单独同意在您的手机上取得，这台设备不再另行询问；下面是同一份告知，供您了解。关联之后，这台设备上的信息也按下面的方式处理。";
+
+/* Cross-border notice item 9 body on the read-only version shown when linking this device: consent is given on the phone. */
+"TELLOMI_CROSS_BORDER_LINKED_ITEM_CONSENT_BODY" = "上述跨境传输的单独同意在您的手机上取得，这台设备不另行收集。您可以随时发邮件至 privacy@tellomi.app 撤回；撤回后，在中国大陆服务上线之前您将无法继续使用 Tellomi。";
+
+/* Title of the read-only cross-border notice shown when linking this device to an existing account. */
+"TELLOMI_CROSS_BORDER_LINKED_TITLE" = "关联设备前请了解：个人信息跨境传输";
+
+/* Shown above the introduction of the cross-border notice that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0. */
+"TELLOMI_CROSS_BORDER_POLICY_UPDATED" = "《隐私政策》已更新至 2.0.0 版：消息、通话、附件、个人资料和群组信息都是端到端加密的；同时写明了服务器位于中国香港，以及本页所说的个人信息跨境传输。";
+
+/* Link under the 'Privacy Policy updated' sentence on the cross-border notice for already-registered devices; opens the Privacy Policy. */
+"TELLOMI_CROSS_BORDER_POLICY_UPDATED_LINK" = "查看《隐私政策》2.0.0";
+
 /* Link at the bottom of the cross-border notice that opens the Privacy Policy sections about storage location and cross-border transfer. */
 "TELLOMI_CROSS_BORDER_PRIVACY_LINK" = "查看《隐私政策》第二十、二十一节";
 
+/* Link at the bottom of the cross-border notice that opens the Third-Party Sharing and SDK List. */
+"TELLOMI_CROSS_BORDER_THIRD_PARTY_LINK" = "查看《第三方信息共享及 SDK 清单》";
+
 /* Title of the cross-border data transfer notice shown before the phone number is sent during registration. */
-"TELLOMI_CROSS_BORDER_TITLE" = "您的信息将传输到中国大陆境外（香港）处理";
+"TELLOMI_CROSS_BORDER_TITLE" = "您的个人信息将传输到中国大陆境外处理";
 
 /* Button in the first-launch privacy notice: agree. */
 "TELLOMI_FIRST_LAUNCH_AGREE" = "同意";

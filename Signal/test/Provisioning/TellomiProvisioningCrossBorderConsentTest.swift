@@ -12,7 +12,8 @@ import XCTest
 /// 不经过 `OWSChatConnection`、`OWSURLSession` 这两道跨境闸。iPad 未注册启动、`.relinking`、
 /// 号码页「关联此设备」三条路都不经过注册欢迎页，最后都到这一页，所以跨境告知要在这一页出：
 /// 没同意不开 socket；页面出现时先出告知；同意之后再开。
-/// iPad 转移选择页「转移」推的 `BaseQuickRestoreQRCodeViewController` 也开同样的 socket（每次出现都 reset），同一条规矩。
+/// Tellomi（tellomi/tellomi#1338）：这一页出的是**只读版**（需求第六节 ④：同一份 9 项、一个「知道了」，点了在本机记下 `cb-1`、放开网络）。
+/// iPad 转移选择页「转移」推的 `BaseQuickRestoreQRCodeViewController` 也开同样的 socket（每次出现都 reset），同一条规矩（完整同意）。
 @MainActor
 final class TellomiProvisioningCrossBorderConsentTest: SignalBaseTest {
 
@@ -73,6 +74,7 @@ final class TellomiProvisioningCrossBorderConsentTest: SignalBaseTest {
         let defaults = CurrentAppContext().appUserDefaults()
         defaults.removeObject(forKey: "TellomiCrossBorderConsent.version")
         defaults.removeObject(forKey: "TellomiCrossBorderConsent.date")
+        defaults.removeObject(forKey: "TellomiCrossBorderConsent.linkedDeviceAcknowledgementOnly")
     }
 
     private func makeQRCodeScreen(socketManager: SocketManagerSpy) -> QRCodeScreen {
@@ -122,7 +124,7 @@ final class TellomiProvisioningCrossBorderConsentTest: SignalBaseTest {
         )
     }
 
-    func testQRCodeScreenShowsCrossBorderNoticeAndOpensSocketOnlyAfterAgreeing() throws {
+    func testQRCodeScreenShowsReadOnlyCrossBorderNoticeAndOpensSocketOnlyAfterAcknowledging() throws {
         XCTAssertFalse(TellomiCrossBorderConsent.hasAgreed, "前提：还没同意跨境")
         let socketManager = SocketManagerSpy()
         let screen = makeQRCodeScreen(socketManager: socketManager)
@@ -132,15 +134,17 @@ final class TellomiProvisioningCrossBorderConsentTest: SignalBaseTest {
 
         XCTAssertEqual(screen.presentedControllers.count, 1, "二维码页出现时要先出跨境告知")
         let notice = try XCTUnwrap(screen.presentedControllers.first as? TellomiCrossBorderNoticeViewController)
+        XCTAssertEqual(notice.mode, .linkedDevice, "关联设备出只读版（第六节 ④）")
         disappear(screen)
-        XCTAssertEqual(socketManager.startCount, 0, "告知还没同意，socket 不许开")
+        XCTAssertEqual(socketManager.startCount, 0, "告知还没点「知道了」，socket 不许开")
 
         notice.loadViewIfNeeded()
-        let agreeButton = try XCTUnwrap(button(identifier: "tellomi.crossBorder.agree", in: notice.view))
-        agreeButton.sendActions(for: .primaryActionTriggered)
+        XCTAssertNil(button(identifier: "tellomi.crossBorder.agree", in: notice.view), "只读版没有「同意并继续」")
+        let ackButton = try XCTUnwrap(button(identifier: "tellomi.crossBorder.linkedAck", in: notice.view))
+        ackButton.sendActions(for: .primaryActionTriggered)
 
-        XCTAssertTrue(TellomiCrossBorderConsent.hasAgreed)
-        XCTAssertEqual(socketManager.startCount, 1, "同意之后要开 socket、出二维码")
+        XCTAssertTrue(TellomiCrossBorderConsent.hasAgreed, "「知道了」和同意一样记下 cb-1、放开网络")
+        XCTAssertEqual(socketManager.startCount, 1, "点了「知道了」之后要开 socket、出二维码")
 
         // 告知关掉后二维码页再出现一次：不许再弹告知，也不多开 socket。
         appear(screen)
@@ -174,7 +178,8 @@ final class TellomiProvisioningCrossBorderConsentTest: SignalBaseTest {
         XCTAssertEqual(socketManager.resetCount, 0, "没同意跨境，iPad「转移」页一出现就 reset() 了")
         XCTAssertEqual(socketManager.startCount, 0, "没同意跨境就开了 provisioning socket")
         XCTAssertEqual(screen.presentedControllers.count, 1, "iPad「转移」页出现时要先出跨境告知")
-        XCTAssertTrue(screen.presentedControllers.first is TellomiCrossBorderNoticeViewController)
+        let notice = screen.presentedControllers.first as? TellomiCrossBorderNoticeViewController
+        XCTAssertEqual(notice?.mode, .consent, "「转移」不是「关联设备」这条路，保留完整同意")
     }
 
     /// 真机上告知是全屏的，关掉时本页还会再走一次 viewDidAppear（照上游每次出现都 reset）；这里截了 present，只看 onAgree 这一次。

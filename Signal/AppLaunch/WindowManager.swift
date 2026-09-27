@@ -206,9 +206,15 @@ class WindowManager: TellomiUpdateRequiredBlockHost {
         window.isHidden = true
         window.isOpaque = true
         window.backgroundColor = Theme.launchScreenBackgroundColor
-        window.rootViewController = TellomiCrossBorderNoticeViewController(onAgree: {})
+        window.rootViewController = Self.makeCrossBorderConsentBlockingViewController()
         return window
     }()
+
+    /// Tellomi（tellomi/tellomi#1338）：已注册设备升级后的盖页 = 完整同意 + 导语上方「隐私政策已更新至 2.0.0」（需求第六节法务项 c）。
+    /// 拆成静态方法，是为了用例能走这里真的接线（同 `makeUpdateRequiredBlockingViewController`）。
+    static func makeCrossBorderConsentBlockingViewController() -> TellomiCrossBorderNoticeViewController {
+        return TellomiCrossBorderNoticeViewController(mode: .consentAfterPolicyUpdate, onAgree: {})
+    }
 
     // UIWindow.Level._background if inactive,
     // UIWindow.Level._screenBlocking() if active.
@@ -715,6 +721,7 @@ private func workAroundRotationIssue(_ window: UIWindow) {
 /// - 号码页「下一步」（发号码之前）；
 /// - 欢迎页「恢复或转移账户」和 iPad 的「切换到关联」；
 /// - 关联设备的二维码页 `ProvisioningQRCodeViewController`：iPad 未注册启动、`.relinking`、号码页菜单「关联此设备」都到这一页；
+///   关联设备的两处（iPad「切换到关联」和这一页）出的是只读版（tellomi/tellomi#1338，需求第六节 ④）；
 /// - 快速恢复 / 转移的二维码页 `BaseQuickRestoreQRCodeViewController`：iPad 转移选择页「转移」，以及注册流程续跑到扫码那一步。
 /// provisioning socket 是 libsignal 直连、不经过两道闸，`ProvisioningSocketManager.openNewProvisioningSocket()` 另有一道闸兜底。
 class TellomiCrossBorderConsentMonitoringManager {

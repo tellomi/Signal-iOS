@@ -250,15 +250,18 @@ public final class AppExpiry {
 /// 失败时报的是 `OWSHTTPError.networkFailure(.genericFailure)`（和「没网」一样），各处本来就会按没网处理、稍后重试，
 /// 不会走到只在 Debug 构建里崩的 `owsFailDebug`。
 /// 实测：全新安装启动 11 秒内就连了 grpc.chat.tellomi.app（未注册连接），用户什么都还没同意（#1133 的评论）。
-/// 记录放在 App Group 的 UserDefaults，通知扩展也读得到。**告知文字是草稿**，版本号等 #1132 定稿后对齐 `docs/legal/manifest.json`。
+/// 记录放在 App Group 的 UserDefaults，通知扩展也读得到。
 public enum TellomiCrossBorderConsent {
     /// 告知文本的版本。文本有实质变化就改这里，已经同意过的人会被重新询问（同意前网络也会重新关上）。
-    public static let noticeVersion = "0.1.0-draft"
+    /// Tellomi（tellomi/tellomi#1338）：定稿后是独立的 `cb-1`，不跟隐私政策版本走（隐私政策 2.0.0 第 21.7 节：只有实质变化才重新征得同意）；
+    /// `docs/legal/manifest.json` 的 `notices` 里登记 `cross-border` = `cb-1` ↔ 隐私政策 `2.0.0`，改版时和 Android、Desktop 的常量一起改。
+    public static let noticeVersion = "cb-1"
 
     public static let didChangeNotification = Notification.Name("TellomiCrossBorderConsentDidChange")
 
     private static let versionKey = "TellomiCrossBorderConsent.version"
     private static let dateKey = "TellomiCrossBorderConsent.date"
+    private static let linkedDeviceAcknowledgementOnlyKey = "TellomiCrossBorderConsent.linkedDeviceAcknowledgementOnly"
 
     public static var hasAgreed: Bool {
         CurrentAppContext().appUserDefaults().string(forKey: versionKey) == noticeVersion
@@ -269,11 +272,28 @@ public enum TellomiCrossBorderConsent {
         !CurrentAppContext().isRunningTests && !hasAgreed
     }
 
+    /// Tellomi（tellomi/tellomi#1338）：这台设备自己点过「同意并继续」，而不只是关联设备时点的「知道了」。
+    /// 只读版写的是「同意在您的手机上取得」，所以这台设备要是改走主设备注册（发号码、恢复 / 转移），仍要完整同意一次。
+    public static var hasGivenSeparateConsent: Bool {
+        hasAgreed && !CurrentAppContext().appUserDefaults().bool(forKey: linkedDeviceAcknowledgementOnlyKey)
+    }
+
     /// 本机记一份（版本 + 时间），然后放开网络。服务端的最小记录点由 taishi 设计（tellomi/tellomi#1133）。
     public static func recordAgreement() {
+        record(linkedDeviceAcknowledgementOnly: false)
+    }
+
+    /// Tellomi（tellomi/tellomi#1338，需求第六节 ④）：关联设备只读版的「知道了」。和同意一样在本机记下 `noticeVersion`、放开网络
+    /// （主设备的同意覆盖同一账号，关联设备不另行收集），另记一笔「只是知悉」，给 `hasGivenSeparateConsent` 用。
+    public static func recordLinkedDeviceAcknowledgement() {
+        record(linkedDeviceAcknowledgementOnly: true)
+    }
+
+    private static func record(linkedDeviceAcknowledgementOnly: Bool) {
         let defaults = CurrentAppContext().appUserDefaults()
         defaults.set(noticeVersion, forKey: versionKey)
         defaults.set(Date(), forKey: dateKey)
+        defaults.set(linkedDeviceAcknowledgementOnly, forKey: linkedDeviceAcknowledgementOnlyKey)
         NotificationCenter.default.postOnMainThread(name: didChangeNotification, object: nil)
     }
 }

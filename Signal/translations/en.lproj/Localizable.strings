@@ -11458,70 +11458,91 @@
 "TELLOMI_CONSENT_TERMS_LINK" = "Terms of Service";
 
 /* Shown on the cross-border notice after the user taps 'Disagree'. */
-"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "If you don’t agree, you won’t be able to use Tellomi until our mainland China service launches, and we won’t send any of your information. You can close the app, or come back to this page and agree later.";
+"TELLOMI_CROSS_BORDER_DISAGREE_HINT" = "If you don’t agree, the app won’t connect to any server or send any of your information, and you won’t be able to use Tellomi until our mainland China service launches. You can close the app, or come back to this page and agree later.";
 
 /* Introduction of the cross-border data transfer notice. */
-"TELLOMI_CROSS_BORDER_INTRO" = "When you sign up for and use Tellomi, some of your personal information is sent to servers located outside mainland China. Please read the points below before deciding whether to agree.";
+"TELLOMI_CROSS_BORDER_INTRO" = "Tellomi’s servers are in Hong Kong, China, and encrypted data such as attachments is stored with Cloudflare in western North America. Signing up for and using Tellomi transfers some of your personal information outside mainland China. Please read the points below before deciding whether to give your separate consent. Until you agree, the app won’t connect to any server.";
 
 /* Cross-border notice item 9 body: this page is the separate consent and can be withdrawn. */
-"TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "Tapping “Agree and Continue” means you separately consent to the transfer described above. You can withdraw at any time; after withdrawing, you won’t be able to keep using Tellomi until our mainland China service launches.";
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY" = "Tapping “Agree and Continue” means you separately consent to the transfer described above; agreeing to the Privacy Policy is not the same as consenting to this transfer. You can withdraw at any time by emailing privacy@tellomi.app (or in the app once that option is available). Because Tellomi can currently only be provided through servers outside mainland China, after withdrawing you won’t be able to keep using Tellomi until our mainland China service launches; you can also delete your account. Withdrawing doesn’t affect processing carried out before it.";
 
 /* Cross-border notice item 9 title: separate consent. */
-"TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE" = "Separate consent";
+"TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE" = "Separate consent and withdrawal";
 
 /* Cross-border notice item 3 body: how to contact the personal information protection team. */
-"TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY" = "For questions about personal information protection, email privacy@tellomi.app.";
+"TELLOMI_CROSS_BORDER_ITEM_CONTACT_BODY" = "Personal information handler: Chongqing Bange Intelligent Technology Co., Ltd. For questions about personal information protection or this transfer, email privacy@tellomi.app.";
 
 /* Cross-border notice item 3 title: contact. */
 "TELLOMI_CROSS_BORDER_ITEM_CONTACT_TITLE" = "Contact";
 
 /* Cross-border notice item 6 body: kinds of personal information transferred. */
-"TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY" = "Phone number; account and device identifiers; push tokens; network information such as your IP address when connecting; encrypted messages, attachments and profiles (ciphertext); search terms when you use GIF search.";
+"TELLOMI_CROSS_BORDER_ITEM_KINDS_BODY" = "Phone number; account and device identifiers; public keys; push tokens (plus the Firebase installation ID on Android); IP address when connecting; hash of your username; browser and device information during human verification; encrypted messages, attachments, profile photos, profiles, group information and database backups (ciphertext); debug logs you choose to submit; search terms when you use GIF search.";
 
 /* Cross-border notice item 6 title: kinds of personal information. */
 "TELLOMI_CROSS_BORDER_ITEM_KINDS_TITLE" = "Personal information involved";
 
 /* Cross-border notice item 5 body: end-to-end encryption and what is processed in plaintext. */
-"TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY" = "Message content, profiles, group information and attachments are end-to-end encrypted. Our servers and attachment storage only hold ciphertext we can’t read. Only a few items are processed in plaintext, such as the phone number you sign up with and the network information needed to connect.";
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_BODY" = "Message content, profiles, group information and attachments are end-to-end encrypted. The servers and storage outside mainland China only hold ciphertext that neither Tellomi nor the recipients above can read. Only a few items are processed in plaintext, such as your phone number, account and device identifiers, push tokens and your IP address when connecting.\nRetention: account data is kept while your account exists and deleted when you delete your account; messages waiting for delivery are deleted as soon as they’re delivered; attachments are deleted 50 days after upload; server request logs are kept for 186 days. See section 22 of the Privacy Policy.";
 
 /* Cross-border notice item 5 title: how the data is processed. */
-"TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE" = "How it’s processed";
+"TELLOMI_CROSS_BORDER_ITEM_METHOD_TITLE" = "How it’s processed and how long it’s kept";
 
-/* Cross-border notice item 8 body: legal procedure for the transfer (pending legal review). */
-"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY" = "We’ll complete the procedures required by law for transferring personal information abroad. The specific procedure will be stated here once confirmed by our legal team.";
+/* Cross-border notice item 8 body: legal procedure for the transfer. */
+"TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY" = "Under Article 5(4) of the Provisions on Promoting and Regulating Cross-Border Data Flows, a personal information handler other than a critical information infrastructure operator that has provided the personal information of fewer than 100,000 people (excluding sensitive personal information) outside mainland China since January 1 of the current year is exempt from the data export security assessment, the standard contract and personal information protection certification. Tellomi currently falls into this category; as the number approaches this threshold, we’ll complete the required procedure. The exemption doesn’t change our duties to inform you, obtain your separate consent and carry out a personal information protection impact assessment.";
 
 /* Cross-border notice item 8 title: legal procedure for the transfer. */
 "TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_TITLE" = "Legal procedure for the transfer";
 
 /* Cross-border notice item 4 body: purposes of processing. */
-"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY" = "Signing up and signing in; delivering and temporarily storing messages and attachments; push notifications; connecting voice and video calls; GIF search.";
+"TELLOMI_CROSS_BORDER_ITEM_PURPOSE_BODY" = "Signing up and signing in (including human verification); delivering and temporarily storing messages; storing attachments, profile photos and database backups; connecting voice and video calls (including call relay); push notifications; DNS; GIF search; keeping debug logs you choose to submit.";
 
 /* Cross-border notice item 4 title: purposes of processing. */
 "TELLOMI_CROSS_BORDER_ITEM_PURPOSE_TITLE" = "Purposes";
 
 /* Cross-border notice item 2 body: who receives the data outside mainland China. */
-"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY" = "Tellomi’s services deployed in Hong Kong, and our infrastructure providers Alibaba Cloud (Hong Kong), Cloudflare, Inc. (attachment storage, call relay) and Apple (iOS push notifications). When you use GIF search, your search terms are sent to GIPHY through our proxy.";
+"TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_BODY" = "· Tellomi’s servers in Hong Kong, operated by Chongqing Bange Intelligent Technology Co., Ltd. (Hong Kong, China)\n· Alibaba Cloud Computing Co., Ltd.: cloud servers for the above (Hong Kong data center)\n· Cloudflare, Inc. (United States): storage of attachments, profile photos, database backups and debug logs; call relay; human verification at sign-up; DNS\n· Apple Inc. (United States): push notifications (APNs)\n· GIPHY, Inc. (United States): only when you use GIF search; receives your search terms through our Hong Kong proxy and can’t see your IP address";
 
 /* Cross-border notice item 2 title: overseas recipients. */
 "TELLOMI_CROSS_BORDER_ITEM_RECIPIENTS_TITLE" = "Recipients outside mainland China";
 
 /* Cross-border notice item 7 body: how to exercise personal information rights. */
-"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY" = "You can access, correct or delete your personal information, delete your account, or withdraw this consent as described in sections 26 and 27 of the Privacy Policy, or by emailing privacy@tellomi.app.";
+"TELLOMI_CROSS_BORDER_ITEM_RIGHTS_BODY" = "You can access, copy, correct or delete your personal information, delete your account, or withdraw this consent as described in sections 26 and 27 of the Privacy Policy. For personal information processed by the recipients outside mainland China, you can also email privacy@tellomi.app, and we’ll handle it and coordinate with the recipient.";
 
 /* Cross-border notice item 7 title: your rights. */
 "TELLOMI_CROSS_BORDER_ITEM_RIGHTS_TITLE" = "Your rights";
 
 /* Cross-border notice item 1 body: where servers and storage are located. */
-"TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY" = "Yes. Tellomi’s servers are in Hong Kong, and attachments are stored in Cloudflare R2, whose storage locations may be outside mainland China.";
+"TELLOMI_CROSS_BORDER_ITEM_WHERE_BODY" = "Yes. Tellomi’s servers run in Alibaba Cloud’s data center in Hong Kong, China. Attachments, profile photos and server database backups are stored in Cloudflare R2 (storage region: western North America). Your chat history stays on your own devices, not on our servers.";
 
 /* Cross-border notice item 1 title: whether data leaves mainland China. */
 "TELLOMI_CROSS_BORDER_ITEM_WHERE_TITLE" = "Does my information leave mainland China?";
 
+/* Only button on the read-only cross-border notice shown when linking this device: acknowledge the notice. */
+"TELLOMI_CROSS_BORDER_LINKED_ACK" = "Got It";
+
+/* Introduction of the read-only cross-border notice shown when linking this device to an existing account. */
+"TELLOMI_CROSS_BORDER_LINKED_INTRO" = "This device is about to be linked to your Tellomi account. Separate consent to the cross-border transfer is given on your phone, so this device won’t ask for it again. Below is the same notice for your reference. After linking, information on this device is processed in the same way.";
+
+/* Cross-border notice item 9 body on the read-only version shown when linking this device: consent is given on the phone. */
+"TELLOMI_CROSS_BORDER_LINKED_ITEM_CONSENT_BODY" = "Separate consent to the transfer above is given on your phone; this device doesn’t collect it again. You can withdraw at any time by emailing privacy@tellomi.app; after withdrawing, you won’t be able to keep using Tellomi until our mainland China service launches.";
+
+/* Title of the read-only cross-border notice shown when linking this device to an existing account. */
+"TELLOMI_CROSS_BORDER_LINKED_TITLE" = "Before you link this device: cross-border transfer of personal information";
+
+/* Shown above the introduction of the cross-border notice that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0. */
+"TELLOMI_CROSS_BORDER_POLICY_UPDATED" = "Our Privacy Policy has been updated to version 2.0.0: messages, calls, attachments, profiles and group information are end-to-end encrypted, and it now states that our servers are in Hong Kong, China, and describes the cross-border transfer on this page.";
+
+/* Link under the 'Privacy Policy updated' sentence on the cross-border notice for already-registered devices; opens the Privacy Policy. */
+"TELLOMI_CROSS_BORDER_POLICY_UPDATED_LINK" = "Read Privacy Policy 2.0.0";
+
 /* Link at the bottom of the cross-border notice that opens the Privacy Policy sections about storage location and cross-border transfer. */
 "TELLOMI_CROSS_BORDER_PRIVACY_LINK" = "Read sections 20 and 21 of the Privacy Policy";
 
+/* Link at the bottom of the cross-border notice that opens the Third-Party Sharing and SDK List. */
+"TELLOMI_CROSS_BORDER_THIRD_PARTY_LINK" = "Read the Third-Party Sharing and SDK List";
+
 /* Title of the cross-border data transfer notice shown before the phone number is sent during registration. */
-"TELLOMI_CROSS_BORDER_TITLE" = "Your information will be processed outside mainland China (Hong Kong)";
+"TELLOMI_CROSS_BORDER_TITLE" = "Your personal information will be processed outside mainland China";
 
 /* Button in the first-launch privacy notice: agree. */
 "TELLOMI_FIRST_LAUNCH_AGREE" = "Agree";
