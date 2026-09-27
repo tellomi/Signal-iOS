@@ -64,8 +64,9 @@ class ProvisioningQRCodeViewController: ProvisioningBaseViewController, Provisio
         super.viewDidAppear(animated)
         // Tellomi（tellomi/tellomi#1133）：iPad 未注册启动、`.relinking`、号码页「关联此设备」都不经过注册欢迎页，
         // 最后都到这一页。关联要连服务端（provisioning socket + verifySecondaryDevice），没同意跨境就在这里先出告知。
+        // Tellomi（tellomi/tellomi#1338）：关联设备出只读版（同意在手机上取得），点「知道了」和同意一样记下告知版本、放开网络。
         guard !TellomiCrossBorderConsent.hasAgreed else { return }
-        presentTellomiCrossBorderNotice { [weak self] in self?.reset() }
+        presentTellomiCrossBorderNotice(mode: .linkedDevice) { [weak self] in self?.reset() }
     }
 
     override func viewWillDisappear(_ animated: Bool) {

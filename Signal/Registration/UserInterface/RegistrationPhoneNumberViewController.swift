@@ -401,7 +401,8 @@ class RegistrationPhoneNumberViewController: OWSViewController {
 
         // Tellomi：跨境单独告知与同意（tellomi/tellomi#1133）。手机号是第一条发往境外（香港）服务端的个人信息，
         // 所以这一页排在协议同意之后、发出号码之前；同意过同一版本就不再出现。
-        guard TellomiCrossBorderConsent.hasAgreed else {
+        // Tellomi（tellomi/tellomi#1338）：关联设备的只读版「知道了」不算——那一页说的是「同意在手机上取得」，这里是主设备注册。
+        guard TellomiCrossBorderConsent.hasGivenSeparateConsent else {
             presentTellomiCrossBorderNotice { [weak self] in
                 self?.goToNextStep()
             }
@@ -450,10 +451,12 @@ extension RegistrationPhoneNumberViewController: RegistrationPhoneNumberInputVie
 enum TellomiLegalConsent {
     static let termsURL = URL(string: "https://tellomi.app/legal/terms/")!
     static let privacyURL = URL(string: "https://tellomi.app/legal/privacy/")!
+    /// Tellomi（tellomi/tellomi#1338）：跨境告知底部的《第三方信息共享及 SDK 清单》链接（需求第六节 6.3）。
+    static let thirdPartyURL = URL(string: "https://www.tellomi.app/legal/third-party/")!
 
-    /// 《用户服务协议》《隐私政策》的版本（1.0.0，2026-09-11 生效）。
-    /// 文本改版时改这里：记下的版本对不上，就会重新要求同意。
-    static let documentsVersion = "1.0.0"
+    /// 《用户服务协议》《隐私政策》的版本。文本改版时改这里：记下的版本对不上，就会重新要求同意。
+    /// Tellomi（tellomi/tellomi#1338）：2.0.0（需求第六节 ①；生效日期以官网发布为准）。1.0.0 是 2026-09-11 生效的那一版。
+    static let documentsVersion = "2.0.0"
 
     private static let termsKey = "TellomiLegalConsent.termsAndPrivacy.version"
     private static let termsDateKey = "TellomiLegalConsent.termsAndPrivacy.date"
@@ -814,13 +817,26 @@ extension UIViewController {
 // 跨境同意的记录和网络闸在 SignalServiceKit（`AppExpiry.swift` 末尾的 `TellomiCrossBorderConsent`）：
 // 同意之前聊天连接不开、URLSession 请求直接失败，这一页只负责告知和取得同意。
 
-/// 独立一页：标题 + 9 项 + 隐私政策链接 + 两个同样醒目的按钮。不预选、不倒计时、不默认聚焦「同意」。
+/// 独立一页：标题 + 9 项 + 隐私政策 / 第三方清单链接 + 两个同样醒目的按钮。不预选、不倒计时、不默认聚焦「同意」。
 /// 「不同意」留在这一页，说明后果；不发送任何信息。
 final class TellomiCrossBorderNoticeViewController: OWSViewController {
+    /// Tellomi（tellomi/tellomi#1338）：同一份 9 项告知的三种用法（需求第六节 6.3）。
+    enum Mode {
+        /// 新用户注册、恢复 / 转移：完整同意。
+        case consent
+        /// 已注册设备升级后的盖页：完整同意，导语上方加「隐私政策已更新至 2.0.0」和链接（法务项 c）。
+        case consentAfterPolicyUpdate
+        /// 关联设备：只读。标题、导语、第 9 项正文换成只读版，只有一个「知道了」；点了和同意一样在本机记下告知版本（第六节 ④）。
+        case linkedDevice
+    }
+
+    let mode: Mode
+
     private let onAgree: () -> Void
     private let disagreeHintLabel = UILabel()
 
-    init(onAgree: @escaping () -> Void) {
+    init(mode: Mode = .consent, onAgree: @escaping () -> Void) {
+        self.mode = mode
         self.onAgree = onAgree
         super.init()
         modalPresentationStyle = .fullScreen
@@ -830,8 +846,13 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
         super.viewDidLoad()
         view.backgroundColor = .Signal.background
 
+        let isLinkedDevice = mode == .linkedDevice
+
         let titleLabel = UILabel()
-        titleLabel.text = OWSLocalizedString(
+        titleLabel.text = isLinkedDevice ? OWSLocalizedString(
+            "TELLOMI_CROSS_BORDER_LINKED_TITLE",
+            comment: "Title of the read-only cross-border notice shown when linking this device to an existing account.",
+        ) : OWSLocalizedString(
             "TELLOMI_CROSS_BORDER_TITLE",
             comment: "Title of the cross-border data transfer notice shown before the phone number is sent during registration.",
         )
@@ -840,35 +861,47 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
         titleLabel.numberOfLines = 0
         titleLabel.accessibilityTraits.insert(.header)
 
-        let introLabel = Self.bodyLabel(OWSLocalizedString(
+        let introLabel = Self.bodyLabel(isLinkedDevice ? OWSLocalizedString(
+            "TELLOMI_CROSS_BORDER_LINKED_INTRO",
+            comment: "Introduction of the read-only cross-border notice shown when linking this device to an existing account.",
+        ) : OWSLocalizedString(
             "TELLOMI_CROSS_BORDER_INTRO",
             comment: "Introduction of the cross-border data transfer notice.",
         ))
 
-        var arrangedSubviews: [UIView] = [titleLabel, introLabel]
-        arrangedSubviews += Self.items().map { Self.itemView(title: $0.title, body: $0.body) }
+        var arrangedSubviews: [UIView] = [titleLabel]
+        // 法务项 c：已注册设备升级后的盖页就是隐私政策第三十二节的「以显著方式提示」，不再另弹一次。
+        let policyUpdatedView = mode == .consentAfterPolicyUpdate ? makePolicyUpdatedView() : nil
+        if let policyUpdatedView {
+            arrangedSubviews.append(policyUpdatedView)
+        }
+        arrangedSubviews.append(introLabel)
+        arrangedSubviews += Self.items(linkedDevice: isLinkedDevice).map { Self.itemView(title: $0.title, body: $0.body) }
 
-        let privacyButton = UIButton(
-            configuration: .smallBorderless(title: OWSLocalizedString(
+        let privacyButton = makeLinkButton(
+            title: OWSLocalizedString(
                 "TELLOMI_CROSS_BORDER_PRIVACY_LINK",
                 comment: "Link at the bottom of the cross-border notice that opens the Privacy Policy sections about storage location and cross-border transfer.",
-            )),
-            primaryAction: UIAction { [weak self] _ in
-                self?.present(SFSafariViewController(url: TellomiLegalConsent.privacyURL), animated: true)
-            },
+            ),
+            url: TellomiLegalConsent.privacyURL,
+            accessibilityIdentifier: "tellomi.crossBorder.privacyLink",
         )
-        privacyButton.contentHorizontalAlignment = .leading
-        // 去掉按钮自带的左右内边距，让链接和上面的正文左对齐。
-        privacyButton.configuration?.contentInsets.leading = 0
-        privacyButton.configuration?.contentInsets.trailing = 0
-        privacyButton.accessibilityTraits.insert(.link)
         arrangedSubviews.append(privacyButton)
+        arrangedSubviews.append(makeLinkButton(
+            title: OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_THIRD_PARTY_LINK",
+                comment: "Link at the bottom of the cross-border notice that opens the Third-Party Sharing and SDK List.",
+            ),
+            url: TellomiLegalConsent.thirdPartyURL,
+            accessibilityIdentifier: "tellomi.crossBorder.thirdPartyLink",
+        ))
 
         let contentStack = UIStackView(arrangedSubviews: arrangedSubviews)
         contentStack.axis = .vertical
         contentStack.spacing = 16
-        contentStack.setCustomSpacing(8, after: titleLabel)
+        contentStack.setCustomSpacing(policyUpdatedView == nil ? 8 : 16, after: titleLabel)
         contentStack.setCustomSpacing(24, after: introLabel)
+        contentStack.setCustomSpacing(0, after: privacyButton)
 
         let scrollView = UIScrollView()
         scrollView.alwaysBounceVertical = true
@@ -909,7 +942,8 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
         buttonRow.distribution = .fillEqually
         buttonRow.spacing = 12
 
-        let footer = UIStackView(arrangedSubviews: [disagreeHintLabel, buttonRow])
+        // Tellomi（tellomi/tellomi#1338）：关联设备只读版只有一个「知道了」，没有「不同意」「同意并继续」。
+        let footer = UIStackView(arrangedSubviews: isLinkedDevice ? [makeLinkedDeviceAckButton()] : [disagreeHintLabel, buttonRow])
         footer.axis = .vertical
         footer.spacing = 12
 
@@ -936,8 +970,78 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
         ])
     }
 
+    /// Tellomi（tellomi/tellomi#1338）：关联设备只读版唯一的按钮「知道了」（需求第六节 ④）。
+    private func makeLinkedDeviceAckButton() -> UIButton {
+        let ackButton = UIButton(
+            configuration: .largePrimary(title: OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_LINKED_ACK",
+                comment: "Only button on the read-only cross-border notice shown when linking this device: acknowledge the notice.",
+            )),
+            primaryAction: UIAction { [weak self] _ in
+                self?.didTapLinkedDeviceAcknowledge()
+            },
+        )
+        ackButton.accessibilityIdentifier = "tellomi.crossBorder.linkedAck"
+        return ackButton
+    }
+
+    /// Tellomi（tellomi/tellomi#1338）：升级盖页导语上方的「隐私政策已更新至 2.0.0」和链接（法务项 c），放在底色块里，显著一些。
+    private func makePolicyUpdatedView() -> UIView {
+        let label = UILabel()
+        label.text = OWSLocalizedString(
+            "TELLOMI_CROSS_BORDER_POLICY_UPDATED",
+            comment: "Shown above the introduction of the cross-border notice that already-registered devices see after upgrading: the Privacy Policy has been updated to 2.0.0.",
+        )
+        label.font = .dynamicTypeSubheadline
+        label.textColor = .Signal.label
+        label.numberOfLines = 0
+
+        let link = makeLinkButton(
+            title: OWSLocalizedString(
+                "TELLOMI_CROSS_BORDER_POLICY_UPDATED_LINK",
+                comment: "Link under the 'Privacy Policy updated' sentence on the cross-border notice for already-registered devices; opens the Privacy Policy.",
+            ),
+            url: TellomiLegalConsent.privacyURL,
+            accessibilityIdentifier: "tellomi.crossBorder.policyUpdatedLink",
+        )
+
+        let stack = UIStackView(arrangedSubviews: [label, link])
+        stack.axis = .vertical
+        stack.spacing = 4
+        stack.isLayoutMarginsRelativeArrangement = true
+        stack.layoutMargins = UIEdgeInsets(top: 12, left: 12, bottom: 4, right: 12)
+        stack.backgroundColor = .Signal.secondaryBackground
+        stack.layer.cornerRadius = 12
+        return stack
+    }
+
+    private func makeLinkButton(title: String, url: URL, accessibilityIdentifier: String) -> UIButton {
+        let button = UIButton(
+            configuration: .smallBorderless(title: title),
+            primaryAction: UIAction { [weak self] _ in
+                self?.present(SFSafariViewController(url: url), animated: true)
+            },
+        )
+        button.contentHorizontalAlignment = .leading
+        // 去掉按钮自带的左右内边距，让链接和上面的正文左对齐。
+        button.configuration?.contentInsets.leading = 0
+        button.configuration?.contentInsets.trailing = 0
+        button.accessibilityTraits.insert(.link)
+        button.accessibilityIdentifier = accessibilityIdentifier
+        return button
+    }
+
     private func didTapAgree() {
         TellomiCrossBorderConsent.recordAgreement()
+        finish()
+    }
+
+    private func didTapLinkedDeviceAcknowledge() {
+        TellomiCrossBorderConsent.recordLinkedDeviceAcknowledgement()
+        finish()
+    }
+
+    private func finish() {
         let onAgree = self.onAgree
         // 注册流程里是弹出来的，关掉再回调；已注册用户升级后它是独立窗口的根，没有可关的，直接回调。
         if presentingViewController != nil {
@@ -976,8 +1080,8 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
         return stack
     }
 
-    /// 需求 2.3 的 9 项，顺序与隐私政策第二十一节一致。
-    private static func items() -> [(title: String, body: String)] {
+    /// 需求 2.3 的 9 项，顺序与隐私政策第二十一节一致。关联设备只读版只换第 9 项的正文（第六节 6.3）。
+    private static func items(linkedDevice: Bool) -> [(title: String, body: String)] {
         return [
             (
                 OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_WHERE_TITLE", comment: "Cross-border notice item 1 title: whether data leaves mainland China."),
@@ -1009,11 +1113,13 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
             ),
             (
                 OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_TITLE", comment: "Cross-border notice item 8 title: legal procedure for the transfer."),
-                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY", comment: "Cross-border notice item 8 body: legal procedure for the transfer (pending legal review)."),
+                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_PROCEDURE_BODY", comment: "Cross-border notice item 8 body: legal procedure for the transfer."),
             ),
             (
                 OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_CONSENT_TITLE", comment: "Cross-border notice item 9 title: separate consent."),
-                OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY", comment: "Cross-border notice item 9 body: this page is the separate consent and can be withdrawn."),
+                linkedDevice
+                    ? OWSLocalizedString("TELLOMI_CROSS_BORDER_LINKED_ITEM_CONSENT_BODY", comment: "Cross-border notice item 9 body on the read-only version shown when linking this device: consent is given on the phone.")
+                    : OWSLocalizedString("TELLOMI_CROSS_BORDER_ITEM_CONSENT_BODY", comment: "Cross-border notice item 9 body: this page is the separate consent and can be withdrawn."),
             ),
         ]
     }
@@ -1021,7 +1127,11 @@ final class TellomiCrossBorderNoticeViewController: OWSViewController {
 
 extension UIViewController {
     /// 跨境单独告知（tellomi/tellomi#1133）。同意 → 记录后关掉这一页再回调；不同意 → 留在这一页。
-    func presentTellomiCrossBorderNotice(onAgree: @escaping () -> Void) {
-        present(TellomiCrossBorderNoticeViewController(onAgree: onAgree), animated: true)
+    /// 关联设备传 `.linkedDevice`（tellomi/tellomi#1338）：只读版，点「知道了」→ 记录后关掉再回调。
+    func presentTellomiCrossBorderNotice(
+        mode: TellomiCrossBorderNoticeViewController.Mode = .consent,
+        onAgree: @escaping () -> Void,
+    ) {
+        present(TellomiCrossBorderNoticeViewController(mode: mode, onAgree: onAgree), animated: true)
     }
 }

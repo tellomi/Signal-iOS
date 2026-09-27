@@ -157,8 +157,9 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
     private func didTapModeSwitch() {
         Logger.info("")
         // Tellomi：关联设备要连服务端，同意跨境之前网络是关着的（tellomi/tellomi#1133）。
+        // Tellomi（tellomi/tellomi#1338）：iPad「切换到关联」出只读版，点「知道了」记下告知版本、放开网络。
         guard TellomiCrossBorderConsent.hasAgreed else {
-            presentTellomiCrossBorderNotice { [weak self] in
+            presentTellomiCrossBorderNotice(mode: .linkedDevice) { [weak self] in
                 self?.didTapModeSwitch()
             }
             return
@@ -179,7 +180,8 @@ public class RegistrationSplashViewController: OWSViewController, OWSNavigationC
     private func didTapRestoreOrTransfer() {
         Logger.info("")
         // Tellomi：恢复 / 转移都要连服务端（扫码恢复、备份），同意跨境之前网络是关着的（tellomi/tellomi#1133）。
-        guard TellomiCrossBorderConsent.hasAgreed else {
+        // Tellomi（tellomi/tellomi#1338）：这是主设备，要完整同意；关联设备只读版的「知道了」不算。
+        guard TellomiCrossBorderConsent.hasGivenSeparateConsent else {
             presentTellomiCrossBorderNotice { [weak self] in
                 self?.didTapRestoreOrTransfer()
             }
