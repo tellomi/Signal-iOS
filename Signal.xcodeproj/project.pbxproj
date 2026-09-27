@@ -3750,6 +3750,7 @@
 		F942628E289B1B5600460798 /* StickerPackInfoTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9426226289B1B5500460798 /* StickerPackInfoTest.swift */; };
 		F942628F289B1B5600460798 /* TypingIndicatorMessageTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9426227289B1B5500460798 /* TypingIndicatorMessageTest.swift */; };
 		F9426290289B1B5600460798 /* OWSLinkPreviewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9426228289B1B5500460798 /* OWSLinkPreviewTest.swift */; };
+		6BE23C1C59F0385F322A740B /* TellomiRichContentTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D77529A60AE97737B34465 /* TellomiRichContentTest.swift */; };
 		F9426292289B1B5600460798 /* MessageDecryptionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F942622A289B1B5500460798 /* MessageDecryptionTest.swift */; };
 		F9426293289B1B5600460798 /* MessageSendLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F942622B289B1B5500460798 /* MessageSendLogTests.swift */; };
 		F9426294289B1B5600460798 /* ReceiptSenderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F942622C289B1B5500460798 /* ReceiptSenderTest.swift */; };
@@ -3872,6 +3873,7 @@
 		F9C5CBD5289453B300548EEE /* TSIncomingMessage+SDS.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5C8E1289453B100548EEE /* TSIncomingMessage+SDS.swift */; };
 		F9C5CBD6289453B300548EEE /* TSInfoMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5C8E2289453B100548EEE /* TSInfoMessage.swift */; };
 		F9C5CBD7289453B300548EEE /* OWSLinkPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5C8E3289453B100548EEE /* OWSLinkPreview.swift */; };
+		3AB8A0F2AC1CA7453304AE9C /* TellomiRichContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E132FA7069A8075BCC0E7A6D /* TellomiRichContent.swift */; };
 		F9C5CBD9289453B300548EEE /* TSUnreadIndicatorInteraction.m in Sources */ = {isa = PBXBuildFile; fileRef = F9C5C8E5289453B100548EEE /* TSUnreadIndicatorInteraction.m */; };
 		F9C5CBDA289453B300548EEE /* TSInteraction.m in Sources */ = {isa = PBXBuildFile; fileRef = F9C5C8E6289453B100548EEE /* TSInteraction.m */; };
 		F9C5CBDB289453B300548EEE /* TSIncomingMessage+Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C5C8E7289453B100548EEE /* TSIncomingMessage+Builder.swift */; };
@@ -8242,6 +8244,7 @@
 		F9426226289B1B5500460798 /* StickerPackInfoTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StickerPackInfoTest.swift; sourceTree = "<group>"; };
 		F9426227289B1B5500460798 /* TypingIndicatorMessageTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TypingIndicatorMessageTest.swift; sourceTree = "<group>"; };
 		F9426228289B1B5500460798 /* OWSLinkPreviewTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSLinkPreviewTest.swift; sourceTree = "<group>"; };
+		51D77529A60AE97737B34465 /* TellomiRichContentTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiRichContentTest.swift; sourceTree = "<group>"; };
 		F942622A289B1B5500460798 /* MessageDecryptionTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageDecryptionTest.swift; sourceTree = "<group>"; };
 		F942622B289B1B5500460798 /* MessageSendLogTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageSendLogTests.swift; sourceTree = "<group>"; };
 		F942622C289B1B5500460798 /* ReceiptSenderTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReceiptSenderTest.swift; sourceTree = "<group>"; };
@@ -8372,6 +8375,7 @@
 		F9C5C8E1289453B100548EEE /* TSIncomingMessage+SDS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TSIncomingMessage+SDS.swift"; sourceTree = "<group>"; };
 		F9C5C8E2289453B100548EEE /* TSInfoMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TSInfoMessage.swift; sourceTree = "<group>"; };
 		F9C5C8E3289453B100548EEE /* OWSLinkPreview.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSLinkPreview.swift; sourceTree = "<group>"; };
+		E132FA7069A8075BCC0E7A6D /* TellomiRichContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiRichContent.swift; sourceTree = "<group>"; };
 		F9C5C8E5289453B100548EEE /* TSUnreadIndicatorInteraction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSUnreadIndicatorInteraction.m; sourceTree = "<group>"; };
 		F9C5C8E6289453B100548EEE /* TSInteraction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSInteraction.m; sourceTree = "<group>"; };
 		F9C5C8E7289453B100548EEE /* TSIncomingMessage+Builder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TSIncomingMessage+Builder.swift"; sourceTree = "<group>"; };
@@ -11054,6 +11058,7 @@
 			children = (
 				6600BB1B2BA3ABCC0005A035 /* Manager */,
 				F9C5C8E3289453B100548EEE /* OWSLinkPreview.swift */,
+				E132FA7069A8075BCC0E7A6D /* TellomiRichContent.swift */,
 			);
 			path = LinkPreview;
 			sourceTree = "<group>";
@@ -11065,6 +11070,7 @@
 				F9426228289B1B5500460798 /* OWSLinkPreviewTest.swift */,
 				867EAEA9614ABA31ADED4497 /* TellomiLocalHTTPTestServer.swift */,
 				983B22C2D5B704021D98B363 /* TellomiLinkFetcherTest.swift */,
+				51D77529A60AE97737B34465 /* TellomiRichContentTest.swift */,
 			);
 			path = LinkPreview;
 			sourceTree = "<group>";
@@ -20391,6 +20397,7 @@
 				6605D4F82A85A504004DC345 /* OWSIncomingPaymentMessage.m in Sources */,
 				6619A1C72B2BA21F004B38FE /* OWSIncomingSentMessageTranscript.swift in Sources */,
 				F9C5CBD7289453B300548EEE /* OWSLinkPreview.swift in Sources */,
+				3AB8A0F2AC1CA7453304AE9C /* TellomiRichContent.swift in Sources */,
 				668A00E42C2B5F35007B8808 /* OWSLocalizedString.swift in Sources */,
 				668A01092C2B5FE0007B8808 /* OWSLogs.m in Sources */,
 				72B4819D2BD60FDF008B8BA1 /* OWSMath.swift in Sources */,
@@ -21057,6 +21064,7 @@
 				F9426248289B1B5500460798 /* OWSIdentityManagerTests.swift in Sources */,
 				669FAE1B2B7AC919009EE2FE /* OWSLinkPreviewSerializationTest.swift in Sources */,
 				F9426290289B1B5600460798 /* OWSLinkPreviewTest.swift in Sources */,
+				6BE23C1C59F0385F322A740B /* TellomiRichContentTest.swift in Sources */,
 				50EED2DC2F61E69100D76131 /* OWSLocalizedStringTest.swift in Sources */,
 				508C72242C2DFCB2000811F3 /* OWSOutgoingResendResponseTest.swift in Sources */,
 				0436E4B02E5E2DC20011E125 /* OWSPollTest.swift in Sources */,
