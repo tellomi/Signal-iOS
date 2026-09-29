@@ -3747,6 +3747,7 @@
 		F942628B289B1B5600460798 /* sample-sticker.encrypted in Resources */ = {isa = PBXBuildFile; fileRef = F9426223289B1B5500460798 /* sample-sticker.encrypted */; };
 		F942628C289B1B5600460798 /* sample-sticker.webp in Resources */ = {isa = PBXBuildFile; fileRef = F9426224289B1B5500460798 /* sample-sticker.webp */; };
 		F942628D289B1B5600460798 /* StickerManagerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9426225289B1B5500460798 /* StickerManagerTest.swift */; };
+		BB9686473A35FEB2355A33CE /* TellomiDefaultStickersTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E60A42C5E1F835BA7DDE47 /* TellomiDefaultStickersTest.swift */; };
 		F942628E289B1B5600460798 /* StickerPackInfoTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9426226289B1B5500460798 /* StickerPackInfoTest.swift */; };
 		F942628F289B1B5600460798 /* TypingIndicatorMessageTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9426227289B1B5500460798 /* TypingIndicatorMessageTest.swift */; };
 		F9426290289B1B5600460798 /* OWSLinkPreviewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9426228289B1B5500460798 /* OWSLinkPreviewTest.swift */; };
@@ -8241,6 +8242,7 @@
 		F9426223289B1B5500460798 /* sample-sticker.encrypted */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-sticker.encrypted"; sourceTree = "<group>"; };
 		F9426224289B1B5500460798 /* sample-sticker.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-sticker.webp"; sourceTree = "<group>"; };
 		F9426225289B1B5500460798 /* StickerManagerTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StickerManagerTest.swift; sourceTree = "<group>"; };
+		F1E60A42C5E1F835BA7DDE47 /* TellomiDefaultStickersTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiDefaultStickersTest.swift; sourceTree = "<group>"; };
 		F9426226289B1B5500460798 /* StickerPackInfoTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StickerPackInfoTest.swift; sourceTree = "<group>"; };
 		F9426227289B1B5500460798 /* TypingIndicatorMessageTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TypingIndicatorMessageTest.swift; sourceTree = "<group>"; };
 		F9426228289B1B5500460798 /* OWSLinkPreviewTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OWSLinkPreviewTest.swift; sourceTree = "<group>"; };
@@ -15102,6 +15104,7 @@
 				F9426224289B1B5500460798 /* sample-sticker.webp */,
 				F9426225289B1B5500460798 /* StickerManagerTest.swift */,
 				F9426226289B1B5500460798 /* StickerPackInfoTest.swift */,
+				F1E60A42C5E1F835BA7DDE47 /* TellomiDefaultStickersTest.swift */,
 			);
 			path = Stickers;
 			sourceTree = "<group>";
@@ -21132,6 +21135,7 @@
 				F94262A2289B1B5600460798 /* SSKBaseTest.swift in Sources */,
 				F942628D289B1B5600460798 /* StickerManagerTest.swift in Sources */,
 				F942628E289B1B5600460798 /* StickerPackInfoTest.swift in Sources */,
+				BB9686473A35FEB2355A33CE /* TellomiDefaultStickersTest.swift in Sources */,
 				7254655E2BA032A900EABFD2 /* StorageServiceContactTest.swift in Sources */,
 				884BF73E28D37D5F00D94636 /* StoryManagerTest.swift in Sources */,
 				C14EC1A92BAA4B5F00A4D064 /* StreamTransformTests.swift in Sources */,

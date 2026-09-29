@@ -18,9 +18,11 @@ struct DefaultStickerPack {
         self.shouldAutoInstall = shouldAutoInstall
     }
 
-    private static let allPacks: [DefaultStickerPack] = {
+    private static let allPacks: [DefaultStickerPack] = packs(isUsingProductionService: TSConstants.isUsingProductionService)
+
+    static func packs(isUsingProductionService: Bool) -> [DefaultStickerPack] {
         // These sticker packs aren't available in Staging.
-        guard TSConstants.isUsingProductionService else {
+        guard isUsingProductionService else {
             return []
         }
 
@@ -92,7 +94,7 @@ struct DefaultStickerPack {
                 shouldAutoInstall: false,
             ),
         ]
-    }()
+    }
 
     private static let allPacksById: [Data: DefaultStickerPack] = {
         var result = [Data: DefaultStickerPack]()
