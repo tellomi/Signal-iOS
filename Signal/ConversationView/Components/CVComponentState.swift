@@ -2049,17 +2049,83 @@ private extension CVComponentState.Builder {
                 isFailedImageAttachmentDownload = false
             }
 
-            let state = LinkPreviewSent(
+            let sentState = LinkPreviewSent(
                 linkPreview: linkPreview,
                 imageAttachment: linkPreviewAttachment,
                 isFailedImageAttachmentDownload: isFailedImageAttachmentDownload,
                 conversationStyle: conversationStyle,
             )
+            // Tellomi（ADR-0063 §5.1 第 4 条，tellomi/tellomi#1423）：卡片的级别由 rust/links 定，在这里（数据层）判，不在 view 绑定里。
+            guard
+                let state = tellomiLinkPreviewState(
+                    sentState: sentState,
+                    message: message,
+                    linkPreview: linkPreview,
+                    urlString: urlString,
+                    hasImage: linkPreviewAttachment != nil,
+                )
+            else {
+                return
+            }
             self.linkPreview = LinkPreview(
                 linkPreview: linkPreview,
                 state: state,
             )
         }
+    }
+
+    /// Tellomi（ADR-0063 §5.1，card-visual §3.7）：按 rust/links 定的级别改写这条预览显示的文字，发送端写的描述从不显示。
+    ///
+    /// - 没有注册表、没有判定：照 Signal 原样（返回 `sentState`）；
+    /// - 群、通话、贴纸卡：等第一方卡版式，之前也照 Signal 原样；
+    /// - 纯链接级：不显示这条预览（返回 nil）；「消息就是这条链接」时画无图卡是下一步。
+    private func tellomiLinkPreviewState(
+        sentState: LinkPreviewSent,
+        message: TSMessage,
+        linkPreview: OWSLinkPreview,
+        urlString: String,
+        hasImage: Bool,
+    ) -> LinkPreviewState? {
+        let classifier = TellomiLinkRegistry.classifier
+        guard classifier.isAvailable else {
+            return sentState
+        }
+        let attachmentContentTypes = message.sqliteRowId.map {
+            DependenciesBridge.shared.attachmentStore.fetchReferencedAttachments(
+                for: .messageBodyAttachment(messageRowId: $0),
+                tx: transaction,
+            ).map { $0.attachment.mimeType }
+        } ?? []
+        let card = classifier.classify(
+            TellomiLinkClassifier.PreviewInput(
+                url: urlString,
+                title: linkPreview.title,
+                description: linkPreview.previewDescription,
+                hasImage: hasImage,
+                date: linkPreview.date,
+                rich: linkPreview.rich,
+            ),
+            body: message.body ?? "",
+            isStory: false,
+            attachmentContentTypes: attachmentContentTypes,
+        )
+        guard let card else {
+            return sentState
+        }
+        if card.level == .plainLink {
+            return nil
+        }
+        guard
+            let display = TellomiLinkDisplay.make(
+                snapshotTitle: sentState.title,
+                card: card,
+                locale: .current,
+                strings: .localized(),
+            )
+        else {
+            return sentState
+        }
+        return TellomiLinkPreviewCardState(base: sentState, display: display, showsImage: card.showImage)
     }
 
     private mutating func buildGiftBadge(messageUniqueId: String, giftBadge: OWSGiftBadge) throws -> CVComponentState {

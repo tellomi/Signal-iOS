@@ -361,7 +361,8 @@ private class CVLinkPreviewViewAdapter {
     final func sentDomainLabelConfig() -> CVLabelConfig {
         var labelText: String
         if let displayDomain = linkPreview.displayDomain?.nilIfEmpty {
-            labelText = displayDomain.lowercased()
+            // Tellomi：卡片的域名行已经定稿（视频的发布日期就在上面），不再转小写。
+            labelText = linkPreview is TellomiLinkPreviewCardState ? displayDomain : displayDomain.lowercased()
         } else {
             labelText = OWSLocalizedString(
                 "LINK_PREVIEW_UNKNOWN_DOMAIN",

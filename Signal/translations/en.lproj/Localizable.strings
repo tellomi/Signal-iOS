@@ -10842,6 +10842,69 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "Tap to replace an emoji";
 
+/* Tellomi (card-visual §3.10): what a brand card's link is: app */
+"TELLOMI_LINK_CARD_KIND_APP" = "App";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: article */
+"TELLOMI_LINK_CARD_KIND_ARTICLE" = "Article";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: channel */
+"TELLOMI_LINK_CARD_KIND_CHANNEL" = "Channel";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: deal */
+"TELLOMI_LINK_CARD_KIND_DEAL" = "Deal";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: music album */
+"TELLOMI_LINK_CARD_KIND_MUSIC_ALBUM" = "Album";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: music playlist */
+"TELLOMI_LINK_CARD_KIND_MUSIC_PLAYLIST" = "Playlist";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: music track */
+"TELLOMI_LINK_CARD_KIND_MUSIC_TRACK" = "Song";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: package */
+"TELLOMI_LINK_CARD_KIND_PACKAGE" = "Package";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: payment */
+"TELLOMI_LINK_CARD_KIND_PAYMENT" = "Payment";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: place */
+"TELLOMI_LINK_CARD_KIND_PLACE" = "Place";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: product */
+"TELLOMI_LINK_CARD_KIND_PRODUCT" = "Product";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: question */
+"TELLOMI_LINK_CARD_KIND_QUESTION" = "Q&A";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: repo */
+"TELLOMI_LINK_CARD_KIND_REPO" = "Repository";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: ride */
+"TELLOMI_LINK_CARD_KIND_RIDE" = "Ride";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: video */
+"TELLOMI_LINK_CARD_KIND_VIDEO" = "Video";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: web */
+"TELLOMI_LINK_CARD_KIND_WEB" = "Web page";
+
+/* Tellomi (ADR-0063 §4.8): fixed title of the card of a link to Tellomi's official website */
+"TELLOMI_LINK_CARD_OFFICIAL_TITLE" = "Tellomi website";
+
+/* Tellomi (card-visual §3.7): title of a place link card that has no name */
+"TELLOMI_LINK_CARD_PLACE" = "Location";
+
+/* Tellomi (ADR-0063 §4.8): title of the card of a link to a Tellomi user, and the line under a name */
+"TELLOMI_LINK_CARD_TELLOMI_USER" = "Tellomi user";
+
+/* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, singular; %@ is the number */
+"TELLOMI_LINK_CARD_TRACK_COUNT_ONE" = "%@ track";
+
+/* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, plural; %@ is the number */
+"TELLOMI_LINK_CARD_TRACK_COUNT_OTHER" = "%@ tracks";
+
 /* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
 "TELLOMI_LOGOUT_CONFIRM_BODY" = "Your chats stay on this phone and come back when you log in again with the same phone number. Messages people send you in the meantime wait on the server for up to 30 days.";
 

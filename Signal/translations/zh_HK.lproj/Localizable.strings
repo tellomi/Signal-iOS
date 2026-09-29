@@ -10971,6 +10971,69 @@
 /* Title of the privacy notice shown the first time the app is opened. */
 "TELLOMI_FIRST_LAUNCH_TITLE" = "歡迎使用 Tellomi";
 
+/* Tellomi (card-visual §3.10): what a brand card's link is: app */
+"TELLOMI_LINK_CARD_KIND_APP" = "應用程式";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: article */
+"TELLOMI_LINK_CARD_KIND_ARTICLE" = "文章";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: channel */
+"TELLOMI_LINK_CARD_KIND_CHANNEL" = "頻道";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: deal */
+"TELLOMI_LINK_CARD_KIND_DEAL" = "團購";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: music album */
+"TELLOMI_LINK_CARD_KIND_MUSIC_ALBUM" = "專輯";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: music playlist */
+"TELLOMI_LINK_CARD_KIND_MUSIC_PLAYLIST" = "歌單";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: music track */
+"TELLOMI_LINK_CARD_KIND_MUSIC_TRACK" = "單曲";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: package */
+"TELLOMI_LINK_CARD_KIND_PACKAGE" = "包裹";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: payment */
+"TELLOMI_LINK_CARD_KIND_PAYMENT" = "付款";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: place */
+"TELLOMI_LINK_CARD_KIND_PLACE" = "地點";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: product */
+"TELLOMI_LINK_CARD_KIND_PRODUCT" = "商品";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: question */
+"TELLOMI_LINK_CARD_KIND_QUESTION" = "問答";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: repo */
+"TELLOMI_LINK_CARD_KIND_REPO" = "程式碼倉庫";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: ride */
+"TELLOMI_LINK_CARD_KIND_RIDE" = "行程";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: video */
+"TELLOMI_LINK_CARD_KIND_VIDEO" = "影片";
+
+/* Tellomi (card-visual §3.10): what a brand card's link is: web */
+"TELLOMI_LINK_CARD_KIND_WEB" = "網頁";
+
+/* Tellomi (ADR-0063 §4.8): fixed title of the card of a link to Tellomi's official website */
+"TELLOMI_LINK_CARD_OFFICIAL_TITLE" = "Tellomi 官網";
+
+/* Tellomi (card-visual §3.7): title of a place link card that has no name */
+"TELLOMI_LINK_CARD_PLACE" = "位置";
+
+/* Tellomi (ADR-0063 §4.8): title of the card of a link to a Tellomi user, and the line under a name */
+"TELLOMI_LINK_CARD_TELLOMI_USER" = "Tellomi 用戶";
+
+/* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, singular; %@ is the number */
+"TELLOMI_LINK_CARD_TRACK_COUNT_ONE" = "%@ 首";
+
+/* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, plural; %@ is the number */
+"TELLOMI_LINK_CARD_TRACK_COUNT_OTHER" = "%@ 首";
+
 /* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
 "TELLOMI_LOGOUT_CONFIRM_BODY" = "聊天紀錄會保留在這部手機上，用同一個電話號碼重新登入後便會恢復。登出期間別人傳來的訊息會在伺服器上等你，最多保留 30 天。";
 
