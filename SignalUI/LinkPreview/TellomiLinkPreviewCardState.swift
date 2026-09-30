@@ -22,18 +22,23 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
     /// 数据层按 rust/links 定的版式，以及从卡片自己的图取的颜色（card-visual §3.2 / §3.3）；没有决定时是 `.none`，照 Signal 原样。
     public let visual: TellomiLinkVisual.Visual
 
+    /// Tellomi 自己对象的卡片（用户 / 群 / 贴纸包 / 官网，card-visual §5.2）：头像或封面 + 标题 + 副行 + 底部一个动作按钮。不是就是 nil。
+    public let firstParty: TellomiFirstPartyCard.Display?
+
     public init(
         base: LinkPreviewState,
         display: TellomiLinkDisplay,
         showsImage: Bool,
         isCardOnly: Bool = false,
         visual: TellomiLinkVisual.Visual = .none,
+        firstParty: TellomiFirstPartyCard.Display? = nil,
     ) {
         self.base = base
         self.display = display
         self.showsImage = showsImage
         self.isCardOnly = isCardOnly
         self.visual = visual
+        self.firstParty = firstParty
     }
 
     /// 版式；图片没有显示（品牌壳、用户卡……）或没有决定时是 nil。

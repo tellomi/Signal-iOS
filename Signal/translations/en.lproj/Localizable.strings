@@ -10842,6 +10842,30 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "Tap to replace an emoji";
 
+/* Tellomi (card-visual §3.10): button at the bottom of a sticker pack card that is not installed yet */
+"TELLOMI_LINK_CARD_ACTION_ADD_STICKERS" = "Add";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a call card */
+"TELLOMI_LINK_CARD_ACTION_JOIN_CALL" = "Join Call";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a group invite card */
+"TELLOMI_LINK_CARD_ACTION_JOIN_GROUP" = "Join Group";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a user card */
+"TELLOMI_LINK_CARD_ACTION_MESSAGE" = "Message";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a card that opens something (a group you are in, the official website) */
+"TELLOMI_LINK_CARD_ACTION_OPEN" = "Open";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a sticker pack card that is already installed */
+"TELLOMI_LINK_CARD_ACTION_VIEW_STICKERS" = "View";
+
+/* Tellomi (card-visual §5.2): title of a call card that has no room name */
+"TELLOMI_LINK_CARD_CALL_TITLE" = "Tellomi call";
+
+/* Tellomi (card-visual §5.2): line under the name of a group invite card when you are already a member */
+"TELLOMI_LINK_CARD_GROUP_JOINED" = "You’re a member";
+
 /* Tellomi (card-visual §3.10): what a brand card's link is: app */
 "TELLOMI_LINK_CARD_KIND_APP" = "App";
 
@@ -10890,11 +10914,29 @@
 /* Tellomi (card-visual §3.10): what a brand card's link is: web */
 "TELLOMI_LINK_CARD_KIND_WEB" = "Web page";
 
+/* Tellomi (card-visual §3.9): number of members on a group card, singular; %@ is the number */
+"TELLOMI_LINK_CARD_MEMBER_COUNT_ONE" = "%@ member";
+
+/* Tellomi (card-visual §3.9): number of members on a group card, plural; %@ is the number */
+"TELLOMI_LINK_CARD_MEMBER_COUNT_OTHER" = "%@ members";
+
+/* Tellomi (card-visual §5.2): small badge next to the title of the card of Tellomi’s official website */
+"TELLOMI_LINK_CARD_OFFICIAL_BADGE" = "Official";
+
 /* Tellomi (ADR-0063 §4.8): fixed title of the card of a link to Tellomi's official website */
 "TELLOMI_LINK_CARD_OFFICIAL_TITLE" = "Tellomi website";
 
 /* Tellomi (card-visual §3.7): title of a place link card that has no name */
 "TELLOMI_LINK_CARD_PLACE" = "Location";
+
+/* Tellomi (card-visual §5.2): line under the name of a sticker pack card when the pack is already installed */
+"TELLOMI_LINK_CARD_STICKERS_ADDED" = "Added";
+
+/* Tellomi (card-visual §3.9): number of stickers on a sticker pack card, singular; %@ is the number */
+"TELLOMI_LINK_CARD_STICKER_COUNT_ONE" = "%@ sticker";
+
+/* Tellomi (card-visual §3.9): number of stickers on a sticker pack card, plural; %@ is the number */
+"TELLOMI_LINK_CARD_STICKER_COUNT_OTHER" = "%@ stickers";
 
 /* Tellomi (ADR-0063 §4.8): title of the card of a link to a Tellomi user, and the line under a name */
 "TELLOMI_LINK_CARD_TELLOMI_USER" = "Tellomi user";

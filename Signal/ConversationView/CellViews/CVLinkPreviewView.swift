@@ -27,6 +27,12 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
     /// 无图卡行尾的链接图标（Tellomi，card-visual §3.7）。
     fileprivate let linkIconView = CVImageView()
 
+    /// 第一方卡（Tellomi，card-visual §5.2）：头部（头像 + 文字）、头部与按钮之间的细线、底部的动作按钮，以及没有真图时的占位头像。
+    fileprivate let firstPartyHeaderStack = ManualStackView(name: "firstPartyHeaderStack")
+    fileprivate let firstPartyDivider = UIView()
+    fileprivate let firstPartyActionLabel = CVLabel()
+    fileprivate let firstPartyPlaceholder = CVImageView()
+
     init() {
         super.init(name: "CVLinkPreviewView")
 
@@ -70,6 +76,10 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
         for linkPreview: LinkPreviewState,
         isIncoming: Bool,
     ) -> CVLinkPreviewViewAdapter {
+        // Tellomi 自己对象的卡片（群邀请也在内）先于 Signal 自己的群邀请 / 通话版式。
+        if let card = linkPreview as? TellomiLinkPreviewCardState, card.firstParty != nil {
+            return CVLinkPreviewViewAdapterFirstParty(linkPreview: linkPreview, isIncoming: isIncoming)
+        }
         if linkPreview.isGroupInviteLink || linkPreview.isCallLink {
             return CVLinkPreviewViewAdapterSignalLink(linkPreview: linkPreview, isIncoming: isIncoming)
         }
@@ -169,6 +179,14 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
 
         linkIconView.image = nil
         linkIconView.removeFromSuperview()
+
+        firstPartyHeaderStack.reset()
+        firstPartyHeaderStack.removeFromSuperview()
+        firstPartyDivider.removeFromSuperview()
+        firstPartyActionLabel.text = nil
+        firstPartyActionLabel.removeFromSuperview()
+        firstPartyPlaceholder.image = nil
+        firstPartyPlaceholder.removeFromSuperview()
     }
 }
 
@@ -358,13 +376,32 @@ private class CVLinkPreviewViewAdapter {
         return label
     }
 
+    /// 标题后面跟的东西（官网卡的「官方」徽标）；默认没有。
+    var titleAttributedSuffix: NSAttributedString? { nil }
+
     final func sentTitleLabelConfig() -> CVLabelConfig? {
         guard let text = linkPreview.title else {
             return nil
         }
+        let font = UIFont.dynamicTypeSubheadline.semibold()
+        if let suffix = titleAttributedSuffix {
+            let attributed = NSMutableAttributedString(
+                string: text + " ",
+                attributes: [.font: font, .foregroundColor: titleTextColor],
+            )
+            attributed.append(suffix)
+            return CVLabelConfig(
+                text: .attributedText(attributed),
+                displayConfig: .forUnstyledText(font: font, textColor: titleTextColor),
+                font: font,
+                textColor: titleTextColor,
+                numberOfLines: 2,
+                lineBreakMode: .byTruncatingTail,
+            )
+        }
         return CVLabelConfig.unstyledText(
             text,
-            font: UIFont.dynamicTypeSubheadline.semibold(),
+            font: font,
             textColor: titleTextColor,
             numberOfLines: 2,
             lineBreakMode: .byTruncatingTail,
@@ -572,6 +609,193 @@ private class CVLinkPreviewViewAdapterLarge: CVLinkPreviewViewAdapter {
 
         let normalizedHeight: CGFloat = min(maxImageHeight, max(minImageHeight, rawImageHeight))
         return CGSize.ceil(CGSize(width: maxMessageWidth, height: normalizedHeight))
+    }
+}
+
+// MARK: -
+
+// Tellomi（card-visual §5.2）：Tellomi 自己对象的卡片——头像或封面 56 pt + 标题 + 一行副行，下面一条细线，再是 36 pt 高的动作按钮
+// （学 Telegram 展示自家对象的方式）。没有域名行。整张卡可点；按钮只是这张卡点下去会做的事。
+private class CVLinkPreviewViewAdapterFirstParty: CVLinkPreviewViewAdapter {
+
+    private static let avatarSize: CGFloat = 56
+    private static let actionHeight: CGFloat = 36
+    private static var measurementKey_header: String { "CVLinkPreviewViewAdapterFirstParty.measurementKey_header" }
+
+    private var firstParty: TellomiFirstPartyCard.Display? {
+        (linkPreview as? TellomiLinkPreviewCardState)?.firstParty
+    }
+
+    /// 通话卡下面已经有 Signal 自己的「加入」按钮，这里不重复。
+    private var actionText: String? {
+        guard let firstParty, firstParty.kind != .call else {
+            return nil
+        }
+        return firstParty.action
+    }
+
+    private var dividerHeight: CGFloat { 1 / UIScreen.main.scale }
+
+    override var rootStackConfig: ManualStackView.Config {
+        ManualStackView.Config(axis: .vertical, alignment: .fill, spacing: 0, layoutMargins: .zero)
+    }
+
+    private var headerStackConfig: ManualStackView.Config {
+        ManualStackView.Config(axis: .horizontal, alignment: .center, spacing: 12, layoutMargins: UIEdgeInsets(margin: 10))
+    }
+
+    override func textStackSubviewInfos(maxWidth: CGFloat) -> [ManualStackSubviewInfo] {
+        var infos = [ManualStackSubviewInfo]()
+        if let config = sentTitleLabelConfig() {
+            infos.append(CVText.measureLabel(config: config, maxWidth: maxWidth).asManualSubviewInfo)
+        }
+        if let config = sentDescriptionLabelConfig() {
+            infos.append(CVText.measureLabel(config: config, maxWidth: maxWidth).asManualSubviewInfo)
+        }
+        return infos
+    }
+
+    override func textStackSubviews() -> [CVLabel] {
+        [sentTitleLabel(), sentDescriptionLabel()].compactMap { $0 }
+    }
+
+    /// 官网卡的标题后面跟一个「官方」小徽标（只有官网卡带）。
+    override var titleAttributedSuffix: NSAttributedString? {
+        guard firstParty?.officialBadge == true else {
+            return nil
+        }
+        return TellomiOfficialBadge.attributedString(text: TellomiFirstPartyCard.Strings.officialBadge(), height: UIFont.dynamicTypeSubheadline.lineHeight)
+    }
+
+    override func rootStackSubviewInfos(
+        maxWidth: CGFloat,
+        measurementBuilder: CVCellMeasurement.Builder,
+    ) -> [ManualStackSubviewInfo] {
+        let avatarSize = CGSize.square(Self.avatarSize)
+        let maxLabelWidth = max(
+            0,
+            maxWidth - (
+                textStackConfig.layoutMargins.totalWidth + headerStackConfig.layoutMargins.totalWidth
+                    + avatarSize.width + headerStackConfig.spacing
+            ),
+        )
+        let textStackSize = measureTextStack(maxWidth: maxLabelWidth, measurementBuilder: measurementBuilder)
+        let header = ManualStackView.measure(
+            config: headerStackConfig,
+            measurementBuilder: measurementBuilder,
+            measurementKey: Self.measurementKey_header,
+            subviewInfos: [
+                avatarSize.asManualSubviewInfo(hasFixedSize: true),
+                textStackSize.asManualSubviewInfo,
+            ],
+            maxWidth: maxWidth,
+        )
+        var infos = [header.measuredSize.asManualSubviewInfo]
+        if actionText != nil {
+            infos.append(CGSize(width: 0, height: dividerHeight).asManualSubviewInfo(hasFixedHeight: true))
+            infos.append(CGSize(width: 0, height: Self.actionHeight).asManualSubviewInfo(hasFixedHeight: true))
+        }
+        return infos
+    }
+
+    override func rootStackSubviews(
+        linkPreviewView: CVLinkPreviewView,
+        cellMeasurement: CVCellMeasurement,
+    ) -> [UIView] {
+        let textStack = configureTextStack(linkPreviewView: linkPreviewView, cellMeasurement: cellMeasurement)
+        linkPreviewView.firstPartyHeaderStack.configure(
+            config: headerStackConfig,
+            cellMeasurement: cellMeasurement,
+            measurementKey: Self.measurementKey_header,
+            subviews: [avatarView(linkPreviewView: linkPreviewView), textStack],
+        )
+        var subviews: [UIView] = [linkPreviewView.firstPartyHeaderStack]
+        if let actionText {
+            let divider = linkPreviewView.firstPartyDivider
+            divider.backgroundColor = tintTextColorOrSeparator.withAlphaComponent(0.25)
+            subviews.append(divider)
+
+            let label = linkPreviewView.firstPartyActionLabel
+            CVLabelConfig.unstyledText(
+                actionText,
+                font: UIFont.dynamicTypeSubheadline.semibold(),
+                textColor: actionTextColor,
+                textAlignment: .center,
+            ).applyForRendering(label: label)
+            subviews.append(label)
+        }
+        return subviews
+    }
+
+    private var actionTextColor: UIColor {
+        (linkPreview as? TellomiLinkPreviewCardState)?.tintColors?.text ?? .Signal.accent
+    }
+
+    private var tintTextColorOrSeparator: UIColor {
+        (linkPreview as? TellomiLinkPreviewCardState)?.tintColors?.text ?? .Signal.label
+    }
+
+    /// 头像 / 封面：群和贴纸包用消息带来的图；用户、官网和没有图时用占位。
+    private func avatarView(linkPreviewView: CVLinkPreviewView) -> UIView {
+        let kind = firstParty?.kind
+        if
+            kind == .group || kind == .sticker,
+            linkPreview.hasLoadedImageOrBlurHash,
+            let imageView = linkPreviewView.linkPreviewImageView.configure(
+                linkPreview: linkPreview,
+                cornerStyle: kind == .group ? .capsule : .rounded(radius: 10),
+            )
+        {
+            imageView.clipsToBounds = true
+            return imageView
+        }
+        let placeholder = linkPreviewView.firstPartyPlaceholder
+        placeholder.contentMode = .center
+        placeholder.clipsToBounds = true
+        placeholder.layer.cornerRadius = kind == .sticker || kind == .official ? 12 : Self.avatarSize / 2
+        switch kind {
+        case .official:
+            placeholder.contentMode = .scaleAspectFill
+            placeholder.image = UIImage(resource: .AppIconPreview.default)
+            placeholder.backgroundColor = .clear
+        case .group:
+            placeholder.image = UIImage(named: "group-fill")?.withRenderingMode(.alwaysTemplate)
+            placeholder.tintColor = .Signal.secondaryLabel
+            placeholder.backgroundColor = .Signal.secondaryFill
+        case .sticker:
+            placeholder.image = UIImage(named: "sticker")?.withRenderingMode(.alwaysTemplate)
+            placeholder.tintColor = .Signal.secondaryLabel
+            placeholder.backgroundColor = .Signal.secondaryFill
+        default:
+            placeholder.image = UIImage(named: "person-resizable")?.withRenderingMode(.alwaysTemplate)
+            placeholder.tintColor = .Signal.secondaryLabel
+            placeholder.backgroundColor = .Signal.secondaryFill
+        }
+        return placeholder
+    }
+}
+
+// MARK: -
+
+/// 「官方」小徽标：一个圆角小药丸，画成图放进标题文字里（这样标题换行、测量都还是一段文字）。
+private enum TellomiOfficialBadge {
+    static func attributedString(text: String, height: CGFloat) -> NSAttributedString {
+        let font = UIFont.dynamicTypeCaption2.semibold()
+        let padding: CGFloat = 6
+        let textSize = (text as NSString).size(withAttributes: [.font: font])
+        let size = CGSize(width: ceil(textSize.width) + padding * 2, height: ceil(font.lineHeight) + 2)
+        let image = UIGraphicsImageRenderer(size: size).image { context in
+            UIColor.Signal.accent.withAlphaComponent(0.15).setFill()
+            UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: size.height / 2).fill()
+            (text as NSString).draw(
+                at: CGPoint(x: padding, y: (size.height - font.lineHeight) / 2),
+                withAttributes: [.font: font, .foregroundColor: UIColor.Signal.accent],
+            )
+        }
+        let attachment = NSTextAttachment()
+        attachment.image = image
+        attachment.bounds = CGRect(x: 0, y: (font.capHeight - size.height) / 2, width: size.width, height: size.height)
+        return NSAttributedString(attachment: attachment)
     }
 }
 
