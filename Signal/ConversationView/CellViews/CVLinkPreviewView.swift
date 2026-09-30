@@ -5,6 +5,7 @@
 
 import SignalServiceKit
 import SignalUI
+import UIKit.UIGestureRecognizerSubclass
 
 /// Component designed to show link preview in a message bubble.
 class CVLinkPreviewView: ManualStackViewWithLayer {
@@ -43,6 +44,7 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
     func configureForRendering(
         linkPreview: LinkPreviewState,
         isIncoming: Bool,
+        isInteractive: Bool,
         cellMeasurement: CVCellMeasurement,
     ) {
         self.linkPreview = linkPreview
@@ -70,6 +72,9 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
             linkPreviewView: self,
             cellMeasurement: cellMeasurement,
         )
+
+        // 按下态 / 悬停态的叠层盖在所有内容上面，所以排完版再装。
+        installHighlight(color: adapter.highlightOverlayColor, isInteractive: isInteractive)
     }
 
     private static func adapter(
@@ -150,6 +155,161 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
         return StickerPackInfo.isStickerPackShare(url)
     }
 
+    // MARK: - Highlight (card-visual §3.6 / §3.8)
+
+    /// 按下、指针悬停时整张卡叠一层半透明的黑 / 白（和卡上的字同一个黑 / 白），不换底色；染色卡与中性卡、浅色与深色都一样。
+    enum Highlight: Equatable {
+        case idle
+        case hover
+        case pressed
+
+        /// 叠层的不透明度：叠层本身是纯黑或纯白，透明度在这里。
+        var overlayAlpha: CGFloat {
+            switch self {
+            case .idle: 0
+            case .hover: 0.06
+            case .pressed: 0.12
+            }
+        }
+    }
+
+    /// 按住超过这么久叠层自己退掉。会话页按住 0.2 秒会拿起整条消息（长按菜单），菜单里的预览是这张卡此刻的快照，不能带着叠层。
+    static var pressedMaxDuration: TimeInterval = 0.14
+
+    /// 叠层：纯黑或纯白的一块，透明度随 `highlight` 变。
+    let highlightOverlayView = UIView()
+
+    /// 这张卡点了会有反应吗（不响应点击的域名卡、选择模式里的卡没有按下态 / 悬停态）。
+    private(set) var isHighlightInteractive = false
+
+    private var pressTracker = CVLinkPreviewPressTracker()
+    private var isHoveringPointer = false
+    private var pressTimeout: DispatchWorkItem?
+    private var hasHighlightLayoutBlock = false
+
+    var highlight: Highlight {
+        if pressTracker.isPressed {
+            return .pressed
+        }
+        return isHoveringPointer ? .hover : .idle
+    }
+
+    private func installHighlight(color: UIColor, isInteractive: Bool) {
+        clearHighlightState()
+        highlightOverlayView.removeFromSuperview()
+        for recognizer in gestureRecognizers ?? [] where recognizer is CVLinkPreviewTouchObserver || recognizer is UIHoverGestureRecognizer {
+            removeGestureRecognizer(recognizer)
+        }
+        isHighlightInteractive = isInteractive
+        highlightOverlayView.alpha = 0
+        guard isInteractive else {
+            return
+        }
+        highlightOverlayView.backgroundColor = color
+        highlightOverlayView.isUserInteractionEnabled = false
+        highlightOverlayView.frame = bounds
+        addSubview(highlightOverlayView)
+        // 叠层跟着卡片的大小走（排版块在 reset() 里清掉，所以每轮只加一次）
+        if !hasHighlightLayoutBlock {
+            hasHighlightLayoutBlock = true
+            addLayoutBlock { [weak self] view in
+                guard let self, self.highlightOverlayView.superview === view else {
+                    return
+                }
+                self.highlightOverlayView.frame = view.bounds
+            }
+        }
+        // 只观察触摸的手势：一按下就知道（视图自己的 touchesBegan 要等滚动视图确认不是滚动，晚 ~150 ms），又不和会话页的点击、长按、滑动抢事件。
+        addGestureRecognizer(CVLinkPreviewTouchObserver(card: self))
+        addGestureRecognizer(UIHoverGestureRecognizer(target: self, action: #selector(handleHover(_:))))
+    }
+
+    private func clearHighlightState() {
+        pressTimeout?.cancel()
+        pressTimeout = nil
+        pressTracker.end()
+        isHoveringPointer = false
+        highlightOverlayView.layer.removeAllAnimations()
+        highlightOverlayView.alpha = 0
+    }
+
+    func pressBegan(at point: CGPoint) {
+        guard isHighlightInteractive else {
+            return
+        }
+        pressTracker.begin(at: point)
+        pressTimeout?.cancel()
+        let timeout = DispatchWorkItem { [weak self] in
+            self?.pressTimedOut()
+        }
+        pressTimeout = timeout
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.pressedMaxDuration, execute: timeout)
+        updateHighlightOverlay()
+    }
+
+    func pressMoved(to point: CGPoint) {
+        guard isHighlightInteractive else {
+            return
+        }
+        pressTracker.move(to: point)
+        updateHighlightOverlay()
+    }
+
+    func pressEnded() {
+        pressTimeout?.cancel()
+        pressTimeout = nil
+        pressTracker.end()
+        updateHighlightOverlay()
+    }
+
+    private func pressTimedOut() {
+        pressTimeout = nil
+        pressTracker.end()
+        updateHighlightOverlay()
+    }
+
+    func setHovering(_ isHovering: Bool) {
+        guard isHighlightInteractive else {
+            return
+        }
+        isHoveringPointer = isHovering
+        updateHighlightOverlay()
+    }
+
+    @objc
+    private func handleHover(_ sender: UIHoverGestureRecognizer) {
+        switch sender.state {
+        case .began, .changed:
+            setHovering(true)
+        case .ended, .cancelled, .failed:
+            setHovering(false)
+        default:
+            break
+        }
+    }
+
+    private func updateHighlightOverlay() {
+        let highlight = self.highlight
+        let alpha = highlight.overlayAlpha
+        guard highlightOverlayView.alpha != alpha else {
+            return
+        }
+        UIView.animate(
+            withDuration: highlight == .pressed ? 0.06 : 0.15,
+            delay: 0,
+            options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseOut],
+        ) {
+            self.highlightOverlayView.alpha = alpha
+        }
+    }
+
+    // MARK: Accessibility
+
+    /// 第一方卡底部的动作按钮：一个独立的无障碍按钮元素（`CVComponentMessage` 把它和整条消息的元素并列放进容器里）；没有这个按钮是 nil。
+    var accessibilityActionElement: UIView? {
+        firstPartyActionLabel.superview != nil ? firstPartyActionLabel : nil
+    }
+
     // MARK: Measurement
 
     static func measure(
@@ -177,6 +337,9 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
     override func reset() {
         super.reset()
 
+        clearHighlightState()
+        isHighlightInteractive = false
+        hasHighlightLayoutBlock = false
         textStack.reset()
         textStack.removeFromSuperview()
 
@@ -190,6 +353,8 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
         firstPartyHeaderStack.removeFromSuperview()
         firstPartyDivider.removeFromSuperview()
         firstPartyActionLabel.text = nil
+        firstPartyActionLabel.accessibilityLabel = nil
+        firstPartyActionLabel.accessibilityTraits = .staticText
         firstPartyActionLabel.removeFromSuperview()
         firstPartyPlaceholder.image = nil
         firstPartyPlaceholder.removeFromSuperview()
@@ -365,6 +530,11 @@ private class CVLinkPreviewViewAdapter {
 
     /// 标题的颜色；无图卡的域名冒充知名域名时覆盖成危险色。
     var titleTextColor: UIColor {
+        tintTextColor ?? (isIncoming ? .Signal.label : .Signal.ColorBase.labelInverted)
+    }
+
+    /// 按下态 / 悬停态叠层的颜色（card-visual §3.6）：卡上的字色，也就是和底色对比度高的那个纯黑或纯白；不随「冒充域名标红」变。
+    var highlightOverlayColor: UIColor {
         tintTextColor ?? (isIncoming ? .Signal.label : .Signal.ColorBase.labelInverted)
     }
 
@@ -729,6 +899,11 @@ private class CVLinkPreviewViewAdapterFirstParty: CVLinkPreviewViewAdapter {
                 textColor: actionTextColor,
                 textAlignment: .center,
             ).applyForRendering(label: label)
+            // 底部动作按钮是一个独立的无障碍按钮（card-visual §3.6）：button 角色、读它上面的字；
+            // 激活它等于点这张卡（整张卡可点，按钮只是点下去会做的事）。
+            label.isAccessibilityElement = true
+            label.accessibilityTraits = .button
+            label.accessibilityLabel = actionText
             subviews.append(label)
         }
         return subviews
@@ -1024,6 +1199,83 @@ private class CVLinkPreviewViewAdapterCompact: CVLinkPreviewViewAdapter {
         rootStackSubviews.append(textStack)
 
         return rootStackSubviews
+    }
+}
+
+// MARK: -
+
+/// 一次按下的来龙去脉（纯逻辑，好测）：按下时开始；手指挪出 10 pt 算在拖动（滚动），这次触摸之后不再叠；抬起 / 取消结束。
+struct CVLinkPreviewPressTracker {
+    static let moveSlop: CGFloat = 10
+
+    private(set) var isPressed = false
+    private var start: CGPoint?
+
+    mutating func begin(at point: CGPoint) {
+        start = point
+        isPressed = true
+    }
+
+    mutating func move(to point: CGPoint) {
+        guard isPressed, let start else {
+            return
+        }
+        if hypot(point.x - start.x, point.y - start.y) > Self.moveSlop {
+            isPressed = false
+        }
+    }
+
+    mutating func end() {
+        isPressed = false
+        start = nil
+    }
+}
+
+/// 只观察触摸、从不「识别」的手势：触摸一按下就报给卡片（不像视图的 touchesBegan 要等滚动视图确认不是滚动），
+/// 又不取消视图上的触摸、不和会话页的点击 / 长按 / 滑动抢事件（自己始终停在 `.possible`，触摸结束就 `.failed`）。
+private final class CVLinkPreviewTouchObserver: UIGestureRecognizer {
+    private weak var card: CVLinkPreviewView?
+
+    init(card: CVLinkPreviewView) {
+        self.card = card
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesBegan = false
+        delaysTouchesEnded = false
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+        guard touches.count == 1, let touch = touches.first else {
+            return
+        }
+        // 窗口坐标：手指在屏幕上挪了多远，与卡片随列表滚动无关。
+        card?.pressBegan(at: touch.location(in: nil))
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesMoved(touches, with: event)
+        guard let touch = touches.first else {
+            return
+        }
+        card?.pressMoved(to: touch.location(in: nil))
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesEnded(touches, with: event)
+        card?.pressEnded()
+        state = .failed
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesCancelled(touches, with: event)
+        card?.pressEnded()
+        state = .failed
+    }
+
+    override func reset() {
+        super.reset()
+        card?.pressEnded()
     }
 }
 

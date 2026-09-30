@@ -42,6 +42,8 @@ class CVComponentLinkPreview: CVComponentBase, CVComponent {
         linkPreviewView.configureForRendering(
             linkPreview: linkPreview,
             isIncoming: isIncoming,
+            // 按下态 / 悬停态只给点了会有反应的卡：不响应点击的域名卡没有，选择模式里点一下是选消息、不是点卡片，也没有。
+            isInteractive: Self.respondsToTap(linkPreview) && !isShowingSelectionUI,
             cellMeasurement: cellMeasurement,
         )
 
@@ -148,17 +150,23 @@ extension CVComponentLinkPreview: CVAccessibilityComponent {
         Self.accessibilityDescription(for: linkPreview, strings: .localized())
     }
 
-    /// 卡片读给读屏的话（card-visual §3.6）：Tellomi 第一方卡读「类型，名称，副行，按钮：动作」，其余的卡读「链接，标题，副行，域名」——
-    /// 只用卡片上可见的文字。整条消息是一个无障碍元素，「只显示卡片」时正文组件被拿掉，没有这一段读屏就读不到链接的任何内容。
+    /// 卡片读给读屏的话（card-visual §3.6，拼法三端同一份）：Tellomi 第一方卡读「类型，标题，副标题，按钮：动作」，
+    /// 其余的卡读「链接，标题，域名」（不读副行）——只用卡片上可见的文字。
+    /// 整条消息是一个无障碍元素，「只显示卡片」时正文组件被拿掉，没有这一段读屏就读不到链接的任何内容。
     static func accessibilityDescription(for linkPreview: LinkPreviewState, strings: TellomiLinkCardAccessibility.Strings) -> String {
         if let card = linkPreview as? TellomiLinkPreviewCardState, let firstParty = card.firstParty {
             return TellomiLinkCardAccessibility.description(firstParty: firstParty, strings: strings)
         }
         return TellomiLinkCardAccessibility.description(
             title: linkPreview.title,
-            subtitle: linkPreview.previewDescription,
             domain: linkPreview.displayDomain,
             strings: strings,
         )
+    }
+
+    /// 第一方卡底部的动作按钮：一个独立的无障碍按钮元素（button 角色，读它上面的字；激活 = 点这张卡，做的就是按钮要做的事）。
+    /// 没有这个按钮的卡（第三方卡、纯链接、Signal 原来的卡）是 nil。`CVComponentMessage` 把它和整条消息的元素并列放进容器里。
+    func accessibilityActionElement(componentView: CVComponentView) -> UIView? {
+        (componentView as? CVComponentViewLinkPreview)?.linkPreviewView.accessibilityActionElement
     }
 }

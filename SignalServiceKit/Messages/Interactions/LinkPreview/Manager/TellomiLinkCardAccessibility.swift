@@ -5,82 +5,95 @@
 
 import Foundation
 
-/// card-visual §3.6：读屏怎么读一张链接卡片。整条消息是一个无障碍元素，卡片的这一段拼进它的标签，只用卡片上已经有的可见文字，不另造信息：
-/// - 第三方卡和纯链接：「链接，标题，副行，域名」；缺哪段跳哪段；
-/// - 第一方卡：「类型，名称，副行，官方，按钮：动作」，类型只有群和贴纸包需要点名（用户卡、官网卡的标题 / 副行里本来就写着）。
+/// card-visual §3.6：读屏怎么读一张链接卡片。拼法和用词三端同一份（`a11y-strings.md`）。整条消息是一个无障碍元素，
+/// 卡片的这一段拼进它的标签，只用卡片上已经有的可见文字，不另造信息：
+/// - 第三方卡、纯链接、Signal 原来的预览卡：`[链接, 标题, 域名]`，缺哪段跳哪段；**不读副行、不读描述**（文档的公式只有标题和域名）；
+/// - 第一方卡：`[类型, 标题, 副标题, 按钮：动作]`：类型是「Tellomi 用户 / 群组 / 通话 / 贴纸包 / 官网」；
+///   标题或副标题和类型那一段一模一样时不再拼（用户卡的副标题就是「Tellomi 用户」，官网卡的标题就是「Tellomi 官网」）；官网卡不读「官方」徽标。
+/// 段与段之间按本语言的分隔符连（简体 / 繁体「，」，英文「, 」）。
 /// 「只显示卡片」时正文组件被拿掉（card-visual §3.5），没有这一段 VoiceOver 读不到链接的任何内容。
-/// 动作按钮的焦点与触发、染色卡的按下态、动态字体换排版是第二波，不在这里。
+/// 第一方卡底部的动作按钮另外是一个独立的无障碍按钮（见 `CVComponentMessage`），这里只管整句。
 public enum TellomiLinkCardAccessibility {
 
     /// 要用到资源的都从这里进来，拼接才是纯函数。
     public struct Strings {
+        /// 段与段之间的连接（中文「，」，英文「, 」，带空格）。
+        public var separator: String
         /// 「链接」：第三方卡读的第一个词。
         public var link: String
-        /// 「按钮：%@」：第一方卡底部的动作。
+        /// 「按钮：%@」：第一方卡读的最后一段，参数是卡上按钮的字。
         public var button: (String) -> String
-        public var tellomiGroup: String
-        public var tellomiStickerPack: String
-        /// 官网卡标题后面的「官方」徽标的文字（画在标题里，不是单独的标签）。
-        public var officialBadge: String
+        /// 「Tellomi 群组」「Tellomi 贴纸包」：这一版新增的两条。
+        public var kindGroup: String
+        public var kindStickerPack: String
+        /// 用户、通话、官网的第一段**沿用卡片上已有的串**（`TELLOMI_LINK_CARD_TELLOMI_USER` / `…CALL_TITLE` / `…OFFICIAL_TITLE`），不新建同义串。
+        public var kindUser: String
+        public var kindCall: String
+        public var kindOfficial: String
 
         public init(
+            separator: String,
             link: String,
             button: @escaping (String) -> String,
-            tellomiGroup: String,
-            tellomiStickerPack: String,
-            officialBadge: String,
+            kindGroup: String,
+            kindStickerPack: String,
+            kindUser: String,
+            kindCall: String,
+            kindOfficial: String,
         ) {
+            self.separator = separator
             self.link = link
             self.button = button
-            self.tellomiGroup = tellomiGroup
-            self.tellomiStickerPack = tellomiStickerPack
-            self.officialBadge = officialBadge
+            self.kindGroup = kindGroup
+            self.kindStickerPack = kindStickerPack
+            self.kindUser = kindUser
+            self.kindCall = kindCall
+            self.kindOfficial = kindOfficial
         }
     }
 
-    /// 各段之间的连接：和消息的无障碍标签里其它组件之间一样。
-    private static let separator = ", "
-
-    /// 第三方卡、纯链接、Signal 原来的预览卡：「链接，标题，副行，域名」。全都没有就是空串。
-    public static func description(title: String?, subtitle: String?, domain: String?, strings: Strings) -> String {
-        let parts = [title, subtitle, domain].compactMap { $0?.strippedOrNil }
+    /// 第三方卡、纯链接、Signal 原来的预览卡：「链接，标题，域名」，缺哪段跳哪段。全都没有就是空串（不是孤零零一个「链接」）。
+    /// 纯链接卡没有标题，标题位写的就是域名，读「链接，bilibili.com」。
+    public static func description(title: String?, domain: String?, strings: Strings) -> String {
+        let parts = [title, domain].compactMap { $0?.strippedOrNil }
         guard !parts.isEmpty else {
             return ""
         }
-        return ([strings.link] + parts).joined(separator: separator)
+        return ([strings.link] + parts).joined(separator: strings.separator)
     }
 
-    /// 第一方卡：「类型，名称，副行，官方，按钮：动作」。
+    /// 第一方卡：「类型，标题，副标题，按钮：动作」。和前面已经读过的一模一样的段不重复。
     public static func description(firstParty card: TellomiFirstPartyCard.Display, strings: Strings) -> String {
-        var parts = [String]()
+        let kind: String
         switch card.kind {
-        case .group:
-            parts.append(strings.tellomiGroup)
-        case .sticker:
-            parts.append(strings.tellomiStickerPack)
-        case .user, .call, .official:
-            break
+        case .user: kind = strings.kindUser
+        case .group: kind = strings.kindGroup
+        case .call: kind = strings.kindCall
+        case .sticker: kind = strings.kindStickerPack
+        case .official: kind = strings.kindOfficial
         }
-        if let title = card.title.strippedOrNil {
-            parts.append(title)
-        }
-        if card.officialBadge {
-            parts.append(strings.officialBadge)
-        }
-        if let subtitle = card.subtitle?.strippedOrNil {
-            parts.append(subtitle)
+        var parts = [kind]
+        for text in [card.title, card.subtitle] {
+            if let text = text?.strippedOrNil, !parts.contains(text) {
+                parts.append(text)
+            }
         }
         if let action = card.action.strippedOrNil {
             parts.append(strings.button(action))
         }
-        return parts.joined(separator: separator)
+        return parts.joined(separator: strings.separator)
     }
 }
 
 extension TellomiLinkCardAccessibility.Strings {
-    /// 界面语言的文案（card-visual §3.6）；「官方」取卡片上画的那个字。
+    /// 界面语言的文案（card-visual §3.6）；用户 / 通话 / 官网的类型取卡片上画的那几个字。
     public static func localized() -> TellomiLinkCardAccessibility.Strings {
+        let card = TellomiFirstPartyCard.Strings.localized()
         return TellomiLinkCardAccessibility.Strings(
+            separator: OWSLocalizedString(
+                "TELLOMI_LINK_CARD_A11Y_SEPARATOR",
+                comment: "Tellomi (card-visual §3.6): what a screen reader puts between the parts of a link card's description (kind, title, subtitle, button); the English one includes the space after the comma",
+            ),
             link: OWSLocalizedString(
                 "TELLOMI_LINK_CARD_A11Y_LINK",
                 comment: "Tellomi (card-visual §3.6): first word a screen reader says for a link card, before its title and domain",
@@ -94,15 +107,17 @@ extension TellomiLinkCardAccessibility.Strings {
                     action,
                 )
             },
-            tellomiGroup: OWSLocalizedString(
+            kindGroup: OWSLocalizedString(
                 "TELLOMI_LINK_CARD_A11Y_TELLOMI_GROUP",
                 comment: "Tellomi (card-visual §3.6): first words a screen reader says for a Tellomi group invite card, before the group name",
             ),
-            tellomiStickerPack: OWSLocalizedString(
+            kindStickerPack: OWSLocalizedString(
                 "TELLOMI_LINK_CARD_A11Y_TELLOMI_STICKER_PACK",
                 comment: "Tellomi (card-visual §3.6): first words a screen reader says for a Tellomi sticker pack card, before the pack name",
             ),
-            officialBadge: TellomiFirstPartyCard.Strings.officialBadge(),
+            kindUser: card.tellomiUser,
+            kindCall: card.callTitle,
+            kindOfficial: card.officialTitle,
         )
     }
 }

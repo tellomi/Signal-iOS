@@ -347,7 +347,8 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
     }
 
     /// 读屏（card-visual §3.6）：整条消息是一个无障碍元素，「只显示卡片」时正文组件被拿掉，标签里得有卡片上的文字，
-    /// 不然 VoiceOver 读不到链接的任何内容。读的是真排出来的 cell 上的无障碍标签。
+    /// 不然 VoiceOver 读不到链接的任何内容。读的是真排出来的 cell 上的无障碍元素（拼法三端同一份，见 `a11y-strings.md`）：
+    /// 第三方卡「链接，标题，域名」（不读副行）；第一方卡「类型，标题，副标题，按钮：动作」。
     @MainActor
     func testTheMessageReadsItsCardToVoiceOver() async throws {
         let width = shotWidth
@@ -359,17 +360,24 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             }
             return thread
         }
-        // 夹具名 → 整条消息的无障碍标签里必须有的一段（卡片上可见的文字，按「类型，名称，副行，按钮」/「链接，标题，副行，域名」拼）
+        // 夹具名 → 整条消息的无障碍标签里必须有的一段（按文档 §3.6 拼，英文界面）
         let expected: [String: String] = [
-            "bilibili-video": "Link, 【演示】给朋友发一条视频链接会长什么样, 演示UP主 · 4:17, bilibili.com",
-            "taobao-brand": "Link, Taobao, Product, taobao.com",
+            "bilibili-video": "Link, 【演示】给朋友发一条视频链接会长什么样, bilibili.com",
+            "taobao-brand": "Link, Taobao, taobao.com",
             "generic": "Link, Wikipedia, wikipedia.org",
             "no-preview": "Link, bilibili.com",
-            "with-text": "Link, 【演示】给朋友发一条视频链接会长什么样, 演示UP主 · 4:17, bilibili.com",
-            "tellomi-user": "@hk881qb, Tellomi user, Button: Message",
-            "tellomi-official": "Tellomi website, Official, /download, Button: Open",
-            "tellomi-group": "Tellomi group, 周末爬山群, 12 members, Button: Join Group",
-            "tellomi-sticker": "Tellomi sticker pack, Bandit, 24 stickers, Button: Add",
+            "with-text": "Link, 【演示】给朋友发一条视频链接会长什么样, bilibili.com",
+            "tellomi-user": "Tellomi user, @hk881qb, button: Message",
+            "tellomi-official": "Tellomi website, /download, button: Open",
+            "tellomi-group": "Tellomi group, 周末爬山群, 12 members, button: Join Group",
+            "tellomi-sticker": "Tellomi sticker pack, Bandit, 24 stickers, button: Add",
+        ]
+        // 不该出现在读屏里的（副行、描述、「官方」徽标的词）
+        let absent: [String: [String]] = [
+            "bilibili-video": ["演示UP主", "4:17", "发送端写的描述"],
+            "taobao-brand": ["Product"],
+            "generic": ["free online encyclopedia"],
+            "tellomi-official": ["Official"],
         ]
         for fixture in Self.fixtures {
             guard let snippet = expected[fixture.name] else {
@@ -378,8 +386,11 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             try prepareLocalState(fixture)
             let message = try await insert(fixture, thread: thread, incoming: true)
             let hosted = try await host(message: message, thread: thread, width: width, dark: Theme.isDarkThemeEnabled)
-            let labels = Self.accessibilityLabels(in: hosted.cellView)
+            let labels = Self.voiceOverElements(in: hosted.cellView).compactMap(\.accessibilityLabel)
             XCTAssertTrue(labels.contains { $0.contains(snippet) }, "\(fixture.name)：无障碍标签里应该有「\(snippet)」，实际：\(labels)")
+            for word in absent[fixture.name] ?? [] {
+                XCTAssertFalse(labels.contains { $0.contains(word) }, "\(fixture.name)：读屏里不该有「\(word)」，实际：\(labels)")
+            }
             // 消息就是这条链接时只显示卡片：正文组件没有了，链接只能从卡片读到（对照：有文字时正文也在标签里）
             if fixture.name == "with-text" {
                 XCTAssertTrue(labels.contains { $0.contains("看看这个 https://www.bilibili.com/video/BV1YDhJ6ZEL6") }, "with-text：正文也要读，实际：\(labels)")
@@ -388,16 +399,256 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         }
     }
 
-    /// cell 里作为无障碍元素的视图上的标签（整条消息是一个元素）。
-    private static func accessibilityLabels(in view: UIView) -> [String] {
-        var result = [String]()
-        if view.isAccessibilityElement, let label = view.accessibilityLabel, !label.isEmpty {
-            result.append(label)
+    /// 一条收到的消息直接排成 cell（不检查级别、不存截图），给下面读屏和按下态的用例用。
+    @MainActor
+    private func hostedForA11yAndPress(_ fixture: Fixture, dark: Bool = false) async throws -> Hosted {
+        let thread = write { tx -> TSContactThread in
+            let thread = ContactThreadFactory().create(transaction: tx)
+            if let aci = thread.contactAddress.aci {
+                var recipient = DependenciesBridge.shared.recipientFetcher.fetchOrCreate(serviceId: aci, tx: tx)
+                SSKEnvironment.shared.profileManagerRef.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .debugging, tx: tx)
+            }
+            return thread
         }
-        for subview in view.subviews {
-            result += accessibilityLabels(in: subview)
+        try prepareLocalState(fixture)
+        let message = try await insert(fixture, thread: thread, incoming: true)
+        return try await host(message: message, thread: thread, width: shotWidth, dark: dark)
+    }
+
+    /// VoiceOver 实际能聚焦到的元素，按 UIKit 的规则收：自己是元素的视图算一个（里面的不再看）；不是元素、但列了 `accessibilityElements` 的容器，
+    /// 取它列的（视图或 `UIAccessibilityElement`）；其余往下找子视图；隐藏的不算。
+    private static func voiceOverElements(in view: UIView) -> [NSObject] {
+        if view.isHidden || view.alpha == 0 || view.accessibilityElementsHidden {
+            return []
         }
-        return result
+        if view.isAccessibilityElement {
+            return [view]
+        }
+        if let listed = view.accessibilityElements {
+            return listed.compactMap { $0 as? NSObject }
+        }
+        return view.subviews.flatMap { voiceOverElements(in: $0) }
+    }
+
+    /// card-visual §3.6 / a11y-strings：第一方卡的底部动作按钮是一个独立的无障碍按钮（button 角色、可聚焦、可激活），
+    /// 整条消息照旧读整句；卡上别的文字不各读一遍（整条消息一个元素，不是卡上每个标签一个）。
+    @MainActor
+    func testTheFirstPartyCardActionIsAnAccessibleButton() async throws {
+        let expected: [String: (sentence: String, button: String)] = [
+            "tellomi-user": ("Tellomi user, @hk881qb, button: Message", "Message"),
+            "tellomi-official": ("Tellomi website, /download, button: Open", "Open"),
+            "tellomi-group": ("Tellomi group, 周末爬山群, 12 members, button: Join Group", "Join Group"),
+            "tellomi-sticker": ("Tellomi sticker pack, Bandit, 24 stickers, button: Add", "Add"),
+            "tellomi-group-member": ("Tellomi group, 本地群名, You’re a member, button: Open", "Open"),
+        ]
+        for (name, want) in expected {
+            let fixture = try XCTUnwrap(Self.fixtures.first { $0.name == name }, name)
+            let hosted = try await hostedForA11yAndPress(fixture, dark: Theme.isDarkThemeEnabled)
+            defer { hosted.tearDown() }
+            let elements = Self.voiceOverElements(in: hosted.cellView)
+            let message = try XCTUnwrap(elements.first { ($0.accessibilityLabel ?? "").contains(want.sentence) }, "\(name)：找不到整句，实际 \(elements.map(\.accessibilityLabel))")
+            XCTAssertFalse(message.accessibilityTraits.contains(.button), "\(name)：整条消息不是按钮")
+            let buttons = elements.filter { $0.accessibilityTraits.contains(.button) }
+            XCTAssertEqual(buttons.count, 1, "\(name)：恰好一个无障碍按钮，实际 \(buttons.map(\.accessibilityLabel))")
+            let button = try XCTUnwrap(buttons.first)
+            XCTAssertEqual(button.accessibilityLabel, want.button, "\(name)：按钮读它上面的字")
+            XCTAssertTrue(button.isAccessibilityElement)
+            // 按钮元素就是卡片底部那一条（36 pt 高），在整条消息的容器里面、靠下。
+            // （离屏的窗口没有挂在屏幕上，`accessibilityFrame`（屏幕坐标）是 0，所以用视图自己的坐标判。）
+            let buttonView = try XCTUnwrap(button as? UIView, "\(name)：按钮元素是卡上那个视图本身")
+            XCTAssertEqual(buttonView.bounds.size.height, 36, accuracy: 0.6, "\(name)：按钮 36 pt 高")
+            let container = try XCTUnwrap((message as? UIAccessibilityElement)?.accessibilityContainer as? UIView, "\(name)：整条消息元素挂在容器视图上")
+            XCTAssertTrue(container.accessibilityElements?.contains { $0 as AnyObject === message } == true, "\(name)：容器里列着整条消息元素")
+            let buttonInContainer = container.convert(buttonView.bounds, from: buttonView)
+            XCTAssertTrue(container.bounds.contains(buttonInContainer), "\(name)：按钮在消息容器里，按钮 \(buttonInContainer)，容器 \(container.bounds)")
+            XCTAssertGreaterThan(buttonInContainer.midY, container.bounds.midY, "\(name)：按钮在消息的下半部分")
+            // 卡上别的文字不各自成为元素（标题、副行没有单独的读屏元素）
+            XCTAssertEqual(elements.count, 2, "\(name)：只有整条消息和按钮两个元素，实际 \(elements.map(\.accessibilityLabel))")
+            // 消息元素的框盖着整条消息，按钮元素在它后面（点触探索时后面的在上面）
+            XCTAssertLessThan(try XCTUnwrap(elements.firstIndex(of: message)), try XCTUnwrap(elements.firstIndex(of: button)), "\(name)：先读整句，再到按钮")
+        }
+    }
+
+    /// 对照：第三方卡、纯链接卡（没有动作按钮）仍然整条消息一个元素，没有多出来的按钮。
+    @MainActor
+    func testACardWithoutAnActionButtonStaysOneAccessibilityElement() async throws {
+        for name in ["bilibili-video", "taobao-brand", "generic", "no-preview", "alipay-payment"] {
+            let fixture = try XCTUnwrap(Self.fixtures.first { $0.name == name }, name)
+            let hosted = try await hostedForA11yAndPress(fixture, dark: Theme.isDarkThemeEnabled)
+            defer { hosted.tearDown() }
+            let elements = Self.voiceOverElements(in: hosted.cellView)
+            XCTAssertEqual(elements.filter { $0.accessibilityTraits.contains(.button) }.count, 0, "\(name)：没有按钮元素")
+            XCTAssertEqual(elements.filter { ($0.accessibilityLabel ?? "").hasPrefix("Link") || ($0.accessibilityLabel ?? "").contains("Link, ") }.count, 1, "\(name)：卡片的句子只读一遍，实际 \(elements.map(\.accessibilityLabel))")
+        }
+    }
+
+    // MARK: - 按下态 / 悬停态（card-visual §3.6 / §3.8）
+
+    /// 画出来的卡片上，窗口坐标 `point` 那一个像素的颜色。
+    @MainActor
+    private func pixelColor(of hosted: Hosted, atWindowPoint point: CGPoint) -> UIColor? {
+        let image = render(hosted)
+        guard let cgImage = image.cgImage else {
+            return nil
+        }
+        let scale = image.scale
+        let x = Int((point.x * scale).rounded())
+        let y = Int((point.y * scale).rounded())
+        guard x >= 0, y >= 0, x < cgImage.width, y < cgImage.height, let crop = cgImage.cropping(to: CGRect(x: x, y: y, width: 1, height: 1)) else {
+            return nil
+        }
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let drawn = pixel.withUnsafeMutableBytes { raw -> Bool in
+            guard
+                let context = CGContext(
+                    data: raw.baseAddress,
+                    width: 1,
+                    height: 1,
+                    bitsPerComponent: 8,
+                    bytesPerRow: 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+                )
+            else {
+                return false
+            }
+            context.draw(crop, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+            return true
+        }
+        guard drawn else {
+            return nil
+        }
+        return UIColor(red: CGFloat(pixel[0]) / 255, green: CGFloat(pixel[1]) / 255, blue: CGFloat(pixel[2]) / 255, alpha: 1)
+    }
+
+    /// 按下态：整张卡叠一层半透明的黑 / 白（和卡上的字同一个黑 / 白），不换底色。染色卡与中性卡都要；浅色、深色都要。
+    @MainActor
+    func testPressingACardLaysAHalfTransparentBlackOrWhiteOverItAndKeepsTheBaseColour() async throws {
+        let names = ["generic", "icon-yellow", "large-orange", "tellomi-user", "tellomi-official"]
+        var shots = [Bool: [UIImage]]()
+        defer {
+            if shooting {
+                for (dark, images) in shots {
+                    try? save(stack(images, width: shotWidth), name: "w2-pressed-\(dark ? "dark" : "light").png")
+                }
+            }
+        }
+        // 气泡的颜色跟着 Theme 走，浅 / 深两遍都得把 Theme 也切过去，不然是深色窗口里画着浅色气泡
+        let systemIsDark = Theme.isDarkThemeEnabled
+        defer { Theme.setIsDarkThemeEnabledForTests(systemIsDark) }
+        for dark in [false, true] {
+            Theme.setIsDarkThemeEnabledForTests(dark)
+            for name in names {
+                let fixture = try XCTUnwrap(Self.fixtures.first { $0.name == name }, name)
+                let hosted = try await hostedForA11yAndPress(fixture, dark: dark)
+                defer { hosted.tearDown() }
+                let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView), "\(name)：找不到卡片") as! CVLinkPreviewView
+                let traits = hosted.window.traitCollection
+                XCTAssertEqual(cardView.highlight, .idle, "\(name)：一开始没有叠层")
+                XCTAssertEqual(cardView.highlightOverlayView.alpha, 0, accuracy: 0.001, "\(name)：一开始叠层是透明的")
+
+                // 底色采样点：卡片左下角里面（圆角之内、在文字和图标之外）
+                let cardFrame = cardView.convert(cardView.bounds, to: hosted.window)
+                let sample = CGPoint(x: cardFrame.minX + 12, y: cardFrame.maxY - 5)
+                let before = try XCTUnwrap(pixelColor(of: hosted, atWindowPoint: sample), "\(name)：读不到像素")
+
+                cardView.pressBegan(at: CGPoint(x: 20, y: 20))
+                XCTAssertEqual(cardView.highlight, .pressed, "\(name)：按下以后是按下态")
+                // 叠层是 0.06 秒的淡入：截图和采样都取淡入结束的样子
+                cardView.highlightOverlayView.layer.removeAllAnimations()
+                cardView.layoutIfNeeded()
+                hosted.window.layoutIfNeeded()
+                if shooting {
+                    shots[dark, default: []].append(render(hosted))
+                }
+                let pressed = try XCTUnwrap(pixelColor(of: hosted, atWindowPoint: sample), "\(name)：读不到按下后的像素")
+
+                // 叠层颜色 = 标题的字色（黑或白，标题对比度 ≥ 4.5:1 的那个），不透明度在 6%–20% 之间
+                let overlay = try XCTUnwrap(cardView.highlightOverlayView.backgroundColor).resolvedColor(with: traits)
+                let (r, g, b) = Self.rgb(overlay)
+                XCTAssertTrue((r < 0.05 && g < 0.05 && b < 0.05) || (r > 0.95 && g > 0.95 && b > 0.95), "\(name)：叠层是纯黑或纯白，实际 \(overlay)")
+                XCTAssertGreaterThan(cardView.highlightOverlayView.alpha, 0.05, "\(name)：按下态的叠层看得见")
+                XCTAssertLessThan(cardView.highlightOverlayView.alpha, 0.2, "\(name)：叠层是半透明，不盖住内容")
+
+                // 画出来的像素：往叠层的颜色挪了一点（黑叠层变暗、白叠层变亮），幅度不超过 20%，不是换了一个颜色
+                let isBlackOverlay = r < 0.5
+                let beforeLuminance = Self.luminance(before)
+                let pressedLuminance = Self.luminance(pressed)
+                if isBlackOverlay {
+                    XCTAssertLessThan(pressedLuminance, beforeLuminance - 0.01, "\(name)（\(dark ? "深" : "浅")色）：黑叠层应该让底色变暗，前 \(beforeLuminance)，后 \(pressedLuminance)")
+                } else {
+                    XCTAssertGreaterThan(pressedLuminance, beforeLuminance + 0.005, "\(name)（\(dark ? "深" : "浅")色）：白叠层应该让底色变亮，前 \(beforeLuminance)，后 \(pressedLuminance)")
+                }
+                XCTAssertLessThan(Self.distance(before, pressed), 0.2, "\(name)：只是叠一层，不是换底色，前 \(before)，后 \(pressed)")
+
+                // 抬起以后叠层退掉，画回原来的底色
+                cardView.pressEnded()
+                XCTAssertEqual(cardView.highlight, .idle, "\(name)：抬起以后没有叠层")
+                cardView.highlightOverlayView.layer.removeAllAnimations()
+                XCTAssertEqual(cardView.highlightOverlayView.alpha, 0, accuracy: 0.001, "\(name)：叠层退掉")
+            }
+        }
+    }
+
+    /// 按下的过程：手指挪远了（开始滚动）就退掉；按住太久就退掉（0.2 秒时会话页的长按会拿起整条消息，预览里不能带着叠层）；
+    /// 指针悬停是更淡的叠层，按下盖过悬停，悬停结束不带走按下态。
+    @MainActor
+    func testThePressedStateEndsWhenTheFingerMovesAwayOrHoldsTooLongAndHoverIsLighter() async throws {
+        let fixture = try XCTUnwrap(Self.fixtures.first { $0.name == "generic" })
+        let hosted = try await hostedForA11yAndPress(fixture)
+        defer { hosted.tearDown() }
+        let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView)) as! CVLinkPreviewView
+
+        // 挪近一点还算按着，超过 10 pt 就是在拖（滚动）
+        cardView.pressBegan(at: CGPoint(x: 50, y: 50))
+        cardView.pressMoved(to: CGPoint(x: 54, y: 53))
+        XCTAssertEqual(cardView.highlight, .pressed, "挪了 5 pt 还算按着")
+        cardView.pressMoved(to: CGPoint(x: 50, y: 62))
+        XCTAssertEqual(cardView.highlight, .idle, "挪了 12 pt：在拖，退掉叠层")
+        cardView.pressMoved(to: CGPoint(x: 50, y: 50))
+        XCTAssertEqual(cardView.highlight, .idle, "退掉以后挪回来不再叠（这一次触摸已经算拖动）")
+        cardView.pressEnded()
+
+        // 悬停 < 按下
+        cardView.setHovering(true)
+        XCTAssertEqual(cardView.highlight, .hover)
+        let hoverAlpha = cardView.highlightOverlayView.alpha
+        cardView.pressBegan(at: .zero)
+        XCTAssertEqual(cardView.highlight, .pressed)
+        XCTAssertGreaterThan(cardView.highlightOverlayView.alpha, hoverAlpha, "按下比悬停更深")
+        cardView.setHovering(false)
+        XCTAssertEqual(cardView.highlight, .pressed, "悬停结束不带走按下态")
+        cardView.pressEnded()
+        XCTAssertEqual(cardView.highlight, .idle)
+        cardView.setHovering(true)
+        cardView.setHovering(false)
+        XCTAssertEqual(cardView.highlight, .idle)
+
+        // 按住太久：到点自己退掉（测试里把上限缩到 0.05 秒）
+        let oldMax = CVLinkPreviewView.pressedMaxDuration
+        CVLinkPreviewView.pressedMaxDuration = 0.05
+        defer { CVLinkPreviewView.pressedMaxDuration = oldMax }
+        cardView.pressBegan(at: .zero)
+        XCTAssertEqual(cardView.highlight, .pressed)
+        try await Task.sleep(nanoseconds: 400_000_000)
+        XCTAssertEqual(cardView.highlight, .idle, "按住超过上限：叠层自己退掉（不留到长按菜单的预览里）")
+    }
+
+    /// 不响应点击的卡（消息请求里的域名卡）没有按下态：点了不会有反应，就不该有「可以点」的提示。
+    @MainActor
+    func testACardThatIgnoresTapsHasNoPressedState() async throws {
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        let fixture = try XCTUnwrap(Self.fixtures.first { $0.name == "generic" })
+        let message = try await insert(fixture, thread: thread, incoming: true)
+        let latestThread = try XCTUnwrap(read { TSThread.anyFetch(uniqueId: thread.uniqueId, transaction: $0) })
+        let hosted = try await host(message: message, thread: latestThread, width: shotWidth, dark: Theme.isDarkThemeEnabled)
+        defer { hosted.tearDown() }
+        let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView)) as! CVLinkPreviewView
+        XCTAssertFalse(cardView.isHighlightInteractive, "消息请求里的域名卡不响应点击")
+        cardView.pressBegan(at: .zero)
+        XCTAssertEqual(cardView.highlight, .idle, "不响应点击就没有按下态")
+        cardView.setHovering(true)
+        XCTAssertEqual(cardView.highlight, .idle, "也没有悬停态")
     }
 
     /// 染色的卡在深色外观下：同一个色相、更暗的底、字色对比度仍达标；截图存 `cards-incoming-dark.png`。
