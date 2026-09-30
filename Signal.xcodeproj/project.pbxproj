@@ -10574,6 +10574,7 @@
 				6600BB202BA3BC540005A035 /* LinkPreviewHelper.swift */,
 				6600BB192BA3A0930005A035 /* LinkPreviewManager.swift */,
 				5073EAC82C4F323F001FBB3E /* LinkPreviewSettingManager.swift */,
+				47515A9E05C55440F7CE2458 /* TellomiLinkCardAccessibility.swift */,
 				5073EAC62C4F0F7A001FBB3E /* LinkPreviewSettingStore.swift */,
 				4A190BD8821D1F289A3171F3 /* TellomiLinkFetchPolicy.swift */,
 				42618C2E6F9C127D23CFD301 /* TellomiLinkReachability.swift */,
@@ -10591,7 +10592,6 @@
 				8A800D066330CA7B09DECD43 /* TellomiFirstPartyCard.swift */,
 				EAE130FD086DB9407A88C5B8 /* TellomiLinkCard.swift */,
 				17904164D8B2AAC52A6A192E /* TellomiLinkPreviewLocalSettings.swift */,
-				47515A9E05C55440F7CE2458 /* TellomiLinkCardAccessibility.swift */,
 			);
 			path = Manager;
 			sourceTree = "<group>";
@@ -11170,10 +11170,10 @@
 				E79EC636E5BA50F4EF2F7102 /* TellomiLinkBridgeGoldenTest.swift */,
 				6D4E2DBB3EA56E2BE2712DA0 /* TellomiLinkBridgeGolden.swift */,
 				DC45C74D3C50641A3623D0CB /* TellomiLinkOpenerTest.swift */,
+				338B97983A2D04C6D37AC15C /* TellomiLinkCardAccessibilityTest.swift */,
 				A98387BBD0C4E928E482F804 /* TellomiFirstPartyLocalLookupTest.swift */,
 				2E239F72B2CD668C8B109844 /* TellomiFirstPartyCardTest.swift */,
 				51D77529A60AE97737B34465 /* TellomiRichContentTest.swift */,
-				338B97983A2D04C6D37AC15C /* TellomiLinkCardAccessibilityTest.swift */,
 			);
 			path = LinkPreview;
 			sourceTree = "<group>";
@@ -12292,7 +12292,9 @@
 				6675F65029261E0C007A311E /* APNSRotationStoreTest.swift */,
 				F9B3A92E293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift */,
 				34F1072126D045290053EF4D /* BatchUpdateTest.swift */,
+				750834A7E8AC263E89E5CEB7 /* TellomiLinkCardAccessibilityStringsTest.swift */,
 				4C9D347923679C13006A4307 /* ContactStreamTest.swift */,
+				391440ABADA6F3DBF0E470C1 /* TellomiLinkLogHygieneTest.swift */,
 				3494BBDF26E66FC30079B11B /* DateUtilTest.swift */,
 				D900E12F30784B398D34ABF7 /* TellomiBrandAssetsTest.swift */,
 				45E7A6A61E71CA7E00D44FB5 /* DisplayableTextFilterTest.swift */,
@@ -12308,8 +12310,6 @@
 				88F5FA9528EF7E02007AA1BF /* StorySharingTests.swift */,
 				98D599BA464A712488390768 /* TellomiLocalizationTest.swift */,
 				45A3579727DAAC6A0051CE8B /* UserProfileTest.swift */,
-				750834A7E8AC263E89E5CEB7 /* TellomiLinkCardAccessibilityStringsTest.swift */,
-				391440ABADA6F3DBF0E470C1 /* TellomiLinkLogHygieneTest.swift */,
 			);
 			path = util;
 			sourceTree = "<group>";
@@ -19700,8 +19700,8 @@
 				D9F02BE72B96556C00E872C2 /* CallsListViewController+ViewModelLoaderTest.swift in Sources */,
 				954AEE6A1DF33E01002E5410 /* ContactsPickerTest.swift in Sources */,
 				4C9D347B23679C25006A4307 /* ContactStreamTest.swift in Sources */,
-				8B00EE1393EC1A0801A0D77F /* TellomiLinkCardAccessibilityStringsTest.swift in Sources */,
 				4C6E6C6924241C00009DE948 /* ConversationViewControllerTest.swift in Sources */,
+				8B00EE1393EC1A0801A0D77F /* TellomiLinkCardAccessibilityStringsTest.swift in Sources */,
 				34635330256EA52A003C5428 /* ConversationViewTest.swift in Sources */,
 				B4DC7A25FD5514E9885AB8D7 /* TellomiLinkLogHygieneTest.swift in Sources */,
 				FB149341E3E2E50BBCA5D672 /* TellomiRestoreChoiceTest.swift in Sources */,
