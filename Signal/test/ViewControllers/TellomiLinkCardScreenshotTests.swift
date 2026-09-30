@@ -445,7 +445,7 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
                     let frame = cardView.convert(imageView.bounds, from: imageView)
                     XCTAssertEqual(frame.size.width, 54, accuracy: 0.6, "\(fixture.name)：图标卡的图标 54 pt（Telegram iOS 小图），实际 \(frame)")
                     XCTAssertEqual(frame.size.height, 54, accuracy: 0.6, "\(fixture.name)：图标卡的图标 54 pt（Telegram iOS 小图），实际 \(frame)")
-                    XCTAssertEqual(frame.maxX, cardView.bounds.size.width - 6, accuracy: 1, "\(fixture.name)：图标贴右侧、离右边 6，实际 \(frame) / 卡宽 \(cardView.bounds.size.width)")
+                    XCTAssertEqual(frame.maxX, cardView.bounds.size.width - 10, accuracy: 1, "\(fixture.name)：图标贴右侧、离右边 10（和文字离左一样，Telegram 的内缩左右对称），实际 \(frame) / 卡宽 \(cardView.bounds.size.width)")
                     XCTAssertEqual(frame.minY, 6, accuracy: 1, "\(fixture.name)：图标贴上边、离上边 6（不垂直居中），实际 \(frame)")
                     XCTAssertGreaterThanOrEqual(cardView.bounds.size.height, 66 - 0.5, "\(fixture.name)：卡最矮 = 图 54 + 上下各 6，实际 \(cardView.bounds.size)")
                 } else {

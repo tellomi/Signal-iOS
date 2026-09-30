@@ -820,8 +820,9 @@ private enum TellomiOfficialBadge {
 // MARK: -
 
 // Tellomi（card-visual §3.2，owner 2026-09-30：几何照 Telegram）：图标卡——文字在左（标题 ≤ 2 行 + 域名行），右侧方形小图贴右上角；整卡按图标主色染色。
-// Telegram reference：iOS `ChatMessageAttachedContentNode.swift` 小图 54 × 54（`inlineMediaAndSize`）、距上 / 右 6（`inlineMediaEdgeInset`）、
-// 圆角 4（`ImageCorners(radius: 4.0)`），文字绕开小图；卡片最矮 = 小图 + 上下各 6。这里文字整列让出小图的宽度（没有做逐行绕排）。
+// Telegram reference：iOS `ChatMessageAttachedContentNode.swift` 小图 54 × 54（`inlineMediaAndSize`）、距上 6（`inlineMediaEdgeInset`）、
+// 右边缘与文字左边缘同一个内缩（`x = width - insets.right - size`，`insets.right` = 文字气泡内缩 10–11）、圆角 4（`ImageCorners(radius: 4.0)`），
+// 文字绕开小图；卡片最矮 = 小图 + 上下各 6。这里文字整列让出小图的宽度（没有做逐行绕排）。
 private class CVLinkPreviewViewAdapterIcon: CVLinkPreviewViewAdapter {
 
     private static let iconSize: CGFloat = 54
@@ -829,12 +830,12 @@ private class CVLinkPreviewViewAdapterIcon: CVLinkPreviewViewAdapter {
     private static let iconEdgeInset: CGFloat = 6
 
     override var rootStackConfig: ManualStackView.Config {
-        // 图贴右上、离上 / 下 / 右各 6；文字整体比图缩进 4，所以文字离上下仍是 10，离左 10。
+        // 图贴右上：离上 / 下各 6，离右 10（和文字离左一样，Telegram 左右内缩对称）；文字整体比图缩进 4，所以文字离上下是 10。
         ManualStackView.Config(
             axis: .horizontal,
             alignment: .top,
             spacing: 10,
-            layoutMargins: UIEdgeInsets(top: Self.iconEdgeInset, leading: 10, bottom: Self.iconEdgeInset, trailing: Self.iconEdgeInset),
+            layoutMargins: UIEdgeInsets(top: Self.iconEdgeInset, leading: 10, bottom: Self.iconEdgeInset, trailing: 10),
         )
     }
 
