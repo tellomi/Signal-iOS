@@ -28,6 +28,8 @@ final class TellomiLinkCardAcceptanceTests: XCTestCase {
     @MainActor
     override func setUp() {
         super.setUp()
+        // 76 格真排版 + 截图，本机单独跑要 ~100 秒；带 `-test-timeouts-enabled YES -default-test-execution-time-allowance 60` 的整套跑会被判超时。
+        executionTimeAllowance = 600
         let setupExpectation = expectation(description: "mock ssk environment setup completed")
         self.oldContext = CurrentAppContext()
         Task {
