@@ -2189,8 +2189,7 @@ private extension CVComponentState.Builder {
     private func tellomiLinkOnlyUrl(message: TSMessage) -> String? {
         guard
             case .bodyText(let displayableText, let hasTapForMore) = bodyText,
-            !hasTapForMore,
-            displayableText.shouldAllowLinkification
+            !hasTapForMore
         else {
             return nil
         }
@@ -2216,7 +2215,8 @@ private extension CVComponentState.Builder {
             body: message.body,
             hasOtherContent: hasOtherContent,
             linkRanges: { text in
-                guard let detector = Self.tellomiLinkDetector else {
+                // 便宜的前缀检查过了才到这里；Signal 拒绝链接化的正文（可疑链接）不算「一条链接」。
+                guard displayableText.shouldAllowLinkification, let detector = Self.tellomiLinkDetector else {
                     return []
                 }
                 return detector.matches(in: text, options: [], range: NSRange(text.startIndex..., in: text))
