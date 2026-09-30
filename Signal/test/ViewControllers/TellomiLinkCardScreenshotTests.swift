@@ -344,6 +344,60 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         }
     }
 
+    /// 读屏（card-visual §3.6）：整条消息是一个无障碍元素，「只显示卡片」时正文组件被拿掉，标签里得有卡片上的文字，
+    /// 不然 VoiceOver 读不到链接的任何内容。读的是真排出来的 cell 上的无障碍标签。
+    @MainActor
+    func testTheMessageReadsItsCardToVoiceOver() async throws {
+        let width = shotWidth
+        let thread = write { tx -> TSContactThread in
+            let thread = ContactThreadFactory().create(transaction: tx)
+            if let aci = thread.contactAddress.aci {
+                var recipient = DependenciesBridge.shared.recipientFetcher.fetchOrCreate(serviceId: aci, tx: tx)
+                SSKEnvironment.shared.profileManagerRef.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .debugging, tx: tx)
+            }
+            return thread
+        }
+        // 夹具名 → 整条消息的无障碍标签里必须有的一段（卡片上可见的文字，按「类型，名称，副行，按钮」/「链接，标题，副行，域名」拼）
+        let expected: [String: String] = [
+            "bilibili-video": "Link, 【演示】给朋友发一条视频链接会长什么样, 演示UP主 · 4:17, bilibili.com",
+            "taobao-brand": "Link, Taobao, Product, taobao.com",
+            "generic": "Link, Wikipedia, wikipedia.org",
+            "no-preview": "Link, bilibili.com",
+            "with-text": "Link, 【演示】给朋友发一条视频链接会长什么样, 演示UP主 · 4:17, bilibili.com",
+            "tellomi-user": "@hk881qb, Tellomi user, Button: Message",
+            "tellomi-official": "Tellomi website, Official, /download, Button: Open",
+            "tellomi-group": "Tellomi group, 周末爬山群, 12 members, Button: Join Group",
+            "tellomi-sticker": "Tellomi sticker pack, Bandit, 24 stickers, Button: Add",
+        ]
+        for fixture in Self.fixtures {
+            guard let snippet = expected[fixture.name] else {
+                continue
+            }
+            try prepareLocalState(fixture)
+            let message = try await insert(fixture, thread: thread, incoming: true)
+            let hosted = try await host(message: message, thread: thread, width: width, dark: Theme.isDarkThemeEnabled)
+            let labels = Self.accessibilityLabels(in: hosted.cellView)
+            XCTAssertTrue(labels.contains { $0.contains(snippet) }, "\(fixture.name)：无障碍标签里应该有「\(snippet)」，实际：\(labels)")
+            // 消息就是这条链接时只显示卡片：正文组件没有了，链接只能从卡片读到（对照：有文字时正文也在标签里）
+            if fixture.name == "with-text" {
+                XCTAssertTrue(labels.contains { $0.contains("看看这个 https://www.bilibili.com/video/BV1YDhJ6ZEL6") }, "with-text：正文也要读，实际：\(labels)")
+            }
+            hosted.tearDown()
+        }
+    }
+
+    /// cell 里作为无障碍元素的视图上的标签（整条消息是一个元素）。
+    private static func accessibilityLabels(in view: UIView) -> [String] {
+        var result = [String]()
+        if view.isAccessibilityElement, let label = view.accessibilityLabel, !label.isEmpty {
+            result.append(label)
+        }
+        for subview in view.subviews {
+            result += accessibilityLabels(in: subview)
+        }
+        return result
+    }
+
     /// 染色的卡在深色外观下：同一个色相、更暗的底、字色对比度仍达标；截图存 `cards-incoming-dark.png`。
     @MainActor
     func testTintedCardsFollowTheAppearance() async throws {
