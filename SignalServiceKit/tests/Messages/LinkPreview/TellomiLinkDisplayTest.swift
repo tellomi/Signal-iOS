@@ -93,11 +93,24 @@ final class TellomiLinkDisplayTest: XCTestCase {
         )
         let seconds = Int(ISO8601DateFormatter().date(from: publishedAt)!.timeIntervalSince1970)
 
+        // card-visual §3.7 / §3.4：域名行里域名与发布日期之间是 U+22C5「⋅」，副行各段之间是 U+00B7「·」，两个字符不通用。
         XCTAssertEqual(
             make(card),
-            TellomiLinkDisplay(title: "《柯洁围棋入门课》", description: "柯洁 · 1:02:03", domain: "bilibili.com · D\(seconds)", officialBadge: false),
+            TellomiLinkDisplay(title: "《柯洁围棋入门课》", description: "柯洁 \u{00B7} 1:02:03", domain: "bilibili.com \u{22C5} D\(seconds)", officialBadge: false),
         )
         XCTAssertEqual(make(structured("video", [("published_at", "not a date")]))?.domain, "bilibili.com")
+    }
+
+    /// 副行用「 · 」（U+00B7），域名行用「 ⋅ 」（U+22C5）：肉眼几乎一样，所以逐个码点钉住，谁也不许换成谁。
+    func testTheSubLineAndTheDomainLineUseDifferentSeparators() throws {
+        let card = structured("video", [("duration_ms", "65000"), ("author", "Up"), ("published_at", "2026-09-01T08:00:00+08:00")])
+        let display = try XCTUnwrap(make(card))
+        let subLine = try XCTUnwrap(display.description)
+        let domainLine = try XCTUnwrap(display.domain)
+        XCTAssertTrue(subLine.unicodeScalars.contains("\u{00B7}"), "副行的分隔符是 U+00B7：\(subLine.unicodeScalars.map(\.value))")
+        XCTAssertFalse(subLine.unicodeScalars.contains("\u{22C5}"), "副行里不该有 U+22C5")
+        XCTAssertTrue(domainLine.unicodeScalars.contains("\u{22C5}"), "域名行的分隔符是 U+22C5：\(domainLine.unicodeScalars.map(\.value))")
+        XCTAssertFalse(domainLine.unicodeScalars.contains("\u{00B7}"), "域名行里不该有 U+00B7")
     }
 
     func testEachStructuredKindHasItsOwnSubLine() {
@@ -190,6 +203,32 @@ final class TellomiLinkDisplayTest: XCTestCase {
         XCTAssertNil(TellomiLinkDisplay.formatDuration("-5"))
         XCTAssertNil(TellomiLinkDisplay.formatDuration("long"))
         XCTAssertNil(TellomiLinkDisplay.formatDuration(nil))
+    }
+
+    /// card-visual §3.9：「四舍五入到秒；0 或非法不显示」。四舍五入以后是 0 秒的（1–499 ms）等于 0，不显示「0:00」。
+    func testADurationThatRoundsToZeroSecondsIsNotShown() {
+        XCTAssertNil(TellomiLinkDisplay.formatDuration("1"))
+        XCTAssertNil(TellomiLinkDisplay.formatDuration("499"))
+        XCTAssertEqual(TellomiLinkDisplay.formatDuration("500"), "0:01", "500 ms 进位到 1 秒")
+        XCTAssertEqual(TellomiLinkDisplay.formatDuration("1499"), "0:01")
+        XCTAssertEqual(TellomiLinkDisplay.formatDuration("1500"), "0:02")
+        XCTAssertEqual(TellomiLinkDisplay.formatDuration("59499"), "0:59")
+        XCTAssertEqual(TellomiLinkDisplay.formatDuration("59500"), "1:00", "进位到整分钟")
+        XCTAssertEqual(TellomiLinkDisplay.formatDuration("3599500"), "1:00:00", "进位到整小时")
+        XCTAssertNil(TellomiLinkDisplay.formatDuration("0"))
+        XCTAssertNil(TellomiLinkDisplay.formatDuration("-1"))
+        XCTAssertNil(TellomiLinkDisplay.formatDuration("-500"))
+        XCTAssertNil(TellomiLinkDisplay.formatDuration(""))
+        XCTAssertNil(TellomiLinkDisplay.formatDuration("12.5"), "不是整数就是非法")
+        XCTAssertNil(TellomiLinkDisplay.formatDuration("1e3"))
+        XCTAssertNil(TellomiLinkDisplay.formatDuration(" 500"))
+    }
+
+    /// 时长四舍五入成 0 时，视频副行里不画这一段（只有作者就只有作者；什么都没有就不占这一行）。
+    func testAVideoWhoseDurationRoundsToZeroShowsNoDurationInTheSubLine() {
+        XCTAssertEqual(line(structured("video", [("author", "Up"), ("duration_ms", "499")])), "Up")
+        XCTAssertNil(line(structured("video", [("duration_ms", "499")])))
+        XCTAssertEqual(line(structured("music.track", [("artist", "Artist"), ("duration_ms", "300")])), "Artist")
     }
 
     func testPublishDateOmitsTheYearOnlyForThisYear() {

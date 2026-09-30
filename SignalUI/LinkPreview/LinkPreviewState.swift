@@ -360,7 +360,9 @@ public class LinkPreviewSent: LinkPreviewState {
         return .init(id: attachmentStream.id, urlString: nil, thumbnailQuality: thumbnailQuality)
     }
 
-    public var imagePixelSize: CGSize {
+    /// 图的真实像素尺寸：下好的图取它自己的，没下完的取发送端写在指针里的宽高。两样都没有（图没下完、发送端又没写宽高）是 nil。
+    /// Tellomi 的版式判断只认它（card-visual §3.2：版式只看 `Preview.image` 的像素尺寸），不认 `imagePixelSize` 里按 blurHash 估的默认值。
+    public var knownImagePixelSize: CGSize? {
         if
             let attachmentStream = imageAttachment?.attachment.asStream(),
             let pixelSize = attachmentStream.cachedMediaSizePixels
@@ -371,7 +373,16 @@ public class LinkPreviewSent: LinkPreviewState {
             let pixelSize = attachmentReference.sourceMediaSizePixels
         {
             return pixelSize
+        } else {
+            return nil
+        }
+    }
+
+    public var imagePixelSize: CGSize {
+        if let pixelSize = knownImagePixelSize {
+            return pixelSize
         } else if imageAttachment?.attachment.blurHash != nil {
+            // 只有占位图（blurHash）、不知道真实尺寸时，Signal 原来的预览卡拿这个默认值估。
             return CGSize(width: 400, height: 236)
         } else {
             return .zero

@@ -20,6 +20,8 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
 
     private var oldContext: (any AppContext)!
     private var report = ""
+    /// 预览图画成细网格（肉眼看得出缩略图糊不糊）；只有看清晰度的那条用例打开。
+    private var detailedImages = false
 
     @MainActor
     override func setUp() {
@@ -536,6 +538,200 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         }
     }
 
+    // MARK: - 第二波：版式与几何（card-visual §3.2 / §3.4 / §3.7，审计 A19 / B3 / B6 / §3 第 2 条）
+
+    /// 一条收到的消息直接排成 cell（不检查级别、不存截图），给下面几条版式用例用。
+    @MainActor
+    private func hostedCell(for fixture: Fixture, dark: Bool = false) async throws -> Hosted {
+        // 上一条用例（或上一张夹具）解出来的缩略图按「附件 id + 档位」缓存，新的内存库里 id 又从 1 开始，会撞键
+        CVLinkPreviewView.resetImageCacheForTests()
+        let thread = write { tx -> TSContactThread in
+            let thread = ContactThreadFactory().create(transaction: tx)
+            if let aci = thread.contactAddress.aci {
+                var recipient = DependenciesBridge.shared.recipientFetcher.fetchOrCreate(serviceId: aci, tx: tx)
+                SSKEnvironment.shared.profileManagerRef.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .debugging, tx: tx)
+            }
+            return thread
+        }
+        try prepareLocalState(fixture)
+        let message = try await insert(fixture, thread: thread, incoming: true)
+        return try await host(message: message, thread: thread, width: shotWidth, dark: dark)
+    }
+
+    /// 卡片里画的通用链接图标（和纯链接卡同一个 `link` 图标，模板渲染）。
+    private static func findLinkIcon(in view: UIView) -> UIImageView? {
+        guard let linkData = UIImage(named: "link")?.pngData() else {
+            return nil
+        }
+        if let imageView = view as? UIImageView, let data = imageView.image?.pngData(), data == linkData {
+            return imageView
+        }
+        for subview in view.subviews {
+            if let found = findLinkIcon(in: subview) {
+                return found
+            }
+        }
+        return nil
+    }
+
+    private static func findNamedStack(_ name: String, in view: UIView) -> UIView? {
+        if let layoutView = view as? ManualLayoutView, layoutView.name == name {
+            return layoutView
+        }
+        for subview in view.subviews {
+            if let found = findNamedStack(name, in: subview) {
+                return found
+            }
+        }
+        return nil
+    }
+
+    private static func label(startingWith prefix: String, in view: UIView) -> UILabel? {
+        if let label = view as? UILabel, (label.attributedText?.string ?? label.text)?.hasPrefix(prefix) == true {
+            return label
+        }
+        for subview in view.subviews {
+            if let found = label(startingWith: prefix, in: subview) {
+                return found
+            }
+        }
+        return nil
+    }
+
+    /// §3.7：副行 1 行，放不下截断在末尾（Signal 原来是 3 行）。
+    @MainActor
+    func testTheSubLineIsOneLineAndTruncatesAtTheEnd() async throws {
+        let longAuthor = String(repeating: "一个非常非常长的作者名字", count: 8)
+        let fixture = Fixture(
+            name: "video-long-author",
+            url: "https://www.bilibili.com/video/BV1YDhJ6ZEL6",
+            previewTitle: "【演示】给朋友发一条视频链接会长什么样",
+            rich: .init(kind: "video", provider: "bilibili", level: 2, attrs: [("author", longAuthor), ("duration_ms", "257000")]),
+            image: (CGSize(width: 1280, height: 720), (0.55, 0.55, 0.85)),
+            expectedLevel: "structured",
+        )
+        let hosted = try await hostedCell(for: fixture)
+        defer { hosted.tearDown() }
+        let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView))
+        let subLine = try XCTUnwrap(Self.label(startingWith: String(longAuthor.prefix(6)), in: cardView), "找不到副行")
+        XCTAssertEqual(subLine.numberOfLines, 1, "副行最多 1 行")
+        // 一行的标签比字体的行高略高（测量时取整 / 留白），两行就超过 1.5 倍行高了
+        XCTAssertLessThan(subLine.bounds.size.height, subLine.font.lineHeight * 1.5, "副行只占一行的高度，实际 \(subLine.bounds.size.height)，行高 \(subLine.font.lineHeight)")
+        XCTAssertEqual(subLine.lineBreakMode, .byTruncatingTail, "放不下截断在末尾")
+        // 标题还是最多 2 行（不在这一条里动）
+        let title = try XCTUnwrap(Self.label(startingWith: "【演示】", in: cardView))
+        XCTAssertEqual(title.numberOfLines, 2)
+    }
+
+    /// §3.2：「无图卡」——标题（有的话）+ 域名，右侧通用链接图标；没有图的卡（generic 无图、没有随包图标的品牌壳、支付壳）都一样，
+    /// 不是只有纯链接卡才画。有图的卡（图标卡、大图卡）和第一方卡不画。
+    @MainActor
+    func testEveryCardWithoutAnImageShowsTheLinkIconOnTheRight() async throws {
+        let withIcon = ["generic", "meituan-brand-no-icon", "alipay-payment", "no-preview"]
+        let without = ["taobao-brand", "icon-yellow", "large-orange", "tellomi-user", "tellomi-official"]
+        var shots = [UIImage]()
+        defer {
+            if shooting {
+                try? save(stack(shots, width: shotWidth), name: "w2-link-icon-cards.png")
+            }
+        }
+        for name in withIcon + without {
+            let fixture = try XCTUnwrap(Self.fixtures.first { $0.name == name }, name)
+            let hosted = try await hostedCell(for: fixture, dark: Theme.isDarkThemeEnabled)
+            defer { hosted.tearDown() }
+            if shooting {
+                shots.append(render(hosted))
+            }
+            let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView), "\(name)：找不到卡片")
+            let icon = Self.findLinkIcon(in: cardView)
+            if withIcon.contains(name) {
+                let iconView = try XCTUnwrap(icon, "\(name)：无图卡右侧应该有通用链接图标")
+                let frame = cardView.convert(iconView.bounds, from: iconView)
+                XCTAssertEqual(frame.maxX, cardView.bounds.size.width - 10, accuracy: 1, "\(name)：图标贴右边（离右 10），实际 \(frame) / 卡宽 \(cardView.bounds.size.width)")
+                XCTAssertEqual(frame.midY, cardView.bounds.size.height / 2, accuracy: 1.5, "\(name)：图标垂直居中，实际 \(frame) / 卡高 \(cardView.bounds.size.height)")
+                XCTAssertGreaterThan(frame.size.width, 10, "\(name)：图标有大小")
+            } else {
+                XCTAssertNil(icon, "\(name)：有图 / 第一方卡不画通用链接图标")
+            }
+        }
+    }
+
+    /// card-visual §3.2：图标卡的文字与图间距——iOS 取 Telegram 的 6（cutout 宽 = 图宽 + 6），不是 Android 的 10。
+    /// 标题写得够长、占满文字列时，文字列右边缘到图的左边缘就是这个间距。
+    @MainActor
+    func testTheIconCardKeepsSixPointsBetweenTheTextColumnAndTheIcon() async throws {
+        // 图标画成细网格：纯色图标和染色的底一个颜色，截图里看不见它
+        detailedImages = true
+        let fixture = Fixture(
+            name: "icon-long-title",
+            url: "https://www.meituan.com/",
+            previewTitle: String(repeating: "美团外卖 · 美好生活小帮手 ", count: 6),
+            image: (CGSize(width: 100, height: 100), (0.13, 0.95, 0.98)),
+            expectedLevel: "generic",
+        )
+        let hosted = try await hostedCell(for: fixture, dark: Theme.isDarkThemeEnabled)
+        defer { hosted.tearDown() }
+        if shooting {
+            try save(render(hosted), name: "w2-icon-card-long-title.png")
+        }
+        let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView))
+        let imageView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewImageView", in: cardView), "应该是图标卡")
+        let textStack = try XCTUnwrap(Self.findNamedStack("textStack", in: cardView))
+        let iconFrame = cardView.convert(imageView.bounds, from: imageView)
+        let textFrame = cardView.convert(textStack.bounds, from: textStack)
+        XCTAssertEqual(iconFrame.size.width, 54, accuracy: 0.6)
+        XCTAssertEqual(iconFrame.minX - textFrame.maxX, 6, accuracy: 0.6, "文字列与图标之间 6（Telegram cutout），实际文字列 \(textFrame)、图标 \(iconFrame)")
+        XCTAssertEqual(textFrame.minX, 10, accuracy: 0.6, "文字离左 10（和图离右一样）")
+    }
+
+    /// 审计 §3 第 2 条：大图卡（短边 ≥ 300 且长边 ≥ 600，由 rust/links 定）仍按 Signal 旧的「宽 ≥ 气泡最大宽 × 2」挑缩略图档位，
+    /// 竖图、偏窄的图会拿 `.small`（长边 200 pt）的缩略图铺满卡宽而发糊。缩略图的像素宽要够卡宽（受原图限制）。
+    @MainActor
+    func testALargeImageCardAsksForAThumbnailThatIsSharpEnough() async throws {
+        let scale = UIScreen.main.scale
+        detailedImages = true
+        var shots = [UIImage]()
+        defer {
+            if shooting {
+                try? save(stack(shots, width: shotWidth), name: "w2-large-image-sharpness.png")
+            }
+        }
+        for (name, size) in [("large-portrait", CGSize(width: 600, height: 900)), ("large-narrow", CGSize(width: 620, height: 340))] {
+            let fixture = Fixture(
+                name: name,
+                url: "https://www.cloudflare.com/",
+                previewTitle: "Cloudflare",
+                image: (size, (0.06, 0.9, 0.95)),
+                expectedLevel: "generic",
+            )
+            let hosted = try await hostedCell(for: fixture, dark: Theme.isDarkThemeEnabled)
+            defer { hosted.tearDown() }
+            if shooting {
+                shots.append(render(hosted))
+            }
+            let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView))
+            let imageHolder = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewImageView", in: cardView), "\(name)：应该是大图卡")
+            let cardFrame = cardView.convert(imageHolder.bounds, from: imageHolder)
+            XCTAssertEqual(cardFrame.size.width, cardView.bounds.size.width, accuracy: 1, "\(name)：图占满卡宽")
+            let decoded = try XCTUnwrap(Self.decodedImage(in: imageHolder), "\(name)：缩略图还没解出来")
+            let pixelWidth = CGFloat(decoded.cgImage?.width ?? 0)
+            let neededPixels = min(size.width, cardFrame.size.width * scale) * 0.9
+            XCTAssertGreaterThanOrEqual(pixelWidth, neededPixels, "\(name)：缩略图 \(pixelWidth) px 宽，卡宽 \(cardFrame.size.width * scale) px、原图 \(size.width) px，至少要 \(neededPixels) px")
+        }
+    }
+
+    private static func decodedImage(in view: UIView) -> UIImage? {
+        if let imageView = view as? UIImageView, let image = imageView.image, image.cgImage != nil, imageView.bounds.size.width > 40 {
+            return image
+        }
+        for subview in view.subviews {
+            if let found = decodedImage(in: subview) {
+                return found
+            }
+        }
+        return nil
+    }
+
     /// 版式（按视图判）、卡片底色（染色 / 不染色）、标题字色对比度（染色时 ≥ 4.5:1，card-visual §3.3）。
     @MainActor
     private func checkVisual(_ fixture: Fixture, _ hosted: Hosted, dark: Bool = false) {
@@ -853,6 +1049,16 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         return UIGraphicsImageRenderer(size: size, format: format).image { context in
             UIColor(hue: hsb.0, saturation: hsb.1, brightness: hsb.2, alpha: 1).setFill()
             context.fill(CGRect(origin: .zero, size: size))
+            if detailedImages {
+                // 1 px 的白线、每 6 px 一根：缩得太小再拉大，线会糊成灰
+                UIColor(white: 1, alpha: 0.85).setFill()
+                for x in stride(from: CGFloat(0), to: size.width, by: 6) {
+                    context.fill(CGRect(x: x, y: 0, width: 1, height: size.height))
+                }
+                for y in stride(from: CGFloat(0), to: size.height, by: 6) {
+                    context.fill(CGRect(x: 0, y: y, width: size.width, height: 1))
+                }
+            }
             if let bottomHsb {
                 UIColor(hue: bottomHsb.0, saturation: bottomHsb.1, brightness: bottomHsb.2, alpha: 1).setFill()
                 context.fill(CGRect(x: 0, y: size.height * 0.7, width: size.width, height: size.height * 0.3))

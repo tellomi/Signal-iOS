@@ -88,15 +88,16 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
                 return CVLinkPreviewViewAdapterPlainLink(linkPreview: linkPreview, isIncoming: isIncoming)
             }
             // card-visual §3.2：版式由 rust/links 按图的尺寸定（两端阈值不再各是各的），没有决定时照 Signal 原样。
-            if linkPreview.hasLoadedImageOrBlurHash {
-                switch card.layout {
-                case .largeImage:
-                    return CVLinkPreviewViewAdapterLarge(linkPreview: linkPreview, isIncoming: isIncoming)
-                case .icon:
-                    return CVLinkPreviewViewAdapterIcon(linkPreview: linkPreview, isIncoming: isIncoming)
-                case .firstParty, .noImage, nil:
-                    break
-                }
+            switch card.layout {
+            case .noImage:
+                // 没有图的卡（generic 无图、没有随包图标的品牌壳、支付壳、无图的位置卡……）：标题 + 副行 + 域名，右侧通用链接图标。
+                return CVLinkPreviewViewAdapterNoImage(linkPreview: linkPreview, isIncoming: isIncoming)
+            case .largeImage where linkPreview.hasLoadedImageOrBlurHash:
+                return CVLinkPreviewViewAdapterLarge(linkPreview: linkPreview, isIncoming: isIncoming)
+            case .icon where linkPreview.hasLoadedImageOrBlurHash:
+                return CVLinkPreviewViewAdapterIcon(linkPreview: linkPreview, isIncoming: isIncoming)
+            case .largeImage, .icon, .firstParty, nil:
+                break
             }
         }
         if linkPreview.hasLoadedImageOrBlurHash, sentIsHero(linkPreview: linkPreview) {
@@ -166,6 +167,11 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
             owsFailDebug("size.width: \(size.width) > maxWidth: \(maxWidth)")
         }
         return size
+    }
+
+    /// 测试用：每条用例都是一份新的内存库，附件 id 从头数起，上一条用例解出来的缩略图会被缓存键撞上（生产里 id 不会重复）。
+    static func resetImageCacheForTests() {
+        CVLinkPreviewImageView.mediaCache.clear()
     }
 
     override func reset() {
@@ -424,7 +430,8 @@ private class CVLinkPreviewViewAdapter {
             text,
             font: UIFont.dynamicTypeFootnote,
             textColor: textColor,
-            numberOfLines: 3,
+            // Tellomi 卡片的副行 1 行，放不下截断在末尾（card-visual §3.7）；Signal 原来的预览卡（通话卡、回落）仍是 3 行。
+            numberOfLines: linkPreview is TellomiLinkPreviewCardState ? 1 : 3,
             lineBreakMode: .byTruncatingTail,
         )
     }
@@ -822,19 +829,22 @@ private enum TellomiOfficialBadge {
 // Tellomi（card-visual §3.2，owner 2026-09-30：几何照 Telegram）：图标卡——文字在左（标题 ≤ 2 行 + 域名行），右侧方形小图贴右上角；整卡按图标主色染色。
 // Telegram reference：iOS `ChatMessageAttachedContentNode.swift` 小图 54 × 54（`inlineMediaAndSize`）、距上 6（`inlineMediaEdgeInset`）、
 // 右边缘与文字左边缘同一个内缩（`x = width - insets.right - size`，`insets.right` = 文字气泡内缩 10–11）、圆角 4（`ImageCorners(radius: 4.0)`），
-// 文字绕开小图；卡片最矮 = 小图 + 上下各 6。这里文字整列让出小图的宽度（没有做逐行绕排）。
+// 文字绕开小图：`TextNodeCutout(topRight:)` 的宽 = 图宽 + `inlineMediaEdgeInset`（54 + 6），所以文字与图的水平间距是 6（card-visual §3.2：iOS 6、Android 10）；
+// 卡片最矮 = 小图 + 上下各 6。这里文字整列让出小图的宽度加 6（没有做逐行绕排：Telegram 里图下方的行回到全宽）。
 private class CVLinkPreviewViewAdapterIcon: CVLinkPreviewViewAdapter {
 
     private static let iconSize: CGFloat = 54
     private static let iconCornerRadius: CGFloat = 4
     private static let iconEdgeInset: CGFloat = 6
+    /// 文字列右边缘到图的左边缘。
+    private static let iconTextSpacing: CGFloat = 6
 
     override var rootStackConfig: ManualStackView.Config {
         // 图贴右上：离上 / 下各 6，离右 10（和文字离左一样，Telegram 左右内缩对称）；文字整体比图缩进 4，所以文字离上下是 10。
         ManualStackView.Config(
             axis: .horizontal,
             alignment: .top,
-            spacing: 10,
+            spacing: Self.iconTextSpacing,
             layoutMargins: UIEdgeInsets(top: Self.iconEdgeInset, leading: 10, bottom: Self.iconEdgeInset, trailing: 10),
         )
     }
@@ -887,8 +897,9 @@ private class CVLinkPreviewViewAdapterIcon: CVLinkPreviewViewAdapter {
 
 // MARK: -
 
-// Tellomi（card-visual §3.5 / §3.7）：只用 URL 画的无图卡——域名当标题（冒充知名域名时用危险色），行尾一个链接图标，没有别的行。
-private class CVLinkPreviewViewAdapterPlainLink: CVLinkPreviewViewAdapter {
+// Tellomi（card-visual §3.2 / §3.7）：无图卡——标题（有的话）+ 副行 + 域名行，行尾一个通用链接图标（自己画，不用 Safari 的指南针），垂直居中。
+// 没有图的卡都是它：generic 无图、没有随包图标的品牌壳、支付壳、无图的位置卡……；只用 URL 画的纯链接卡是它的特例（只有域名一行，见下）。
+private class CVLinkPreviewViewAdapterNoImage: CVLinkPreviewViewAdapter {
 
     private static let linkIconSize: CGFloat = 20
 
@@ -899,24 +910,6 @@ private class CVLinkPreviewViewAdapterPlainLink: CVLinkPreviewViewAdapter {
             spacing: 12,
             layoutMargins: UIEdgeInsets(margin: 10),
         )
-    }
-
-    override var titleTextColor: UIColor {
-        if (linkPreview as? TellomiLinkPreviewCardState)?.isLookalike == true {
-            return .Signal.red
-        }
-        return super.titleTextColor
-    }
-
-    override func textStackSubviewInfos(maxWidth: CGFloat) -> [ManualStackSubviewInfo] {
-        guard let labelConfig = sentTitleLabelConfig() else {
-            return []
-        }
-        return [CVText.measureLabel(config: labelConfig, maxWidth: maxWidth).asManualSubviewInfo]
-    }
-
-    override func textStackSubviews() -> [CVLabel] {
-        return [sentTitleLabel()].compactMap { $0 }
     }
 
     override func rootStackSubviewInfos(
@@ -948,6 +941,30 @@ private class CVLinkPreviewViewAdapterPlainLink: CVLinkPreviewViewAdapter {
         iconView.contentMode = .scaleAspectFit
         iconView.tintColor = secondaryTextColor
         return [textStack, iconView]
+    }
+}
+
+// MARK: -
+
+// Tellomi（card-visual §3.5 / §3.7）：只用 URL 画的无图卡——域名当标题（冒充知名域名时用危险色），行尾一个链接图标，没有别的行。
+private class CVLinkPreviewViewAdapterPlainLink: CVLinkPreviewViewAdapterNoImage {
+
+    override var titleTextColor: UIColor {
+        if (linkPreview as? TellomiLinkPreviewCardState)?.isLookalike == true {
+            return .Signal.red
+        }
+        return super.titleTextColor
+    }
+
+    override func textStackSubviewInfos(maxWidth: CGFloat) -> [ManualStackSubviewInfo] {
+        guard let labelConfig = sentTitleLabelConfig() else {
+            return []
+        }
+        return [CVText.measureLabel(config: labelConfig, maxWidth: maxWidth).asManualSubviewInfo]
+    }
+
+    override func textStackSubviews() -> [CVLabel] {
+        return [sentTitleLabel()].compactMap { $0 }
     }
 }
 
@@ -1106,7 +1123,10 @@ private class CVLinkPreviewImageView: ManualLayoutViewWithLayer {
         isHero = CVLinkPreviewView.sentIsHero(linkPreview: linkPreview)
         let configurationId = Self.configurationIdCounter.increment()
         self.configurationId = configurationId
-        let thumbnailQuality: AttachmentThumbnailQuality = isHero ? .medium : .small
+        // Tellomi 的大图卡（短边 ≥ 300、长边 ≥ 600，由 rust/links 定）图是铺满卡宽的，不能再按 Signal 旧的「宽 ≥ 气泡最大宽 × 2」挑档：
+        // 竖图、偏窄的图达不到旧阈值，会拿 `.small`（长边 200 pt）的缩略图拉到卡宽，发糊。
+        let isLargeImageCard = (linkPreview as? TellomiLinkPreviewCardState)?.layout == .largeImage
+        let thumbnailQuality: AttachmentThumbnailQuality = isHero || isLargeImageCard ? .medium : .small
 
         if
             let cacheKey = linkPreview.imageCacheKey(thumbnailQuality: thumbnailQuality),

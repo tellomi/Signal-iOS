@@ -73,7 +73,10 @@ public struct TellomiLinkDisplay: Equatable, Sendable {
         }
     }
 
-    private static let separator = " · "
+    /// 副行各段之间：U+00B7「·」（card-visual §3.7）。
+    private static let separator = " \u{00B7} "
+    /// 域名行里域名与发布日期之间：U+22C5「⋅」（card-visual §3.4 / §3.7；Signal 原来的预览卡也是它）。和副行的分隔符是两个字符，不通用。
+    private static let domainDateSeparator = " \u{22C5} "
     private static let platformNames = ["ios": "iOS", "android": "Android"]
 
     /// nil：不覆盖，照 Signal 的方式显示这条预览。
@@ -165,7 +168,7 @@ public struct TellomiLinkDisplay: Equatable, Sendable {
             let published = text("published_at").flatMap(parseDate)
             var domain = card.domain
             if let cardDomain = card.domain, let published {
-                domain = cardDomain + separator + strings.date(published)
+                domain = cardDomain + domainDateSeparator + strings.date(published)
             }
             return TellomiLinkDisplay(
                 title: card.title.nonEmpty ?? snapshotTitle.nonEmpty,
@@ -197,12 +200,16 @@ public struct TellomiLinkDisplay: Equatable, Sendable {
         }
     }
 
-    /// 不到一小时 `m:ss`，否则 `h:mm:ss`；0、负数、不是数字都不显示（§3.9）。
+    /// 四舍五入到秒；不到一小时 `m:ss`，否则 `h:mm:ss`；0、负数、不是数字都不显示（§3.9）。
+    /// 四舍五入以后是 0 秒的（1–499 ms）也算 0，不显示「0:00」。
     public static func formatDuration(_ value: String?) -> String? {
         guard let ms = value.flatMap({ Int64($0) }), ms > 0 else {
             return nil
         }
         let totalSeconds = (ms + 500) / 1000
+        guard totalSeconds > 0 else {
+            return nil
+        }
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         let seconds = totalSeconds % 60
