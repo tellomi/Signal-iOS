@@ -10,6 +10,14 @@ protocol TellomiLinkClassifying: AnyObject {
     var version: UInt64 { get }
     func classify(preview: String, body: String, message: String) throws -> String
     func openPlan(_ url: String) throws -> String
+    /// 发送端：开一条链接的作业（ADR-0063 §4.2）。假的注册表不需要。
+    func beginSendJob(url: String, context: String) throws -> any TellomiSendJob
+}
+
+extension TellomiLinkClassifying {
+    func beginSendJob(url: String, context: String) throws -> any TellomiSendJob {
+        throw OWSGenericError("This registry cannot start a send job")
+    }
 }
 
 /// 接收端的判定（ADR-0063 §5.1 第 4 条）：拿一条收到的预览、消息正文和消息的上下文问 rust/links，得到要画的卡片。
@@ -97,6 +105,19 @@ public final class TellomiLinkClassifier: @unchecked Sendable {
         }
         cards.setObject(CachedCard(card), forKey: key)
         return card
+    }
+
+    /// 发送端：开这条链接的作业；没有注册表、或 rust/links 出错是 nil（那就没有 Tellomi 的预览，照 Signal 原样）。
+    public func beginSendJob(url: String, context: String) -> (any TellomiSendJob)? {
+        guard let registry else {
+            return nil
+        }
+        do {
+            return try registry.beginSendJob(url: url, context: context)
+        } catch {
+            log("begin failed: \(type(of: error))")
+            return nil
+        }
     }
 
     /// 点开这条链接的计划（§4.9、§5.5）；没有注册表、或 rust/links 出错、或计划读不懂时是 nil（照 Signal 原样打开）。

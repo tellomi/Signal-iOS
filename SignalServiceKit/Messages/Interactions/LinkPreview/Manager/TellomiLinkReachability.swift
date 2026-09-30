@@ -61,6 +61,15 @@ public final class TellomiLinkReachability: @unchecked Sendable {
         return true
     }
 
+    /// 现在记着不可达（还没过期）的 host；发送端把它交给 rust/links，它就不会去请求这些 host。
+    public func unreachableHosts() -> [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        let current = now()
+        unreachableSince = unreachableSince.filter { current.timeIntervalSince($0.value) < lifetime }
+        return unreachableSince.keys.sorted()
+    }
+
     public func recordNetworkFailure(host rawHost: String?) {
         guard let host = Self.key(rawHost) else { return }
         lock.lock()

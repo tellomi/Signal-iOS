@@ -28,12 +28,15 @@ class MockLinkPreviewFetcher: LinkPreviewFetcher {
 
 public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
     private let authCredentialManager: any AuthCredentialManager
-    private let db: any DB
+    fileprivate let db: any DB
     private let groupsV2: any GroupsV2
     private let linkPreviewSettingStore: LinkPreviewSettingStore
     private let tsAccountManager: any TSAccountManager
     // Tellomi（ADR-0063 §4.4，tellomi/tellomi#1423）：第三方抓取一律经这个抓取器
     private let linkFetcher: TellomiLinkFetcher
+    /// Tellomi（ADR-0063 §4.2）：有随包注册表时，预览由 rust/links 的作业驱动（`nil` = 不用，照 Signal 原样）。
+    private let tellomiSenderFactory: ((LinkPreviewFetcherImpl) -> TellomiLinkSender)?
+    private lazy var tellomiSender: TellomiLinkSender? = tellomiSenderFactory?(self)
 
     public init(
         authCredentialManager: any AuthCredentialManager,
@@ -42,6 +45,7 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         linkPreviewSettingStore: LinkPreviewSettingStore,
         tsAccountManager: any TSAccountManager,
         linkFetcher: TellomiLinkFetcher = .shared,
+        usesTellomiSendJob: Bool = false,
     ) {
         self.authCredentialManager = authCredentialManager
         self.db = db
@@ -49,12 +53,29 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         self.linkPreviewSettingStore = linkPreviewSettingStore
         self.tsAccountManager = tsAccountManager
         self.linkFetcher = linkFetcher
+        self.tellomiSenderFactory = usesTellomiSendJob ? { fetcher in
+            TellomiLinkSender(
+                fetcher: linkFetcher,
+                expandShortLinks: { [db = fetcher.db] in db.read { TellomiLinkPreviewLocalSettings.isShortLinkExpansionEnabled(tx: $0) } },
+                lookups: WeakLookups(fetcher),
+            )
+        } : nil
     }
 
     public func fetchLinkPreview(for url: URL) async throws -> OWSLinkPreviewDraft {
         let areLinkPreviewsEnabled: Bool = self.db.read(block: linkPreviewSettingStore.areLinkPreviewsEnabled(tx:))
         guard areLinkPreviewsEnabled else {
             throw LinkPreviewError.featureDisabled
+        }
+
+        // Tellomi（ADR-0063 §4.2）：有注册表时由 rust/links 决定抓什么、拼预览（含 `Preview.rich`）；没有就照下面 Signal 的做法
+        if let sender = tellomiSender, sender.isAvailable, let result = try await sender.preview(for: url) {
+            switch result {
+            case .found(let draft):
+                return draft
+            case .notAvailable, .groupLinkInactive:
+                throw LinkPreviewError.noPreview
+            }
         }
 
         let linkPreviewDraft: OWSLinkPreviewDraft?
@@ -220,12 +241,12 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
 
     // MARK: - Preview Thumbnails
 
-    private struct PreviewThumbnail {
+    struct PreviewThumbnail {
         let imageData: Data
         let mimetype: String
     }
 
-    private static func previewThumbnail(srcImageData: Data?) async -> PreviewThumbnail? {
+    static func previewThumbnail(srcImageData: Data?) async -> PreviewThumbnail? {
         guard let srcImageData else {
             return nil
         }
@@ -283,6 +304,11 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
     // MARK: - Stickers
 
     private func linkPreviewDraft(forStickerShare url: URL, draftUrl: URL? = nil) async throws -> OWSLinkPreviewDraft? {
+        return try await linkPreviewDraftAndCount(forStickerShare: url, draftUrl: draftUrl)?.draft
+    }
+
+    /// 草稿加上包里有几个贴纸（发给对方的卡片副行用，card-visual §3.9）。
+    private func linkPreviewDraftAndCount(forStickerShare url: URL, draftUrl: URL? = nil) async throws -> (draft: OWSLinkPreviewDraft, count: Int)? {
         guard let stickerPackInfo = StickerPackInfo.parseStickerPackShare(url) else {
             Logger.error("Could not parse url.")
             throw LinkPreviewError.invalidPreview
@@ -298,18 +324,24 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
             return nil
         }
 
-        return OWSLinkPreviewDraft(
+        let draft = OWSLinkPreviewDraft(
             url: draftUrl ?? url,
             title: title,
             imageData: previewThumbnail?.imageData,
             imageMimeType: previewThumbnail?.mimetype,
             isForwarded: false,
         )
+        return (draft, stickerPack.items.count)
     }
 
     // MARK: - Group Invite Links
 
     private func linkPreviewDraft(forGroupInviteLink url: PossibleGroupInviteLinkUrl) async throws -> OWSLinkPreviewDraft? {
+        return try await linkPreviewDraftAndCount(forGroupInviteLink: url)?.draft
+    }
+
+    /// 草稿加上群里有几位成员（发给对方的卡片副行用，card-visual §3.9）。
+    private func linkPreviewDraftAndCount(forGroupInviteLink url: PossibleGroupInviteLinkUrl) async throws -> (draft: OWSLinkPreviewDraft, count: Int)? {
         let groupInviteLink: GroupInviteLink
         do {
             groupInviteLink = try GroupInviteLink.parseFrom(url)
@@ -344,13 +376,14 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
             return nil
         }
 
-        return OWSLinkPreviewDraft(
+        let draft = OWSLinkPreviewDraft(
             url: url.rawValue,
             title: title,
             imageData: previewThumbnail?.imageData,
             imageMimeType: previewThumbnail?.mimetype,
             isForwarded: false,
         )
+        return (draft, Int(groupInviteLinkPreview.memberCount))
     }
 
     // MARK: - Call Links
@@ -361,6 +394,74 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         let authCredential = try await authCredentialManager.fetchCallLinkAuthCredential(localIdentifiers: localIdentifiers)
         let callLinkState = try await CallLinkFetcherImpl().readCallLink(callLink.rootKey, authCredential: authCredential)
         return callLinkState.name
+    }
+}
+
+// MARK: - Tellomi 发送端用的查询
+
+/// fetcher 持有 sender，sender 不该再强引用回 fetcher（否则是个引用环）。
+private final class WeakLookups: TellomiSendLookups, @unchecked Sendable {
+    private weak var target: LinkPreviewFetcherImpl?
+
+    init(_ target: LinkPreviewFetcherImpl) {
+        self.target = target
+    }
+
+    func firstParty(kind: String, url: URL) async -> TellomiLinkSender.FirstParty {
+        return await target?.firstParty(kind: kind, url: url) ?? .notFound
+    }
+
+    func thumbnail(from data: Data) async -> TellomiLinkSender.Thumbnail? {
+        return await target?.thumbnail(from: data)
+    }
+}
+
+extension LinkPreviewFetcherImpl: TellomiSendLookups {
+
+    /// tell.cc 对象用 Signal 自己现成的查询（发送时联网没关系）。
+    public func firstParty(kind: String, url: URL) async -> TellomiLinkSender.FirstParty {
+        do {
+            switch kind {
+            case "tellomi.group":
+                guard let possible = PossibleGroupInviteLinkUrl.parseFrom(url) else {
+                    return .notFound
+                }
+                guard let found = try await linkPreviewDraftAndCount(forGroupInviteLink: possible) else {
+                    return .notFound
+                }
+                return .found(found.draft, count: found.count)
+            case "tellomi.sticker":
+                let legacyUrl = TellomiLinks.legacyEquivalent(of: url)
+                guard StickerPackInfo.isStickerPackShare(legacyUrl) else {
+                    return .notFound
+                }
+                guard let found = try await linkPreviewDraftAndCount(forStickerShare: legacyUrl, draftUrl: url) else {
+                    return .notFound
+                }
+                return .found(found.draft, count: found.count)
+            case "tellomi.call":
+                guard let callLink = CallLink(url: TellomiLinks.legacyEquivalent(of: url)) ?? CallLink(url: url) else {
+                    return .notFound
+                }
+                let name = try await fetchName(forCallLink: callLink)
+                return .found(OWSLinkPreviewDraft(url: url, title: name, isForwarded: false), count: nil)
+            default:
+                return .notFound
+            }
+        } catch GroupsV2Error.expiredGroupInviteLink {
+            return .inactive
+        } catch {
+            // 只记失败的类别，不记 URL（§6.5）
+            Logger.warn("First-party link lookup failed: \(type(of: error))")
+            return .notFound
+        }
+    }
+
+    public func thumbnail(from data: Data) async -> TellomiLinkSender.Thumbnail? {
+        guard let thumbnail = await Self.previewThumbnail(srcImageData: data) else {
+            return nil
+        }
+        return TellomiLinkSender.Thumbnail(imageData: thumbnail.imageData, mimeType: thumbnail.mimetype)
     }
 }
 

@@ -65,7 +65,9 @@ public enum TellomiLinkFetchStep: Equatable, Sendable {
             return nil
         }
         let isHtml = mimeType == "text/html" || mimeType == "application/xhtml+xml"
-        let isJson = mimeType == "application/json" || (mimeType.hasPrefix("application/") && mimeType.hasSuffix("+json"))
+        // rust/links 的 JSON 请求列的就是这四种（`content_types`）：iTunes 的接口回的是 `text/javascript`。
+        let isJson = ["application/json", "text/json", "text/javascript", "application/javascript"].contains(mimeType)
+            || (mimeType.hasPrefix("application/") && mimeType.hasSuffix("+json"))
         let isImage = MimeTypeUtil.isSupportedImageMimeType(mimeType)
         switch self {
         case .page:
