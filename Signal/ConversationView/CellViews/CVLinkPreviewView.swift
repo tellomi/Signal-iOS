@@ -728,7 +728,7 @@ private class CVLinkPreviewViewAdapterFirstParty: CVLinkPreviewViewAdapter {
     }
 
     private var actionTextColor: UIColor {
-        (linkPreview as? TellomiLinkPreviewCardState)?.tintColors?.text ?? .Signal.accent
+        (linkPreview as? TellomiLinkPreviewCardState)?.tintColors?.text ?? .tellomiCardAccent
     }
 
     private var tintTextColorOrSeparator: UIColor {
@@ -777,6 +777,24 @@ private class CVLinkPreviewViewAdapterFirstParty: CVLinkPreviewViewAdapter {
 
 // MARK: -
 
+private extension UIColor {
+    /// 第一方卡底部按钮字和「官方」徽标的颜色（card-visual：文字对比度 ≥ 4.5:1）。
+    /// 浅色：强调蓝再深一成（原色落在浅灰卡上是 4.49:1）；深色：Signal 的强调蓝落在灰色卡片上只有 1.9:1，换成浅蓝。
+    static var tellomiCardAccent: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(red: 0.84, green: 0.90, blue: 1.0, alpha: 1)
+            }
+            var red: CGFloat = 0
+            var green: CGFloat = 0
+            var blue: CGFloat = 0
+            var alpha: CGFloat = 0
+            UIColor.Signal.accent.resolvedColor(with: traits).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            return UIColor(red: red * 0.9, green: green * 0.9, blue: blue * 0.9, alpha: alpha)
+        }
+    }
+}
+
 /// 「官方」小徽标：一个圆角小药丸，画成图放进标题文字里（这样标题换行、测量都还是一段文字）。
 private enum TellomiOfficialBadge {
     static func attributedString(text: String, height: CGFloat) -> NSAttributedString {
@@ -785,11 +803,11 @@ private enum TellomiOfficialBadge {
         let textSize = (text as NSString).size(withAttributes: [.font: font])
         let size = CGSize(width: ceil(textSize.width) + padding * 2, height: ceil(font.lineHeight) + 2)
         let image = UIGraphicsImageRenderer(size: size).image { context in
-            UIColor.Signal.accent.withAlphaComponent(0.15).setFill()
+            UIColor.tellomiCardAccent.withAlphaComponent(0.15).setFill()
             UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: size.height / 2).fill()
             (text as NSString).draw(
                 at: CGPoint(x: padding, y: (size.height - font.lineHeight) / 2),
-                withAttributes: [.font: font, .foregroundColor: UIColor.Signal.accent],
+                withAttributes: [.font: font, .foregroundColor: UIColor.tellomiCardAccent],
             )
         }
         let attachment = NSTextAttachment()
