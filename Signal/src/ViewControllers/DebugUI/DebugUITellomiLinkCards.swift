@@ -91,9 +91,9 @@ class DebugUITellomiLinkCards: DebugUIPage {
         Fixture(
             title: "普通网页（有标题和描述）",
             body: nil,
-            url: "https://example.com/",
-            previewTitle: "Example Domain",
-            previewDescription: "This domain is for use in illustrative examples in documents.",
+            url: "https://www.wikipedia.org/",
+            previewTitle: "Wikipedia",
+            previewDescription: "Wikipedia is a free online encyclopedia, created and edited by volunteers.",
             rich: nil,
         ),
         Fixture(
