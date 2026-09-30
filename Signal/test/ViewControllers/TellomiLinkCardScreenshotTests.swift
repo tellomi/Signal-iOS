@@ -103,6 +103,10 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         var image: (size: CGSize, hsb: (CGFloat, CGFloat, CGFloat))?
         /// rust/links 应该给的级别（带着 rich 和图一起问）。
         let expectedLevel: String
+        /// 气泡里必须出现的文字（卡片上的标题 / 副行 / 域名行）。
+        var cardTexts: [String] = []
+        /// 链接文字有没有画在卡片下面：只有一条链接的消息不画（card-visual §3.5）。
+        var urlTextShown = false
 
         struct Rich {
             let kind: String
@@ -121,6 +125,7 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             rich: .init(kind: "video", provider: "bilibili", level: 2, attrs: [("author", "演示UP主"), ("duration_ms", "257000"), ("published_at", "2025-03-14T10:00:00Z")]),
             image: (CGSize(width: 1280, height: 720), (0.55, 0.55, 0.85)),
             expectedLevel: "structured",
+            cardTexts: ["【演示】给朋友发一条视频链接会长什么样", "演示UP主 · 4:17", "bilibili.com"],
         ),
         Fixture(
             name: "taobao-brand",
@@ -128,10 +133,11 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             previewTitle: "登录",
             rich: .init(kind: "product", provider: "taobao", level: 1, attrs: []),
             expectedLevel: "brand",
+            cardTexts: ["Taobao", "Product", "taobao.com"],
         ),
-        Fixture(name: "tellomi-user", url: "https://tell.cc/hk881qb", previewTitle: "Tellomi", expectedLevel: "first_party"),
-        Fixture(name: "tellomi-official", url: "https://tellomi.app/download", previewTitle: "Tellomi", expectedLevel: "first_party"),
-        Fixture(name: "generic", url: "https://www.wikipedia.org/", previewTitle: "Wikipedia", previewDescription: "Wikipedia is a free online encyclopedia, created and edited by volunteers.", expectedLevel: "generic"),
+        Fixture(name: "tellomi-user", url: "https://tell.cc/hk881qb", previewTitle: "Tellomi", expectedLevel: "first_party", cardTexts: ["@hk881qb", "Tellomi user"]),
+        Fixture(name: "tellomi-official", url: "https://tellomi.app/download", previewTitle: "Tellomi", expectedLevel: "first_party", cardTexts: ["Tellomi website", "/download"]),
+        Fixture(name: "generic", url: "https://www.wikipedia.org/", previewTitle: "Wikipedia", previewDescription: "Wikipedia is a free online encyclopedia, created and edited by volunteers.", expectedLevel: "generic", cardTexts: ["Wikipedia", "wikipedia.org"]),
         Fixture(
             name: "with-text",
             body: "看看这个 https://www.bilibili.com/video/BV1YDhJ6ZEL6",
@@ -140,11 +146,13 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             rich: .init(kind: "video", provider: "bilibili", level: 2, attrs: [("author", "演示UP主"), ("duration_ms", "257000")]),
             image: (CGSize(width: 1280, height: 720), (0.55, 0.55, 0.85)),
             expectedLevel: "structured",
+            cardTexts: ["演示UP主 · 4:17"],
+            urlTextShown: true,
         ),
-        Fixture(name: "no-preview", url: "https://www.bilibili.com/video/BV1YDhJ6ZEL6", hasPreview: false, expectedLevel: "plain_link"),
-        Fixture(name: "lookalike", url: "https://www.bi1ibili.com/video/BV1YDhJ6ZEL6", hasPreview: false, expectedLevel: "plain_link"),
-        Fixture(name: "icon-yellow", url: "https://www.meituan.com/", previewTitle: "美团", image: (CGSize(width: 100, height: 100), (0.13, 0.95, 0.98)), expectedLevel: "generic"),
-        Fixture(name: "large-orange", url: "https://www.cloudflare.com/", previewTitle: "Cloudflare", previewDescription: "Connect, protect, and build everywhere.", image: (CGSize(width: 1400, height: 800), (0.06, 0.9, 0.95)), expectedLevel: "generic"),
+        Fixture(name: "no-preview", url: "https://www.bilibili.com/video/BV1YDhJ6ZEL6", hasPreview: false, expectedLevel: "plain_link", cardTexts: ["bilibili.com"]),
+        Fixture(name: "lookalike", url: "https://www.bi1ibili.com/video/BV1YDhJ6ZEL6", hasPreview: false, expectedLevel: "plain_link", cardTexts: ["bi1ibili.com"]),
+        Fixture(name: "icon-yellow", url: "https://www.meituan.com/", previewTitle: "美团", image: (CGSize(width: 100, height: 100), (0.13, 0.95, 0.98)), expectedLevel: "generic", cardTexts: ["美团", "meituan.com"]),
+        Fixture(name: "large-orange", url: "https://www.cloudflare.com/", previewTitle: "Cloudflare", previewDescription: "Connect, protect, and build everywhere.", image: (CGSize(width: 1400, height: 800), (0.06, 0.9, 0.95)), expectedLevel: "generic", cardTexts: ["Cloudflare", "cloudflare.com"]),
     ]
 
     // MARK: - 用例
@@ -180,6 +188,13 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             )
             report += "\(fixture.name): cell height \(hosted.cellView.frame.size.height), level \(card?.level.rawValue ?? "nil") (\(card?.reason ?? "-"))\n"
             XCTAssertEqual(card?.level.rawValue, fixture.expectedLevel, "\(fixture.name)：rust/links 给的级别")
+            let texts = Self.texts(in: hosted.cellView)
+            let joined = texts.joined(separator: "\n")
+            for expected in fixture.cardTexts {
+                XCTAssertTrue(joined.contains(expected), "\(fixture.name)：气泡里应该有「\(expected)」，实际：\(texts)")
+            }
+            XCTAssertEqual(Self.containsBodyText(in: hosted.cellView), fixture.urlTextShown, "\(fixture.name)：正文文字该不该画在卡片下面，实际：\(texts)")
+            report += "  texts: \(texts)\n"
             if shooting {
                 shots.append(render(hosted))
             }
@@ -353,6 +368,28 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
                 y += image.size.height
             }
         }
+    }
+
+    /// 正文文字是 `CVTextLabel` 自己的（私有）视图画的，不是 UILabel / UITextView；有没有这个视图就是有没有画正文。
+    private static func containsBodyText(in view: UIView) -> Bool {
+        if NSStringFromClass(type(of: view)).contains("CVTextLabel") {
+            return true
+        }
+        return view.subviews.contains { containsBodyText(in: $0) }
+    }
+
+    /// cell 里所有标签和文本视图上的文字。
+    private static func texts(in view: UIView) -> [String] {
+        var result = [String]()
+        if let label = view as? UILabel, let text = label.attributedText?.string ?? label.text, !text.isEmpty {
+            result.append(text)
+        } else if let textView = view as? UITextView, !textView.attributedText.string.isEmpty {
+            result.append(textView.attributedText.string)
+        }
+        for subview in view.subviews {
+            result += texts(in: subview)
+        }
+        return result
     }
 
     private func save(_ image: UIImage, name: String) throws {

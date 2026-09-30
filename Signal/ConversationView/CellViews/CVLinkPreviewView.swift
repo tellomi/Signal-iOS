@@ -24,6 +24,9 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
 
     fileprivate let linkPreviewImageView = CVLinkPreviewImageView()
 
+    /// 无图卡行尾的链接图标（Tellomi，card-visual §3.7）。
+    fileprivate let linkIconView = CVImageView()
+
     init() {
         super.init(name: "CVLinkPreviewView")
 
@@ -64,6 +67,9 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
     ) -> CVLinkPreviewViewAdapter {
         if linkPreview.isGroupInviteLink || linkPreview.isCallLink {
             return CVLinkPreviewViewAdapterSignalLink(linkPreview: linkPreview, isIncoming: isIncoming)
+        }
+        if let card = linkPreview as? TellomiLinkPreviewCardState, card.isPlainLink {
+            return CVLinkPreviewViewAdapterPlainLink(linkPreview: linkPreview, isIncoming: isIncoming)
         }
         if linkPreview.hasLoadedImageOrBlurHash, sentIsHero(linkPreview: linkPreview) {
             return CVLinkPreviewViewAdapterLarge(linkPreview: linkPreview, isIncoming: isIncoming)
@@ -142,6 +148,9 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
 
         linkPreviewImageView.reset()
         linkPreviewImageView.removeFromSuperview()
+
+        linkIconView.image = nil
+        linkIconView.removeFromSuperview()
     }
 }
 
@@ -307,6 +316,11 @@ private class CVLinkPreviewViewAdapter {
 
     // MARK: Text styling
 
+    /// 标题的颜色；无图卡的域名冒充知名域名时覆盖成危险色。
+    var titleTextColor: UIColor {
+        isIncoming ? .Signal.label : .Signal.ColorBase.labelInverted
+    }
+
     final func sentTitleLabel() -> CVLabel? {
         guard let config = sentTitleLabelConfig() else {
             return nil
@@ -320,11 +334,10 @@ private class CVLinkPreviewViewAdapter {
         guard let text = linkPreview.title else {
             return nil
         }
-        let textColor: UIColor = isIncoming ? .Signal.label : .Signal.ColorBase.labelInverted
         return CVLabelConfig.unstyledText(
             text,
             font: UIFont.dynamicTypeSubheadline.semibold(),
-            textColor: textColor,
+            textColor: titleTextColor,
             numberOfLines: 2,
             lineBreakMode: .byTruncatingTail,
         )
@@ -530,6 +543,72 @@ private class CVLinkPreviewViewAdapterLarge: CVLinkPreviewViewAdapter {
 
         let normalizedHeight: CGFloat = min(maxImageHeight, max(minImageHeight, rawImageHeight))
         return CGSize.ceil(CGSize(width: maxMessageWidth, height: normalizedHeight))
+    }
+}
+
+// MARK: -
+
+// Tellomi（card-visual §3.5 / §3.7）：只用 URL 画的无图卡——域名当标题（冒充知名域名时用危险色），行尾一个链接图标，没有别的行。
+private class CVLinkPreviewViewAdapterPlainLink: CVLinkPreviewViewAdapter {
+
+    private static let linkIconSize: CGFloat = 20
+
+    override var rootStackConfig: ManualStackView.Config {
+        ManualStackView.Config(
+            axis: .horizontal,
+            alignment: .center,
+            spacing: 12,
+            layoutMargins: UIEdgeInsets(margin: 10),
+        )
+    }
+
+    override var titleTextColor: UIColor {
+        if (linkPreview as? TellomiLinkPreviewCardState)?.isLookalike == true {
+            return .Signal.red
+        }
+        return super.titleTextColor
+    }
+
+    override func textStackSubviewInfos(maxWidth: CGFloat) -> [ManualStackSubviewInfo] {
+        guard let labelConfig = sentTitleLabelConfig() else {
+            return []
+        }
+        return [CVText.measureLabel(config: labelConfig, maxWidth: maxWidth).asManualSubviewInfo]
+    }
+
+    override func textStackSubviews() -> [CVLabel] {
+        return [sentTitleLabel()].compactMap { $0 }
+    }
+
+    override func rootStackSubviewInfos(
+        maxWidth: CGFloat,
+        measurementBuilder: CVCellMeasurement.Builder,
+    ) -> [ManualStackSubviewInfo] {
+        let iconSize = CGSize.square(Self.linkIconSize)
+        let maxLabelWidth = max(
+            0,
+            maxWidth - (
+                textStackConfig.layoutMargins.totalWidth + rootStackConfig.layoutMargins.totalWidth
+                    + iconSize.width + rootStackConfig.spacing
+            ),
+        )
+        let textStackSize = measureTextStack(maxWidth: maxLabelWidth, measurementBuilder: measurementBuilder)
+        return [
+            textStackSize.asManualSubviewInfo,
+            iconSize.asManualSubviewInfo(hasFixedSize: true),
+        ]
+    }
+
+    override func rootStackSubviews(
+        linkPreviewView: CVLinkPreviewView,
+        cellMeasurement: CVCellMeasurement,
+    ) -> [UIView] {
+        let textStack = configureTextStack(linkPreviewView: linkPreviewView, cellMeasurement: cellMeasurement)
+        let iconView = linkPreviewView.linkIconView
+        iconView.image = UIImage(named: "link")?.withRenderingMode(.alwaysTemplate)
+        iconView.contentMode = .scaleAspectFit
+        iconView.tintColor = isIncoming ? .Signal.secondaryLabel : .Signal.ColorBase.labelInvertedSecondary
+        return [textStack, iconView]
     }
 }
 

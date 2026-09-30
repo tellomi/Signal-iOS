@@ -16,10 +16,14 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
     private let display: TellomiLinkDisplay
     private let showsImage: Bool
 
-    public init(base: LinkPreviewState, display: TellomiLinkDisplay, showsImage: Bool) {
+    /// 消息除了这条链接什么都没有（card-visual §3.5）：气泡只画卡片，不画链接文字；完整链接在长按菜单里能复制。
+    public let isCardOnly: Bool
+
+    public init(base: LinkPreviewState, display: TellomiLinkDisplay, showsImage: Bool, isCardOnly: Bool = false) {
         self.base = base
         self.display = display
         self.showsImage = showsImage
+        self.isCardOnly = isCardOnly
     }
 
     /// 无图卡（card-visual §3.5 / §3.7）：域名当标题，行尾一个链接图标，没有别的行。
