@@ -819,17 +819,32 @@ private enum TellomiOfficialBadge {
 
 // MARK: -
 
-// Tellomi（card-visual §3.2）：图标卡——文字在左（标题 ≤ 2 行 + 域名行），右侧 44 pt 方形图标、圆角 10；整卡按图标主色染色。
+// Tellomi（card-visual §3.2，owner 2026-09-30：几何照 Telegram）：图标卡——文字在左（标题 ≤ 2 行 + 域名行），右侧方形小图贴右上角；整卡按图标主色染色。
+// Telegram reference：iOS `ChatMessageAttachedContentNode.swift` 小图 54 × 54（`inlineMediaAndSize`）、距上 / 右 6（`inlineMediaEdgeInset`）、
+// 圆角 4（`ImageCorners(radius: 4.0)`），文字绕开小图；卡片最矮 = 小图 + 上下各 6。这里文字整列让出小图的宽度（没有做逐行绕排）。
 private class CVLinkPreviewViewAdapterIcon: CVLinkPreviewViewAdapter {
 
-    private static let iconSize: CGFloat = 44
+    private static let iconSize: CGFloat = 54
+    private static let iconCornerRadius: CGFloat = 4
+    private static let iconEdgeInset: CGFloat = 6
 
     override var rootStackConfig: ManualStackView.Config {
+        // 图贴右上、离上 / 下 / 右各 6；文字整体比图缩进 4，所以文字离上下仍是 10，离左 10。
         ManualStackView.Config(
             axis: .horizontal,
-            alignment: .center,
-            spacing: 12,
-            layoutMargins: UIEdgeInsets(margin: 10),
+            alignment: .top,
+            spacing: 10,
+            layoutMargins: UIEdgeInsets(top: Self.iconEdgeInset, leading: 10, bottom: Self.iconEdgeInset, trailing: Self.iconEdgeInset),
+        )
+    }
+
+    override var textStackConfig: ManualStackView.Config {
+        let config = super.textStackConfig
+        return ManualStackView.Config(
+            axis: config.axis,
+            alignment: config.alignment,
+            spacing: config.spacing,
+            layoutMargins: UIEdgeInsets(top: 10 - Self.iconEdgeInset, leading: 0, bottom: 10 - Self.iconEdgeInset, trailing: 0),
         )
     }
 
@@ -858,7 +873,7 @@ private class CVLinkPreviewViewAdapterIcon: CVLinkPreviewViewAdapter {
     ) -> [UIView] {
         let textStack = configureTextStack(linkPreviewView: linkPreviewView, cellMeasurement: cellMeasurement)
         let imageView: UIView
-        if let configured = linkPreviewView.linkPreviewImageView.configure(linkPreview: linkPreview, cornerStyle: .rounded(radius: 10)) {
+        if let configured = linkPreviewView.linkPreviewImageView.configure(linkPreview: linkPreview, cornerStyle: .rounded(radius: Self.iconCornerRadius)) {
             configured.clipsToBounds = true
             imageView = configured
         } else {
