@@ -178,15 +178,12 @@
 		05572BC42BFC0094006A72F1 /* DoubleTapToEditOnboardingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05572BC32BFC0094006A72F1 /* DoubleTapToEditOnboardingController.swift */; };
 		05594CCE2C989F1900CCBFF6 /* ScrollableWhenCompact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05594CCD2C989F1900CCBFF6 /* ScrollableWhenCompact.swift */; };
 		05594CD02C98A00500CCBFF6 /* HostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05594CCF2C98A00200CCBFF6 /* HostingController.swift */; };
-		056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */; };
 		058B49932C66805500307D38 /* AVAssetExportSession+Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058B49922C66804B00307D38 /* AVAssetExportSession+Async.swift */; };
 		05A180362CD1840F00579FA4 /* UIViewPropertyAnimator+SignalUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A180352CD1840F00579FA4 /* UIViewPropertyAnimator+SignalUI.swift */; };
 		05B411252C62845000A1EDBC /* ChatListInboxFilterSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B411242C62845000A1EDBC /* ChatListInboxFilterSection.swift */; };
 		05FDBC292CD91B31000C87BC /* ChatListContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FDBC282CD91B31000C87BC /* ChatListContainerView.swift */; };
 		0CE014267EDFBD2538E940A0 /* Pods_Signal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FF88FB580BC19B240EEB86A /* Pods_Signal.framework */; };
-		10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */; };
 		1131E9919E2DA2E331CB59E3 /* TellomiLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D07A8FD7BAA962B78F13A15 /* TellomiLinks.swift */; };
-		C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */; };
 		DEDE73E41F50A8577766A3E4 /* TellomiNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2A71A5CD9D5CA95412756 /* TellomiNames.swift */; };
 		1404D8B3276A353B0068E2F6 /* ChatListViewController+Multiselect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1404D8B2276A353A0068E2F6 /* ChatListViewController+Multiselect.swift */; };
 		1466AB282817F7E7003B3D9F /* PluralAware.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 1466AB262817F7E7003B3D9F /* PluralAware.stringsdict */; };
@@ -908,6 +905,7 @@
 		50BCD5522F2182430032BF02 /* OutgoingNullMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5512F2182430032BF02 /* OutgoingNullMessage.swift */; };
 		50BCD5542F21941E0032BF02 /* OutgoingViewOnceOpenSyncMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5532F21941E0032BF02 /* OutgoingViewOnceOpenSyncMessage.swift */; };
 		50BCD5562F219A730032BF02 /* OutgoingVerificationStateSyncMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5552F219A730032BF02 /* OutgoingVerificationStateSyncMessage.swift */; };
+		10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */; };
 		50BCD5582F21A1060032BF02 /* OutgoingPaymentMobileCoin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5572F21A1060032BF02 /* OutgoingPaymentMobileCoin.swift */; };
 		50BD86AF2A3CFF89005B6AC1 /* ResendMessagePromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BD86AE2A3CFF89005B6AC1 /* ResendMessagePromptBuilder.swift */; };
 		50BDC3682C88B7FA002294D0 /* AudioWaveformSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BDC3672C88B7FA002294D0 /* AudioWaveformSampler.swift */; };
@@ -923,6 +921,7 @@
 		50BF510E2BB2033800C2C309 /* RecipientPickerViewControllerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509913BD2913274100F34F8E /* RecipientPickerViewControllerTest.swift */; };
 		50BF51102BB2035400C2C309 /* UIStackView+SignalUITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C45D9329CB93E200B2CD2D /* UIStackView+SignalUITest.swift */; };
 		50C0203C2CA4A61E00BDC4EF /* ConcurrentTaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C0203B2CA4A61E00BDC4EF /* ConcurrentTaskQueue.swift */; };
+		056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */; };
 		50C0203E2CA4A7A500BDC4EF /* Retry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C0203D2CA4A7A500BDC4EF /* Retry.swift */; };
 		50C2B5142FFC348100DEFB25 /* GroupSendEndorsementExpirationJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2B5132FFC348100DEFB25 /* GroupSendEndorsementExpirationJob.swift */; };
 		50C38CAD2A8EB2610030A731 /* TimeGatedBatchTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C38CAC2A8EB2610030A731 /* TimeGatedBatchTest.swift */; };
@@ -938,6 +937,7 @@
 		50C98A412B69D9340065BD2E /* PhoneNumberVisibilityFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C98A402B69D9340065BD2E /* PhoneNumberVisibilityFetcher.swift */; };
 		50CDC6592DFB92FD00824B4A /* MonitorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CDC6582DFB92FD00824B4A /* MonitorTest.swift */; };
 		50CF28F02829C94800752AB3 /* CVComponentGiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CF28EF2829C94800752AB3 /* CVComponentGiftBadge.swift */; };
+		C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */; };
 		50CF74192E0A0EB7002DCA93 /* ConcurrentTaskQueueTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CF74182E0A0EB7002DCA93 /* ConcurrentTaskQueueTest.swift */; };
 		50D146CD2D1F4E5800D628DE /* ProfileKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D146CC2D1F4E5800D628DE /* ProfileKey.swift */; };
 		50D1EEAE2D95D95A00ADF921 /* TimeIntervalTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D1EEAD2D95D95A00ADF921 /* TimeIntervalTest.swift */; };
@@ -4680,7 +4680,6 @@
 		3457794226828A9A00732869 /* ConversationCollectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConversationCollectionView.swift; sourceTree = "<group>"; };
 		3457811A23EB56B300CE01C3 /* ConversationViewController+MessageRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+MessageRequest.swift"; sourceTree = "<group>"; };
 		345AE2B52317048200DB6225 /* GRDBFinderTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBFinderTest.swift; sourceTree = "<group>"; };
-		83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLinkPreviewImageLevelTest.swift; sourceTree = "<group>"; };
 		8A00F5A7E71AAAD3AE9CAD69 /* TellomiGetStartedTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiGetStartedTest.swift; sourceTree = "<group>"; };
 		345DE95F23ED9AA500A8E6E3 /* GroupsV2ProfileKeyUpdater.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupsV2ProfileKeyUpdater.swift; sourceTree = "<group>"; };
 		3461284A1FD0B93F00532771 /* SAELoadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SAELoadViewController.swift; sourceTree = "<group>"; };
@@ -4740,7 +4739,6 @@
 		347B83FC24378DDE0019A52C /* GroupMemberRequestsAndInvitesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupMemberRequestsAndInvitesViewController.swift; sourceTree = "<group>"; };
 		347C37FE2526005800F3D941 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		347C3819252CE69400F3D941 /* CVComponentState+GroupLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVComponentState+GroupLink.swift"; sourceTree = "<group>"; };
-		AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceivedPreviewIntegrationTest.swift; sourceTree = "<group>"; };
 		D9CB73D42F7F181500F7FD83 /* TellomiLinkVisualReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiLinkVisualReader.swift; sourceTree = "<group>"; };
 		347C381A252CE69400F3D941 /* CVLoadCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVLoadCoordinator.swift; sourceTree = "<group>"; };
 		347C381C252CE69400F3D941 /* CVStackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVStackView.swift; sourceTree = "<group>"; };
@@ -5279,6 +5277,7 @@
 		50468F2A29EE19C300948E02 /* PhoneNumberChangedMessageInserterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberChangedMessageInserterTest.swift; sourceTree = "<group>"; };
 		5049246E2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingMessageRequestResponseSyncMessage.swift; sourceTree = "<group>"; };
 		50498C6B3037574400BD86EB /* GroupStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupStoreTest.swift; sourceTree = "<group>"; };
+		F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceiveGateTest.swift; sourceTree = "<group>"; };
 		5049FA2D28BEAABE00D6E099 /* ContactDiscoveryV2Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactDiscoveryV2Operation.swift; sourceTree = "<group>"; };
 		504B8BAB2F802FA2002B8AB9 /* DeferredContinuation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeferredContinuation.swift; sourceTree = "<group>"; };
 		504F397B29D23B1700E849A6 /* ValidatedIncomingEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidatedIncomingEnvelope.swift; sourceTree = "<group>"; };
@@ -5294,6 +5293,7 @@
 		50552C2D2BAC066A00815474 /* CallLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallLink.swift; sourceTree = "<group>"; };
 		50552C302BAC079A00815474 /* CallLinkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallLinkTest.swift; sourceTree = "<group>"; };
 		5056B3BE2DEED72800F55320 /* MonotonicDateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicDateTest.swift; sourceTree = "<group>"; };
+		AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceivedPreviewIntegrationTest.swift; sourceTree = "<group>"; };
 		50589CDD2E8C44D5003EF42A /* PreKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreKeyStore.swift; sourceTree = "<group>"; };
 		50589CDF2E8C4AD5003EF42A /* PreKeyRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreKeyRecord.swift; sourceTree = "<group>"; };
 		50597BB92B97C38C004681E1 /* SignalAccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalAccountStore.swift; sourceTree = "<group>"; };
@@ -5309,6 +5309,7 @@
 		505CC1662F22BC7A00D311CD /* OutgoingPaymentActivationRequestMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingPaymentActivationRequestMessage.swift; sourceTree = "<group>"; };
 		505CC1682F22C2EC00D311CD /* OutgoingPaymentActivationRequestFinishedMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingPaymentActivationRequestFinishedMessage.swift; sourceTree = "<group>"; };
 		505F76322BC45C0700B1B51C /* BuildFlags+Generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BuildFlags+Generated.swift"; sourceTree = "<group>"; };
+		83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLinkPreviewImageLevelTest.swift; sourceTree = "<group>"; };
 		5060EBB92C7D211A00DF77AD /* OutgoingCallLinkUpdateMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingCallLinkUpdateMessage.swift; sourceTree = "<group>"; };
 		506395802F2403BE00B2F772 /* TransientOutgoingMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransientOutgoingMessage.swift; sourceTree = "<group>"; };
 		5063B41D2C5432A30041CA51 /* ResolvableValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolvableValue.swift; sourceTree = "<group>"; };
@@ -8208,7 +8209,6 @@
 		F588CA982FA088B700693838 /* CallingAssetsFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallingAssetsFetcher.swift; sourceTree = "<group>"; };
 		F5C80FA12BE3F29F0028F76D /* RTCIceServerFetcherTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTCIceServerFetcherTest.swift; sourceTree = "<group>"; };
 		F70CAD4E12CCE311EC60A2C9 /* Pods-SignalServiceKitTests.profiling.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SignalServiceKitTests.profiling.xcconfig"; path = "Target Support Files/Pods-SignalServiceKitTests/Pods-SignalServiceKitTests.profiling.xcconfig"; sourceTree = "<group>"; };
-		F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceiveGateTest.swift; sourceTree = "<group>"; };
 		F900F2DC27F25AB300431E09 /* DonationReceiptViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationReceiptViewController.swift; sourceTree = "<group>"; };
 		F903C29A28EC7AE60035B42B /* RegistrationIdGeneratorTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationIdGeneratorTest.swift; sourceTree = "<group>"; };
 		F905DFEA29A534F200BAD034 /* RegistrationPhoneNumberDiscoverabilityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationPhoneNumberDiscoverabilityViewController.swift; sourceTree = "<group>"; };
