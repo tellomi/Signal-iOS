@@ -227,8 +227,9 @@ class OWSContactsManagerTest: SignalBaseTest {
         }
     }
 
-    /// Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：只能拿用户名兜底时，`.01` 结尾的去掉后缀显示（保留原大小写），
+    /// Tellomi（tellomi/tellomi#1106 第三刀，ADR-0066 §六）：只能拿用户名兜底时，`.01` 结尾的去掉后缀显示，
     /// 别的后缀完整显示——`kaixin.57` 必须显示成 `kaixin.57`，不能冒充 `kaixin`。
+    /// 显示一律小写（§6.1b，owner 2026-09-27）：老数据里的 `KaiXin.01` 显示成 `kaixin`，存的仍是原样。
     func testGetDisplayNamesWithTellomiUsernames() {
         let acis = [Aci.randomForTesting(), Aci.randomForTesting(), Aci.randomForTesting()]
         let addresses = acis.map { SignalServiceAddress($0) }
@@ -245,7 +246,7 @@ class OWSContactsManagerTest: SignalBaseTest {
         dbV2.read { transaction in
             let contactsManager = SSKEnvironment.shared.contactManagerRef as! OWSContactsManager
             let actual = contactsManager.displayNames(for: addresses, tx: transaction).map { $0.resolvedValue() }
-            XCTAssertEqual(actual, ["kaixin", "KaiXin", "kaixin.57"])
+            XCTAssertEqual(actual, ["kaixin", "kaixin", "kaixin.57"])
             // 只改显示：存的仍是完整用户名
             XCTAssertEqual(mockUsernameLookupMananger.fetchUsername(forAci: acis[0], transaction: transaction), "kaixin.01")
         }
