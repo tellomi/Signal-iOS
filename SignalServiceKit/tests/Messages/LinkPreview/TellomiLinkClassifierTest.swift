@@ -29,6 +29,24 @@ final class TellomiLinkClassifierTest: XCTestCase {
 
     private struct Boom: Error {}
 
+    /// 分类器的 `log` 是 `@Sendable`：收集日志行要加锁。
+    private final class LogSink: @unchecked Sendable {
+        private let lock = NSLock()
+        private var storage = [String]()
+
+        func append(_ line: String) {
+            lock.lock()
+            defer { lock.unlock() }
+            storage.append(line)
+        }
+
+        var lines: [String] {
+            lock.lock()
+            defer { lock.unlock() }
+            return storage
+        }
+    }
+
     private let url = "https://www.bilibili.com/video/BV1YDhJ6ZEL6"
     private var logged = [String]()
 
@@ -119,9 +137,8 @@ final class TellomiLinkClassifierTest: XCTestCase {
 
     func testTheLogNeverHasTheURL() {
         let registry = FakeRegistry()
-        var lines = [String]()
-        let lock = NSLock()
-        let classifier = TellomiLinkClassifier(registry: registry, log: { line in lock.lock(); lines.append(line); lock.unlock() })
+        let sink = LogSink()
+        let classifier = TellomiLinkClassifier(registry: registry, log: { sink.append($0) })
 
         registry.classifyResult = .success(#"{"level":"structured","provider":"bilibili","route":"video","kind":"video","reason":"structured"}"#)
         _ = classifier.classify(.init(url: url, title: "Secret title"), body: url, isStory: false, attachmentContentTypes: [])
@@ -130,6 +147,7 @@ final class TellomiLinkClassifierTest: XCTestCase {
         registry.openPlanResult = .failure(Boom())
         _ = classifier.lookalike(forUrl: url + "#fragment")
 
+        let lines = sink.lines
         XCTAssertEqual(lines.count, 3)
         XCTAssertTrue(lines[0].contains("bilibili/video structured (structured)"))
         for line in lines {

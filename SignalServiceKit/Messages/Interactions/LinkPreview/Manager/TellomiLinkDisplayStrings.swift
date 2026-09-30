@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
-public import Foundation
+import Foundation
 
 extension TellomiLinkDisplay.Strings {
     /// 界面语言的文案（card-visual §3.7 / §3.9 / §3.10）；与 Android `TellomiLinkDisplay.Strings.from`、Desktop 同一张表。
