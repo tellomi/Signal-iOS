@@ -905,9 +905,9 @@
 		50BCD5522F2182430032BF02 /* OutgoingNullMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5512F2182430032BF02 /* OutgoingNullMessage.swift */; };
 		50BCD5542F21941E0032BF02 /* OutgoingViewOnceOpenSyncMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5532F21941E0032BF02 /* OutgoingViewOnceOpenSyncMessage.swift */; };
 		50BCD5562F219A730032BF02 /* OutgoingVerificationStateSyncMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5552F219A730032BF02 /* OutgoingVerificationStateSyncMessage.swift */; };
-		10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */; };
 		50BCD5582F21A1060032BF02 /* OutgoingPaymentMobileCoin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BCD5572F21A1060032BF02 /* OutgoingPaymentMobileCoin.swift */; };
 		50BD86AF2A3CFF89005B6AC1 /* ResendMessagePromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BD86AE2A3CFF89005B6AC1 /* ResendMessagePromptBuilder.swift */; };
+		10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */; };
 		50BDC3682C88B7FA002294D0 /* AudioWaveformSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BDC3672C88B7FA002294D0 /* AudioWaveformSampler.swift */; };
 		50BDC36A2C88C2C8002294D0 /* AudioWaveformSamplerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BDC3692C88C2C8002294D0 /* AudioWaveformSamplerTest.swift */; };
 		50BE67532CAAF7DF006D7BC7 /* AdHocCallRecordManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BE67522CAAF7DF006D7BC7 /* AdHocCallRecordManager.swift */; };
@@ -921,8 +921,8 @@
 		50BF510E2BB2033800C2C309 /* RecipientPickerViewControllerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509913BD2913274100F34F8E /* RecipientPickerViewControllerTest.swift */; };
 		50BF51102BB2035400C2C309 /* UIStackView+SignalUITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C45D9329CB93E200B2CD2D /* UIStackView+SignalUITest.swift */; };
 		50C0203C2CA4A61E00BDC4EF /* ConcurrentTaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C0203B2CA4A61E00BDC4EF /* ConcurrentTaskQueue.swift */; };
-		056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */; };
 		50C0203E2CA4A7A500BDC4EF /* Retry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C0203D2CA4A7A500BDC4EF /* Retry.swift */; };
+		056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */; };
 		50C2B5142FFC348100DEFB25 /* GroupSendEndorsementExpirationJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C2B5132FFC348100DEFB25 /* GroupSendEndorsementExpirationJob.swift */; };
 		50C38CAD2A8EB2610030A731 /* TimeGatedBatchTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C38CAC2A8EB2610030A731 /* TimeGatedBatchTest.swift */; };
 		50C4AEFC2CE6766B005609F6 /* GroupSendEndorsements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C4AEFB2CE6766B005609F6 /* GroupSendEndorsements.swift */; };
@@ -5277,9 +5277,9 @@
 		50468F2A29EE19C300948E02 /* PhoneNumberChangedMessageInserterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneNumberChangedMessageInserterTest.swift; sourceTree = "<group>"; };
 		5049246E2F209DA8006469B3 /* OutgoingMessageRequestResponseSyncMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingMessageRequestResponseSyncMessage.swift; sourceTree = "<group>"; };
 		50498C6B3037574400BD86EB /* GroupStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupStoreTest.swift; sourceTree = "<group>"; };
-		F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceiveGateTest.swift; sourceTree = "<group>"; };
 		5049FA2D28BEAABE00D6E099 /* ContactDiscoveryV2Operation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactDiscoveryV2Operation.swift; sourceTree = "<group>"; };
 		504B8BAB2F802FA2002B8AB9 /* DeferredContinuation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeferredContinuation.swift; sourceTree = "<group>"; };
+		F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceiveGateTest.swift; sourceTree = "<group>"; };
 		504F397B29D23B1700E849A6 /* ValidatedIncomingEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidatedIncomingEnvelope.swift; sourceTree = "<group>"; };
 		504F98B02EAFFAC600DF465B /* KyberPreKeyUseRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyberPreKeyUseRecord.swift; sourceTree = "<group>"; };
 		504F98B22EB0270A00DF465B /* SendMessageFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendMessageFailure.swift; sourceTree = "<group>"; };
@@ -5293,8 +5293,8 @@
 		50552C2D2BAC066A00815474 /* CallLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallLink.swift; sourceTree = "<group>"; };
 		50552C302BAC079A00815474 /* CallLinkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallLinkTest.swift; sourceTree = "<group>"; };
 		5056B3BE2DEED72800F55320 /* MonotonicDateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonotonicDateTest.swift; sourceTree = "<group>"; };
-		AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceivedPreviewIntegrationTest.swift; sourceTree = "<group>"; };
 		50589CDD2E8C44D5003EF42A /* PreKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreKeyStore.swift; sourceTree = "<group>"; };
+		AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceivedPreviewIntegrationTest.swift; sourceTree = "<group>"; };
 		50589CDF2E8C4AD5003EF42A /* PreKeyRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreKeyRecord.swift; sourceTree = "<group>"; };
 		50597BB92B97C38C004681E1 /* SignalAccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalAccountStore.swift; sourceTree = "<group>"; };
 		50597BBB2B97C449004681E1 /* UsernameLookupRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameLookupRecordStore.swift; sourceTree = "<group>"; };
@@ -9916,7 +9916,6 @@
 				3EACCA39C74D12B8466FCB07 /* TellomiRestoreChoiceTest.swift */,
 				56E8C04932E44E7B28098FB8 /* TellomiLogoutOptionsTest.swift */,
 				88D6E94125535482003142D9 /* CVTextTest.swift */,
-				83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */,
 				68A46E9363D3AF01AB646B82 /* AboutTellomiViewControllerTest.swift */,
 				F96B66B22912B8B7004FFFAA /* DonateViewControllerTest.swift */,
 				F99D2C8A2926F0DD00748CCB /* DonationPaymentDetailsViewControllerTest.swift */,
@@ -9929,6 +9928,7 @@
 				7395A91DCF7C0E057F379F3B /* TellomiPhotoPickerTests.swift */,
 				27DEA00574736BBE816D6CAC /* TellomiAttachmentFilesTests.swift */,
 				1700E33A28B5684C0073D949 /* MediaGallerySectionsTest.swift */,
+				83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */,
 				50D879692A16D2C20031345D /* MessageLoaderBatchTest.swift */,
 				4C2A538B23C5462300D28CD8 /* MessageLoaderTest.swift */,
 				454CAF8D05020C3CEE4E6409 /* TellomiForwardGridTests.swift */,
@@ -19680,7 +19680,6 @@
 				D962FC432E149ECF004DB623 /* BackupAttachmentDownloadTrackerTest.swift in Sources */,
 				D9324F7C2E1492920095D104 /* BackupAttachmentTrackerTest.swift in Sources */,
 				D9A952462E0A1C4200C3D1F7 /* BackupAttachmentUploadTrackerTest.swift in Sources */,
-				C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */,
 				50438A8F2ECBBE1D00FCB28F /* BackupRefreshManagerTest.swift in Sources */,
 				F9A335CA282F0BF700B5F5FA /* BadgeGiftingChooseBadgeViewControllerStateTest.swift in Sources */,
 				865569088848A1C2ED573991 /* TellomiNotificationPrimerTest.swift in Sources */,
@@ -19692,6 +19691,7 @@
 				D99ABC742A3D0BE10034CD3B /* BitmapsImageParsingTest.swift in Sources */,
 				D9317FD32A4BAC8300075A92 /* BitmapsImagePixelMergingTest.swift in Sources */,
 				D9317FD82A4BC4FC00075A92 /* BitmapsRectTest.swift in Sources */,
+				C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */,
 				9DB8E654AA1F188C00A93C26 /* TellomiScannedCodeTest.swift in Sources */,
 				AA0EFB03FEEB9F36437C7CBF /* TellomiQuickRestoreScanConfirmationTest.swift in Sources */,
 				D93108152B34B6BE006A034E /* CallRecordLoaderTest.swift in Sources */,
@@ -21073,7 +21073,9 @@
 				5088330C2FE0B1E500CE51AC /* AutoDownloadPolicyTest.swift in Sources */,
 				D93F4D5D2D801D750042926C /* AvatarDefaultColorManagerTest.swift in Sources */,
 				D33DD45F051AA1FA8A4261BE /* TellomiAvatarInitialsTest.swift in Sources */,
+				10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */,
 				D90AA6192CC961ED00021CB0 /* BackupArchiveIntegrationTests.swift in Sources */,
+				056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */,
 				66681CDF2C58174F00E50136 /* BackupAttachmentDownloadStoreTests.swift in Sources */,
 				66C795302C9B83A200C13937 /* BackupAttachmentUploadStoreTests.swift in Sources */,
 				66A1F4EB2E07CEA50095DE4B /* BackupListMediaManagerTests.swift in Sources */,
@@ -21208,8 +21210,6 @@
 				F942627A289B1B5600460798 /* OWSRecipientIdentityTest.swift in Sources */,
 				F9426244289B1B5500460798 /* OWSRequestFactoryTest.swift in Sources */,
 				F942629F289B1B5600460798 /* OWSUDManagerTest.swift in Sources */,
-				056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */,
-				10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */,
 				F9426242289B1B5500460798 /* OWSURLBuilderUtilTest.swift in Sources */,
 				509085C02C49C2A500409B85 /* PaddingBucketTest.swift in Sources */,
 				50468F2529EDD46500948E02 /* ParamParserTest.swift in Sources */,
