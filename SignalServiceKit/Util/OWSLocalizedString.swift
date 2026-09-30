@@ -42,8 +42,26 @@ public enum TellomiLocalization {
     }
 
     public static func localizedString(_ key: String, tableName: String?, value: String) -> String {
+#if TESTABLE_BUILD
+        if let bundleOverrideForTests {
+            return localizedString(key, tableName: tableName, value: value, bundle: bundleOverrideForTests.bundle, englishBundle: bundleOverrideForTests.english)
+        }
+#endif
         return localizedString(key, tableName: tableName, value: value, bundle: .main.app, englishBundle: appEnglishBundle)
     }
+
+#if TESTABLE_BUILD
+    /// 测试用：`withBundleForTests` 里让 `OWSLocalizedString` 读指定语言的表（和界面语言无关，缺键同样回落 `english`），
+    /// 一次测试里就能把四种语言的真实资源都过一遍。只在测试构建里有，正式包里没有这个全局变量。
+    private nonisolated(unsafe) static var bundleOverrideForTests: (bundle: Bundle, english: Bundle?)?
+
+    static func withBundleForTests<T>(_ bundle: Bundle, english: Bundle?, _ body: () throws -> T) rethrows -> T {
+        let previous = bundleOverrideForTests
+        bundleOverrideForTests = (bundle, english)
+        defer { bundleOverrideForTests = previous }
+        return try body()
+    }
+#endif
 
     static func localizedString(_ key: String, tableName: String?, value: String, bundle: Bundle, englishBundle: Bundle?) -> String {
         let localized = bundle.localizedString(forKey: key, value: missingSentinel, table: tableName)

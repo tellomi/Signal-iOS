@@ -8,6 +8,11 @@ import Foundation
 extension TellomiLinkDisplay.Strings {
     /// 界面语言的文案（card-visual §3.7 / §3.9 / §3.10）；与 Android `TellomiLinkDisplay.Strings.from`、Desktop 同一张表。
     public static func localized() -> TellomiLinkDisplay.Strings {
+        return localized(locale: .current, now: { Date() })
+    }
+
+    /// `locale`：数字（千分位）和日期按哪个地区的习惯排；`now`：判断「今年」用。产品里取当前的，测试里逐个语言传进来。
+    static func localized(locale: Locale, now: @escaping () -> Date) -> TellomiLinkDisplay.Strings {
         return TellomiLinkDisplay.Strings(
             officialTitle: OWSLocalizedString(
                 "TELLOMI_LINK_CARD_OFFICIAL_TITLE",
@@ -108,20 +113,19 @@ extension TellomiLinkDisplay.Strings {
                 }
             },
             trackCount: { count in
-                let number = NumberFormatter.localizedString(from: NSNumber(value: count), number: .decimal)
-                let format = count == 1
-                    ? OWSLocalizedString(
-                        "TELLOMI_LINK_CARD_TRACK_COUNT_ONE",
-                        comment: "Tellomi (card-visual §3.9): number of tracks on an album or playlist card, singular; %@ is the number",
-                    )
-                    : OWSLocalizedString(
-                        "TELLOMI_LINK_CARD_TRACK_COUNT_OTHER",
-                        comment: "Tellomi (card-visual §3.9): number of tracks on an album or playlist card, plural; %@ is the number",
-                    )
-                return String(format: format, number)
+                // 复数文案走 PluralAware.stringsdict（一、其他各语言自己的复数规则；数字按 `locale` 加千分位，不缩写）。
+                String(
+                    format: OWSLocalizedString(
+                        "TELLOMI_LINK_CARD_TRACK_COUNT_%ld",
+                        tableName: "PluralAware",
+                        comment: "Tellomi (card-visual §3.9): number of tracks on an album or playlist card; the number has thousands separators and is never abbreviated",
+                    ),
+                    locale: locale,
+                    count,
+                )
             },
             date: { date in
-                TellomiLinkDisplay.formatDate(date, locale: .current, now: Date())
+                TellomiLinkDisplay.formatDate(date, locale: locale, now: now())
             },
         )
     }

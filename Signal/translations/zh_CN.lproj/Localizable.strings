@@ -10929,12 +10929,6 @@
 /* Tellomi (card-visual §3.10): what a brand card's link is: web */
 "TELLOMI_LINK_CARD_KIND_WEB" = "网页";
 
-/* Tellomi (card-visual §3.9): number of members on a group card, singular; %@ is the number */
-"TELLOMI_LINK_CARD_MEMBER_COUNT_ONE" = "%@ 位成员";
-
-/* Tellomi (card-visual §3.9): number of members on a group card, plural; %@ is the number */
-"TELLOMI_LINK_CARD_MEMBER_COUNT_OTHER" = "%@ 位成员";
-
 /* Tellomi (card-visual §5.2): small badge next to the title of the card of Tellomi’s official website */
 "TELLOMI_LINK_CARD_OFFICIAL_BADGE" = "官方";
 
@@ -10947,20 +10941,8 @@
 /* Tellomi (card-visual §5.2): line under the name of a sticker pack card when the pack is already installed */
 "TELLOMI_LINK_CARD_STICKERS_ADDED" = "已添加";
 
-/* Tellomi (card-visual §3.9): number of stickers on a sticker pack card, singular; %@ is the number */
-"TELLOMI_LINK_CARD_STICKER_COUNT_ONE" = "%@ 个贴纸";
-
-/* Tellomi (card-visual §3.9): number of stickers on a sticker pack card, plural; %@ is the number */
-"TELLOMI_LINK_CARD_STICKER_COUNT_OTHER" = "%@ 个贴纸";
-
 /* Tellomi (ADR-0063 §4.8): title of the card of a link to a Tellomi user, and the line under a name */
 "TELLOMI_LINK_CARD_TELLOMI_USER" = "Tellomi 用户";
-
-/* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, singular; %@ is the number */
-"TELLOMI_LINK_CARD_TRACK_COUNT_ONE" = "%@ 首";
-
-/* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, plural; %@ is the number */
-"TELLOMI_LINK_CARD_TRACK_COUNT_OTHER" = "%@ 首";
 
 /* Tellomi (ADR-0063 §6.1): asks before opening a link whose domain imitates a well-known one; %1$@ is the well-known domain */
 "TELLOMI_LINK_OPEN_LOOKALIKE_MESSAGE" = "这个链接的域名与 %1$@ 相似，但不是它";
