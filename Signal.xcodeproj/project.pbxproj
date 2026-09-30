@@ -184,6 +184,8 @@
 		05FDBC292CD91B31000C87BC /* ChatListContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FDBC282CD91B31000C87BC /* ChatListContainerView.swift */; };
 		0CE014267EDFBD2538E940A0 /* Pods_Signal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FF88FB580BC19B240EEB86A /* Pods_Signal.framework */; };
 		1131E9919E2DA2E331CB59E3 /* TellomiLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D07A8FD7BAA962B78F13A15 /* TellomiLinks.swift */; };
+		53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */; };
+		96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */; };
 		DEDE73E41F50A8577766A3E4 /* TellomiNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2A71A5CD9D5CA95412756 /* TellomiNames.swift */; };
 		1404D8B3276A353B0068E2F6 /* ChatListViewController+Multiselect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1404D8B2276A353A0068E2F6 /* ChatListViewController+Multiselect.swift */; };
 		1466AB282817F7E7003B3D9F /* PluralAware.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 1466AB262817F7E7003B3D9F /* PluralAware.stringsdict */; };
@@ -4245,8 +4247,6 @@
 		3F71D9A41FBBE09CE0EF9C45 /* TellomiGroupInviteLinkCardTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E544D3C34BEE4257124AD19 /* TellomiGroupInviteLinkCardTest.swift */; };
 		C7B2377D2432C09755B56897 /* TellomiStoryLinkComposerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A9AE3A052D0ADE88C52BB8 /* TellomiStoryLinkComposerTest.swift */; };
 		698ECC2C786E398CD7FD789E /* TellomiLinkPreviewSettingsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 712D22414E42F9EC1D87773C /* TellomiLinkPreviewSettingsTest.swift */; };
-		96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */; };
-		53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -4738,6 +4738,8 @@
 		347B83FC24378DDE0019A52C /* GroupMemberRequestsAndInvitesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupMemberRequestsAndInvitesViewController.swift; sourceTree = "<group>"; };
 		347C37FE2526005800F3D941 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		347C3819252CE69400F3D941 /* CVComponentState+GroupLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVComponentState+GroupLink.swift"; sourceTree = "<group>"; };
+		B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiExternalLinkOpenerTest.swift; sourceTree = "<group>"; };
+		C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiExternalLinkOpener.swift; sourceTree = "<group>"; };
 		D9CB73D42F7F181500F7FD83 /* TellomiLinkVisualReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiLinkVisualReader.swift; sourceTree = "<group>"; };
 		347C381A252CE69400F3D941 /* CVLoadCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVLoadCoordinator.swift; sourceTree = "<group>"; };
 		347C381C252CE69400F3D941 /* CVStackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVStackView.swift; sourceTree = "<group>"; };
@@ -8790,8 +8792,6 @@
 		8E544D3C34BEE4257124AD19 /* TellomiGroupInviteLinkCardTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiGroupInviteLinkCardTest.swift; sourceTree = "<group>"; };
 		91A9AE3A052D0ADE88C52BB8 /* TellomiStoryLinkComposerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiStoryLinkComposerTest.swift; sourceTree = "<group>"; };
 		712D22414E42F9EC1D87773C /* TellomiLinkPreviewSettingsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLinkPreviewSettingsTest.swift; sourceTree = "<group>"; };
-		C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiExternalLinkOpener.swift; sourceTree = "<group>"; };
-		B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiExternalLinkOpenerTest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -9906,6 +9906,7 @@
 			isa = PBXGroup;
 			children = (
 				F9A335C9282F0BF700B5F5FA /* BadgeGiftingChooseBadgeViewControllerStateTest.swift */,
+				B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */,
 				CC8AF1A5B874D4FC13BE4BCC /* TellomiNotificationPrimerTest.swift */,
 				F97A2EE828247C1300610669 /* BadgeIssueSheetStateTest.swift */,
 				41815269E42B9E12DA5A1452 /* ChatListConnectionTitleTest.swift */,
@@ -9934,7 +9935,6 @@
 				EA3E5CDCE15B919C45D88EC3 /* MediaInteractiveDismissTest.swift */,
 				91A9AE3A052D0ADE88C52BB8 /* TellomiStoryLinkComposerTest.swift */,
 				712D22414E42F9EC1D87773C /* TellomiLinkPreviewSettingsTest.swift */,
-				B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -10200,8 +10200,8 @@
 			isa = PBXGroup;
 			children = (
 				8822558C26B9D1D7001A33C4 /* SignalDotMePhoneNumberLink.swift */,
-				5033D46F29DCACEF007FEADA /* UrlOpener.swift */,
 				C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */,
+				5033D46F29DCACEF007FEADA /* UrlOpener.swift */,
 			);
 			path = URLs;
 			sourceTree = "<group>";
@@ -18807,6 +18807,7 @@
 			files = (
 				D91174562E8F35C1009EB756 /* AccountEntropyPoolTextView.swift in Sources */,
 				88E728FF25F0241100A2E4A4 /* AccountSettingsViewController.swift in Sources */,
+				96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */,
 				B7AAF126F709681ABCC81C15 /* TellomiLogoutOptionsViewController.swift in Sources */,
 				349439D624360C30001045F7 /* AddGroupMembersViewController.swift in Sources */,
 				8835DE03230DEC6A00DC6B66 /* AddToBlockListViewController.swift in Sources */,
@@ -19660,7 +19661,6 @@
 				76616C9D2A266A05005F7001 /* WindowManager.swift in Sources */,
 				D149B68A2D00C9D6F2249B44 /* ReactionFlyIn.swift in Sources */,
 				36CEEA01C004890A1AEC05E6 /* ConversationViewController+ReactionFlyIn.swift in Sources */,
-				96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -19670,6 +19670,7 @@
 			files = (
 				6675F65129261E0C007A311E /* APNSRotationStoreTest.swift in Sources */,
 				F9B93CE028E246D900B3F8A0 /* AppDelegateTest.swift in Sources */,
+				53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */,
 				D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */,
 				D1338A000000000000000002 /* TellomiPushCrossBorderConsentTest.swift in Sources */,
 				D1338A000000000000000004 /* TellomiCrossBorderNoticeTest.swift in Sources */,
@@ -19780,7 +19781,6 @@
 				3F71D9A41FBBE09CE0EF9C45 /* TellomiGroupInviteLinkCardTest.swift in Sources */,
 				C7B2377D2432C09755B56897 /* TellomiStoryLinkComposerTest.swift in Sources */,
 				698ECC2C786E398CD7FD789E /* TellomiLinkPreviewSettingsTest.swift in Sources */,
-				53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
