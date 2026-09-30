@@ -178,12 +178,15 @@
 		05572BC42BFC0094006A72F1 /* DoubleTapToEditOnboardingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05572BC32BFC0094006A72F1 /* DoubleTapToEditOnboardingController.swift */; };
 		05594CCE2C989F1900CCBFF6 /* ScrollableWhenCompact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05594CCD2C989F1900CCBFF6 /* ScrollableWhenCompact.swift */; };
 		05594CD02C98A00500CCBFF6 /* HostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05594CCF2C98A00200CCBFF6 /* HostingController.swift */; };
+		056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */; };
 		058B49932C66805500307D38 /* AVAssetExportSession+Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058B49922C66804B00307D38 /* AVAssetExportSession+Async.swift */; };
 		05A180362CD1840F00579FA4 /* UIViewPropertyAnimator+SignalUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A180352CD1840F00579FA4 /* UIViewPropertyAnimator+SignalUI.swift */; };
 		05B411252C62845000A1EDBC /* ChatListInboxFilterSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B411242C62845000A1EDBC /* ChatListInboxFilterSection.swift */; };
 		05FDBC292CD91B31000C87BC /* ChatListContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FDBC282CD91B31000C87BC /* ChatListContainerView.swift */; };
 		0CE014267EDFBD2538E940A0 /* Pods_Signal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FF88FB580BC19B240EEB86A /* Pods_Signal.framework */; };
+		10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */; };
 		1131E9919E2DA2E331CB59E3 /* TellomiLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D07A8FD7BAA962B78F13A15 /* TellomiLinks.swift */; };
+		C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */; };
 		DEDE73E41F50A8577766A3E4 /* TellomiNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2A71A5CD9D5CA95412756 /* TellomiNames.swift */; };
 		1404D8B3276A353B0068E2F6 /* ChatListViewController+Multiselect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1404D8B2276A353A0068E2F6 /* ChatListViewController+Multiselect.swift */; };
 		1466AB282817F7E7003B3D9F /* PluralAware.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 1466AB262817F7E7003B3D9F /* PluralAware.stringsdict */; };
@@ -4245,9 +4248,6 @@
 		3F71D9A41FBBE09CE0EF9C45 /* TellomiGroupInviteLinkCardTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E544D3C34BEE4257124AD19 /* TellomiGroupInviteLinkCardTest.swift */; };
 		C7B2377D2432C09755B56897 /* TellomiStoryLinkComposerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A9AE3A052D0ADE88C52BB8 /* TellomiStoryLinkComposerTest.swift */; };
 		698ECC2C786E398CD7FD789E /* TellomiLinkPreviewSettingsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 712D22414E42F9EC1D87773C /* TellomiLinkPreviewSettingsTest.swift */; };
-		10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */; };
-		056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */; };
-		C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -4680,6 +4680,7 @@
 		3457794226828A9A00732869 /* ConversationCollectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConversationCollectionView.swift; sourceTree = "<group>"; };
 		3457811A23EB56B300CE01C3 /* ConversationViewController+MessageRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+MessageRequest.swift"; sourceTree = "<group>"; };
 		345AE2B52317048200DB6225 /* GRDBFinderTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBFinderTest.swift; sourceTree = "<group>"; };
+		83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLinkPreviewImageLevelTest.swift; sourceTree = "<group>"; };
 		8A00F5A7E71AAAD3AE9CAD69 /* TellomiGetStartedTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiGetStartedTest.swift; sourceTree = "<group>"; };
 		345DE95F23ED9AA500A8E6E3 /* GroupsV2ProfileKeyUpdater.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupsV2ProfileKeyUpdater.swift; sourceTree = "<group>"; };
 		3461284A1FD0B93F00532771 /* SAELoadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SAELoadViewController.swift; sourceTree = "<group>"; };
@@ -4739,6 +4740,7 @@
 		347B83FC24378DDE0019A52C /* GroupMemberRequestsAndInvitesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupMemberRequestsAndInvitesViewController.swift; sourceTree = "<group>"; };
 		347C37FE2526005800F3D941 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		347C3819252CE69400F3D941 /* CVComponentState+GroupLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVComponentState+GroupLink.swift"; sourceTree = "<group>"; };
+		AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceivedPreviewIntegrationTest.swift; sourceTree = "<group>"; };
 		D9CB73D42F7F181500F7FD83 /* TellomiLinkVisualReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiLinkVisualReader.swift; sourceTree = "<group>"; };
 		347C381A252CE69400F3D941 /* CVLoadCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVLoadCoordinator.swift; sourceTree = "<group>"; };
 		347C381C252CE69400F3D941 /* CVStackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVStackView.swift; sourceTree = "<group>"; };
@@ -8206,6 +8208,7 @@
 		F588CA982FA088B700693838 /* CallingAssetsFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallingAssetsFetcher.swift; sourceTree = "<group>"; };
 		F5C80FA12BE3F29F0028F76D /* RTCIceServerFetcherTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTCIceServerFetcherTest.swift; sourceTree = "<group>"; };
 		F70CAD4E12CCE311EC60A2C9 /* Pods-SignalServiceKitTests.profiling.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SignalServiceKitTests.profiling.xcconfig"; path = "Target Support Files/Pods-SignalServiceKitTests/Pods-SignalServiceKitTests.profiling.xcconfig"; sourceTree = "<group>"; };
+		F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceiveGateTest.swift; sourceTree = "<group>"; };
 		F900F2DC27F25AB300431E09 /* DonationReceiptViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationReceiptViewController.swift; sourceTree = "<group>"; };
 		F903C29A28EC7AE60035B42B /* RegistrationIdGeneratorTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationIdGeneratorTest.swift; sourceTree = "<group>"; };
 		F905DFEA29A534F200BAD034 /* RegistrationPhoneNumberDiscoverabilityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationPhoneNumberDiscoverabilityViewController.swift; sourceTree = "<group>"; };
@@ -8791,9 +8794,6 @@
 		8E544D3C34BEE4257124AD19 /* TellomiGroupInviteLinkCardTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiGroupInviteLinkCardTest.swift; sourceTree = "<group>"; };
 		91A9AE3A052D0ADE88C52BB8 /* TellomiStoryLinkComposerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiStoryLinkComposerTest.swift; sourceTree = "<group>"; };
 		712D22414E42F9EC1D87773C /* TellomiLinkPreviewSettingsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLinkPreviewSettingsTest.swift; sourceTree = "<group>"; };
-		F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceiveGateTest.swift; sourceTree = "<group>"; };
-		AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReceivedPreviewIntegrationTest.swift; sourceTree = "<group>"; };
-		83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLinkPreviewImageLevelTest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -9916,6 +9916,7 @@
 				3EACCA39C74D12B8466FCB07 /* TellomiRestoreChoiceTest.swift */,
 				56E8C04932E44E7B28098FB8 /* TellomiLogoutOptionsTest.swift */,
 				88D6E94125535482003142D9 /* CVTextTest.swift */,
+				83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */,
 				68A46E9363D3AF01AB646B82 /* AboutTellomiViewControllerTest.swift */,
 				F96B66B22912B8B7004FFFAA /* DonateViewControllerTest.swift */,
 				F99D2C8A2926F0DD00748CCB /* DonationPaymentDetailsViewControllerTest.swift */,
@@ -9936,7 +9937,6 @@
 				EA3E5CDCE15B919C45D88EC3 /* MediaInteractiveDismissTest.swift */,
 				91A9AE3A052D0ADE88C52BB8 /* TellomiStoryLinkComposerTest.swift */,
 				712D22414E42F9EC1D87773C /* TellomiLinkPreviewSettingsTest.swift */,
-				83B89B98C3A325AA313B7BCB /* TellomiLinkPreviewImageLevelTest.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -19680,6 +19680,7 @@
 				D962FC432E149ECF004DB623 /* BackupAttachmentDownloadTrackerTest.swift in Sources */,
 				D9324F7C2E1492920095D104 /* BackupAttachmentTrackerTest.swift in Sources */,
 				D9A952462E0A1C4200C3D1F7 /* BackupAttachmentUploadTrackerTest.swift in Sources */,
+				C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */,
 				50438A8F2ECBBE1D00FCB28F /* BackupRefreshManagerTest.swift in Sources */,
 				F9A335CA282F0BF700B5F5FA /* BadgeGiftingChooseBadgeViewControllerStateTest.swift in Sources */,
 				865569088848A1C2ED573991 /* TellomiNotificationPrimerTest.swift in Sources */,
@@ -19782,7 +19783,6 @@
 				3F71D9A41FBBE09CE0EF9C45 /* TellomiGroupInviteLinkCardTest.swift in Sources */,
 				C7B2377D2432C09755B56897 /* TellomiStoryLinkComposerTest.swift in Sources */,
 				698ECC2C786E398CD7FD789E /* TellomiLinkPreviewSettingsTest.swift in Sources */,
-				C3EDC57A5BBEE701686590CE /* TellomiLinkPreviewImageLevelTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -21208,6 +21208,8 @@
 				F942627A289B1B5600460798 /* OWSRecipientIdentityTest.swift in Sources */,
 				F9426244289B1B5500460798 /* OWSRequestFactoryTest.swift in Sources */,
 				F942629F289B1B5600460798 /* OWSUDManagerTest.swift in Sources */,
+				056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */,
+				10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */,
 				F9426242289B1B5500460798 /* OWSURLBuilderUtilTest.swift in Sources */,
 				509085C02C49C2A500409B85 /* PaddingBucketTest.swift in Sources */,
 				50468F2529EDD46500948E02 /* ParamParserTest.swift in Sources */,
@@ -21328,8 +21330,6 @@
 				2E97BF644206E33353213C90 /* TellomiFirstPartyLocalLookupTest.swift in Sources */,
 				C7605C0B093819F4F2C7233F /* TellomiFirstPartyCardTest.swift in Sources */,
 				D15C613707738679B68AA8C8 /* TellomiLinksFirstPartyTest.swift in Sources */,
-				10387E811C8CFF1FA76F6969 /* TellomiReceiveGateTest.swift in Sources */,
-				056BBA53A098E887FD4BA382 /* TellomiReceivedPreviewIntegrationTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
