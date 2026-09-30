@@ -10842,6 +10842,9 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "点击替换表情符号";
 
+/* Tellomi (ADR-0063 §5.5): toast after the link was copied because nothing could open it */
+"TELLOMI_LINKS_LINK_COPIED" = "已复制链接";
+
 /* Tellomi (card-visual §3.10): button at the bottom of a sticker pack card that is not installed yet */
 "TELLOMI_LINK_CARD_ACTION_ADD_STICKERS" = "添加";
 
@@ -10946,6 +10949,12 @@
 
 /* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, plural; %@ is the number */
 "TELLOMI_LINK_CARD_TRACK_COUNT_OTHER" = "%@ 首";
+
+/* Tellomi (ADR-0063 §6.1): asks before opening a link whose domain imitates a well-known one; %1$@ is the well-known domain */
+"TELLOMI_LINK_OPEN_LOOKALIKE_MESSAGE" = "这个链接的域名与 %1$@ 相似，但不是它";
+
+/* Tellomi (ADR-0063 §6.1): button that opens a link whose domain imitates a well-known one anyway */
+"TELLOMI_LINK_OPEN_OPEN_ANYWAY" = "继续打开";
 
 /* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
 "TELLOMI_LOGOUT_CONFIRM_BODY" = "聊天记录会保留在这台手机上，用同一个手机号重新登录后恢复。退出期间别人发来的消息会在服务器上等你，最多保留 30 天。";

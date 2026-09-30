@@ -99,6 +99,19 @@ public final class TellomiLinkClassifier: @unchecked Sendable {
         return card
     }
 
+    /// 点开这条链接的计划（§4.9、§5.5）；没有注册表、或 rust/links 出错、或计划读不懂时是 nil（照 Signal 原样打开）。
+    public func openPlan(forUrl url: String) -> TellomiOpenPlan? {
+        guard let registry else {
+            return nil
+        }
+        do {
+            return TellomiOpenPlan.parse(try registry.openPlan(url))
+        } catch {
+            log("openPlan failed: \(type(of: error))")
+            return nil
+        }
+    }
+
     /// 这个 URL 是否冒充某个知名域名（§6.1）：点开前那次提醒用的同一个判断（`open_plan` 的 `lookalike`），
     /// 所以域名标红和点开前的提醒总是一起出现。
     public func lookalike(forUrl url: String) -> String? {
