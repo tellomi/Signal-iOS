@@ -679,8 +679,9 @@ extension ConversationViewController: CVComponentDelegate {
             return
         }
 
-        // Tellomi（#1114）：谁都不认的交给系统时打开原链接，不是换算后的 signal.* 旧形状
-        UIApplication.shared.open(originalUrl, options: [:], completionHandler: nil)
+        // Tellomi（#1114）：谁都不认的交给系统时打开原链接，不是换算后的 signal.* 旧形状；
+        // ADR-0063 §4.9：按 rust/links 的 open_plan 打开（已装的 App → scheme → 浏览器 → 复制），仿冒域名先问一次。
+        tellomiOpenExternalLink(originalUrl)
     }
 
     /// Tellomi（tellomi/tellomi#1114）：聊天里点到的链接怎么走。

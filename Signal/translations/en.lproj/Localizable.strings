@@ -10842,6 +10842,9 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "Tap to replace an emoji";
 
+/* Tellomi (ADR-0063 §5.5): toast after the link was copied because nothing could open it */
+"TELLOMI_LINKS_LINK_COPIED" = "Link copied";
+
 /* Tellomi (card-visual §3.10): button at the bottom of a sticker pack card that is not installed yet */
 "TELLOMI_LINK_CARD_ACTION_ADD_STICKERS" = "Add";
 
@@ -10946,6 +10949,12 @@
 
 /* Tellomi (card-visual §3.9): number of tracks on an album or playlist card, plural; %@ is the number */
 "TELLOMI_LINK_CARD_TRACK_COUNT_OTHER" = "%@ tracks";
+
+/* Tellomi (ADR-0063 §6.1): asks before opening a link whose domain imitates a well-known one; %1$@ is the well-known domain */
+"TELLOMI_LINK_OPEN_LOOKALIKE_MESSAGE" = "The domain of this link looks like %1$@, but it isn’t %1$@.";
+
+/* Tellomi (ADR-0063 §6.1): button that opens a link whose domain imitates a well-known one anyway */
+"TELLOMI_LINK_OPEN_OPEN_ANYWAY" = "Open Anyway";
 
 /* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
 "TELLOMI_LOGOUT_CONFIRM_BODY" = "Your chats stay on this phone and come back when you log in again with the same phone number. Messages people send you in the meantime wait on the server for up to 30 days.";
