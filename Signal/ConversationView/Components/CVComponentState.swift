@@ -1419,12 +1419,13 @@ private extension CVComponentState.Builder {
             }
         }
 
-        if !threadViewModel.hasPendingMessageRequest {
-            if let linkPreview = message.linkPreview {
-                try buildLinkPreview(message: message, linkPreview: linkPreview)
-            } else {
-                buildTellomiLocalLinkCard(message: message)
-            }
+        if threadViewModel.hasPendingMessageRequest {
+            // Tellomi（card-visual §3.3 / §7.3，ADR-0063 §8.1 第 6 行）：还没接受的会话里只画「域名卡」，接受以后才完整显示。
+            buildTellomiMessageRequestDomainCard(message: message)
+        } else if let linkPreview = message.linkPreview {
+            try buildLinkPreview(message: message, linkPreview: linkPreview)
+        } else {
+            buildTellomiLocalLinkCard(message: message)
         }
 
         let result = build()
@@ -2224,14 +2225,58 @@ private extension CVComponentState.Builder {
     }
 
     /// 只用 URL 画的无图卡：rust/links 算的可注册域名，以及它是否冒充知名域名；发送端写的一概不要。
-    private func tellomiPlainLinkState(base: LinkPreviewState, card: TellomiLinkCard, linkOnlyUrl: String) -> LinkPreviewState? {
+    /// `isCardOnly`：气泡只画卡片、不画链接文字；`isInert`：卡片不响应点击（消息请求里的域名卡，二者取 false / true）。
+    private func tellomiPlainLinkState(
+        base: LinkPreviewState,
+        card: TellomiLinkCard,
+        linkOnlyUrl: String,
+        isCardOnly: Bool = true,
+        isInert: Bool = false,
+    ) -> LinkPreviewState? {
         let plain = TellomiLinkOnly.toPlainLinkCard(card, lookalike: TellomiLinkRegistry.classifier.lookalike(forUrl: linkOnlyUrl))
         guard
             let display = TellomiLinkDisplay.make(snapshotTitle: nil, card: plain, locale: .current, strings: .localized())
         else {
             return nil
         }
-        return TellomiLinkPreviewCardState(base: base, display: display, showsImage: false, isCardOnly: true)
+        return TellomiLinkPreviewCardState(base: base, display: display, showsImage: false, isCardOnly: isCardOnly, isInert: isInert)
+    }
+
+    /// 消息请求里的域名卡（口径 S1，card-visual §3.3 / §7.3，ADR-0063 §8.1 第 6 行）：还没接受的会话里，收到的链接只画域名——
+    /// 链接图标 + rust/links 从那条 URL 算的可注册域名（冒充知名域名照旧标红）。
+    /// - 只把 URL 交给 rust/links，发送端写的标题 / 描述 / 日期 / rich / 有没有图一样都不给；不管它判成什么级别
+    ///   （品牌壳、第一方卡、结构化……）都只留域名，所以没有标题、副行、图、品牌壳图标，也没有第一方卡的头像、群名和按钮；
+    /// - 不染色（没有图可取色）；不响应点击（`isInert`，同 Telegram iOS 对可疑发件人的 `isSuspiciousPeer`）；
+    /// - 正文里的链接文字不隐藏（`isCardOnly: false`）：消息请求里正文本来就不可点，完整地址靠它看；
+    /// - 不读预览图附件，也不为它建下载：这条路径根本不去取 `.messageLinkPreview` 的附件。接受以后才按正常规则完整显示。
+    /// URL 取预览里的那条（收到时 Signal 已经核过它在正文里）；没有预览时取「整条消息就是一条链接」的那条。只画收到的消息。
+    private mutating func buildTellomiMessageRequestDomainCard(message: TSMessage) {
+        guard
+            isIncoming,
+            let urlString = message.linkPreview?.urlString ?? tellomiLinkOnlyUrl(message: message),
+            TellomiLinkRegistry.classifier.isAvailable
+        else {
+            return
+        }
+        let local = OWSLinkPreview(urlString: urlString)
+        guard
+            let card = tellomiClassify(message: message, linkPreview: local, urlString: urlString, hasImage: false),
+            card.domain != nil
+        else {
+            return
+        }
+        let base = LinkPreviewSent(
+            linkPreview: local,
+            imageAttachment: nil,
+            isFailedImageAttachmentDownload: false,
+            conversationStyle: conversationStyle,
+        )
+        guard
+            let state = tellomiPlainLinkState(base: base, card: card, linkOnlyUrl: urlString, isCardOnly: false, isInert: true)
+        else {
+            return
+        }
+        self.linkPreview = LinkPreview(linkPreview: local, state: state)
     }
 
     /// 消息就是一条链接、发出来时没有预览（预览关了，或没抓到）：接收端也画一张无图卡（card-visual §3.5，与 Android / Desktop 一样）。

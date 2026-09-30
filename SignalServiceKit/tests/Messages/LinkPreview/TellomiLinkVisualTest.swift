@@ -83,20 +83,20 @@ final class TellomiLinkVisualTest: XCTestCase {
         ))
     }
 
-    func testOnlyThirdPartyCardsWithAnImageAreTintedAndNeverInAMessageRequest() {
-        XCTAssertTrue(TellomiLinkVisual.shouldTint(card: card, layout: .icon, isMessageRequest: false))
-        XCTAssertTrue(TellomiLinkVisual.shouldTint(card: card, layout: .largeImage, isMessageRequest: false))
-        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: card, layout: .icon, isMessageRequest: true))
+    /// 消息请求里的卡不染色，靠的是那里根本不建带图的卡（只画域名卡，见 `TellomiMessageRequestCardTest`），不是靠这个函数。
+    func testOnlyThirdPartyCardsWithAnImageAreTinted() {
+        XCTAssertTrue(TellomiLinkVisual.shouldTint(card: card, layout: .icon))
+        XCTAssertTrue(TellomiLinkVisual.shouldTint(card: card, layout: .largeImage))
         var notTintable = card
         notTintable.tintable = false
-        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: notTintable, layout: .icon, isMessageRequest: false))
+        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: notTintable, layout: .icon))
         var payment = card
         payment.payment = true
-        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: payment, layout: .icon, isMessageRequest: false))
-        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: card, layout: .firstParty, isMessageRequest: false))
-        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: card, layout: .noImage, isMessageRequest: false))
-        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: card, layout: nil, isMessageRequest: false))
-        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: nil, layout: .icon, isMessageRequest: false))
+        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: payment, layout: .icon))
+        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: card, layout: .firstParty))
+        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: card, layout: .noImage))
+        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: card, layout: nil))
+        XCTAssertFalse(TellomiLinkVisual.shouldTint(card: nil, layout: .icon))
     }
 
     func testTheLayoutIsAskedForTheSizeOfTheImageTheCardShowsAndNoneForACardThatShowsNone() {

@@ -609,6 +609,7 @@
 		45B74A792044AAB600CD42F8 /* input.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 45B74A602044AAB400CD42F8 /* input.aifc */; };
 		45B74A7A2044AAB600CD42F8 /* keys.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 45B74A612044AAB400CD42F8 /* keys.aifc */; };
 		45B74A7B2044AAB600CD42F8 /* chord.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 45B74A622044AAB400CD42F8 /* chord.aifc */; };
+		150BE9C54E1CDC6A0EA55DA2 /* TellomiMessageRequestCardTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8D635E5B7BF543611044CB /* TellomiMessageRequestCardTest.swift */; };
 		45B74A7C2044AAB600CD42F8 /* hello-quiet.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 45B74A632044AAB400CD42F8 /* hello-quiet.aifc */; };
 		45B74A7D2044AAB600CD42F8 /* popcorn-quiet.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 45B74A642044AAB400CD42F8 /* popcorn-quiet.aifc */; };
 		45B74A7E2044AAB600CD42F8 /* complete.aifc in Resources */ = {isa = PBXBuildFile; fileRef = 45B74A652044AAB400CD42F8 /* complete.aifc */; };
@@ -4980,6 +4981,7 @@
 		34DE9C012565752F0080E4AF /* MessageLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageLoader.swift; sourceTree = "<group>"; };
 		34E20D4B24256563002C011E /* ConversationHeaderBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConversationHeaderBuilder.swift; sourceTree = "<group>"; };
 		34E20D4D2425672A002C011E /* ConversationSettingsViewController+Contents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationSettingsViewController+Contents.swift"; sourceTree = "<group>"; };
+		AA8D635E5B7BF543611044CB /* TellomiMessageRequestCardTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiMessageRequestCardTest.swift; sourceTree = "<group>"; };
 		34E88D252098C5AE00A608F4 /* ContactViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactViewController.swift; sourceTree = "<group>"; };
 		34E93F9126668F7500CE6FA5 /* ConversationViewController+BodyTextItems.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+BodyTextItems.swift"; sourceTree = "<group>"; };
 		34E95C1A269F4F1A004807EC /* CLVLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CLVLoader.swift; sourceTree = "<group>"; };
@@ -9916,6 +9918,7 @@
 				56E8C04932E44E7B28098FB8 /* TellomiLogoutOptionsTest.swift */,
 				88D6E94125535482003142D9 /* CVTextTest.swift */,
 				68A46E9363D3AF01AB646B82 /* AboutTellomiViewControllerTest.swift */,
+				AA8D635E5B7BF543611044CB /* TellomiMessageRequestCardTest.swift */,
 				F96B66B22912B8B7004FFFAA /* DonateViewControllerTest.swift */,
 				F99D2C8A2926F0DD00748CCB /* DonationPaymentDetailsViewControllerTest.swift */,
 				45C845AE291467F7005F6EA5 /* JournalingOrderedDictionaryTests.swift */,
@@ -19679,6 +19682,7 @@
 				D962FC432E149ECF004DB623 /* BackupAttachmentDownloadTrackerTest.swift in Sources */,
 				D9324F7C2E1492920095D104 /* BackupAttachmentTrackerTest.swift in Sources */,
 				D9A952462E0A1C4200C3D1F7 /* BackupAttachmentUploadTrackerTest.swift in Sources */,
+				150BE9C54E1CDC6A0EA55DA2 /* TellomiMessageRequestCardTest.swift in Sources */,
 				50438A8F2ECBBE1D00FCB28F /* BackupRefreshManagerTest.swift in Sources */,
 				F9A335CA282F0BF700B5F5FA /* BadgeGiftingChooseBadgeViewControllerStateTest.swift in Sources */,
 				865569088848A1C2ED573991 /* TellomiNotificationPrimerTest.swift in Sources */,
