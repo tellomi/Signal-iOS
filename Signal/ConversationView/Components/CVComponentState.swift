@@ -1419,11 +1419,12 @@ private extension CVComponentState.Builder {
             }
         }
 
-        if
-            !threadViewModel.hasPendingMessageRequest,
-            let linkPreview = message.linkPreview
-        {
-            try buildLinkPreview(message: message, linkPreview: linkPreview)
+        if !threadViewModel.hasPendingMessageRequest {
+            if let linkPreview = message.linkPreview {
+                try buildLinkPreview(message: message, linkPreview: linkPreview)
+            } else {
+                buildTellomiLocalLinkCard(message: message)
+            }
         }
 
         let result = build()
@@ -2063,6 +2064,7 @@ private extension CVComponentState.Builder {
                     linkPreview: linkPreview,
                     urlString: urlString,
                     hasImage: linkPreviewAttachment != nil,
+                    linkOnlyUrl: tellomiLinkOnlyUrl(message: message),
                 )
             else {
                 return
@@ -2074,17 +2076,19 @@ private extension CVComponentState.Builder {
         }
     }
 
-    /// Tellomi（ADR-0063 §5.1，card-visual §3.7）：按 rust/links 定的级别改写这条预览显示的文字，发送端写的描述从不显示。
+    /// Tellomi（ADR-0063 §5.1，card-visual §3.5 / §3.7）：按 rust/links 定的级别改写这条预览显示的文字，发送端写的描述从不显示。
     ///
     /// - 没有注册表、没有判定：照 Signal 原样（返回 `sentState`）；
     /// - 群、通话、贴纸卡：等第一方卡版式，之前也照 Signal 原样；
-    /// - 纯链接级：不显示这条预览（返回 nil）；「消息就是这条链接」时画无图卡是下一步。
+    /// - 纯链接级：只有「消息就是这条链接」时画成无图卡（域名 + 链接图标），否则不显示这条预览（返回 nil）；
+    /// - 消息就是这条链接、卡片有了判定：只画卡片（`isCardOnly`），不再画链接文字。
     private func tellomiLinkPreviewState(
         sentState: LinkPreviewSent,
         message: TSMessage,
         linkPreview: OWSLinkPreview,
         urlString: String,
         hasImage: Bool,
+        linkOnlyUrl: String?,
     ) -> LinkPreviewState? {
         let classifier = TellomiLinkRegistry.classifier
         guard classifier.isAvailable else {
@@ -2112,8 +2116,12 @@ private extension CVComponentState.Builder {
         guard let card else {
             return sentState
         }
+        let isCardOnly = TellomiLinkOnly.isLinkCardOnly(linkOnlyUrl: linkOnlyUrl, previewUrls: [urlString], card: card)
         if card.level == .plainLink {
-            return nil
+            guard isCardOnly, let linkOnlyUrl, card.domain != nil else {
+                return nil
+            }
+            return tellomiPlainLinkState(base: sentState, card: card, linkOnlyUrl: linkOnlyUrl)
         }
         guard
             let display = TellomiLinkDisplay.make(
@@ -2125,7 +2133,96 @@ private extension CVComponentState.Builder {
         else {
             return sentState
         }
-        return TellomiLinkPreviewCardState(base: sentState, display: display, showsImage: card.showImage)
+        return TellomiLinkPreviewCardState(base: sentState, display: display, showsImage: card.showImage, isCardOnly: isCardOnly)
+    }
+
+    /// 只用 URL 画的无图卡：rust/links 算的可注册域名，以及它是否冒充知名域名；发送端写的一概不要。
+    private func tellomiPlainLinkState(base: LinkPreviewState, card: TellomiLinkCard, linkOnlyUrl: String) -> LinkPreviewState? {
+        let plain = TellomiLinkOnly.toPlainLinkCard(card, lookalike: TellomiLinkRegistry.classifier.lookalike(forUrl: linkOnlyUrl))
+        guard
+            let display = TellomiLinkDisplay.make(snapshotTitle: nil, card: plain, locale: .current, strings: .localized())
+        else {
+            return nil
+        }
+        return TellomiLinkPreviewCardState(base: base, display: display, showsImage: false, isCardOnly: true)
+    }
+
+    /// 消息就是一条链接、发出来时没有预览（预览关了，或没抓到）：接收端也画一张无图卡（card-visual §3.5，与 Android / Desktop 一样）。
+    private mutating func buildTellomiLocalLinkCard(message: TSMessage) {
+        let classifier = TellomiLinkRegistry.classifier
+        guard
+            classifier.isAvailable,
+            let linkOnlyUrl = tellomiLinkOnlyUrl(message: message)
+        else {
+            return
+        }
+        let card = classifier.classify(
+            TellomiLinkClassifier.PreviewInput(url: linkOnlyUrl),
+            body: message.body ?? "",
+            isStory: false,
+            attachmentContentTypes: [],
+        )
+        guard let card, card.domain != nil else {
+            return
+        }
+        let local = OWSLinkPreview(urlString: linkOnlyUrl)
+        let base = LinkPreviewSent(
+            linkPreview: local,
+            imageAttachment: nil,
+            isFailedImageAttachmentDownload: false,
+            conversationStyle: conversationStyle,
+        )
+        guard let state = tellomiPlainLinkState(base: base, card: card, linkOnlyUrl: linkOnlyUrl) else {
+            return
+        }
+        self.linkPreview = LinkPreview(linkPreview: local, state: state)
+    }
+
+    // NSDataDetector 建起来很贵，Signal 自己也是复用一个。
+    private static let tellomiLinkDetector: NSDataDetector? = {
+        try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+    }()
+
+    /// 消息除了一条链接什么都没有（card-visual §3.5）时，那条链接；否则 nil。
+    /// 「什么都没有」：没有格式 / 提及、附件、贴纸、联系人、支付、礼物、投票、阅后即焚、故事、已删除，
+    /// 正文是普通文字，而且 Signal 自己的链接识别把整段认成一条链接（清单同 Android `TellomiLinkOnly.hasOtherContent`）。
+    private func tellomiLinkOnlyUrl(message: TSMessage) -> String? {
+        guard
+            case .bodyText(let displayableText, let hasTapForMore) = bodyText,
+            !hasTapForMore,
+            displayableText.shouldAllowLinkification
+        else {
+            return nil
+        }
+        let hasOtherContent = messageHasBodyAttachments
+            || bodyMedia != nil
+            || genericAttachment != nil
+            || audioAttachment != nil
+            || paymentAttachment != nil
+            || archivedPaymentAttachment != nil
+            || viewOnce != nil
+            || sticker != nil
+            || contactShare != nil
+            || giftBadge != nil
+            || poll != nil
+            || undownloadableAttachment != nil
+            || message.isViewOnceMessage
+            || message.wasRemotelyDeleted
+            || message.isStoryReply
+            || message.isPoll
+            || message.messageSticker != nil
+            || message.bodyRanges?.hasRanges == true
+        return TellomiLinkOnly.linkOnlyUrl(
+            body: message.body,
+            hasOtherContent: hasOtherContent,
+            linkRanges: { text in
+                guard let detector = Self.tellomiLinkDetector else {
+                    return []
+                }
+                return detector.matches(in: text, options: [], range: NSRange(text.startIndex..., in: text))
+                    .compactMap { Range($0.range, in: text) }
+            },
+        )
     }
 
     private mutating func buildGiftBadge(messageUniqueId: String, giftBadge: OWSGiftBadge) throws -> CVComponentState {

@@ -299,7 +299,9 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         }
         // Payments can have body text too; only render a vanilla body text if a payment
         // isn't present.
-        if let bodyTextState = itemViewState.bodyTextState, componentState.paymentAttachment == nil {
+        // Tellomi（card-visual §3.5）：消息除了一条链接什么都没有时只画卡片，不画链接文字（完整链接在长按菜单里能复制）。
+        let isLinkCardOnly = (componentState.linkPreview?.state as? TellomiLinkPreviewCardState)?.isCardOnly == true
+        if let bodyTextState = itemViewState.bodyTextState, componentState.paymentAttachment == nil, !isLinkCardOnly {
             bodyText = CVComponentBodyText(itemModel: itemModel, bodyTextState: bodyTextState)
         }
         if let contactShareState = componentState.contactShare {
