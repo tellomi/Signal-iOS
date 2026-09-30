@@ -2017,14 +2017,18 @@ private extension CVComponentState.Builder {
                 state: state,
             )
         } else {
+            // Tellomi（ADR-0063 §5.3，审计 I9）：预览「有没有图」看附件引用在不在（`Preview.image` 有没有），
+            // 不看下没下载完、也不看有没有 blurHash——否则图还没下完的时候，video / app 这类必须有图的卡会被临时判成品牌壳，
+            // 下完又升回去，卡片跳来跳去。下面的 `linkPreviewAttachment` 只管「现在能画出什么」。
+            let referencedLinkPreviewImage = message.sqliteRowId.flatMap { rowId in
+                DependenciesBridge.shared.attachmentStore.fetchAnyReferencedAttachment(
+                    for: .messageLinkPreview(messageRowId: rowId),
+                    tx: transaction,
+                )
+            }
+
             let linkPreviewAttachment = { () -> ReferencedAttachment? in
-                guard
-                    let rowId = message.sqliteRowId,
-                    let linkPreviewAttachment = DependenciesBridge.shared.attachmentStore.fetchAnyReferencedAttachment(
-                        for: .messageLinkPreview(messageRowId: rowId),
-                        tx: transaction,
-                    )
-                else {
+                guard let linkPreviewAttachment = referencedLinkPreviewImage else {
                     return nil
                 }
 
@@ -2074,6 +2078,7 @@ private extension CVComponentState.Builder {
                     linkPreview: linkPreview,
                     urlString: urlString,
                     imageAttachment: linkPreviewAttachment,
+                    hasImage: referencedLinkPreviewImage != nil,
                     linkOnlyUrl: tellomiLinkOnlyUrl(message: message),
                 )
             else {
@@ -2098,13 +2103,15 @@ private extension CVComponentState.Builder {
         linkPreview: OWSLinkPreview,
         urlString: String,
         imageAttachment: ReferencedAttachment?,
+        hasImage: Bool,
         linkOnlyUrl: String?,
     ) -> LinkPreviewState? {
         let classifier = TellomiLinkRegistry.classifier
         guard classifier.isAvailable else {
             return sentState
         }
-        let card = tellomiClassify(message: message, linkPreview: linkPreview, urlString: urlString, hasImage: imageAttachment != nil)
+        // `hasImage` 是「预览带不带图」，和 `imageAttachment`（现在画得出的那张）不是一回事，级别只看前者。
+        let card = tellomiClassify(message: message, linkPreview: linkPreview, urlString: urlString, hasImage: hasImage)
         guard let card else {
             return sentState
         }
@@ -2121,7 +2128,7 @@ private extension CVComponentState.Builder {
                 message: message,
                 linkPreview: linkPreview,
                 urlString: urlString,
-                hasImage: imageAttachment != nil,
+                hasImage: hasImage,
                 linkOnlyUrl: linkOnlyUrl,
                 card: card,
             )
