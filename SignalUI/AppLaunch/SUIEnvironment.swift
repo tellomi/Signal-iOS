@@ -54,6 +54,8 @@ public class SUIEnvironment: NSObject {
             groupsV2: SSKEnvironment.shared.groupsV2Ref,
             linkPreviewSettingStore: DependenciesBridge.shared.linkPreviewSettingStore,
             tsAccountManager: DependenciesBridge.shared.tsAccountManager,
+            // Tellomi（ADR-0063 §4.2）：有随包注册表时，发送端预览由 rust/links 的作业驱动
+            usesTellomiSendJob: true,
         )
         self.paymentsRef = PaymentsImpl(appReadiness: appReadiness)
 

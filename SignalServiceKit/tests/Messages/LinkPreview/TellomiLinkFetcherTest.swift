@@ -120,6 +120,20 @@ final class TellomiLinkFetcherTest: XCTestCase {
 
     // MARK: - 契约数字
 
+    /// rust/links 的 JSON 请求（`content_types`）列的四种：application/json、text/json、text/javascript、application/javascript（另加 `+json`）。
+    /// iTunes 的查询接口回的就是 `text/javascript; charset=utf-8`——这里不收，App Store 链接在 iOS 上整条失败。
+    func testTheJsonStepAcceptsTheContentTypesRustLinksAsksFor() {
+        for mimeType in ["application/json", "text/json", "text/javascript", "application/javascript", "text/javascript; charset=utf-8", "APPLICATION/JSON", "application/ld+json"] {
+            XCTAssertEqual(TellomiLinkFetchStep.json.bodyKind(forMimeType: mimeType.components(separatedBy: ";")[0]), .json, mimeType)
+        }
+        for mimeType in ["text/html", "text/plain", "application/xml", "image/png", "application/octet-stream"] {
+            XCTAssertNil(TellomiLinkFetchStep.json.bodyKind(forMimeType: mimeType), mimeType)
+        }
+        // 页面步骤不因此多收 JS
+        XCTAssertNil(TellomiLinkFetchStep.html.bodyKind(forMimeType: "text/javascript"))
+        XCTAssertNil(TellomiLinkFetchStep.page.bodyKind(forMimeType: "application/json"))
+    }
+
     func testContractNumbersMatchADR0063() {
         XCTAssertEqual(TellomiLinkFetchContract.userAgent, "WhatsApp/2")
         XCTAssertEqual(TellomiLinkFetchContract.maxRedirectsPerRequest, 5)

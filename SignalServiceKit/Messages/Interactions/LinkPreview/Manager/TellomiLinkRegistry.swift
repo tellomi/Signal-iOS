@@ -10,7 +10,32 @@ import LibSignalClient
 private final class TellomiLinkRegistryBundleAnchor {}
 
 /// `LinkRegistry` 自己就有 `version`、`classify(preview:body:message:)`、`openPlan(_:)`。
-extension LinkRegistry: TellomiLinkClassifying {}
+extension LinkRegistry: TellomiLinkClassifying {
+    func beginSendJob(url: String, context: String) throws -> any TellomiSendJob {
+        return TellomiNativeSendJob(job: try begin(url, context: context))
+    }
+}
+
+/// libsignal 的 `LinkJob` 套上 `TellomiSendJob`。
+final class TellomiNativeSendJob: TellomiSendJob, @unchecked Sendable {
+    private let job: LinkJob
+
+    init(job: LinkJob) {
+        self.job = job
+    }
+
+    func nextRequest() throws -> String? { try job.nextRequest() }
+
+    func onResponse(id: UInt32, status: UInt32, finalUrl: String, contentType: String, location: String?, body: Data) throws {
+        try job.onResponse(id: id, status: status, finalUrl: finalUrl, contentType: contentType, location: location, body: body)
+    }
+
+    func onNetworkError(id: UInt32) throws { try job.onNetworkError(id: id) }
+    func onFailure(id: UInt32) throws { try job.onFailure(id: id) }
+    func onFirstParty(id: UInt32, result: String) throws { try job.onFirstParty(id: id, result: result) }
+    func onImage(id: UInt32, ok: Bool) throws { try job.onImage(id: id, ok: ok) }
+    func finish() throws -> String { try job.finish() }
+}
 
 /// 随 App 带的链接注册表（ADR-0063 §8.1 第 3 行：iOS 随包，热更新在 P1 之后），和拿它做的接收端判定。
 /// 与 Android `TellomiLinkRegistry.kt`、Desktop `linkRegistry.preload.ts` 是同一份文件（`links-2026092702.json`）。
