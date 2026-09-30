@@ -307,6 +307,7 @@
 		3406D32B25DD80D600885B14 /* payments_spinner_fail.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32725DD80D600885B14 /* payments_spinner_fail.json */; };
 		3406D32C25DD80D600885B14 /* payments_spinner_success.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32825DD80D600885B14 /* payments_spinner_success.json */; };
 		3406D32D25DD80D600885B14 /* payments_spinner_info.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32925DD80D600885B14 /* payments_spinner_info.json */; };
+		96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */; };
 		3406D32E25DD80D600885B14 /* payments_spinner.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32A25DD80D600885B14 /* payments_spinner.json */; };
 		3406D33125DD832800885B14 /* payments_spinner_info_dark.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32F25DD832700885B14 /* payments_spinner_info_dark.json */; };
 		3406D33225DD832800885B14 /* payments_spinner_dark.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D33025DD832800885B14 /* payments_spinner_dark.json */; };
@@ -321,6 +322,7 @@
 		34235F3824213550008C74CB /* ConversationSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34235F3724213550008C74CB /* ConversationSettingsViewController.swift */; };
 		3426A366255C854B0036407F /* CVItemViewModelImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3426A365255C854A0036407F /* CVItemViewModelImpl.swift */; };
 		3426A368255D7BCA0036407F /* ConversationViewController+MessageActionsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3426A367255D7BCA0036407F /* ConversationViewController+MessageActionsDelegate.swift */; };
+		53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */; };
 		3426A36A255D9D7C0036407F /* ConversationViewController+Selection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3426A369255D9D7C0036407F /* ConversationViewController+Selection.swift */; };
 		3426A37025631C250036407F /* CVComponentLinkPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3426A36F25631C220036407F /* CVComponentLinkPreview.swift */; };
 		3426A37A2563F0EA0036407F /* CVComponentBottomButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3426A3792563F0EA0036407F /* CVComponentBottomButtons.swift */; };
@@ -4676,6 +4678,7 @@
 		345779402682464700732869 /* ScanQRCodeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScanQRCodeViewController.swift; sourceTree = "<group>"; };
 		3457794226828A9A00732869 /* ConversationCollectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConversationCollectionView.swift; sourceTree = "<group>"; };
 		3457811A23EB56B300CE01C3 /* ConversationViewController+MessageRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ConversationViewController+MessageRequest.swift"; sourceTree = "<group>"; };
+		C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiExternalLinkOpener.swift; sourceTree = "<group>"; };
 		345AE2B52317048200DB6225 /* GRDBFinderTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBFinderTest.swift; sourceTree = "<group>"; };
 		8A00F5A7E71AAAD3AE9CAD69 /* TellomiGetStartedTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiGetStartedTest.swift; sourceTree = "<group>"; };
 		345DE95F23ED9AA500A8E6E3 /* GroupsV2ProfileKeyUpdater.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupsV2ProfileKeyUpdater.swift; sourceTree = "<group>"; };
@@ -4690,6 +4693,7 @@
 		3465947D2434CCC100E5C510 /* NewGroupConfirmViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewGroupConfirmViewController.swift; sourceTree = "<group>"; };
 		3465947F2434D49F00E5C510 /* NewGroupState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewGroupState.swift; sourceTree = "<group>"; };
 		346594812434D5E000E5C510 /* GroupAttributesEditorHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupAttributesEditorHelper.swift; sourceTree = "<group>"; };
+		B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiExternalLinkOpenerTest.swift; sourceTree = "<group>"; };
 		3465F4D027287674001663AF /* PaymentsReconciliation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentsReconciliation.swift; sourceTree = "<group>"; };
 		3465F4D127287674001663AF /* PaymentsProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentsProcessor.swift; sourceTree = "<group>"; };
 		3465F4D227287675001663AF /* MobileCoinAPI+Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "MobileCoinAPI+Configuration.swift"; sourceTree = "<group>"; };
@@ -9906,6 +9910,7 @@
 				F97A2EE828247C1300610669 /* BadgeIssueSheetStateTest.swift */,
 				41815269E42B9E12DA5A1452 /* ChatListConnectionTitleTest.swift */,
 				4C6E6C6824241C00009DE948 /* ConversationViewControllerTest.swift */,
+				B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */,
 				3463532E256EA525003C5428 /* ConversationViewTest.swift */,
 				3EACCA39C74D12B8466FCB07 /* TellomiRestoreChoiceTest.swift */,
 				56E8C04932E44E7B28098FB8 /* TellomiLogoutOptionsTest.swift */,
@@ -10194,6 +10199,7 @@
 		5033D46C29DCA8DE007FEADA /* URLs */ = {
 			isa = PBXGroup;
 			children = (
+				C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */,
 				8822558C26B9D1D7001A33C4 /* SignalDotMePhoneNumberLink.swift */,
 				5033D46F29DCACEF007FEADA /* UrlOpener.swift */,
 			);
@@ -18802,6 +18808,7 @@
 				D91174562E8F35C1009EB756 /* AccountEntropyPoolTextView.swift in Sources */,
 				88E728FF25F0241100A2E4A4 /* AccountSettingsViewController.swift in Sources */,
 				B7AAF126F709681ABCC81C15 /* TellomiLogoutOptionsViewController.swift in Sources */,
+				96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */,
 				349439D624360C30001045F7 /* AddGroupMembersViewController.swift in Sources */,
 				8835DE03230DEC6A00DC6B66 /* AddToBlockListViewController.swift in Sources */,
 				882BDAAE249050F000C14587 /* AddToGroupViewController.swift in Sources */,
@@ -19666,6 +19673,7 @@
 				D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */,
 				D1338A000000000000000002 /* TellomiPushCrossBorderConsentTest.swift in Sources */,
 				D1338A000000000000000004 /* TellomiCrossBorderNoticeTest.swift in Sources */,
+				53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */,
 				F9B3A92F293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift in Sources */,
 				50B6BCB42AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift in Sources */,
 				D962FC432E149ECF004DB623 /* BackupAttachmentDownloadTrackerTest.swift in Sources */,

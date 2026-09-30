@@ -13,7 +13,7 @@ public import UIKit
 /// - 只接受 http / https：`intent:` / `javascript:` / `data:` / `file:` 以及其它任何 scheme **永远不产生跳转**（§4.9、§6.1）。
 ///   这也是崩溃防护：`SFSafariViewController` 收到非 http(s) 的 URL 会直接抛异常。
 ///
-/// 聊天里点卡片 / 点正文链接按 `rust/links` 的 `open_plan` 走（`ConversationViewController.tellomiOpenExternalLink`）：`browser` 那一步用它。
+/// 消息里的链接按 `rust/links` 的 `open_plan` 走（聊天页、消息详情、「所有媒体」、长文本、故事，都经 `TellomiExternalLinkOpener`）：`browser` 那一步用它。
 public enum TellomiExplicitBrowser {
 
     /// 能交给显式浏览器的 URL；不能的返回 nil（调用方什么都不做）。

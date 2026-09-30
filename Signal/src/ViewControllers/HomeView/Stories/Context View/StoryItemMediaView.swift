@@ -930,11 +930,20 @@ class StoryItemMediaView: UIView, VideoPlayerDelegate {
 
             return container
         case .text(let text):
-            return TextAttachmentView(
+            let textAttachmentView = TextAttachmentView(
                 attachment: text,
                 interactionIdentifier: .fromStoryMessage(item.message),
                 spoilerState: spoilerState,
             )
+            // Tellomi（ADR-0063 §4.9）：故事里的链接也走 open_plan，支付金融只进显式浏览器。
+            textAttachmentView.openLink = { url in
+                guard let presenter = CurrentAppContext().frontmostViewController() else {
+                    owsFailDebug("No view controller to open a story link from.")
+                    return
+                }
+                TellomiExternalLinkOpener.open(url, from: presenter, inApp: .handOffToSystem)
+            }
+            return textAttachmentView
         }
     }
 

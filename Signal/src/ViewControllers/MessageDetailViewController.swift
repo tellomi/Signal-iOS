@@ -1194,7 +1194,8 @@ extension MessageDetailViewController: CVComponentDelegate {
     func didTapQuotedReply(_ quotedReply: QuotedReplyModel) {}
 
     func didTapLinkPreview(url: URL) {
-        UIApplication.shared.open(url, options: [:])
+        // Tellomi（ADR-0063 §4.9）：和聊天页同一个出口，支付金融只进显式浏览器，不被通用链接带进支付 App。
+        TellomiExternalLinkOpener.open(url, from: self, inApp: .handOffToSystem)
     }
 
     func didTapContactShare(_ contactShare: ContactShareViewModel) {

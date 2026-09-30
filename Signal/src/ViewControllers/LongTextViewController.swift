@@ -327,7 +327,12 @@ class LongTextViewController: OWSViewController {
                     owsFailDebug("Should not have referenced user in long message body.")
                     return
                 case .dataItem(let dataItem):
-                    UIApplication.shared.open(dataItem.url, options: [:], completionHandler: nil)
+                    if TellomiExternalLinkOpener.usesOpenPlan(dataItem) {
+                        // Tellomi（ADR-0063 §4.9）：和聊天页同一个出口，支付金融只进显式浏览器，不被通用链接带进支付 App。
+                        TellomiExternalLinkOpener.open(dataItem.url, from: self, inApp: .handOffToSystem)
+                    } else {
+                        UIApplication.shared.open(dataItem.url, options: [:], completionHandler: nil)
+                    }
                     return
                 case .mention(let mentionItem):
                     ImpactHapticFeedback.impactOccurred(style: .light)
