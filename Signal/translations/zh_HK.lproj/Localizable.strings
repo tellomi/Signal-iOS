@@ -11116,10 +11116,10 @@
 "TELLOMI_SETTINGS_EXPAND_SHORT_LINKS" = "展開短連結";
 
 /* Tellomi: Footer for the 'Expand Short Links' setting: before making a preview, the device asks the short-link service for the original address; the service sees one visit; the setting is kept on this device only. */
-"TELLOMI_SETTINGS_EXPAND_SHORT_LINKS_FOOTER" = "產生預覽前，你的裝置會先向短連結服務查詢原本的網址，短連結服務會看到這次造訪。此設定只儲存在此裝置。";
+"TELLOMI_SETTINGS_EXPAND_SHORT_LINKS_FOOTER" = "產生預覽前，你的裝置會先開啟一次短連結，取得完整網址。短連結服務能看到這次存取。";
 
 /* Tellomi: Footer for the Generate Link Previews setting. Says plainly that, when on, the device visits the website when the user sends a link. */
-"TELLOMI_SETTINGS_LINK_PREVIEWS_FOOTER" = "開啟後，傳送連結時你的裝置會造訪該網站。";
+"TELLOMI_SETTINGS_LINK_PREVIEWS_FOOTER" = "開啟後，傳送連結時你的裝置會存取該網站。";
 
 /* Option in selected text edit menu to make text bold */
 "TEXT_MENU_BOLD" = "粗體";
