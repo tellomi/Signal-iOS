@@ -11158,7 +11158,9 @@
 			isa = PBXGroup;
 			children = (
 				669FAE1A2B7AC919009EE2FE /* OWSLinkPreviewSerializationTest.swift */,
+				F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */,
 				F9426228289B1B5500460798 /* OWSLinkPreviewTest.swift */,
+				AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */,
 				867EAEA9614ABA31ADED4497 /* TellomiLocalHTTPTestServer.swift */,
 				983B22C2D5B704021D98B363 /* TellomiLinkFetcherTest.swift */,
 				54B3B282B9D3EBD7D12B72ED /* TellomiLinkClassifierTest.swift */,
@@ -11171,8 +11173,6 @@
 				A98387BBD0C4E928E482F804 /* TellomiFirstPartyLocalLookupTest.swift */,
 				2E239F72B2CD668C8B109844 /* TellomiFirstPartyCardTest.swift */,
 				51D77529A60AE97737B34465 /* TellomiRichContentTest.swift */,
-				F7B3056314400388C7BEF01F /* TellomiReceiveGateTest.swift */,
-				AD30FF3E70E5B1D1FBA16172 /* TellomiReceivedPreviewIntegrationTest.swift */,
 			);
 			path = LinkPreview;
 			sourceTree = "<group>";
