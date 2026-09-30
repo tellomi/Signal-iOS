@@ -10980,6 +10980,9 @@
 /* Tellomi (card-visual §3.6): first word a screen reader says for a link card, before its title and domain */
 "TELLOMI_LINK_CARD_A11Y_LINK" = "連結";
 
+/* Tellomi (card-visual §3.6): what a screen reader puts between the parts of a link card's description (kind, title, subtitle, button); the English one includes the space after the comma */
+"TELLOMI_LINK_CARD_A11Y_SEPARATOR" = "，";
+
 /* Tellomi (card-visual §3.6): first words a screen reader says for a Tellomi group invite card, before the group name */
 "TELLOMI_LINK_CARD_A11Y_TELLOMI_GROUP" = "Tellomi 群組";
 

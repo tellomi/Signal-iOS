@@ -879,8 +879,7 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
 
         if poll == nil {
             // Polls manage accessibility manually.
-            componentView.hInnerStack.accessibilityLabel = buildAccessibilityLabel(componentView: componentView)
-            componentView.hInnerStack.isAccessibilityElement = true
+            configureAccessibility(componentView: componentView)
         }
 
         var selectionViews: [ManualLayoutView] = [componentView.primarySelectionView]
@@ -1453,6 +1452,31 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         }
 
         return .spacingDefault
+    }
+
+    /// 整条消息一个无障碍元素（上游的做法）；第一方卡底部有动作按钮时，多一个独立的无障碍按钮（card-visual §3.6 / `a11y-strings`）：
+    /// 消息不能再是「这个视图 = 一个元素」——视图成为元素以后它里面的子视图读屏都看不见，按钮就读不到、也聚焦不到。
+    /// 所以这时 `hInnerStack` 变成容器，里面列两个元素：整条消息（读整句，末尾是「按钮：加入群聊」）和按钮（button 角色，读它上面的字；
+    /// 激活它 = 读屏在按钮中心点一下，落在这张卡上，走的就是点卡片那条路）。按钮排在后面：点触探索时后面的盖在前面的上面。
+    private func configureAccessibility(componentView: CVComponentViewMessage) {
+        let hInnerStack = componentView.hInnerStack
+        let label = buildAccessibilityLabel(componentView: componentView)
+        if
+            let linkPreview = self.linkPreview as? CVComponentLinkPreview,
+            let linkPreviewView = componentView.linkPreviewView,
+            let actionElement = linkPreview.accessibilityActionElement(componentView: linkPreviewView)
+        {
+            let messageElement = CVMessageAccessibilityElement(accessibilityContainer: hInnerStack)
+            messageElement.isAccessibilityElement = true
+            messageElement.accessibilityLabel = label
+            hInnerStack.isAccessibilityElement = false
+            hInnerStack.accessibilityLabel = nil
+            hInnerStack.accessibilityElements = [messageElement, actionElement]
+        } else {
+            hInnerStack.accessibilityElements = nil
+            hInnerStack.accessibilityLabel = label
+            hInnerStack.isAccessibilityElement = true
+        }
     }
 
     // Builds an accessibility label for the entire message.
@@ -3401,5 +3425,23 @@ extension CVComponentMessage.CVComponentViewMessage {
             return nil
         }
         return avatarViewSwipeToReplyWrapper.convert(avatarViewSwipeToReplyWrapper.bounds, to: view)
+    }
+}
+
+// MARK: -
+
+/// 整条消息的无障碍元素（消息里有独立的无障碍按钮时用，见 `CVComponentMessage.configureAccessibility`）：框就是容器视图（`hInnerStack`）的框，
+/// 每次被问到时现算，不缓存——列表滚动、重新排版以后它仍然盖在消息上。
+final class CVMessageAccessibilityElement: UIAccessibilityElement {
+    override var accessibilityFrame: CGRect {
+        get {
+            guard let container = accessibilityContainer as? UIView else {
+                return super.accessibilityFrame
+            }
+            return UIAccessibility.convertToScreenCoordinates(container.bounds, in: container)
+        }
+        set {
+            super.accessibilityFrame = newValue
+        }
     }
 }
