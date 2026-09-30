@@ -115,6 +115,8 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         var expectedTintHue: ClosedRange<CGFloat>?
         /// 卡片上不该出现的文字（第一方卡没有域名行）。
         var absentTexts: [String] = []
+        /// 染色卡上标题的文字（默认 = 预览标题）；品牌壳的标题是平台名，不是发送端的预览标题。
+        var titleText: String?
         /// 本机已经是这个群的正式成员（群名用本地的）：先在库里建一个这样的群。
         var localGroupMasterKey: [UInt8]?
         var localGroupName: String?
@@ -147,6 +149,30 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             rich: .init(kind: "product", provider: "taobao", level: 1, attrs: []),
             expectedLevel: "brand",
             cardTexts: ["Taobao", "Product", "taobao.com"],
+            // 品牌壳的图是随包图标（card-visual §3.9）：淘宝官网的图标，橙底，按它染色；发送端的预览标题不显示。
+            expectedLayout: "icon",
+            expectedTintHue: 0.03...0.12,
+            absentTexts: ["登录"],
+            titleText: "Taobao",
+        ),
+        Fixture(
+            // 官网没有声明图标的品牌壳：只出平台名 + 域名（和以前一样，无图卡，不染色）。
+            name: "meituan-brand-no-icon",
+            url: "https://www.meituan.com/",
+            previewTitle: "美团",
+            rich: .init(kind: "web", provider: "meituan", level: 1, attrs: []),
+            expectedLevel: "brand",
+            cardTexts: ["Meituan", "meituan.com"],
+            expectedLayout: "text",
+        ),
+        Fixture(
+            // 支付金融：品牌壳，不染色（ADR-0063 L10），也没有图标。
+            name: "alipay-payment",
+            url: "https://render.alipay.com/p/f/fd-j5rqp49m/index.html",
+            previewTitle: "支付宝",
+            rich: .init(kind: "web", provider: "alipay", level: 1, attrs: []),
+            expectedLevel: "brand",
+            cardTexts: ["Alipay", "alipay.com"],
             expectedLayout: "text",
         ),
         Fixture(name: "tellomi-user", url: "https://tell.cc/hk881qb", previewTitle: "Tellomi", expectedLevel: "first_party", cardTexts: ["@hk881qb", "Tellomi user", "Message"], expectedLayout: "firstparty", absentTexts: ["tell.cc"]),
@@ -471,7 +497,7 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             background.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
             XCTAssertTrue(hueRange.contains(hue), "\(fixture.name)：底色色相应在 \(hueRange)，实际 \(hue)（\(dark ? "深" : "浅")色）")
             XCTAssertGreaterThan(saturation, 0.2, "\(fixture.name)：染色的底色不该是灰的，实际饱和度 \(saturation)")
-            if let title = fixture.previewTitle, let label = Self.findLabel(text: title, in: cardView) {
+            if let title = fixture.titleText ?? fixture.previewTitle, let label = Self.findLabel(text: title, in: cardView) {
                 let text = label.textColor.resolvedColor(with: traits)
                 let ratio = Self.contrast(text, background)
                 XCTAssertGreaterThanOrEqual(ratio, 4.5, "\(fixture.name)：标题对比度应 ≥ 4.5:1，实际 \(ratio)（\(dark ? "深" : "浅")色）")

@@ -90,6 +90,8 @@ public struct TellomiLinkCard: Equatable, Sendable {
     public var firstParty: FirstParty?
     public var lookalike: String?
     public var showImage: Bool
+    /// 品牌壳的随包图标文件名（`taobao.png`；只有 brand 级才有）。图标从 App 包里读，不联网（ADR-0063 §九.6）。
+    public var icon: String?
     public var tintable: Bool
     public var payment: Bool
     public var reason: String?
@@ -108,6 +110,7 @@ public struct TellomiLinkCard: Equatable, Sendable {
         firstParty: FirstParty? = nil,
         lookalike: String? = nil,
         showImage: Bool = true,
+        icon: String? = nil,
         tintable: Bool = false,
         payment: Bool = false,
         reason: String? = nil,
@@ -125,6 +128,7 @@ public struct TellomiLinkCard: Equatable, Sendable {
         self.firstParty = firstParty
         self.lookalike = lookalike
         self.showImage = showImage
+        self.icon = icon
         self.tintable = tintable
         self.payment = payment
         self.reason = reason
@@ -196,6 +200,7 @@ extension TellomiLinkCard: Decodable {
         case attrs
         case domain
         case lookalike
+        case icon
         case payment
         case reason
         case tintable
@@ -221,6 +226,7 @@ extension TellomiLinkCard: Decodable {
             firstParty: try container.decodeIfPresent(FirstParty.self, forKey: .firstParty),
             lookalike: try container.decodeIfPresent(String.self, forKey: .lookalike),
             showImage: try container.decodeIfPresent(Bool.self, forKey: .showImage) ?? true,
+            icon: try container.decodeIfPresent(String.self, forKey: .icon),
             tintable: try container.decodeIfPresent(Bool.self, forKey: .tintable) ?? false,
             payment: try container.decodeIfPresent(Bool.self, forKey: .payment) ?? false,
             reason: try container.decodeIfPresent(String.self, forKey: .reason),

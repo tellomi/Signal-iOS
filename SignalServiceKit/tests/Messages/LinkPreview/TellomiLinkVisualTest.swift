@@ -204,4 +204,92 @@ final class TellomiLinkVisualTest: XCTestCase {
             TellomiLinkVisual.Visual(layout: .icon, tint: nil),
         )
     }
+
+    // MARK: - 品牌壳的随包图标（card-visual §3.9）
+
+    private let taobao = TellomiLinkCard(level: .brand, provider: "taobao", kind: "product", domain: "taobao.com", showImage: false, icon: "taobao.png", tintable: true)
+
+    func testTheCardKeepsTheIconNameClassifyGave() throws {
+        let json = ##"{"level":"brand","provider":"taobao","provider_name":{"zh-Hans":"淘宝","en":"Taobao"},"kind":"product","icon":"taobao.png","tintable":true,"payment":false}"##
+        XCTAssertEqual(TellomiLinkCard.parse(json)?.icon, "taobao.png")
+        XCTAssertNil(TellomiLinkCard.parse(##"{"level":"brand","icon":null}"##)?.icon)
+        XCTAssertNil(TellomiLinkCard.parse(##"{"level":"brand"}"##)?.icon, "旧版 rust/links 不带 icon")
+    }
+
+    func testOnlyTheShapeTheRegistryUsesIsAnIconName() {
+        XCTAssertTrue(TellomiLinkIcon.isValidFileName("taobao.png"))
+        XCTAssertTrue(TellomiLinkIcon.isValidFileName("weixin-mp.png"))
+        XCTAssertTrue(TellomiLinkIcon.isValidFileName("a1.png"))
+        for bad in ["", ".png", "taobao", "taobao.PNG", "Taobao.png", "../taobao.png", "a/b.png", "a\\b.png", "taobao.png/", "taobao.png ", "tao bao.png", "taobao.jpg", "淘宝.png", "a.b.png", "%2e%2e.png"] {
+            XCTAssertFalse(TellomiLinkIcon.isValidFileName(bad), bad)
+        }
+    }
+
+    func testTheBundledIconsAreReadFromThePackageAndABadNameIsNeverLookedUp() throws {
+        let taobao = try XCTUnwrap(TellomiLinkIcon.icon(named: "taobao.png"))
+        XCTAssertEqual(taobao.name, "taobao.png")
+        XCTAssertEqual(taobao.pixelWidth, 114)
+        XCTAssertEqual(taobao.pixelHeight, 114)
+        for name in ["douban.png", "eleme.png", "iqiyi.png", "weixin-mp.png", "xiaohongshu.png", "zhihu.png"] {
+            XCTAssertNotNil(TellomiLinkIcon.icon(named: name), name)
+        }
+        // 注册表里写了但包里没有（比如热更来的名字）：当没有图标。
+        XCTAssertNil(TellomiLinkIcon.icon(named: "no-such-brand.png"))
+        XCTAssertNil(TellomiLinkIcon.icon(named: "../taobao.png"))
+        XCTAssertNil(TellomiLinkIcon.icon(named: "icons/taobao.png"))
+    }
+
+    func testABrandShellIsAskedWithTheSizeOfItsIconAndTintedFromTheIconPixels() {
+        var asked = [[String]]()
+        var tintedWith: (String, UInt32, UInt32, Int)?
+        var bridge = FakeBridge(tintJson: orange)
+        bridge.onLayout = { asked.append(["\($0)", "\($1)", $2, $3]) }
+        bridge.onTint = { tintedWith = ($0, $1, $2, $3.count) }
+
+        let visual = TellomiLinkVisual.decide(bridge: bridge, card: taobao, imageWidth: 114, imageHeight: 114) { Data(count: 32 * 32 * 4) }
+        XCTAssertEqual(asked, [["114", "114", "product", "brand"]])
+        XCTAssertEqual(visual.layout, .icon)
+        XCTAssertEqual(visual.tint?.colors(isDark: false)?.background, .init(red: 0xFE, green: 0x75, blue: 0x00))
+        XCTAssertEqual(tintedWith?.0, "icon")
+        XCTAssertEqual(tintedWith?.3, 32 * 32 * 4)
+    }
+
+    func testABrandShellWithoutAReadableIconIsAskedWithNoImageAndNeverReadsPixels() {
+        var asked = [[String]]()
+        var bridge = FakeBridge(layoutName: "no_image")
+        bridge.onLayout = { asked.append(["\($0)", "\($1)", $2, $3]) }
+
+        // 有图标名但读不到：调用方传 0 × 0。
+        XCTAssertEqual(
+            TellomiLinkVisual.decide(bridge: bridge, card: taobao, imageWidth: 0, imageHeight: 0) { XCTFail("not read"); return nil },
+            TellomiLinkVisual.Visual(layout: .noImage, tint: nil),
+        )
+        // 注册表没给图标名：和以前一样，问的时候没有图。
+        var noIcon = taobao
+        noIcon.icon = nil
+        _ = TellomiLinkVisual.decide(bridge: bridge, card: noIcon, imageWidth: 0, imageHeight: 0) { XCTFail("not read"); return nil }
+        XCTAssertEqual(asked[0], ["0", "0", "product", "brand"])
+        XCTAssertEqual(asked[1], ["0", "0", "", "brand"], "没有图标名：不显示图，kind 也不传")
+    }
+
+    func testAPaymentShellIsNeverTintedEvenWithAnIcon() {
+        var payment = taobao
+        payment.payment = true
+        payment.tintable = false
+        XCTAssertEqual(
+            TellomiLinkVisual.decide(bridge: FakeBridge(), card: payment, imageWidth: 114, imageHeight: 114) { XCTFail("not read"); return nil },
+            TellomiLinkVisual.Visual(layout: .icon, tint: nil),
+        )
+    }
+
+    func testTheSendersImageNeverStandsInForTheIconOfABrandShell() {
+        // 发送端的图即使带了尺寸也不会被问：品牌壳的 showImage 是 false，只有带图标名时才问图标的尺寸。
+        var noIcon = taobao
+        noIcon.icon = nil
+        var asked = [[String]]()
+        var bridge = FakeBridge(layoutName: "no_image")
+        bridge.onLayout = { asked.append(["\($0)", "\($1)", $2, $3]) }
+        _ = TellomiLinkVisual.layout(bridge: bridge, card: noIcon, imageWidth: 1200, imageHeight: 630)
+        XCTAssertEqual(asked[0], ["0", "0", "", "brand"])
+    }
 }

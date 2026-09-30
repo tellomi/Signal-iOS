@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+public import CoreGraphics
 public import Foundation
+import ImageIO
 import LibSignalClient
 
 /// card-visual §3.2 / §3.3 / §3.8（tellomi/tellomi#1423）：卡片的版式，以及从卡片自己的图取的颜色，都由 rust/links 定
@@ -136,9 +138,10 @@ public enum TellomiLinkVisual {
         return layout == .icon || layout == .largeImage
     }
 
-    /// nil：没有决定（桥失败），卡片照没有版式之前的样子显示。不显示图的卡问的时候没有图。
+    /// nil：没有决定（桥失败），卡片照没有版式之前的样子显示。不显示图的卡问的时候没有图；
+    /// 品牌壳的“图”是随包图标（card-visual §3.9），调用方传图标的尺寸，没有图标传 0 × 0。
     public static func layout(bridge: any Bridge, card: TellomiLinkCard, imageWidth: Int, imageHeight: Int) -> Layout? {
-        let showsImage = card.showImage
+        let showsImage = card.showImage || (card.level == .brand && card.icon != nil)
         do {
             let text = try bridge.layout(
                 imageWidth: showsImage ? UInt32(clamping: max(imageWidth, 0)) : 0,
@@ -209,5 +212,74 @@ public enum TellomiLinkVisual {
             value = value << 4 | nibble
         }
         return RGB(red: UInt8(value >> 16 & 0xFF), green: UInt8(value >> 8 & 0xFF), blue: UInt8(value & 0xFF))
+    }
+}
+
+// MARK: - Bundled brand-shell icon
+
+/// 品牌壳的随包图标（ADR-0063 §5.1 / §九.6，card-visual §3.9）：文件名由注册表给（可能是热更来的），
+/// 图从 App 包里读，**不联网**；名字不合格、包里没有、解不开，一律当没有图标（卡片只出平台名 + 域名）。
+public enum TellomiLinkIcon {
+
+    /// 包里放图标的文件夹（`links/icons/` 拷过来的，`scripts/links/sync_icons.py`）。
+    public static let bundleFolder = "icons"
+
+    /// `^[a-z0-9-]+\.png$`，与 rust/links 载入注册表时核的一样；先核名字再碰文件，挡住 `../x.png`、`a/b.png`。
+    public static func isValidFileName(_ name: String) -> Bool {
+        let suffix = ".png"
+        guard name.hasSuffix(suffix), name.utf8.count > suffix.utf8.count else {
+            return false
+        }
+        return name.dropLast(suffix.count).utf8.allSatisfy {
+            ($0 >= UInt8(ascii: "a") && $0 <= UInt8(ascii: "z")) || ($0 >= UInt8(ascii: "0") && $0 <= UInt8(ascii: "9")) || $0 == UInt8(ascii: "-")
+        }
+    }
+
+    public struct Icon: @unchecked Sendable {
+        public let name: String
+        public let image: CGImage
+
+        public var pixelWidth: Int { image.width }
+        public var pixelHeight: Int { image.height }
+    }
+
+    private final class BundleAnchor {}
+
+    private final class CachedIcon {
+        let icon: Icon?
+        init(_ icon: Icon?) { self.icon = icon }
+    }
+
+    private static let cache: NSCache<NSString, CachedIcon> = {
+        let cache = NSCache<NSString, CachedIcon>()
+        cache.countLimit = 64
+        return cache
+    }()
+
+    /// nil：名字不合格，或包里没有 / 解不开。
+    public static func icon(named name: String, bundle: Bundle? = nil) -> Icon? {
+        guard isValidFileName(name) else {
+            return nil
+        }
+        let bundle = bundle ?? Bundle(for: BundleAnchor.self)
+        let key = "\(bundle.bundlePath)|\(name)" as NSString
+        if let cached = cache.object(forKey: key) {
+            return cached.icon
+        }
+        let icon = load(name: name, bundle: bundle)
+        cache.setObject(CachedIcon(icon), forKey: key)
+        return icon
+    }
+
+    private static func load(name: String, bundle: Bundle) -> Icon? {
+        let base = String(name.dropLast(".png".count))
+        guard
+            let url = bundle.url(forResource: base, withExtension: "png", subdirectory: bundleFolder),
+            let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+            let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+        else {
+            return nil
+        }
+        return Icon(name: name, image: image)
     }
 }
