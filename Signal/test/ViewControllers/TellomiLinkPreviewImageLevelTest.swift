@@ -76,7 +76,12 @@ final class TellomiLinkPreviewImageLevelTest: SignalBaseTest {
     }
 
     /// 图还在路上：附件指针建好了，没有内容，也没有 blurHash（`Preview.image` 在，但现在画不出任何东西）。
-    private func attachPendingImage(to message: TSMessage, thread: TSThread, blurHash: String? = nil) throws {
+    private func attachPendingImage(
+        to message: TSMessage,
+        thread: TSThread,
+        blurHash: String? = nil,
+        size: CGSize? = CGSize(width: 1280, height: 720),
+    ) throws {
         let image = SSKProtoAttachmentPointer.builder()
         image.setCdnKey("cdnKey-\(UUID().uuidString)")
         image.setCdnNumber(3)
@@ -84,8 +89,11 @@ final class TellomiLinkPreviewImageLevelTest: SignalBaseTest {
         image.setDigest(Randomness.generateRandomBytes(32))
         image.setContentType(MimeType.imageJpeg.rawValue)
         image.setSize(1234)
-        image.setWidth(1280)
-        image.setHeight(720)
+        // `size` 为 nil：发送端没有写宽高（指针没有 width / height），接收端在图下完之前不知道图多大。
+        if let size {
+            image.setWidth(UInt32(size.width))
+            image.setHeight(UInt32(size.height))
+        }
         if let blurHash {
             image.setBlurHash(blurHash)
         }
@@ -184,6 +192,48 @@ final class TellomiLinkPreviewImageLevelTest: SignalBaseTest {
         XCTAssertEqual(whileDownloading.title, afterDownloading.title)
         XCTAssertEqual(whileDownloading.previewDescription, afterDownloading.previewDescription)
         XCTAssertEqual(whileDownloading.displayDomain, afterDownloading.displayDomain)
+    }
+
+    private func insertGenericMessage(in thread: TSContactThread) throws -> TSIncomingMessage {
+        let authorAci = try XCTUnwrap(thread.contactAddress.aci)
+        let url = "https://www.cloudflare.com/"
+        return write { tx in
+            let body = DependenciesBridge.shared.attachmentContentValidator.truncatedMessageBodyForInlining(
+                MessageBody(text: url, ranges: .empty),
+                tx: tx,
+            )
+            let builder: TSIncomingMessageBuilder = .withDefaultValues(
+                thread: thread,
+                timestamp: Date.ows_millisecondTimestamp(),
+                authorAci: authorAci,
+                messageBody: body,
+                linkPreview: OWSLinkPreview(urlString: url, title: "Cloudflare", previewDescription: nil, date: nil, rich: nil),
+            )
+            let message = builder.build()
+            message.anyInsert(transaction: tx)
+            return message
+        }
+    }
+
+    /// 审计 §3 第 3 条：图还没下完、发送端又没写宽高时，接收端不知道图多大。Signal 原来按 blurHash 的默认 400×236 去问 `layout()`，
+    /// 答案是图标卡；下完以后真实尺寸（例如 1280×720）是大图卡，版式就跳一下。没有真实尺寸时不猜，按「没有图」画（无图卡），不按默认尺寸判成图标卡。
+    @MainActor
+    func testAnImageWhoseSizeIsNotKnownYetIsNotJudgedAnIconCard() throws {
+        try XCTSkipUnless(TellomiLinkRegistry.classifier.isAvailable, "随包注册表没加载")
+        let thread = makeAcceptedThread()
+        let blurHash = "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
+
+        // 对照：指针带着真实尺寸（1280×720），没下完也按大图卡画（占位是 blurHash）
+        let withSize = try insertGenericMessage(in: thread)
+        try attachPendingImage(to: withSize, thread: thread, blurHash: blurHash)
+        XCTAssertEqual(try cardState(withSize).layout, .largeImage, "知道尺寸：没下完也是大图卡")
+
+        // 指针没有宽高：不知道多大，不能判成图标卡
+        let withoutSize = try insertGenericMessage(in: thread)
+        try attachPendingImage(to: withoutSize, thread: thread, blurHash: blurHash, size: nil)
+        let state = try cardState(withoutSize)
+        XCTAssertNotEqual(state.layout, .icon, "不知道尺寸时不能按默认 400×236 判成图标卡，下完以后再改判会让版式跳一下")
+        XCTAssertEqual(state.layout, .noImage, "不知道尺寸：先按没有图的卡画，等真实尺寸到了再定")
     }
 
     /// 对照：预览根本没带图（没有 `Preview.image`）时，video 缺必填的图，才是品牌壳。
