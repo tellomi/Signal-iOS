@@ -296,6 +296,11 @@ final class TellomiLinkSenderTest: XCTestCase {
         guard case .groupLinkInactive = result else { return XCTFail("\(result)") }
     }
 
+    func testAnInactiveGroupLinkIsTheOnlyNoPreviewThatTheComposerCanTellApart() {
+        XCTAssertEqual(LinkPreviewFetcherImpl.previewError(for: .groupLinkInactive), .groupLinkInactive)
+        XCTAssertEqual(LinkPreviewFetcherImpl.previewError(for: .notAvailable), .noPreview)
+    }
+
     // MARK: - 没有预览
 
     func testNoPreviewInTheOutcomeMeansNoPreview() async throws {

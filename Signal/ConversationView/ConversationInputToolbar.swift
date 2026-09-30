@@ -2094,11 +2094,15 @@ public class ConversationInputToolbar: UIView, QuotedReplyPreviewDelegate {
     private func updateLinkPreviewView() {
         let animateChanges = window != nil
 
-        switch linkPreviewFetchState.currentState {
-        case .none, .failed:
+        let state = linkPreviewFetchState.currentState
+        switch state {
+        case .none:
             hideLinkPreviewView(animated: animateChanges)
-        case .loading, .loaded:
-            ensureLinkPreviewView(withState: linkPreviewFetchState.currentState)
+        case .failed where state.failureMessageToShow == nil:
+            // Tellomi（ADR-0063 §5.1 铁律 2）：取不到预览就不显示预览区
+            hideLinkPreviewView(animated: animateChanges)
+        case .failed, .loading, .loaded:
+            ensureLinkPreviewView(withState: state)
         }
 
         if isEditingMessage {

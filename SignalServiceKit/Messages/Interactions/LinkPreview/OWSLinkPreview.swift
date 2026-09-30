@@ -14,6 +14,8 @@ public enum LinkPreviewError: Error {
     case fetchFailure
     /// A preview could not be generated because the feature is disabled
     case featureDisabled
+    /// Tellomi（ADR-0063 §5.1 铁律 2 的例外）：这条群邀请链接确定已经失效。输入框会提示发送者，其余取不到预览的情况都静默。
+    case groupLinkInactive
 }
 
 // MARK: - OWSLinkPreviewDraft
