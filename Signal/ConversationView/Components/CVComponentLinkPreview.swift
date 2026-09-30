@@ -94,6 +94,9 @@ class CVComponentLinkPreview: CVComponentBase, CVComponent {
         componentView: CVComponentView,
         renderItem: CVRenderItem,
     ) -> Bool {
+        guard Self.respondsToTap(linkPreview) else {
+            return false
+        }
         guard let urlString = linkPreview.urlString else {
             owsFailDebug("Missing url.")
             return false
@@ -104,6 +107,12 @@ class CVComponentLinkPreview: CVComponentBase, CVComponent {
         }
         componentDelegate.didTapLinkPreview(url: url)
         return true
+    }
+
+    /// 卡片响应点击吗。消息请求里的域名卡不响应（card-visual §7.3；同 Telegram iOS 对可疑发件人的处理：
+    /// 卡片的点击动作是 `.none`），陌生人发来的链接不能一点就打开；接受以后才是完整的卡片。
+    static func respondsToTap(_ linkPreview: LinkPreviewState) -> Bool {
+        return (linkPreview as? TellomiLinkPreviewCardState)?.isInert != true
     }
 
     // MARK: -

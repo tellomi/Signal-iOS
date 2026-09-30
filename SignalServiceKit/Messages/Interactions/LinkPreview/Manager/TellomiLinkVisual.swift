@@ -130,9 +130,11 @@ public enum TellomiLinkVisual {
         return Tint(tinted: true, light: light, dark: dark)
     }
 
-    /// §3.3：消息请求里不染，第一方和支付卡不染，只有带图（图标卡、大图卡）才有颜色可取。
-    public static func shouldTint(card: TellomiLinkCard?, layout: Layout?, isMessageRequest: Bool) -> Bool {
-        guard let card, !isMessageRequest, card.tintable, !card.payment else {
+    /// §3.3：第一方和支付卡不染，只有带图（图标卡、大图卡）才有颜色可取。
+    /// 消息请求里的卡也不染：那里只画域名卡（无图、`visual` 是 `.none`，见 `CVComponentState.buildTellomiMessageRequestDomainCard`），
+    /// 不会走到这里，所以这里不再收「是不是消息请求」。
+    public static func shouldTint(card: TellomiLinkCard?, layout: Layout?) -> Bool {
+        guard let card, card.tintable, !card.payment else {
             return false
         }
         return layout == .icon || layout == .largeImage
@@ -169,7 +171,7 @@ public enum TellomiLinkVisual {
 
     /// 在数据层（工作线程）跟卡一起定：版式，以及要染色时图的颜色。
     /// `readPixels` 读出卡显示的那张图缩成 32×32 的 RGBA；图还没下载完时给 nil。
-    /// 要不要用、用浅色还是深色那套，绑定视图时再定（消息请求里不用）；颜色本身两种情况一样。
+    /// 要不要用、用浅色还是深色那套，绑定视图时再定；颜色本身两种情况一样。
     public static func decide(
         bridge: any Bridge,
         card: TellomiLinkCard?,
@@ -180,7 +182,7 @@ public enum TellomiLinkVisual {
         guard let card, let layout = layout(bridge: bridge, card: card, imageWidth: imageWidth, imageHeight: imageHeight) else {
             return .none
         }
-        guard shouldTint(card: card, layout: layout, isMessageRequest: false), let pixels = readPixels() else {
+        guard shouldTint(card: card, layout: layout), let pixels = readPixels() else {
             return Visual(layout: layout, tint: nil)
         }
         let tint = tint(bridge: bridge, layout: layout, rgba: pixels)

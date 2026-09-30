@@ -380,6 +380,61 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         }
     }
 
+    /// 还没接受的会话（消息请求）里，同样的消息只画域名卡（card-visual §3.3 / §7.3，ADR-0063 §8.1 第 6 行）：
+    /// 没有发送端写的标题 / 副行 / 图、品牌壳图标、第一方卡的头像和按钮，不染色，正文里的链接文字还在。截图存 `cards-request.png`。
+    @MainActor
+    func testMessageRequestsShowOnlyTheDomain() async throws {
+        let width = shotWidth
+        // 没放进白名单：陌生人发来的消息请求。
+        let thread = write { tx in ContactThreadFactory().create(transaction: tx) }
+        // 夹具名 → 卡片上应该只有的域名，以及不该出现的（发送端写的、品牌壳的、第一方卡的）文字。
+        let expected: [String: (domain: String, absent: [String])] = [
+            "bilibili-video": ("bilibili.com", ["【演示】给朋友发一条视频链接会长什么样", "演示UP主", "4:17", "不该出现在卡片上"]),
+            "taobao-brand": ("taobao.com", ["Taobao", "Product", "登录"]),
+            "alipay-payment": ("alipay.com", ["Alipay", "支付宝"]),
+            "tellomi-user": ("tell.cc", ["@hk881qb", "Tellomi user", "Message"]),
+            "generic": ("wikipedia.org", ["free online encyclopedia"]),
+            "with-text": ("bilibili.com", ["演示UP主", "4:17"]),
+            "no-preview": ("bilibili.com", []),
+            "lookalike": ("bi1ibili.com", []),
+        ]
+        var shots = [UIImage]()
+        for fixture in Self.fixtures {
+            guard let expectation = expected[fixture.name] else {
+                continue
+            }
+            try prepareLocalState(fixture)
+            let message = try await insert(fixture, thread: thread, incoming: true)
+            // 会话页拿到的是从库里取出来的线程：收到消息以后线程才「可见」，才算消息请求（刚建的那个对象还不是）。
+            let latestThread = try XCTUnwrap(read { TSThread.anyFetch(uniqueId: thread.uniqueId, transaction: $0) })
+            XCTAssertTrue(read { ThreadViewModel(thread: latestThread, forChatList: false, transaction: $0).hasPendingMessageRequest }, "\(fixture.name)：夹具要真的是消息请求")
+            let hosted = try await host(message: message, thread: latestThread, width: width, dark: Theme.isDarkThemeEnabled)
+            XCTAssertGreaterThan(hosted.cellView.frame.size.height, 20, "\(fixture.name)：cell 没有高度")
+            let texts = Self.texts(in: hosted.cellView)
+            XCTAssertEqual(texts.filter { $0 == expectation.domain }.count, 1, "\(fixture.name)：卡片上只有一个域名「\(expectation.domain)」，实际：\(texts)")
+            for absent in expectation.absent {
+                XCTAssertFalse(texts.contains { $0.contains(absent) }, "\(fixture.name)：消息请求里不该有「\(absent)」，实际：\(texts)")
+            }
+            XCTAssertTrue(Self.containsBodyText(in: hosted.cellView), "\(fixture.name)：正文里的链接文字不隐藏，实际：\(texts)")
+            if let cardView = Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView) {
+                XCTAssertNil(Self.findView(suffix: "CVLinkPreviewImageView", in: cardView), "\(fixture.name)：域名卡没有图")
+                let background = cardView.backgroundColor?.resolvedColor(with: hosted.window.traitCollection)
+                let plain = UIColor.Signal.LightBase.fillTertiary.resolvedColor(with: hosted.window.traitCollection)
+                XCTAssertLessThan(background.map { Self.distance($0, plain) } ?? 1, 0.02, "\(fixture.name)：不染色，实际底色 \(String(describing: background))")
+            } else {
+                XCTFail("\(fixture.name)：找不到卡片视图")
+            }
+            report += "request \(fixture.name): cell height \(hosted.cellView.frame.size.height), texts \(texts)\n"
+            if shooting {
+                shots.append(render(hosted))
+            }
+            hosted.tearDown()
+        }
+        if shooting {
+            try save(stack(shots, width: width), name: "cards-request.png")
+        }
+    }
+
     /// 输入框里群邀请链接确定失效时的提示（ADR-0063 §5.1 铁律 2 的例外）：一行字 + ( X )，截图存 `composer-group-inactive.png`。
     @MainActor
     func testTheComposerShowsTheInactiveGroupLinkMessage() throws {
