@@ -25,6 +25,9 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
     /// Tellomi 自己对象的卡片（用户 / 群 / 贴纸包 / 官网，card-visual §5.2）：头像或封面 + 标题 + 副行 + 底部一个动作按钮。不是就是 nil。
     public let firstParty: TellomiFirstPartyCard.Display?
 
+    /// 品牌壳的随包图标（card-visual §3.9）：卡片的“图”是它，不是发送端的图；没有就是 nil。
+    public let bundledIcon: TellomiLinkIcon.Icon?
+
     public init(
         base: LinkPreviewState,
         display: TellomiLinkDisplay,
@@ -32,6 +35,7 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
         isCardOnly: Bool = false,
         visual: TellomiLinkVisual.Visual = .none,
         firstParty: TellomiFirstPartyCard.Display? = nil,
+        bundledIcon: TellomiLinkIcon.Icon? = nil,
     ) {
         self.base = base
         self.display = display
@@ -39,6 +43,7 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
         self.isCardOnly = isCardOnly
         self.visual = visual
         self.firstParty = firstParty
+        self.bundledIcon = bundledIcon
     }
 
     /// 版式；图片没有显示（品牌壳、用户卡……）或没有决定时是 nil。
@@ -86,9 +91,18 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
 
     public var date: Date? { nil }
 
-    public var imageState: LinkPreviewImageState { showsImage ? base.imageState : .none }
+    public var imageState: LinkPreviewImageState {
+        if bundledIcon != nil {
+            return .loaded
+        }
+        return showsImage ? base.imageState : .none
+    }
 
     public func imageAsync(thumbnailQuality: AttachmentThumbnailQuality, completion: @escaping (UIImage) -> Void) {
+        if let bundledIcon {
+            completion(UIImage(cgImage: bundledIcon.image))
+            return
+        }
         guard showsImage else {
             owsFailDebug("Should not be called.")
             return
@@ -97,10 +111,18 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
     }
 
     public func imageCacheKey(thumbnailQuality: AttachmentThumbnailQuality) -> LinkPreviewImageCacheKey? {
-        showsImage ? base.imageCacheKey(thumbnailQuality: thumbnailQuality) : nil
+        if let bundledIcon {
+            return LinkPreviewImageCacheKey(id: nil, urlString: "tellomi-icon:\(bundledIcon.name)", thumbnailQuality: thumbnailQuality)
+        }
+        return showsImage ? base.imageCacheKey(thumbnailQuality: thumbnailQuality) : nil
     }
 
-    public var imagePixelSize: CGSize { showsImage ? base.imagePixelSize : .zero }
+    public var imagePixelSize: CGSize {
+        if let bundledIcon {
+            return CGSize(width: bundledIcon.pixelWidth, height: bundledIcon.pixelHeight)
+        }
+        return showsImage ? base.imagePixelSize : .zero
+    }
 
     public var isGroupInviteLink: Bool { base.isGroupInviteLink }
 

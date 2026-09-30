@@ -3843,6 +3843,7 @@
 		F9B0DC5728948656004E07B7 /* GSR4.crt in Resources */ = {isa = PBXBuildFile; fileRef = F9B0DC4528948656004E07B7 /* GSR4.crt */; };
 		F9B0DC5928948656004E07B7 /* signal-messenger.cer in Resources */ = {isa = PBXBuildFile; fileRef = F9B0DC4728948656004E07B7 /* signal-messenger.cer */; };
 		4F0DB9C013D3FC7DE9D1F8C5 /* links-2026092702.json in Resources */ = {isa = PBXBuildFile; fileRef = C430FDC74F6660E38BC1039D /* links-2026092702.json */; };
+		6E2A9C41B7D0453F8A1C5D72 /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 3B8F70D5C2E14A96B0D7E418 /* icons */; };
 		F9B0DC5A28948656004E07B7 /* GIAG2.crt in Resources */ = {isa = PBXBuildFile; fileRef = F9B0DC4828948656004E07B7 /* GIAG2.crt */; };
 		F9B0DC5C28948656004E07B7 /* GTSR3.crt in Resources */ = {isa = PBXBuildFile; fileRef = F9B0DC4A28948656004E07B7 /* GTSR3.crt */; };
 		F9B0DC5D28948656004E07B7 /* GTSR2.crt in Resources */ = {isa = PBXBuildFile; fileRef = F9B0DC4B28948656004E07B7 /* GTSR2.crt */; };
@@ -8374,6 +8375,7 @@
 		F9B0DC4528948656004E07B7 /* GSR4.crt */ = {isa = PBXFileReference; lastKnownFileType = file; path = GSR4.crt; sourceTree = "<group>"; };
 		F9B0DC4728948656004E07B7 /* signal-messenger.cer */ = {isa = PBXFileReference; lastKnownFileType = file; path = "signal-messenger.cer"; sourceTree = "<group>"; };
 		C430FDC74F6660E38BC1039D /* links-2026092702.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "links-2026092702.json"; sourceTree = "<group>"; };
+		3B8F70D5C2E14A96B0D7E418 /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; path = icons; sourceTree = "<group>"; };
 		F9B0DC4828948656004E07B7 /* GIAG2.crt */ = {isa = PBXFileReference; lastKnownFileType = file; path = GIAG2.crt; sourceTree = "<group>"; };
 		F9B0DC4A28948656004E07B7 /* GTSR3.crt */ = {isa = PBXFileReference; lastKnownFileType = file; path = GTSR3.crt; sourceTree = "<group>"; };
 		F9B0DC4B28948656004E07B7 /* GTSR2.crt */ = {isa = PBXFileReference; lastKnownFileType = file; path = GTSR2.crt; sourceTree = "<group>"; };
@@ -15302,6 +15304,7 @@
 			isa = PBXGroup;
 			children = (
 				C430FDC74F6660E38BC1039D /* links-2026092702.json */,
+				3B8F70D5C2E14A96B0D7E418 /* icons */,
 			);
 			path = Links;
 			sourceTree = "<group>";
@@ -16964,6 +16967,7 @@
 				F9B0DC5328948656004E07B7 /* isrgrootx1.crt in Resources */,
 				F9B0DC5928948656004E07B7 /* signal-messenger.cer in Resources */,
 				4F0DB9C013D3FC7DE9D1F8C5 /* links-2026092702.json in Resources */,
+				6E2A9C41B7D0453F8A1C5D72 /* icons in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

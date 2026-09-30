@@ -2138,10 +2138,13 @@ private extension CVComponentState.Builder {
             return sentState
         }
         // card-visual §3.2 / §3.3：版式（图标卡 / 大图卡 / 无图）和图的颜色由 rust/links 定，在数据层（工作线程）一起判。
+        // 品牌壳的图是随包图标（card-visual §3.9），不看发送端的图：包里读得到才用，读不到就和以前一样只出平台名 + 域名。
+        let icon = card.level == .brand ? card.icon.flatMap { TellomiLinkIcon.icon(named: $0) } : nil
         let visual = TellomiLinkVisualReader.visual(
             card: card,
             attachment: imageAttachment,
             imagePixelSize: sentState.imagePixelSize,
+            icon: icon,
         )
         return TellomiLinkPreviewCardState(
             base: sentState,
@@ -2149,6 +2152,7 @@ private extension CVComponentState.Builder {
             showsImage: card.showImage,
             isCardOnly: isCardOnly,
             visual: visual,
+            bundledIcon: visual.layout == .icon ? icon : nil,
         )
     }
 
