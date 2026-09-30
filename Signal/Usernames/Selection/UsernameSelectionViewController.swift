@@ -69,7 +69,7 @@ class UsernameSelectionViewController: OWSViewController, OWSNavigationChildCont
         case reservationRejected
         /// The reservation was rejected by the server due to rate limiting.
         case reservationRateLimited
-        /// Tellomi（tellomi/tellomi#1106 第四刀）：30 天改名冷却期内，还剩 `daysLeft` 天。
+        /// Tellomi（tellomi/tellomi#1106 第四刀）：180 天改名冷却期内，还剩 `daysLeft` 天。
         case reservationChangeCooldown(daysLeft: Int)
         /// The reservation failed due to a network error.
         case reservationFailedNetworkError
@@ -721,7 +721,7 @@ private extension UsernameSelectionViewController {
     }
 
     private func confirmNewUsername(reservedUsername: Usernames.HashedUsername) {
-        // Tellomi（ADR-0066 §6.2）：没有用户名、但保留期内删过一个时，服务端也当改名（开始 30 天冷却），和换名一样先提醒
+        // Tellomi（ADR-0066 §6.2）：没有用户名、但保留期内删过一个时，服务端也当改名（开始 180 天冷却），和换名一样先提醒
         let deletedAt = context.databaseStorage.read { tx in TellomiUsernameHold.deletedAt(tx: tx) }
         switch TellomiUsernameHold.saveConfirmation(
             hasExistingUsername: existingUsername != nil || isAttemptingRecovery,
@@ -752,7 +752,7 @@ private extension UsernameSelectionViewController {
                 },
             )
         case .change:
-            // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：每次换名都会开始 30 天冷却，确认前就说清楚（与 Desktop#2、Android 同一句）
+            // Tellomi（tellomi/tellomi#1106 第四刀，ADR-0066 §6.2）：每次换名都会开始 180 天冷却，确认前就说清楚（与 Desktop#2、Android 同一句）
             OWSActionSheets.showConfirmationAlert(
                 message: String.localizedStringWithFormat(
                     OWSLocalizedString(
