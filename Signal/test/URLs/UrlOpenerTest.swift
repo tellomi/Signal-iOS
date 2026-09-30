@@ -105,6 +105,7 @@ class UrlOpenerTest: XCTestCase {
         XCTAssertFalse(TellomiLinks.isRenameCooldown(retryAfter: 3600))
         XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 3601))
         XCTAssertTrue(TellomiLinks.isRenameCooldown(retryAfter: 2_591_999))
+        XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 15_551_999), 180)
         XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 2_591_999), 30)
         XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86400), 1)
         XCTAssertEqual(TellomiLinks.renameCooldownDaysLeft(retryAfter: 86401), 2)
