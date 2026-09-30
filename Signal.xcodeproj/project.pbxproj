@@ -10199,9 +10199,9 @@
 		5033D46C29DCA8DE007FEADA /* URLs */ = {
 			isa = PBXGroup;
 			children = (
+				C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */,
 				8822558C26B9D1D7001A33C4 /* SignalDotMePhoneNumberLink.swift */,
 				5033D46F29DCACEF007FEADA /* UrlOpener.swift */,
-				C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */,
 			);
 			path = URLs;
 			sourceTree = "<group>";
