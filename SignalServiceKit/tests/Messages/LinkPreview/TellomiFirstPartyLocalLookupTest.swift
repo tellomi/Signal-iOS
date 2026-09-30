@@ -148,6 +148,26 @@ final class TellomiFirstPartyLocalLookupTest: SSKBaseTest {
         XCTAssertNil(lookup(url, card("user")), "URL 里没有用户名")
     }
 
+    /// 认识的用户带上头像的来源（对方的 ACI）：卡片用它从本地库取头像（联系人照片 / 对方的资料头像 / 默认头像）——
+    /// 只读本地库，不联网（card-visual §5.2「本地认识 → 真头像」，ADR-0063 §4.1）。
+    func testAKnownUserCarriesWhoseAvatarToShow() {
+        let accepted = Aci.randomForTesting()
+        let stranger = Aci.randomForTesting()
+        write { tx in
+            let usernames = DependenciesBridge.shared.usernameLookupManager
+            usernames.saveUsername("accepted.01", forAci: accepted, transaction: tx)
+            usernames.saveUsername("stranger.01", forAci: stranger, transaction: tx)
+            usernames.saveUsername("me.01", forAci: localAci, transaction: tx)
+            var recipient = DependenciesBridge.shared.recipientFetcher.fetchOrCreate(serviceId: accepted, tx: tx)
+            SSKEnvironment.shared.profileManagerRef.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .debugging, tx: tx)
+        }
+        let url = URL(string: "https://tell.cc/x")!
+
+        XCTAssertEqual(lookup(url, card("user", username: "accepted.01"))?.knownUserAci, accepted)
+        XCTAssertEqual(lookup(url, card("user", username: "me.01"))?.knownUserAci, localAci, "自己也有头像")
+        XCTAssertNil(lookup(url, card("user", username: "stranger.01")), "没被接受的不算认识，也就没有头像来源")
+    }
+
     func testNothingIsLookedUpForACallTheOfficialSiteOrAnyOtherLevel() throws {
         let url = URL(string: "https://tell.cc/call#key=bcdf-ghkm")!
         XCTAssertNil(lookup(url, card("call")))

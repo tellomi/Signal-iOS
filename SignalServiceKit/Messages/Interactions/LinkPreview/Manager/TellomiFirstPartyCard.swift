@@ -4,6 +4,7 @@
 //
 
 import Foundation
+public import LibSignalClient
 
 /// card-visual §5.2（tellomi/tellomi#1423）：Tellomi 自己对象的卡片——头像或封面、标题、一行副行、底部一个动作按钮，
 /// 学 Telegram 展示自家对象的方式。文字来自 URL 和本机已有的东西；发送端写的只用群名和贴纸包名（预览带着，ADR-0063 §4.8）。
@@ -22,6 +23,8 @@ public enum TellomiFirstPartyCard {
     public struct Local: Equatable, Sendable {
         /// tellomi.user：对方已被接受（或就是自己）时，本机显示的名字。
         public var knownUserName: String?
+        /// tellomi.user：同一个人的 ACI——卡片用它从本地库取头像（联系人照片 / 对方的资料头像 / 默认头像），只读本地库，不联网。
+        public var knownUserAci: Aci?
         /// tellomi.group：本账号是这个群的正式成员。
         public var isGroupMember: Bool
         /// 是成员时，本地的群名（比发送端写的可信）。
@@ -34,11 +37,13 @@ public enum TellomiFirstPartyCard {
             isGroupMember: Bool = false,
             groupName: String? = nil,
             isStickerPackInstalled: Bool = false,
+            knownUserAci: Aci? = nil,
         ) {
             self.knownUserName = knownUserName
             self.isGroupMember = isGroupMember
             self.groupName = groupName
             self.isStickerPackInstalled = isStickerPackInstalled
+            self.knownUserAci = knownUserAci
         }
     }
 
@@ -46,16 +51,19 @@ public enum TellomiFirstPartyCard {
         public var kind: Kind
         public var title: String
         public var subtitle: String?
-        /// 底部按钮的文字（card-visual §3.10）；通话卡下面已经有 Signal 自己的「加入」按钮，界面不画这一条。
+        /// 底部按钮的文字（card-visual §3.10）。
         public var action: String
         public var officialBadge: Bool
+        /// 用户卡：本机认识这个人时，头像从本地库按这个 ACI 取（真头像）；不认识是 nil（默认头像）。别的卡一律 nil。
+        public var avatarAci: Aci?
 
-        public init(kind: Kind, title: String, subtitle: String?, action: String, officialBadge: Bool) {
+        public init(kind: Kind, title: String, subtitle: String?, action: String, officialBadge: Bool, avatarAci: Aci? = nil) {
             self.kind = kind
             self.title = title
             self.subtitle = subtitle
             self.action = action
             self.officialBadge = officialBadge
+            self.avatarAci = avatarAci
         }
     }
 
@@ -120,6 +128,7 @@ public enum TellomiFirstPartyCard {
                 subtitle: name != nil ? strings.tellomiUser : nil,
                 action: strings.actionMessage,
                 officialBadge: false,
+                avatarAci: local?.knownUserAci,
             )
         case "group":
             let isMember = local?.isGroupMember == true

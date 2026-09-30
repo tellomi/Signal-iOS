@@ -2002,20 +2002,36 @@ private extension CVComponentState.Builder {
                 )
             }
         } else if let callLink = CallLink(url: url) {
-            let bottomButtonAction = CVMessageAction(
-                title: OWSLocalizedString(
-                    "CONVERSATION_VIEW_JOIN_CALL",
-                    comment: "Message shown in conversation view that offers to join a Call Link call.",
-                ),
-                accessibilityIdentifier: "join_call_link_call",
-                action: .didTapJoinCallLinkCall(callLink: callLink),
-            )
-            bottomButtonsActions.append(bottomButtonAction)
-            let state = LinkPreviewCallLink(previewType: .sent(linkPreview, conversationStyle), callLink: callLink)
-            self.linkPreview = LinkPreview(
-                linkPreview: linkPreview,
-                state: state,
-            )
+            let callState = LinkPreviewCallLink(previewType: .sent(linkPreview, conversationStyle), callLink: callLink)
+            // Tellomi（card-visual §5.2，审计 A14）：tell.cc 的通话链接按第一方卡画——通话图标 + 房间名或「Tellomi 通话」 + 底部「加入通话」，
+            // 不带发送端的描述和域名行。点进入通话的行为不变：点卡片 → `handleUrl` → `CallLink(url:)` → `presentLobby`（和 Signal 通话卡同一条路）。
+            // 第一方卡自带按钮，不再加 Signal 自己卡片外面的「加入」按钮。认不出来（注册表没装上、`signal.link` 的老形状）就照 Signal 原样。
+            if
+                let wrapped = tellomiFirstPartyState(
+                    base: callState,
+                    message: message,
+                    linkPreview: linkPreview,
+                    urlString: urlString,
+                    hasImage: false,
+                    linkOnlyUrl: tellomiLinkOnlyUrl(message: message),
+                )
+            {
+                self.linkPreview = LinkPreview(linkPreview: linkPreview, state: wrapped)
+            } else {
+                let bottomButtonAction = CVMessageAction(
+                    title: OWSLocalizedString(
+                        "CONVERSATION_VIEW_JOIN_CALL",
+                        comment: "Message shown in conversation view that offers to join a Call Link call.",
+                    ),
+                    accessibilityIdentifier: "join_call_link_call",
+                    action: .didTapJoinCallLinkCall(callLink: callLink),
+                )
+                bottomButtonsActions.append(bottomButtonAction)
+                self.linkPreview = LinkPreview(
+                    linkPreview: linkPreview,
+                    state: callState,
+                )
+            }
         } else {
             // Tellomi（ADR-0063 §5.3，审计 I9）：预览「有没有图」看附件引用在不在（`Preview.image` 有没有），
             // 不看下没下载完、也不看有没有 blurHash——否则图还没下完的时候，video / app 这类必须有图的卡会被临时判成品牌壳，
@@ -2191,8 +2207,8 @@ private extension CVComponentState.Builder {
         )
     }
 
-    /// Tellomi 自己对象的卡片（用户 / 群 / 贴纸包 / 官网，card-visual §5.2）：文字来自 URL 和本机已有的东西，发送端写的只用群名和包名；
-    /// 通话卡下面已经有 Signal 自己的「加入」按钮，不在这里。不是第一方卡返回 nil。
+    /// Tellomi 自己对象的卡片（用户 / 群 / 通话 / 贴纸包 / 官网，card-visual §5.2）：文字来自 URL 和本机已有的东西，
+    /// 发送端写的只用群名、包名和通话的房间名。不是第一方卡返回 nil。
     private func tellomiFirstPartyState(
         base: LinkPreviewState,
         message: TSMessage,
@@ -2210,11 +2226,17 @@ private extension CVComponentState.Builder {
             return nil
         }
         let local = TellomiFirstPartyLocalLookup.local(url: url, card: card, tx: transaction)
-        guard
-            let firstParty = TellomiFirstPartyCard.display(card: card, local: local, strings: .localized()),
-            firstParty.kind != .call
-        else {
+        guard let firstParty = TellomiFirstPartyCard.display(card: card, local: local, strings: .localized()) else {
             return nil
+        }
+        // 本机认识的用户：头像从本地库取（只读，不联网），在这里（有事务）取好交给界面；cell 配置阶段不许开事务。
+        let userAvatar = firstParty.avatarAci.flatMap { aci in
+            SSKEnvironment.shared.avatarBuilderRef.avatarImage(
+                forAddress: SignalServiceAddress(aci),
+                diameterPoints: 56,
+                localUserDisplayMode: .asUser,
+                transaction: transaction,
+            )
         }
         return TellomiLinkPreviewCardState(
             base: base,
@@ -2228,6 +2250,7 @@ private extension CVComponentState.Builder {
             isCardOnly: TellomiLinkOnly.isLinkCardOnly(linkOnlyUrl: linkOnlyUrl, previewUrls: [urlString], card: card),
             visual: TellomiLinkVisual.Visual(layout: .firstParty, tint: nil),
             firstParty: firstParty,
+            userAvatar: userAvatar,
         )
     }
 
