@@ -10974,6 +10974,18 @@
 /* Tellomi (ADR-0063 §5.5): toast after the link was copied because nothing could open it */
 "TELLOMI_LINKS_LINK_COPIED" = "已複製連結";
 
+/* Tellomi (card-visual §3.6): what a screen reader says for the action button at the bottom of a Tellomi card; %@ is the button's text */
+"TELLOMI_LINK_CARD_A11Y_BUTTON_FORMAT" = "按鈕：%@";
+
+/* Tellomi (card-visual §3.6): first word a screen reader says for a link card, before its title and domain */
+"TELLOMI_LINK_CARD_A11Y_LINK" = "連結";
+
+/* Tellomi (card-visual §3.6): first words a screen reader says for a Tellomi group invite card, before the group name */
+"TELLOMI_LINK_CARD_A11Y_TELLOMI_GROUP" = "Tellomi 群組";
+
+/* Tellomi (card-visual §3.6): first words a screen reader says for a Tellomi sticker pack card, before the pack name */
+"TELLOMI_LINK_CARD_A11Y_TELLOMI_STICKER_PACK" = "Tellomi 貼圖包";
+
 /* Tellomi (card-visual §3.10): button at the bottom of a sticker pack card that is not installed yet */
 "TELLOMI_LINK_CARD_ACTION_ADD_STICKERS" = "新增";
 

@@ -1485,6 +1485,8 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         let accessibilityComponentKeys: [CVComponentKey] = [
             .bodyMedia,
             .bodyText,
+            // Tellomi（card-visual §3.6）：「只显示卡片」时正文组件被拿掉，读屏得从卡片上读到链接。
+            .linkPreview,
             .quotedReply,
             .sticker,
             .viewOnce,
@@ -1536,7 +1538,6 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
         // * senderName
         // * senderAvatar
         // * quotedReply
-        // * linkPreview
         // * bottomButtons
         // * sendFailureBadge
 

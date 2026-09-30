@@ -145,7 +145,8 @@ extension ConversationViewController {
                     },
                 ))
             } else {
-                owsFailDebug("Invalid URL: \(dataItem.url)")
+                // 不把 URL 写进日志：贴纸包链接的 #pack_key 是秘密（ADR-0063 §6.5）。
+                owsFailDebug("Could not parse sticker pack share URL.")
             }
         } else if let url = PossibleGroupInviteLinkUrl.parseFrom(dataItem.url) {
             actionSheet.addAction(ActionSheetAction(

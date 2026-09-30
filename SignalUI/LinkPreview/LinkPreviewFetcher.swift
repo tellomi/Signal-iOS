@@ -356,7 +356,8 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         do {
             groupInviteLink = try GroupInviteLink.parseFrom(url)
         } catch {
-            Logger.warn("couldn't parse URL: \(error)")
+            // 只记错误的类型：链接的 # 片段是群的主密钥（ADR-0063 §6.5）。
+            Logger.warn("Couldn't parse the group invite link: \(type(of: error))")
             throw LinkPreviewError.invalidPreview
         }
         let groupV2ContextInfo = GroupV2ContextInfo.deriveFrom(masterKey: groupInviteLink.masterKey)

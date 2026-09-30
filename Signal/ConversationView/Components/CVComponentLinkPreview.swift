@@ -99,7 +99,8 @@ class CVComponentLinkPreview: CVComponentBase, CVComponent {
             return false
         }
         guard let url = URL(string: urlString) else {
-            owsFailDebug("Invalid url: \(urlString).")
+            // 不把 URL 写进日志（ADR-0063 §6.5）。
+            owsFailDebug("Invalid url.")
             return false
         }
         componentDelegate.didTapLinkPreview(url: url)
@@ -127,5 +128,28 @@ class CVComponentLinkPreview: CVComponentBase, CVComponent {
             linkPreviewWrapper.reset()
             linkPreviewView.reset()
         }
+    }
+}
+
+// MARK: - Accessibility
+
+extension CVComponentLinkPreview: CVAccessibilityComponent {
+
+    var accessibilityDescription: String {
+        Self.accessibilityDescription(for: linkPreview, strings: .localized())
+    }
+
+    /// 卡片读给读屏的话（card-visual §3.6）：Tellomi 第一方卡读「类型，名称，副行，按钮：动作」，其余的卡读「链接，标题，副行，域名」——
+    /// 只用卡片上可见的文字。整条消息是一个无障碍元素，「只显示卡片」时正文组件被拿掉，没有这一段读屏就读不到链接的任何内容。
+    static func accessibilityDescription(for linkPreview: LinkPreviewState, strings: TellomiLinkCardAccessibility.Strings) -> String {
+        if let card = linkPreview as? TellomiLinkPreviewCardState, let firstParty = card.firstParty {
+            return TellomiLinkCardAccessibility.description(firstParty: firstParty, strings: strings)
+        }
+        return TellomiLinkCardAccessibility.description(
+            title: linkPreview.title,
+            subtitle: linkPreview.previewDescription,
+            domain: linkPreview.displayDomain,
+            strings: strings,
+        )
     }
 }

@@ -649,7 +649,8 @@ extension ConversationViewController: CVComponentDelegate {
             if let stickerPackInfo = StickerPackInfo.parseStickerPackShare(url) {
                 didTapStickerPack(stickerPackInfo)
             } else {
-                owsFailDebug("Could not parse sticker pack share URL: \(url)")
+                // 不把 URL 写进日志：贴纸包链接的 #pack_key 是秘密（ADR-0063 §6.5）。
+                owsFailDebug("Could not parse sticker pack share URL.")
             }
             return
         }
