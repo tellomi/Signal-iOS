@@ -306,8 +306,8 @@
 		3406D32625DD5EAF00885B14 /* ChatListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3406D32525DD5EAF00885B14 /* ChatListViewController.swift */; };
 		3406D32B25DD80D600885B14 /* payments_spinner_fail.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32725DD80D600885B14 /* payments_spinner_fail.json */; };
 		3406D32C25DD80D600885B14 /* payments_spinner_success.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32825DD80D600885B14 /* payments_spinner_success.json */; };
-		96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */; };
 		3406D32D25DD80D600885B14 /* payments_spinner_info.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32925DD80D600885B14 /* payments_spinner_info.json */; };
+		96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */; };
 		3406D32E25DD80D600885B14 /* payments_spinner.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32A25DD80D600885B14 /* payments_spinner.json */; };
 		3406D33125DD832800885B14 /* payments_spinner_info_dark.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D32F25DD832700885B14 /* payments_spinner_info_dark.json */; };
 		3406D33225DD832800885B14 /* payments_spinner_dark.json in Resources */ = {isa = PBXBuildFile; fileRef = 3406D33025DD832800885B14 /* payments_spinner_dark.json */; };
@@ -9906,11 +9906,11 @@
 			isa = PBXGroup;
 			children = (
 				F9A335C9282F0BF700B5F5FA /* BadgeGiftingChooseBadgeViewControllerStateTest.swift */,
-				B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */,
 				CC8AF1A5B874D4FC13BE4BCC /* TellomiNotificationPrimerTest.swift */,
 				F97A2EE828247C1300610669 /* BadgeIssueSheetStateTest.swift */,
 				41815269E42B9E12DA5A1452 /* ChatListConnectionTitleTest.swift */,
 				4C6E6C6824241C00009DE948 /* ConversationViewControllerTest.swift */,
+				B3790F50871D4F08E1D87AC7 /* TellomiExternalLinkOpenerTest.swift */,
 				3463532E256EA525003C5428 /* ConversationViewTest.swift */,
 				3EACCA39C74D12B8466FCB07 /* TellomiRestoreChoiceTest.swift */,
 				56E8C04932E44E7B28098FB8 /* TellomiLogoutOptionsTest.swift */,
@@ -10200,8 +10200,8 @@
 			isa = PBXGroup;
 			children = (
 				8822558C26B9D1D7001A33C4 /* SignalDotMePhoneNumberLink.swift */,
-				C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */,
 				5033D46F29DCACEF007FEADA /* UrlOpener.swift */,
+				C4FAE94AA76E8A0E0D87A58D /* TellomiExternalLinkOpener.swift */,
 			);
 			path = URLs;
 			sourceTree = "<group>";
@@ -18807,8 +18807,8 @@
 			files = (
 				D91174562E8F35C1009EB756 /* AccountEntropyPoolTextView.swift in Sources */,
 				88E728FF25F0241100A2E4A4 /* AccountSettingsViewController.swift in Sources */,
-				96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */,
 				B7AAF126F709681ABCC81C15 /* TellomiLogoutOptionsViewController.swift in Sources */,
+				96D6113FB5276629A0475B7B /* TellomiExternalLinkOpener.swift in Sources */,
 				349439D624360C30001045F7 /* AddGroupMembersViewController.swift in Sources */,
 				8835DE03230DEC6A00DC6B66 /* AddToBlockListViewController.swift in Sources */,
 				882BDAAE249050F000C14587 /* AddToGroupViewController.swift in Sources */,
@@ -19670,10 +19670,10 @@
 			files = (
 				6675F65129261E0C007A311E /* APNSRotationStoreTest.swift in Sources */,
 				F9B93CE028E246D900B3F8A0 /* AppDelegateTest.swift in Sources */,
-				53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */,
 				D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */,
 				D1338A000000000000000002 /* TellomiPushCrossBorderConsentTest.swift in Sources */,
 				D1338A000000000000000004 /* TellomiCrossBorderNoticeTest.swift in Sources */,
+				53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */,
 				F9B3A92F293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift in Sources */,
 				50B6BCB42AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift in Sources */,
 				D962FC432E149ECF004DB623 /* BackupAttachmentDownloadTrackerTest.swift in Sources */,
