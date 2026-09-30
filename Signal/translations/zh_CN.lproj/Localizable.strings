@@ -10842,6 +10842,30 @@
 /* Tap to Replace Emoji string for reaction configuration */
 "TAP_REPLACE_EMOJI" = "点击替换表情符号";
 
+/* Tellomi (card-visual §3.10): button at the bottom of a sticker pack card that is not installed yet */
+"TELLOMI_LINK_CARD_ACTION_ADD_STICKERS" = "添加";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a call card */
+"TELLOMI_LINK_CARD_ACTION_JOIN_CALL" = "加入通话";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a group invite card */
+"TELLOMI_LINK_CARD_ACTION_JOIN_GROUP" = "加入群聊";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a user card */
+"TELLOMI_LINK_CARD_ACTION_MESSAGE" = "发消息";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a card that opens something (a group you are in, the official website) */
+"TELLOMI_LINK_CARD_ACTION_OPEN" = "打开";
+
+/* Tellomi (card-visual §3.10): button at the bottom of a sticker pack card that is already installed */
+"TELLOMI_LINK_CARD_ACTION_VIEW_STICKERS" = "查看";
+
+/* Tellomi (card-visual §5.2): title of a call card that has no room name */
+"TELLOMI_LINK_CARD_CALL_TITLE" = "Tellomi 通话";
+
+/* Tellomi (card-visual §5.2): line under the name of a group invite card when you are already a member */
+"TELLOMI_LINK_CARD_GROUP_JOINED" = "你已加入";
+
 /* Tellomi (card-visual §3.10): what a brand card's link is: app */
 "TELLOMI_LINK_CARD_KIND_APP" = "应用";
 
@@ -10890,11 +10914,29 @@
 /* Tellomi (card-visual §3.10): what a brand card's link is: web */
 "TELLOMI_LINK_CARD_KIND_WEB" = "网页";
 
+/* Tellomi (card-visual §3.9): number of members on a group card, singular; %@ is the number */
+"TELLOMI_LINK_CARD_MEMBER_COUNT_ONE" = "%@ 位成员";
+
+/* Tellomi (card-visual §3.9): number of members on a group card, plural; %@ is the number */
+"TELLOMI_LINK_CARD_MEMBER_COUNT_OTHER" = "%@ 位成员";
+
+/* Tellomi (card-visual §5.2): small badge next to the title of the card of Tellomi’s official website */
+"TELLOMI_LINK_CARD_OFFICIAL_BADGE" = "官方";
+
 /* Tellomi (ADR-0063 §4.8): fixed title of the card of a link to Tellomi's official website */
 "TELLOMI_LINK_CARD_OFFICIAL_TITLE" = "Tellomi 官网";
 
 /* Tellomi (card-visual §3.7): title of a place link card that has no name */
 "TELLOMI_LINK_CARD_PLACE" = "位置";
+
+/* Tellomi (card-visual §5.2): line under the name of a sticker pack card when the pack is already installed */
+"TELLOMI_LINK_CARD_STICKERS_ADDED" = "已添加";
+
+/* Tellomi (card-visual §3.9): number of stickers on a sticker pack card, singular; %@ is the number */
+"TELLOMI_LINK_CARD_STICKER_COUNT_ONE" = "%@ 个贴纸";
+
+/* Tellomi (card-visual §3.9): number of stickers on a sticker pack card, plural; %@ is the number */
+"TELLOMI_LINK_CARD_STICKER_COUNT_OTHER" = "%@ 个贴纸";
 
 /* Tellomi (ADR-0063 §4.8): title of the card of a link to a Tellomi user, and the line under a name */
 "TELLOMI_LINK_CARD_TELLOMI_USER" = "Tellomi 用户";

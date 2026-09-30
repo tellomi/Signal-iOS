@@ -170,15 +170,15 @@ public enum TellomiLinkAddressPolicy {
         guard b.count == 4 else { return true }
         switch b[0] {
         case 0, 10, 127:
-            return true                         // 0/8、10/8、127/8
+            return true // 0/8、10/8、127/8
         case 100:
-            return b[1] & 0xc0 == 64            // 100.64/10（CGNAT，Tailscale 也用）
+            return b[1] & 0xc0 == 64 // 100.64/10（CGNAT，Tailscale 也用）
         case 169:
-            return b[1] == 254                  // 169.254/16
+            return b[1] == 254 // 169.254/16
         case 172:
-            return b[1] & 0xf0 == 16            // 172.16/12
+            return b[1] & 0xf0 == 16 // 172.16/12
         case 192:
-            return b[1] == 168                  // 192.168/16
+            return b[1] == 168 // 192.168/16
         default:
             return false
         }

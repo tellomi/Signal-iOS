@@ -1986,9 +1986,18 @@ private extension CVComponentState.Builder {
                     transaction: transaction,
                 )
             {
+                // 群邀请卡按第一方卡画（头像 + 群名 + 人数 / 已加入 + 底部按钮，card-visual §5.2）；认不出就照 Signal 原样。
+                let wrapped = tellomiFirstPartyState(
+                    base: state,
+                    message: message,
+                    linkPreview: linkPreview,
+                    urlString: urlString,
+                    hasImage: state.hasLoadedImageOrBlurHash,
+                    linkOnlyUrl: tellomiLinkOnlyUrl(message: message),
+                )
                 self.linkPreview = LinkPreview(
                     linkPreview: linkPreview,
-                    state: state,
+                    state: wrapped ?? state,
                 )
             }
         } else if let callLink = CallLink(url: url) {
@@ -2094,25 +2103,7 @@ private extension CVComponentState.Builder {
         guard classifier.isAvailable else {
             return sentState
         }
-        let attachmentContentTypes = message.sqliteRowId.map {
-            DependenciesBridge.shared.attachmentStore.fetchReferencedAttachments(
-                for: .messageBodyAttachment(messageRowId: $0),
-                tx: transaction,
-            ).map { $0.attachment.mimeType }
-        } ?? []
-        let card = classifier.classify(
-            TellomiLinkClassifier.PreviewInput(
-                url: urlString,
-                title: linkPreview.title,
-                description: linkPreview.previewDescription,
-                hasImage: imageAttachment != nil,
-                date: linkPreview.date,
-                rich: linkPreview.rich,
-            ),
-            body: message.body ?? "",
-            isStory: false,
-            attachmentContentTypes: attachmentContentTypes,
-        )
+        let card = tellomiClassify(message: message, linkPreview: linkPreview, urlString: urlString, hasImage: imageAttachment != nil)
         guard let card else {
             return sentState
         }
@@ -2122,6 +2113,19 @@ private extension CVComponentState.Builder {
                 return nil
             }
             return tellomiPlainLinkState(base: sentState, card: card, linkOnlyUrl: linkOnlyUrl)
+        }
+        if
+            let firstParty = tellomiFirstPartyState(
+                base: sentState,
+                message: message,
+                linkPreview: linkPreview,
+                urlString: urlString,
+                hasImage: imageAttachment != nil,
+                linkOnlyUrl: linkOnlyUrl,
+                card: card,
+            )
+        {
+            return firstParty
         }
         guard
             let display = TellomiLinkDisplay.make(
@@ -2145,6 +2149,73 @@ private extension CVComponentState.Builder {
             showsImage: card.showImage,
             isCardOnly: isCardOnly,
             visual: visual,
+        )
+    }
+
+    private func tellomiClassify(
+        message: TSMessage,
+        linkPreview: OWSLinkPreview,
+        urlString: String,
+        hasImage: Bool,
+    ) -> TellomiLinkCard? {
+        let attachmentContentTypes = message.sqliteRowId.map {
+            DependenciesBridge.shared.attachmentStore.fetchReferencedAttachments(
+                for: .messageBodyAttachment(messageRowId: $0),
+                tx: transaction,
+            ).map { $0.attachment.mimeType }
+        } ?? []
+        return TellomiLinkRegistry.classifier.classify(
+            TellomiLinkClassifier.PreviewInput(
+                url: urlString,
+                title: linkPreview.title,
+                description: linkPreview.previewDescription,
+                hasImage: hasImage,
+                date: linkPreview.date,
+                rich: linkPreview.rich,
+            ),
+            body: message.body ?? "",
+            isStory: false,
+            attachmentContentTypes: attachmentContentTypes,
+        )
+    }
+
+    /// Tellomi 自己对象的卡片（用户 / 群 / 贴纸包 / 官网，card-visual §5.2）：文字来自 URL 和本机已有的东西，发送端写的只用群名和包名；
+    /// 通话卡下面已经有 Signal 自己的「加入」按钮，不在这里。不是第一方卡返回 nil。
+    private func tellomiFirstPartyState(
+        base: LinkPreviewState,
+        message: TSMessage,
+        linkPreview: OWSLinkPreview,
+        urlString: String,
+        hasImage: Bool,
+        linkOnlyUrl: String?,
+        card: TellomiLinkCard? = nil,
+    ) -> LinkPreviewState? {
+        guard TellomiLinkRegistry.classifier.isAvailable, let url = URL(string: urlString) else {
+            return nil
+        }
+        let card = card ?? tellomiClassify(message: message, linkPreview: linkPreview, urlString: urlString, hasImage: hasImage)
+        guard let card, card.level == .firstParty else {
+            return nil
+        }
+        let local = TellomiFirstPartyLocalLookup.local(url: url, card: card, tx: transaction)
+        guard
+            let firstParty = TellomiFirstPartyCard.display(card: card, local: local, strings: .localized()),
+            firstParty.kind != .call
+        else {
+            return nil
+        }
+        return TellomiLinkPreviewCardState(
+            base: base,
+            display: TellomiLinkDisplay(
+                title: firstParty.title,
+                description: firstParty.subtitle,
+                domain: nil,
+                officialBadge: firstParty.officialBadge,
+            ),
+            showsImage: card.showImage,
+            isCardOnly: TellomiLinkOnly.isLinkCardOnly(linkOnlyUrl: linkOnlyUrl, previewUrls: [urlString], card: card),
+            visual: TellomiLinkVisual.Visual(layout: .firstParty, tint: nil),
+            firstParty: firstParty,
         )
     }
 

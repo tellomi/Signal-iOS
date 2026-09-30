@@ -228,8 +228,8 @@ final class TellomiLinkFetcherTest: XCTestCase {
             "https://172.16.0.1/",
             "https://192.168.1.1/",
             "https://0.0.0.0/",
-            "https://intranet.tellomi-test.cn/",   // 域名解析到 10.0.0.5
-            "https://dual.tellomi-test.cn/",       // 解析结果里有一个 ULA 地址
+            "https://intranet.tellomi-test.cn/", // 域名解析到 10.0.0.5
+            "https://dual.tellomi-test.cn/", // 解析结果里有一个 ULA 地址
         ]
         let server = try await startServer { request in
             if request.path.hasPrefix("/to/"), let index = Int(request.path.dropFirst("/to/".count)) {
@@ -319,7 +319,8 @@ final class TellomiLinkFetcherTest: XCTestCase {
     }
 
     func testJsonLimitIs256KiB() async throws {
-        @Sendable func json(bytes: Int) -> Data {
+        @Sendable
+        func json(bytes: Int) -> Data {
             // `{"filler":"` 11 个字节 + 填充 + `"}` 2 个字节 = 正好 `bytes`
             let filler = String(repeating: "x", count: bytes - 13)
             return Data("{\"filler\":\"\(filler)\"}".utf8)
@@ -396,7 +397,7 @@ final class TellomiLinkFetcherTest: XCTestCase {
         let fetcher = makeFetcher(server: server)
         let budget = fetcher.makeBudget()
 
-        _ = try await fetcher.expandShortLink(server.url("/short"), budget: budget)   // 短链展开算 1 个
+        _ = try await fetcher.expandShortLink(server.url("/short"), budget: budget) // 短链展开算 1 个
         _ = try await fetcher.fetch(server.url("/a"), step: .page, budget: budget)
         _ = try await fetcher.fetch(server.url("/b"), step: .html, budget: budget)
         await expectFailure(.budgetExhausted) {
@@ -550,15 +551,47 @@ final class TellomiLinkFetcherTest: XCTestCase {
 
     func testBlockedAddressRanges() {
         let blocked = [
-            "0.0.0.0", "0.1.2.3", "10.0.0.1", "10.255.255.255", "100.64.0.1", "100.127.255.254", "127.0.0.1", "127.8.8.8",
-            "169.254.169.254", "172.16.0.1", "172.31.255.255", "192.168.0.1",
-            "::1", "::", "fc00::1", "fd12:3456::1", "fe80::1", "febf::1",
-            "::ffff:10.0.0.1", "::ffff:127.0.0.1", "::ffff:169.254.1.1", "64:ff9b::a00:1", "[::1]",
+            "0.0.0.0",
+            "0.1.2.3",
+            "10.0.0.1",
+            "10.255.255.255",
+            "100.64.0.1",
+            "100.127.255.254",
+            "127.0.0.1",
+            "127.8.8.8",
+            "169.254.169.254",
+            "172.16.0.1",
+            "172.31.255.255",
+            "192.168.0.1",
+            "::1",
+            "::",
+            "fc00::1",
+            "fd12:3456::1",
+            "fe80::1",
+            "febf::1",
+            "::ffff:10.0.0.1",
+            "::ffff:127.0.0.1",
+            "::ffff:169.254.1.1",
+            "64:ff9b::a00:1",
+            "[::1]",
         ]
         let allowed = [
-            "1.1.1.1", "8.8.8.8", "100.63.255.255", "100.128.0.1", "172.15.255.255", "172.32.0.1", "192.167.1.1", "192.169.1.1",
-            "169.253.1.1", "198.18.0.1", "198.19.255.254", "11.0.0.1",
-            "2001:4860:4860::8888", "fec0::1", "::ffff:8.8.8.8", "64:ff9b::808:808",
+            "1.1.1.1",
+            "8.8.8.8",
+            "100.63.255.255",
+            "100.128.0.1",
+            "172.15.255.255",
+            "172.32.0.1",
+            "192.167.1.1",
+            "192.169.1.1",
+            "169.253.1.1",
+            "198.18.0.1",
+            "198.19.255.254",
+            "11.0.0.1",
+            "2001:4860:4860::8888",
+            "fec0::1",
+            "::ffff:8.8.8.8",
+            "64:ff9b::808:808",
         ]
         for literal in blocked {
             let address = TellomiLinkIPAddress(literal: literal)

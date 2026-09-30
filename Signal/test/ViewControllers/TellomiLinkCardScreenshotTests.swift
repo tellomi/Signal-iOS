@@ -113,6 +113,13 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         var expectedLayout: String?
         /// 染色的色相范围（HSB 的 H，0…1）；nil = 不染色（保持默认卡片底色）。
         var expectedTintHue: ClosedRange<CGFloat>?
+        /// 卡片上不该出现的文字（第一方卡没有域名行）。
+        var absentTexts: [String] = []
+        /// 本机已经是这个群的正式成员（群名用本地的）：先在库里建一个这样的群。
+        var localGroupMasterKey: [UInt8]?
+        var localGroupName: String?
+        /// 本机已经装了这个贴纸包。
+        var stickerPackInstalled = false
 
         struct Rich {
             let kind: String
@@ -142,8 +149,8 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             cardTexts: ["Taobao", "Product", "taobao.com"],
             expectedLayout: "text",
         ),
-        Fixture(name: "tellomi-user", url: "https://tell.cc/hk881qb", previewTitle: "Tellomi", expectedLevel: "first_party", cardTexts: ["@hk881qb", "Tellomi user"], expectedLayout: "text"),
-        Fixture(name: "tellomi-official", url: "https://tellomi.app/download", previewTitle: "Tellomi", expectedLevel: "first_party", cardTexts: ["Tellomi website", "/download"]),
+        Fixture(name: "tellomi-user", url: "https://tell.cc/hk881qb", previewTitle: "Tellomi", expectedLevel: "first_party", cardTexts: ["@hk881qb", "Tellomi user", "Message"], expectedLayout: "firstparty", absentTexts: ["tell.cc"]),
+        Fixture(name: "tellomi-official", url: "https://tellomi.app/download", previewTitle: "Tellomi", expectedLevel: "first_party", cardTexts: ["Tellomi website", "/download", "Open"], expectedLayout: "firstparty", absentTexts: ["tellomi.app"]),
         Fixture(name: "generic", url: "https://www.wikipedia.org/", previewTitle: "Wikipedia", previewDescription: "Wikipedia is a free online encyclopedia, created and edited by volunteers.", expectedLevel: "generic", cardTexts: ["Wikipedia", "wikipedia.org"], expectedLayout: "text"),
         Fixture(
             name: "with-text",
@@ -199,7 +206,60 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             expectedLayout: "large",
             expectedTintHue: 0.72...0.84,
         ),
+        Fixture(
+            name: "tellomi-group",
+            url: TellomiLinkCardScreenshotTests.groupInviteUrl(masterKeyByte: 1),
+            previewTitle: "周末爬山群",
+            rich: .init(kind: "tellomi.group", provider: "tellomi", level: 1, attrs: [("member_count", "12")]),
+            image: (CGSize(width: 512, height: 512), (0.55, 0.5, 0.8)),
+            expectedLevel: "first_party",
+            cardTexts: ["周末爬山群", "12 members", "Join Group"],
+            expectedLayout: "avatar",
+            absentTexts: ["tell.cc"],
+        ),
+        Fixture(
+            name: "tellomi-group-member",
+            url: TellomiLinkCardScreenshotTests.groupInviteUrl(masterKeyByte: 2),
+            previewTitle: "发送端写的群名",
+            rich: .init(kind: "tellomi.group", provider: "tellomi", level: 1, attrs: [("member_count", "12")]),
+            image: (CGSize(width: 512, height: 512), (0.3, 0.5, 0.8)),
+            expectedLevel: "first_party",
+            cardTexts: ["本地群名", "You’re a member", "Open"],
+            expectedLayout: "avatar",
+            absentTexts: ["发送端写的群名", "12 members", "Join Group"],
+            localGroupMasterKey: Array(repeating: 2, count: 32),
+            localGroupName: "本地群名",
+        ),
+        Fixture(
+            name: "tellomi-sticker",
+            url: "https://tell.cc/s#pack_id=00112233445566778899aabbccddeeff&pack_key=\(String(repeating: "11", count: 32))",
+            previewTitle: "Bandit",
+            rich: .init(kind: "tellomi.sticker", provider: "tellomi", level: 1, attrs: [("sticker_count", "24")]),
+            image: (CGSize(width: 512, height: 512), (0.1, 0.6, 0.9)),
+            expectedLevel: "first_party",
+            cardTexts: ["Bandit", "24 stickers", "Add"],
+            expectedLayout: "avatar",
+            absentTexts: ["tell.cc"],
+        ),
+        Fixture(
+            name: "tellomi-sticker-installed",
+            url: "https://tell.cc/s#pack_id=ffeeddccbbaa99887766554433221100&pack_key=\(String(repeating: "22", count: 32))",
+            previewTitle: "Bandit 2",
+            rich: .init(kind: "tellomi.sticker", provider: "tellomi", level: 1, attrs: [("sticker_count", "24")]),
+            image: (CGSize(width: 512, height: 512), (0.85, 0.5, 0.9)),
+            expectedLevel: "first_party",
+            cardTexts: ["Bandit 2", "Added", "View"],
+            expectedLayout: "avatar",
+            absentTexts: ["24 stickers"],
+            stickerPackInstalled: true,
+        ),
     ]
+
+    /// 合法的群邀请链接（tell.cc/g#…），主密钥是同一个字节重复 32 次。
+    private static func groupInviteUrl(masterKeyByte: UInt8) -> String {
+        let masterKey = try! GroupMasterKey(contents: Data(repeating: masterKeyByte, count: 32))
+        return try! GroupInviteLink(masterKey: masterKey, inviteLinkPassword: Data(repeating: masterKeyByte, count: 16)).url().absoluteString
+    }
 
     // MARK: - 用例
 
@@ -217,6 +277,7 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         }
         var shots = [UIImage]()
         for fixture in Self.fixtures {
+            try prepareLocalState(fixture)
             let message = try await insert(fixture, thread: thread, incoming: true)
             let hosted = try await host(message: message, thread: thread, width: width)
             XCTAssertGreaterThan(hosted.cellView.frame.size.height, 20, "\(fixture.name)：cell 没有高度")
@@ -238,6 +299,9 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             let joined = texts.joined(separator: "\n")
             for expected in fixture.cardTexts {
                 XCTAssertTrue(joined.contains(expected), "\(fixture.name)：气泡里应该有「\(expected)」，实际：\(texts)")
+            }
+            for absent in fixture.absentTexts {
+                XCTAssertFalse(texts.contains { $0.contains(absent) }, "\(fixture.name)：气泡里不该有「\(absent)」，实际：\(texts)")
             }
             XCTAssertEqual(Self.containsBodyText(in: hosted.cellView), fixture.urlTextShown, "\(fixture.name)：正文文字该不该画在卡片下面，实际：\(texts)")
             report += "  texts: \(texts)\n"
@@ -310,6 +374,15 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
                     XCTAssertEqual(frame.maxX, cardView.bounds.size.width - 10, accuracy: 1, "\(fixture.name)：图标在右侧，实际 \(frame) / 卡宽 \(cardView.bounds.size.width)")
                 } else {
                     XCTFail("\(fixture.name)：图标卡应该有图")
+                }
+            case "avatar":
+                if let imageView {
+                    let frame = cardView.convert(imageView.bounds, from: imageView)
+                    XCTAssertEqual(frame.size.width, 56, accuracy: 0.6, "\(fixture.name)：第一方卡的头像 / 封面 56 pt，实际 \(frame)")
+                    XCTAssertEqual(frame.size.height, 56, accuracy: 0.6, "\(fixture.name)：第一方卡的头像 / 封面 56 pt，实际 \(frame)")
+                    XCTAssertEqual(frame.minX, 10, accuracy: 1, "\(fixture.name)：头像在左边，实际 \(frame)")
+                } else {
+                    XCTFail("\(fixture.name)：第一方卡应该有消息带来的头像 / 封面")
                 }
             case "large":
                 if let imageView {
@@ -406,6 +479,45 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         let (r1, g1, b1) = rgb(a)
         let (r2, g2, b2) = rgb(b)
         return max(abs(r1 - r2), abs(g1 - g2), abs(b1 - b2))
+    }
+
+    // MARK: - 本机已有的状态
+
+    /// 「已经是这个群的正式成员」「已经装了这个贴纸包」：先在本地库里建出来，卡片才会显示「你已加入」「已添加」。
+    private func prepareLocalState(_ fixture: Fixture) throws {
+        if let keyBytes = fixture.localGroupMasterKey {
+            let masterKey = try GroupMasterKey(contents: Data(keyBytes))
+            var membership = GroupMembership.Builder()
+            membership.addFullMember(LocalIdentifiers.forUnitTests.aci, role: .normal)
+            var builder = TSGroupModelBuilder(secretParams: try GroupSecretParams.deriveFromMasterKey(groupMasterKey: masterKey))
+            builder.name = fixture.localGroupName
+            builder.groupMembership = membership.build()
+            let groupModel = try builder.buildAsV2()
+            let groupThread = TSGroupThread(groupModel: groupModel)
+            let secretParams = try GroupSecretParams.deriveFromMasterKey(groupMasterKey: masterKey)
+            write { tx in
+                groupThread.anyInsert(transaction: tx)
+                // 群 id → 线程行的映射；没有这一行，按群 id 查不到线程（真实流程里入群时会建）。
+                _ = GroupRecord.insertRecord(
+                    groupId: groupModel.groupId,
+                    threadId: groupThread.sqliteRowId!,
+                    masterKey: try! secretParams.getMasterKey(),
+                    refreshedAt: .distantPast,
+                    tx: tx,
+                )
+            }
+        }
+        if fixture.stickerPackInstalled {
+            let url = try XCTUnwrap(URL(string: fixture.url))
+            let info = try XCTUnwrap(StickerPackInfo.parseStickerPackShare(TellomiLinks.legacyEquivalent(of: url)))
+            let item = StickerPackItem(stickerId: 0, emojiString: "😀", contentType: "image/webp")
+            let record = StickerPackRecord(info: info, title: fixture.previewTitle, author: nil, cover: item, items: [item])
+            // 直接写库并标成已安装：`installStickerPack` 会排下载，测试里没有文件。
+            write { tx in
+                record.anyInsert(transaction: tx)
+                record.updateWith(isInstalled: true, tx: tx)
+            }
+        }
     }
 
     // MARK: - 建消息

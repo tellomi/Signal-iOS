@@ -162,7 +162,11 @@ extension TellomiLinkCard.Attr: Decodable {}
 
 extension TellomiLinkCard.FirstParty: Decodable {
     private enum CodingKeys: String, CodingKey {
-        case type, display, username, title, path
+        case type
+        case display
+        case username
+        case title
+        case path
         case memberCount = "member_count"
         case stickerCount = "sticker_count"
     }
@@ -183,7 +187,18 @@ extension TellomiLinkCard.FirstParty: Decodable {
 
 extension TellomiLinkCard: Decodable {
     private enum CodingKeys: String, CodingKey {
-        case level, provider, kind, route, title, description, attrs, domain, lookalike, payment, reason, tintable
+        case level
+        case provider
+        case kind
+        case route
+        case title
+        case description
+        case attrs
+        case domain
+        case lookalike
+        case payment
+        case reason
+        case tintable
         case providerName = "provider_name"
         case officialBadge = "official_badge"
         case firstParty = "first_party"
