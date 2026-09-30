@@ -25,10 +25,10 @@ public enum TellomiLinks {
 
     /// tell.cc 的路径命名空间（新增用途先在文档那张表登记）。`/i`（邀请下载）预留：只登记，不解析、不声明。
     public enum Path {
-        public static let contact = "/u"     // `#p/<E164>` · `#eu/<加密用户名链接>` · `#u/<明文用户名>`
-        public static let group = "/g"       // `#<invite>`
-        public static let sticker = "/s"     // `#pack_id=…&pack_key=…`
-        public static let call = "/call"     // `#key=…`
+        public static let contact = "/u" // `#p/<E164>` · `#eu/<加密用户名链接>` · `#u/<明文用户名>`
+        public static let group = "/g" // `#<invite>`
+        public static let sticker = "/s" // `#pack_id=…&pack_key=…`
+        public static let call = "/call" // `#key=…`
         public static let inviteReserved = "/i"
         // ADR-0063 §4.8 / ADR-0066 §五：预留给以后的对象，今天不是对象（不抓取、不出卡片）
         public static let messageReserved = "/m"
@@ -262,8 +262,10 @@ public enum TellomiLinks {
     public static func plainUsername(in url: URL) -> String? {
         let s = url.absoluteString
         for pattern in [plainUsernamePattern, bareUsernamePattern] {
-            if let m = pattern.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
-               let r = Range(m.range(at: 1), in: s) {
+            if
+                let m = pattern.firstMatch(in: s, range: NSRange(s.startIndex..., in: s)),
+                let r = Range(m.range(at: 1), in: s)
+            {
                 let raw = String(s[r])
                 // 1–2 位的一级路径已被长度规则挡住；3 位以上的（`call`、`app`）在这里显式排除
                 if !raw.contains("."), reservedFirstLevelPaths.contains(raw.lowercased()) {
