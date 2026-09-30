@@ -8,12 +8,11 @@ import Foundation
 extension TellomiFirstPartyCard.Strings {
     /// 界面语言的文案（card-visual §3.9 / §3.10 / §5.2）；与 Android `TellomiFirstPartyCard.Strings.from`、Desktop 同一张表。
     public static func localized() -> TellomiFirstPartyCard.Strings {
-        func counted(one: String, other: String) -> (Int) -> String {
-            return { count in
-                let number = NumberFormatter.localizedString(from: NSNumber(value: count), number: .decimal)
-                return String(format: count == 1 ? one : other, number)
-            }
-        }
+        return localized(locale: .current)
+    }
+
+    /// `locale`：数字（千分位）按哪个地区的习惯排。产品里取当前的，测试里逐个语言传进来。
+    static func localized(locale: Locale) -> TellomiFirstPartyCard.Strings {
         return TellomiFirstPartyCard.Strings(
             officialTitle: OWSLocalizedString(
                 "TELLOMI_LINK_CARD_OFFICIAL_TITLE",
@@ -59,26 +58,29 @@ extension TellomiFirstPartyCard.Strings {
                 "TELLOMI_LINK_CARD_STICKERS_ADDED",
                 comment: "Tellomi (card-visual §5.2): line under the name of a sticker pack card when the pack is already installed",
             ),
-            memberCount: counted(
-                one: OWSLocalizedString(
-                    "TELLOMI_LINK_CARD_MEMBER_COUNT_ONE",
-                    comment: "Tellomi (card-visual §3.9): number of members on a group card, singular; %@ is the number",
-                ),
-                other: OWSLocalizedString(
-                    "TELLOMI_LINK_CARD_MEMBER_COUNT_OTHER",
-                    comment: "Tellomi (card-visual §3.9): number of members on a group card, plural; %@ is the number",
-                ),
-            ),
-            stickerCount: counted(
-                one: OWSLocalizedString(
-                    "TELLOMI_LINK_CARD_STICKER_COUNT_ONE",
-                    comment: "Tellomi (card-visual §3.9): number of stickers on a sticker pack card, singular; %@ is the number",
-                ),
-                other: OWSLocalizedString(
-                    "TELLOMI_LINK_CARD_STICKER_COUNT_OTHER",
-                    comment: "Tellomi (card-visual §3.9): number of stickers on a sticker pack card, plural; %@ is the number",
-                ),
-            ),
+            memberCount: { count in
+                // 复数文案走 PluralAware.stringsdict（各语言自己的复数规则；数字按 `locale` 加千分位，不缩写）。
+                String(
+                    format: OWSLocalizedString(
+                        "TELLOMI_LINK_CARD_MEMBER_COUNT_%ld",
+                        tableName: "PluralAware",
+                        comment: "Tellomi (card-visual §3.9): number of members on a group card; the number has thousands separators and is never abbreviated",
+                    ),
+                    locale: locale,
+                    count,
+                )
+            },
+            stickerCount: { count in
+                String(
+                    format: OWSLocalizedString(
+                        "TELLOMI_LINK_CARD_STICKER_COUNT_%ld",
+                        tableName: "PluralAware",
+                        comment: "Tellomi (card-visual §3.9): number of stickers on a sticker pack card; the number has thousands separators and is never abbreviated",
+                    ),
+                    locale: locale,
+                    count,
+                )
+            },
         )
     }
 
