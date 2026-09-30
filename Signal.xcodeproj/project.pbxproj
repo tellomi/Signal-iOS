@@ -412,6 +412,7 @@
 		347B83FD24378DDF0019A52C /* GroupMemberRequestsAndInvitesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347B83FC24378DDE0019A52C /* GroupMemberRequestsAndInvitesViewController.swift */; };
 		347C37FF2526005800F3D941 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 347C37FE2526005800F3D941 /* CloudKit.framework */; };
 		347C3829252CE69400F3D941 /* CVComponentState+GroupLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347C3819252CE69400F3D941 /* CVComponentState+GroupLink.swift */; };
+		D9CB73D52F7F181500F7FD83 /* TellomiLinkVisualReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CB73D42F7F181500F7FD83 /* TellomiLinkVisualReader.swift */; };
 		347C382A252CE69400F3D941 /* CVLoadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347C381A252CE69400F3D941 /* CVLoadCoordinator.swift */; };
 		347C382C252CE69400F3D941 /* CVStackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347C381C252CE69400F3D941 /* CVStackView.swift */; };
 		347C382E252CE69400F3D941 /* CVComponentState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347C381E252CE69400F3D941 /* CVComponentState.swift */; };
@@ -4720,6 +4721,7 @@
 		347B83FC24378DDE0019A52C /* GroupMemberRequestsAndInvitesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupMemberRequestsAndInvitesViewController.swift; sourceTree = "<group>"; };
 		347C37FE2526005800F3D941 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		347C3819252CE69400F3D941 /* CVComponentState+GroupLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CVComponentState+GroupLink.swift"; sourceTree = "<group>"; };
+		D9CB73D42F7F181500F7FD83 /* TellomiLinkVisualReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiLinkVisualReader.swift; sourceTree = "<group>"; };
 		347C381A252CE69400F3D941 /* CVLoadCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVLoadCoordinator.swift; sourceTree = "<group>"; };
 		347C381C252CE69400F3D941 /* CVStackView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVStackView.swift; sourceTree = "<group>"; };
 		347C381E252CE69400F3D941 /* CVComponentState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CVComponentState.swift; sourceTree = "<group>"; };
@@ -9356,6 +9358,7 @@
 				343417F02530A7480034FE0C /* CVComponentReactions.swift */,
 				347C383F252CE6C900F3D941 /* CVComponentSenderName.swift */,
 				347C3819252CE69400F3D941 /* CVComponentState+GroupLink.swift */,
+				D9CB73D42F7F181500F7FD83 /* TellomiLinkVisualReader.swift */,
 				347C381E252CE69400F3D941 /* CVComponentState.swift */,
 				347C383A252CE6C900F3D941 /* CVComponentSticker.swift */,
 				348815BB2552E67900D4F4C4 /* CVComponentSystemMessage.swift */,
@@ -19048,6 +19051,7 @@
 				343417F12530A7480034FE0C /* CVComponentReactions.swift in Sources */,
 				347C3846252CE6C900F3D941 /* CVComponentSenderName.swift in Sources */,
 				347C3829252CE69400F3D941 /* CVComponentState+GroupLink.swift in Sources */,
+				D9CB73D52F7F181500F7FD83 /* TellomiLinkVisualReader.swift in Sources */,
 				347C382E252CE69400F3D941 /* CVComponentState.swift in Sources */,
 				347C3841252CE6C900F3D941 /* CVComponentSticker.swift in Sources */,
 				348815BC2552E67900D4F4C4 /* CVComponentSystemMessage.swift in Sources */,
