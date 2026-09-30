@@ -9,12 +9,18 @@ public import Foundation
 protocol TellomiLinkClassifying: AnyObject {
     var version: UInt64 { get }
     func classify(preview: String, body: String, message: String) throws -> String
+    /// 收到一条带预览的消息、写库之前：要不要留预览、要不要留 `rich`（`{"keep_preview":…,"keep_rich":…}`）。假的注册表不需要。
+    func receiveCheck(preview: String, body: String, message: String) throws -> String
     func openPlan(_ url: String) throws -> String
     /// 发送端：开一条链接的作业（ADR-0063 §4.2）。假的注册表不需要。
     func beginSendJob(url: String, context: String) throws -> any TellomiSendJob
 }
 
 extension TellomiLinkClassifying {
+    func receiveCheck(preview: String, body: String, message: String) throws -> String {
+        throw OWSGenericError("This registry cannot check a received preview")
+    }
+
     func beginSendJob(url: String, context: String) throws -> any TellomiSendJob {
         throw OWSGenericError("This registry cannot start a send job")
     }
@@ -105,6 +111,63 @@ public final class TellomiLinkClassifier: @unchecked Sendable {
         }
         cards.setObject(CachedCard(card), forKey: key)
         return card
+    }
+
+    /// `receive_check` 的答案（ADR-0063 §7.4）：预览留不留、`rich` 留不留。
+    public struct ReceiveCheck: Equatable, Sendable, Decodable {
+        public var keepPreview: Bool
+        public var keepRich: Bool
+
+        public init(keepPreview: Bool, keepRich: Bool) {
+            self.keepPreview = keepPreview
+            self.keepRich = keepRich
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case keepPreview = "keep_preview"
+            case keepRich = "keep_rich"
+        }
+
+        static func parse(_ json: String) -> ReceiveCheck? {
+            guard let data = json.data(using: .utf8) else {
+                return nil
+            }
+            return try? JSONDecoder().decode(ReceiveCheck.self, from: data)
+        }
+    }
+
+    /// 收到一条带预览的消息、写库之前的判定（ADR-0063 §5.1 铁律 4、§6.1「超大、畸形的 RichContent」、§7.4）：
+    /// 整个预览留不留（URL 合法、在正文里，Story 除外），`rich` 留不留（不超长、解得开）。
+    /// nil 是「没有判定」（没有注册表、rust/links 出错、答案读不懂）：调用方退回改动前的行为，绝不能因为这里出错让收消息失败。
+    /// 日志只记失败类别，不记 URL。
+    public func receiveCheck(
+        _ preview: PreviewInput,
+        body: String,
+        isStory: Bool,
+        attachmentContentTypes: [String],
+    ) -> ReceiveCheck? {
+        guard let registry else {
+            return nil
+        }
+        guard
+            let previewJson = Self.json(Self.previewObject(preview)),
+            let messageJson = Self.json([
+                "is_story": isStory,
+                "attachment_content_types": attachmentContentTypes,
+            ])
+        else {
+            return nil
+        }
+        do {
+            guard let check = ReceiveCheck.parse(try registry.receiveCheck(preview: previewJson, body: body, message: messageJson)) else {
+                log("receiveCheck gave an answer that cannot be read")
+                return nil
+            }
+            return check
+        } catch {
+            log("receiveCheck failed: \(type(of: error))")
+            return nil
+        }
     }
 
     /// 发送端：开这条链接的作业；没有注册表、或 rust/links 出错是 nil（那就没有 Tellomi 的预览，照 Signal 原样）。

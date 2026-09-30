@@ -60,17 +60,21 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
     private let attachmentValidator: AttachmentContentValidator
     private let db: any DB
     private let linkPreviewSettingStore: LinkPreviewSettingStore
+    /// Tellomi：收到预览时的判定（`receive_check`）和预览图门控用它；测试里换成假的。
+    private let tellomiClassifier: TellomiLinkClassifier
 
     init(
         attachmentStore: AttachmentStore,
         attachmentValidator: AttachmentContentValidator,
         db: any DB,
         linkPreviewSettingStore: LinkPreviewSettingStore,
+        tellomiClassifier: TellomiLinkClassifier = TellomiLinkRegistry.classifier,
     ) {
         self.attachmentStore = attachmentStore
         self.attachmentValidator = attachmentValidator
         self.db = db
         self.linkPreviewSettingStore = linkPreviewSettingStore
+        self.tellomiClassifier = tellomiClassifier
     }
 
     // MARK: - Public
@@ -87,10 +91,13 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
             Logger.error("Discarding link preview; message has attachments.")
             throw LinkPreviewError.invalidPreview
         }
-        guard let messageBody = dataMessage.body, messageBody.contains(proto.url) else {
+        guard let messageBody = dataMessage.body else {
             Logger.error("Url not present in body")
             throw LinkPreviewError.invalidPreview
         }
+        // Tellomi（ADR-0063 §5.1 铁律 4、§6.1、§7.4，口径 S2）：上游原来的「链接在正文里」子串检查并进 rust/links 的 `receive_check`。
+        let attachmentContentTypes = dataMessage.attachments.compactMap(\.contentType)
+        let keepRich = try tellomiReceiveCheck(proto: proto, body: messageBody, attachmentContentTypes: attachmentContentTypes)
         guard
             LinkValidator.canParseURLs(in: messageBody),
             LinkValidator.isValidLink(linkText: proto.url)
@@ -99,7 +106,78 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
             throw LinkPreviewError.invalidPreview
         }
 
-        return try buildValidatedLinkPreview(proto: proto)
+        let validated = try buildValidatedLinkPreview(proto: proto, keepRich: keepRich)
+        return tellomiGatingImage(validated, body: messageBody, attachmentContentTypes: attachmentContentTypes)
+    }
+
+    /// Tellomi：预览留不留、`rich` 留不留，以 rust/links 的 `receive_check` 为准：
+    /// `keep_preview` 为 false → 整个预览丢掉（消息照收，就当没有预览）；`keep_preview` 为 true 而 `keep_rich` 为 false → 只丢 `rich`，
+    /// snapshot 照存。保留时 `rich` 的字节原样存（§7.4）。返回 `rich` 留不留。
+    /// 没有判定（注册表没装上、桥出错、答案读不懂）就退回改动前：上游的子串检查照旧，`rich` 照存——收消息绝不因为这里出错而失败。
+    private func tellomiReceiveCheck(
+        proto: SSKProtoPreview,
+        body: String,
+        attachmentContentTypes: [String],
+    ) throws -> Bool {
+        let received = TellomiLinkClassifier.PreviewInput(
+            url: proto.url,
+            hasImage: proto.image != nil,
+            rich: TellomiRichContent.receivedBytes(proto),
+        )
+        guard
+            let check = tellomiClassifier.receiveCheck(
+                received,
+                body: body,
+                isStory: false,
+                attachmentContentTypes: attachmentContentTypes,
+            )
+        else {
+            guard body.contains(proto.url) else {
+                Logger.error("Url not present in body")
+                throw LinkPreviewError.invalidPreview
+            }
+            return true
+        }
+        guard check.keepPreview else {
+            Logger.error("Discarding link preview; the receive check refused it.")
+            throw LinkPreviewError.invalidPreview
+        }
+        if received.rich != nil, !check.keepRich {
+            Logger.warn("Dropping rich content that failed the receive check; keeping the snapshot.")
+        }
+        return check.keepRich
+    }
+
+    /// Tellomi（ADR-0063 §7.4，口径 S2）：预览图附件只在卡片确实要显示图的时候才建——判为纯链接、品牌壳、用户卡、官网卡的预览，
+    /// 收到时就不为它的图建附件指针，也就不会下载。判的是渲染时用的同一个 `classify`，级别在收到这一刻定、不追热更；
+    /// 判不出（没有注册表、出错）就照旧建。故事里的预览不走这里（渲染时也不走 classify）。
+    private func tellomiGatingImage(
+        _ validated: ValidatedLinkPreviewProto,
+        body: String,
+        attachmentContentTypes: [String],
+    ) -> ValidatedLinkPreviewProto {
+        guard validated.imageProto != nil, let urlString = validated.preview.urlString else {
+            return validated
+        }
+        let card = tellomiClassifier.classify(
+            TellomiLinkClassifier.PreviewInput(
+                url: urlString,
+                title: validated.preview.title,
+                description: validated.preview.previewDescription,
+                hasImage: true,
+                date: validated.preview.date,
+                rich: validated.preview.rich,
+            ),
+            body: body,
+            isStory: false,
+            attachmentContentTypes: attachmentContentTypes,
+        )
+        guard let card, !card.showImage else {
+            return validated
+        }
+        // 只记级别，不记 URL。
+        Logger.info("Not creating an attachment for the image of a \(card.level.rawValue) link preview: the card does not show it.")
+        return ValidatedLinkPreviewProto(preview: validated.preview, imageProto: nil)
     }
 
     func validateAndBuildStoryLinkPreview(
@@ -206,6 +284,7 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
 
     private func buildValidatedLinkPreview(
         proto: SSKProtoPreview,
+        keepRich: Bool = true,
     ) throws -> ValidatedLinkPreviewProto {
         let urlString = proto.url
 
@@ -243,8 +322,9 @@ class LinkPreviewManagerImpl: LinkPreviewManager {
                 title: title,
                 previewDescription: previewDescription,
                 date: date,
-                // Tellomi（ADR-0063 §7.4）：rich（1000 号字段）按收到的字节带着，含本机不认识的字段。
-                rich: TellomiRichContent.receivedBytes(proto),
+                // Tellomi（ADR-0063 §7.4）：rich（1000 号字段）按收到的字节带着，含本机不认识的字段；
+                // 只有 receive_check 说它超长 / 畸形（§6.1）时才不带，snapshot 照存。
+                rich: keepRich ? TellomiRichContent.receivedBytes(proto) : nil,
             )),
             imageProto: proto.image,
         )
