@@ -2063,7 +2063,7 @@ private extension CVComponentState.Builder {
                     message: message,
                     linkPreview: linkPreview,
                     urlString: urlString,
-                    hasImage: linkPreviewAttachment != nil,
+                    imageAttachment: linkPreviewAttachment,
                     linkOnlyUrl: tellomiLinkOnlyUrl(message: message),
                 )
             else {
@@ -2087,7 +2087,7 @@ private extension CVComponentState.Builder {
         message: TSMessage,
         linkPreview: OWSLinkPreview,
         urlString: String,
-        hasImage: Bool,
+        imageAttachment: ReferencedAttachment?,
         linkOnlyUrl: String?,
     ) -> LinkPreviewState? {
         let classifier = TellomiLinkRegistry.classifier
@@ -2105,7 +2105,7 @@ private extension CVComponentState.Builder {
                 url: urlString,
                 title: linkPreview.title,
                 description: linkPreview.previewDescription,
-                hasImage: hasImage,
+                hasImage: imageAttachment != nil,
                 date: linkPreview.date,
                 rich: linkPreview.rich,
             ),
@@ -2133,7 +2133,19 @@ private extension CVComponentState.Builder {
         else {
             return sentState
         }
-        return TellomiLinkPreviewCardState(base: sentState, display: display, showsImage: card.showImage, isCardOnly: isCardOnly)
+        // card-visual §3.2 / §3.3：版式（图标卡 / 大图卡 / 无图）和图的颜色由 rust/links 定，在数据层（工作线程）一起判。
+        let visual = TellomiLinkVisualReader.visual(
+            card: card,
+            attachment: imageAttachment,
+            imagePixelSize: sentState.imagePixelSize,
+        )
+        return TellomiLinkPreviewCardState(
+            base: sentState,
+            display: display,
+            showsImage: card.showImage,
+            isCardOnly: isCardOnly,
+            visual: visual,
+        )
     }
 
     /// 只用 URL 画的无图卡：rust/links 算的可注册域名，以及它是否冒充知名域名；发送端写的一概不要。
