@@ -57,7 +57,7 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
             TellomiLinkSender(
                 fetcher: linkFetcher,
                 expandShortLinks: { [db = fetcher.db] in db.read { TellomiLinkPreviewLocalSettings.isShortLinkExpansionEnabled(tx: $0) } },
-                lookups: fetcher,
+                lookups: WeakLookups(fetcher),
             )
         } : nil
     }
@@ -398,6 +398,23 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
 }
 
 // MARK: - Tellomi 发送端用的查询
+
+/// fetcher 持有 sender，sender 不该再强引用回 fetcher（否则是个引用环）。
+private final class WeakLookups: TellomiSendLookups, @unchecked Sendable {
+    private weak var target: LinkPreviewFetcherImpl?
+
+    init(_ target: LinkPreviewFetcherImpl) {
+        self.target = target
+    }
+
+    func firstParty(kind: String, url: URL) async -> TellomiLinkSender.FirstParty {
+        return await target?.firstParty(kind: kind, url: url) ?? .notFound
+    }
+
+    func thumbnail(from data: Data) async -> TellomiLinkSender.Thumbnail? {
+        return await target?.thumbnail(from: data)
+    }
+}
 
 extension LinkPreviewFetcherImpl: TellomiSendLookups {
 
