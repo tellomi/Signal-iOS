@@ -354,6 +354,53 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         }
     }
 
+    /// 输入框里群邀请链接确定失效时的提示（ADR-0063 §5.1 铁律 2 的例外）：一行字 + ( X )，截图存 `composer-group-inactive.png`。
+    @MainActor
+    func testTheComposerShowsTheInactiveGroupLinkMessage() throws {
+        let width = shotWidth
+        let dark = Theme.isDarkThemeEnabled
+        let view = LinkPreviewView(state: .failed(LinkPreviewError.groupLinkInactive))
+        // y = 150：不压在屏幕顶部的安全区上（别的离屏测试也这样放）
+        let window = UIWindow(frame: CGRect(x: 0, y: 150, width: width, height: 100))
+        window.overrideUserInterfaceStyle = dark ? .dark : .light
+        window.backgroundColor = dark ? .black : .white
+        view.translatesAutoresizingMaskIntoConstraints = false
+        window.addSubview(view)
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: window.leadingAnchor, constant: 12),
+            view.trailingAnchor.constraint(equalTo: window.trailingAnchor, constant: -12),
+            view.topAnchor.constraint(equalTo: window.topAnchor, constant: 12),
+        ])
+        window.isHidden = false
+        window.layoutIfNeeded()
+        defer { window.isHidden = true }
+
+        // 输入框的容器把预览区的上下边贴在这个视图上，所以高度是视图按内容自己算出来的（不是被撑开的）
+        let fitted = view.systemLayoutSizeFitting(
+            CGSize(width: width - 24, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel,
+        )
+        XCTAssertGreaterThanOrEqual(fitted.height, 40, "提示条至少 40 pt 高，实际 \(fitted)")
+        XCTAssertLessThanOrEqual(fitted.height, 60, "一行提示不该比 60 pt 高，实际 \(fitted)")
+        view.heightAnchor.constraint(equalToConstant: fitted.height).isActive = true
+        window.layoutIfNeeded()
+
+        XCTAssertEqual(Self.texts(in: view), ["This group link is not active"])
+        XCTAssertNotNil(view.cancelButton.window, "( X ) 要在视图里")
+        let cancelFrame = view.convert(view.cancelButton.frame, from: view.cancelButton.superview)
+        XCTAssertTrue(view.bounds.contains(cancelFrame), "( X ) 不能画到条外：\(cancelFrame) / \(view.bounds)")
+
+        if shooting {
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 3
+            let image = UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
+                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+            }
+            try save(image, name: "composer-group-inactive.png")
+        }
+    }
+
     /// 版式（按视图判）、卡片底色（染色 / 不染色）、标题字色对比度（染色时 ≥ 4.5:1，card-visual §3.3）。
     @MainActor
     private func checkVisual(_ fixture: Fixture, _ hosted: Hosted, dark: Bool = false) {

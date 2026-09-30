@@ -116,6 +116,33 @@ class LinkPreviewFetchStateTest: XCTestCase {
         }
     }
 
+    /// Tellomi（ADR-0063 §5.1 铁律 2）：只有群邀请链接确定失效才在输入框提示，其余失败都静默。
+    func testOnlyAnInactiveGroupLinkShowsAFailureMessage() async throws {
+        let linkPreviewFetchState = self.linkPreviewFetchState()
+        let url = try XCTUnwrap(URL(string: "https://tell.cc/g#abc"))
+
+        mockLinkPreviewFetcher.fetchLinkPreviewBlock = { _ in throw LinkPreviewError.groupLinkInactive }
+        await linkPreviewFetchState.update(.init(text: "https://tell.cc/g#abc", ranges: .empty))?.value
+        XCTAssert(linkPreviewFetchState.currentState.isFailed)
+        XCTAssertEqual(linkPreviewFetchState.currentUrl, url)
+        XCTAssertNil(linkPreviewFetchState.linkPreviewDraftIfLoaded)
+        XCTAssertEqual(linkPreviewFetchState.currentState.failureMessageToShow, "This group link is not active")
+
+        for error in [LinkPreviewError.noPreview, .invalidPreview, .fetchFailure, .featureDisabled] {
+            let other = self.linkPreviewFetchState()
+            mockLinkPreviewFetcher.fetchLinkPreviewBlock = { _ in throw error }
+            await other.update(.init(text: "https://signal.org/x", ranges: .empty))?.value
+            XCTAssert(other.currentState.isFailed)
+            XCTAssertNil(other.currentState.failureMessageToShow, "\(error)")
+        }
+        let generic = self.linkPreviewFetchState()
+        mockLinkPreviewFetcher.fetchLinkPreviewBlock = { _ in throw OWSGenericError("Not found.") }
+        await generic.update(.init(text: "https://signal.org/y", ranges: .empty))?.value
+        XCTAssertNil(generic.currentState.failureMessageToShow)
+        XCTAssertNil(LinkPreviewFetchState.State.none.failureMessageToShow)
+        XCTAssertNil(LinkPreviewFetchState.State.loading.failureMessageToShow)
+    }
+
     private struct PendingFetchState {
         var isReady = false
         var deferredBlocks = [() -> Void]()

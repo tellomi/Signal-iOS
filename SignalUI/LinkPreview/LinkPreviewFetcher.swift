@@ -62,6 +62,16 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
         } : nil
     }
 
+    /// 发送端作业没给出预览时输入框看到的错误：群邀请链接确定失效单独一个（会提示），其余都是「没有预览」（静默）。
+    static func previewError(for result: TellomiLinkSender.Result) -> LinkPreviewError {
+        switch result {
+        case .groupLinkInactive:
+            return .groupLinkInactive
+        case .found, .notAvailable:
+            return .noPreview
+        }
+    }
+
     public func fetchLinkPreview(for url: URL) async throws -> OWSLinkPreviewDraft {
         let areLinkPreviewsEnabled: Bool = self.db.read(block: linkPreviewSettingStore.areLinkPreviewsEnabled(tx:))
         guard areLinkPreviewsEnabled else {
@@ -74,7 +84,7 @@ public class LinkPreviewFetcherImpl: LinkPreviewFetcher {
             case .found(let draft):
                 return draft
             case .notAvailable, .groupLinkInactive:
-                throw LinkPreviewError.noPreview
+                throw Self.previewError(for: result)
             }
         }
 

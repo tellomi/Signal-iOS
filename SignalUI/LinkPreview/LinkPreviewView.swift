@@ -123,9 +123,51 @@ public class LinkPreviewView: UIView {
             } else {
                 configureAsLinkPreviewDraft(draft: draft)
             }
+        case .failed:
+            if let message = state.failureMessageToShow {
+                configureAsMessage(message)
+            } else {
+                owsFailBeta("Invalid link preview state: [\(state)]")
+            }
         default:
             owsFailBeta("Invalid link preview state: [\(state)]")
         }
+    }
+
+    /// Tellomi（ADR-0063 §5.1 铁律 2 的例外）：群邀请链接确定失效——一行提示 + ( X )，高度和「加载中」那张一样。
+    private func configureAsMessage(_ text: String) {
+        let label = UILabel()
+        label.text = text
+        label.textColor = .Signal.secondaryLabel
+        label.numberOfLines = 2
+        label.adjustsFontForContentSizeCategory = true
+        label.font = .dynamicTypeFootnote
+        label.lineBreakMode = .byTruncatingTail
+        label.setContentHuggingVerticalHigh()
+
+        let cancelButtonPadding: CGFloat = 8 // around all edges
+        let cancelButtonContainer = UIView.container()
+        cancelButtonContainer.addSubview(cancelButton)
+        NSLayoutConstraint.activate([
+            cancelButton.topAnchor.constraint(equalTo: cancelButtonContainer.topAnchor, constant: cancelButtonPadding),
+            cancelButton.leadingAnchor.constraint(equalTo: cancelButtonContainer.leadingAnchor, constant: cancelButtonPadding),
+            cancelButton.trailingAnchor.constraint(equalTo: cancelButtonContainer.trailingAnchor, constant: -cancelButtonPadding),
+            cancelButton.bottomAnchor.constraint(lessThanOrEqualTo: cancelButtonContainer.bottomAnchor, constant: -cancelButtonPadding),
+        ])
+
+        let horizontalStack = UIStackView(arrangedSubviews: [label, cancelButtonContainer])
+        horizontalStack.axis = .horizontal
+        horizontalStack.alignment = .center
+        horizontalStack.spacing = 0
+        horizontalStack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(horizontalStack)
+        NSLayoutConstraint.activate([
+            horizontalStack.topAnchor.constraint(equalTo: contentView.topAnchor),
+            horizontalStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            horizontalStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            horizontalStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            horizontalStack.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
+        ])
     }
 
     private func configureAsLoading() {

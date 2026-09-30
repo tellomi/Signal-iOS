@@ -11085,6 +11085,9 @@
 /* Tellomi (ADR-0063 §6.1): button that opens a link whose domain imitates a well-known one anyway */
 "TELLOMI_LINK_OPEN_OPEN_ANYWAY" = "繼續開啟";
 
+/* Tellomi (ADR-0063 §5.1): shown in the message composer's link preview area when the pasted group invite link is definitely not active */
+"TELLOMI_LINK_PREVIEW_GROUP_LINK_NOT_ACTIVE" = "此群組連結不在使用中";
+
 /* Tellomi: Body of the log out confirmation: chats stay on this phone and come back after logging in with the same number; messages sent meanwhile wait on the server for up to 30 days. */
 "TELLOMI_LOGOUT_CONFIRM_BODY" = "聊天紀錄會保留在這部手機上，用同一個電話號碼重新登入後便會恢復。登出期間別人傳來的訊息會在伺服器上等你，最多保留 30 天。";
 

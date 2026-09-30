@@ -187,3 +187,19 @@ public class LinkPreviewFetchState {
         return body.prepending(schemePrefix)
     }
 }
+
+// MARK: -
+
+public extension LinkPreviewFetchState.State {
+    /// Tellomi（ADR-0063 §5.1 铁律 2）：取不到预览就不显示预览区，也不出「无法预览」之类的提示——唯一的例外是群邀请链接确定已失效，
+    /// 照上游安卓在输入框提示发送者。Telegram 没有这种提示，它的输入框只有成功一种状态（iOS `UpdateChatPresentationInterfaceState.swift` L299–349）。
+    var failureMessageToShow: String? {
+        guard case .failed(let error) = self, let previewError = error as? LinkPreviewError, previewError == .groupLinkInactive else {
+            return nil
+        }
+        return OWSLocalizedString(
+            "TELLOMI_LINK_PREVIEW_GROUP_LINK_NOT_ACTIVE",
+            comment: "Tellomi (ADR-0063 §5.1): shown in the message composer's link preview area when the pasted group invite link is definitely not active",
+        )
+    }
+}
