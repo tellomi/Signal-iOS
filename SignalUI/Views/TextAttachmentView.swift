@@ -524,13 +524,17 @@ open class TextAttachmentView: UIView {
 
     private var linkPreviewTooltipView: LinkPreviewTooltipView?
 
+    /// Tellomi（ADR-0063 §4.9）：点提示条时怎么打开故事里的那条链接。默认交给系统；
+    /// 主 App 的故事界面换成 rust/links 的 open_plan 出口，支付金融只进显式浏览器，不被通用链接带进支付 App。
+    public var openLink: (URL) -> Void = { CurrentAppContext().open($0, completion: nil) }
+
     public func willHandleTapGesture(_ gesture: UITapGestureRecognizer) -> Bool {
         if let linkPreviewTooltipView {
             if
                 let container = linkPreviewTooltipView.superview,
                 linkPreviewTooltipView.frame.contains(gesture.location(in: container))
             {
-                CurrentAppContext().open(linkPreviewTooltipView.url, completion: nil)
+                openLink(linkPreviewTooltipView.url)
             } else {
                 linkPreviewTooltipView.removeFromSuperview()
                 self.linkPreviewTooltipView = nil

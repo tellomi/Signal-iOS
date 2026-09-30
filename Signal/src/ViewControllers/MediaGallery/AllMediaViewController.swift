@@ -169,7 +169,7 @@ enum TellomiSavedLinks {
     }
 }
 
-/// 「所有媒体」的「链接」一段：带链接预览的消息，新的在上；一行 = 标题（没有就用域名）· 网址 · 日期，点了用浏览器打开（Android 同）。
+/// 「所有媒体」的「链接」一段：带链接预览的消息，新的在上；一行 = 标题（没有就用域名）· 网址 · 日期，点了按 rust/links 的 open_plan 打开（和聊天页同一个出口：支付金融只进浏览器）。
 final class TellomiSavedLinksViewController: OWSTableViewController2 {
 
     private let threadUniqueId: String
@@ -207,8 +207,10 @@ final class TellomiSavedLinksViewController: OWSTableViewController2 {
                 withText: item.title ?? item.url.host ?? item.url.absoluteString,
                 subtitle: item.url.absoluteString,
                 accessoryText: DateUtil.formatDateShort(date),
-                actionBlock: {
-                    UIApplication.shared.open(item.url)
+                actionBlock: { [weak self] in
+                    // Tellomi（ADR-0063 §4.9）：和聊天页同一个出口，支付金融只进显式浏览器，不被通用链接带进支付 App。
+                    guard let self else { return }
+                    TellomiExternalLinkOpener.open(item.url, from: self, inApp: .handOffToSystem)
                 },
             ))
         }
