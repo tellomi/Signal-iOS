@@ -279,7 +279,8 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         for fixture in Self.fixtures {
             try prepareLocalState(fixture)
             let message = try await insert(fixture, thread: thread, incoming: true)
-            let hosted = try await host(message: message, thread: thread, width: width)
+            // 窗口的外观跟着 Theme 走（模拟器系统外观），否则气泡是深色、卡片却按浅色画
+            let hosted = try await host(message: message, thread: thread, width: width, dark: Theme.isDarkThemeEnabled)
             XCTAssertGreaterThan(hosted.cellView.frame.size.height, 20, "\(fixture.name)：cell 没有高度")
             let card = TellomiLinkRegistry.classifier.classify(
                 .init(
@@ -305,7 +306,7 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             }
             XCTAssertEqual(Self.containsBodyText(in: hosted.cellView), fixture.urlTextShown, "\(fixture.name)：正文文字该不该画在卡片下面，实际：\(texts)")
             report += "  texts: \(texts)\n"
-            checkVisual(fixture, hosted)
+            checkVisual(fixture, hosted, dark: Theme.isDarkThemeEnabled)
             if shooting {
                 shots.append(render(hosted))
             }
@@ -332,7 +333,7 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         var shots = [UIImage]()
         for fixture in Self.fixtures where fixture.expectedTintHue != nil {
             let message = try await insert(fixture, thread: thread, incoming: true)
-            let light = try await host(message: message, thread: thread, width: width)
+            let light = try await host(message: message, thread: thread, width: width, dark: false)
             let lightBackground = Self.cardBackground(in: light)
             light.tearDown()
             let dark = try await host(message: message, thread: thread, width: width, dark: true)
@@ -402,6 +403,19 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             XCTFail("\(fixture.name)：卡片没有底色")
             return
         }
+        // 第一方卡底部的动作按钮字：浅 / 深色下都要读得清（≥ 4.5:1）。卡片底色是半透明的，所以量画出来的像素，不算颜色值。
+        if fixture.expectedLevel == "first_party", let action = fixture.cardTexts.last {
+            if let label = Self.findLabel(text: action, in: cardView) {
+                let rect = label.convert(label.bounds, to: hosted.window)
+                if let ratio = Self.pixelContrast(in: render(hosted), rect: rect) {
+                    XCTAssertGreaterThanOrEqual(ratio, 4.5, "\(fixture.name)：按钮字对比度应 ≥ 4.5:1，实际 \(ratio)（\(dark ? "深" : "浅")色）")
+                } else {
+                    XCTFail("\(fixture.name)：读不到按钮的像素")
+                }
+            } else {
+                XCTFail("\(fixture.name)：找不到按钮「\(action)」")
+            }
+        }
         if let hueRange = fixture.expectedTintHue {
             var hue: CGFloat = 0
             var saturation: CGFloat = 0
@@ -421,6 +435,61 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
             let plain = UIColor.Signal.LightBase.fillTertiary.resolvedColor(with: traits)
             XCTAssertLessThan(Self.distance(background, plain), 0.02, "\(fixture.name)：不该染色，实际底色 \(background)")
         }
+    }
+
+    /// 一块像素里字和底的对比度：底 = 出现最多的颜色，字 = 跟底对比最强的颜色（抗锯齿的中间色比不过纯色字）。
+    private static func pixelContrast(in image: UIImage, rect: CGRect) -> CGFloat? {
+        guard let cgImage = image.cgImage else {
+            return nil
+        }
+        let scale = image.scale
+        let crop = CGRect(
+            x: rect.origin.x * scale,
+            y: rect.origin.y * scale,
+            width: rect.size.width * scale,
+            height: rect.size.height * scale,
+        ).integral
+        guard let part = cgImage.cropping(to: crop), part.width > 0, part.height > 0 else {
+            return nil
+        }
+        var buffer = [UInt8](repeating: 0, count: part.width * part.height * 4)
+        let drawn = buffer.withUnsafeMutableBytes { raw -> Bool in
+            guard
+                let context = CGContext(
+                    data: raw.baseAddress,
+                    width: part.width,
+                    height: part.height,
+                    bitsPerComponent: 8,
+                    bytesPerRow: part.width * 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+                )
+            else {
+                return false
+            }
+            context.draw(part, in: CGRect(x: 0, y: 0, width: part.width, height: part.height))
+            return true
+        }
+        guard drawn else {
+            return nil
+        }
+        var counts = [UInt32: Int]()
+        for index in stride(from: 0, to: buffer.count, by: 4) {
+            let red = UInt32(buffer[index])
+            let green = UInt32(buffer[index + 1])
+            let blue = UInt32(buffer[index + 2])
+            counts[(red << 16) | (green << 8) | blue, default: 0] += 1
+        }
+        func color(_ key: UInt32) -> UIColor {
+            let red = CGFloat((key >> 16) & 255) / 255
+            let green = CGFloat((key >> 8) & 255) / 255
+            let blue = CGFloat(key & 255) / 255
+            return UIColor(red: red, green: green, blue: blue, alpha: 1)
+        }
+        guard let background = counts.max(by: { $0.value < $1.value })?.key else {
+            return nil
+        }
+        return counts.keys.map { contrast(color($0), color(background)) }.max()
     }
 
     private static func cardBackground(in hosted: Hosted) -> UIColor? {
