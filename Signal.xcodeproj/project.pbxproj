@@ -512,6 +512,7 @@
 		494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */; };
 		3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */; };
 		D9CB73D32F7F181500F7FD83 /* TellomiLinkCardScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CB73D22F7F181500F7FD83 /* TellomiLinkCardScreenshotTests.swift */; };
+		35D325E771F5E4028ED56D1E /* TellomiLinkCardAcceptanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB3B510E4008B5839D18B7C /* TellomiLinkCardAcceptanceTests.swift */; };
 		DA819E1E08EE3A282CE9BE67 /* TellomiLinkOpenLauncherTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57FAA2A48068A96186BF4F12 /* TellomiLinkOpenLauncherTest.swift */; };
 		3127CA830877399B6F32FAA9 /* TellomiPhotoPickerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7395A91DCF7C0E057F379F3B /* TellomiPhotoPickerTests.swift */; };
 		F3518B1F897D0F10D352F91C /* TellomiAttachmentFilesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DEA00574736BBE816D6CAC /* TellomiAttachmentFilesTests.swift */; };
@@ -4851,6 +4852,7 @@
 		5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumCarouselGeometryTest.swift; sourceTree = "<group>"; };
 		8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlbumViewerScreenshotTests.swift; sourceTree = "<group>"; };
 		D9CB73D22F7F181500F7FD83 /* TellomiLinkCardScreenshotTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiLinkCardScreenshotTests.swift; sourceTree = "<group>"; };
+		5DB3B510E4008B5839D18B7C /* TellomiLinkCardAcceptanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiLinkCardAcceptanceTests.swift; sourceTree = "<group>"; };
 		57FAA2A48068A96186BF4F12 /* TellomiLinkOpenLauncherTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TellomiLinkOpenLauncherTest.swift; sourceTree = "<group>"; };
 		7395A91DCF7C0E057F379F3B /* TellomiPhotoPickerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiPhotoPickerTests.swift; sourceTree = "<group>"; };
 		27DEA00574736BBE816D6CAC /* TellomiAttachmentFilesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiAttachmentFilesTests.swift; sourceTree = "<group>"; };
@@ -9942,6 +9944,7 @@
 				5B256893FA8DFA90A0C65980 /* AlbumCarouselGeometryTest.swift */,
 				8C3481E3691AB5E91838295E /* AlbumViewerScreenshotTests.swift */,
 				D9CB73D22F7F181500F7FD83 /* TellomiLinkCardScreenshotTests.swift */,
+				5DB3B510E4008B5839D18B7C /* TellomiLinkCardAcceptanceTests.swift */,
 				57FAA2A48068A96186BF4F12 /* TellomiLinkOpenLauncherTest.swift */,
 				7395A91DCF7C0E057F379F3B /* TellomiPhotoPickerTests.swift */,
 				27DEA00574736BBE816D6CAC /* TellomiAttachmentFilesTests.swift */,
@@ -19758,6 +19761,7 @@
 				494E4DA11E2D8090F037088D /* AlbumCarouselGeometryTest.swift in Sources */,
 				3F73399F0D40E6FF8FC8EB98 /* AlbumViewerScreenshotTests.swift in Sources */,
 				D9CB73D32F7F181500F7FD83 /* TellomiLinkCardScreenshotTests.swift in Sources */,
+				35D325E771F5E4028ED56D1E /* TellomiLinkCardAcceptanceTests.swift in Sources */,
 				DA819E1E08EE3A282CE9BE67 /* TellomiLinkOpenLauncherTest.swift in Sources */,
 				3127CA830877399B6F32FAA9 /* TellomiPhotoPickerTests.swift in Sources */,
 				F3518B1F897D0F10D352F91C /* TellomiAttachmentFilesTests.swift in Sources */,
