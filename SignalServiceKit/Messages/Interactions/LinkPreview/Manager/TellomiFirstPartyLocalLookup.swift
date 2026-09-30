@@ -42,7 +42,7 @@ public enum TellomiFirstPartyLocalLookup {
             return nil
         }
         let name = SSKEnvironment.shared.contactManagerRef.displayName(for: address, tx: tx).resolvedValue()
-        return TellomiFirstPartyCard.Local(knownUserName: name)
+        return TellomiFirstPartyCard.Local(knownUserName: name, knownUserAci: aci)
     }
 
     /// 本账号是这个群的正式成员时：本地的群名。

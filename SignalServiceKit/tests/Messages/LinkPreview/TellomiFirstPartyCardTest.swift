@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import LibSignalClient
 import XCTest
 @testable import SignalServiceKit
 
@@ -49,6 +50,18 @@ final class TellomiFirstPartyCardTest: XCTestCase {
         let shown = display(user, .init(knownUserName: "Kai Xin"))
         XCTAssertEqual(shown?.title, "Kai Xin")
         XCTAssertEqual(shown?.subtitle, "Tellomi user")
+    }
+
+    /// 本机认识的用户卡带着头像来源（ACI）；不认识的用户（默认头像）和别的对象（群、贴纸包、通话、官网）没有。
+    func testOnlyAKnownUserCardCarriesAnAvatarSource() {
+        let aci = Aci.randomForTesting()
+        XCTAssertEqual(display(user, .init(knownUserName: "Kai Xin", knownUserAci: aci))?.avatarAci, aci)
+        XCTAssertNil(display(user)?.avatarAci, "本机不认识：默认头像")
+        XCTAssertNil(display(user, .init(isGroupMember: true))?.avatarAci)
+        XCTAssertNil(display(group, .init(isGroupMember: true, groupName: "爬山", knownUserAci: aci))?.avatarAci)
+        XCTAssertNil(display(sticker, .init(isStickerPackInstalled: true, knownUserAci: aci))?.avatarAci)
+        XCTAssertNil(display(card(.init(type: "call", title: "周五例会")), .init(knownUserAci: aci))?.avatarAci)
+        XCTAssertNil(display(card(.init(type: "official", path: "/"), officialBadge: true), .init(knownUserAci: aci))?.avatarAci)
     }
 
     func testAUserWithNoNameInTheURLIsATellomiUserOnce() {

@@ -651,6 +651,144 @@ final class TellomiLinkCardScreenshotTests: XCTestCase {
         XCTAssertEqual(cardView.highlight, .idle, "也没有悬停态")
     }
 
+    // MARK: - 第一方卡补齐（card-visual §5.2，审计 A12 / A14）
+
+    /// 一条收到的消息直接排成 cell（不检查级别、不存截图），给下面第一方卡的用例用。
+    @MainActor
+    private func hostedForFirstParty(_ fixture: Fixture, dark: Bool = false) async throws -> Hosted {
+        let thread = write { tx -> TSContactThread in
+            let thread = ContactThreadFactory().create(transaction: tx)
+            if let aci = thread.contactAddress.aci {
+                var recipient = DependenciesBridge.shared.recipientFetcher.fetchOrCreate(serviceId: aci, tx: tx)
+                SSKEnvironment.shared.profileManagerRef.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .debugging, tx: tx)
+            }
+            return thread
+        }
+        try prepareLocalState(fixture)
+        let message = try await insert(fixture, thread: thread, incoming: true)
+        return try await host(message: message, thread: thread, width: shotWidth, dark: dark)
+    }
+
+    /// `tellomi.user`（§5.2）：56 pt 圆形头像——本地认识（已被接受）→ 真头像；否则默认头像。头像只读本地库，不联网。
+    @MainActor
+    func testAKnownUserCardShowsTheRealAvatarAndAStrangerTheDefaultOne() async throws {
+        let aci = Aci.randomForTesting()
+        write { tx in
+            DependenciesBridge.shared.usernameLookupManager.saveUsername("hk881qb.01", forAci: aci, transaction: tx)
+            var recipient = DependenciesBridge.shared.recipientFetcher.fetchOrCreate(serviceId: aci, tx: tx)
+            SSKEnvironment.shared.profileManagerRef.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .debugging, tx: tx)
+        }
+        let user = Fixture(name: "user", url: "https://tell.cc/hk881qb", previewTitle: "Tellomi", expectedLevel: "first_party")
+        let stranger = Fixture(name: "stranger", url: "https://tell.cc/nobody", previewTitle: "Tellomi", expectedLevel: "first_party")
+
+        let known = try await hostedForFirstParty(user, dark: Theme.isDarkThemeEnabled)
+        defer { known.tearDown() }
+        if shooting {
+            try save(render(known), name: "w2-user-known.png")
+        }
+        let knownCard = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: known.cellView))
+        let avatar = try XCTUnwrap(Self.findView(suffix: "ConversationAvatarView", in: knownCard), "认识的用户：应该是真头像（头像视图）") as! ConversationAvatarView
+        let avatarFrame = knownCard.convert(avatar.bounds, from: avatar)
+        XCTAssertEqual(avatarFrame.size.width, 56, accuracy: 0.6, "头像 56 pt")
+        XCTAssertEqual(avatarFrame.size.height, 56, accuracy: 0.6)
+        XCTAssertEqual(avatarFrame.minX, 10, accuracy: 1, "头像在左边")
+        // 头像是数据层按这个用户从本地库取好的图（联系人照片 / 资料头像 / 默认头像），不是在 cell 配置阶段现取
+        let expected = read {
+            SSKEnvironment.shared.avatarBuilderRef.avatarImage(forAddress: SignalServiceAddress(aci), diameterPoints: 56, localUserDisplayMode: .asUser, transaction: $0)
+        }
+        guard case let .asset(image, _)? = avatar.configuration.dataSource else {
+            return XCTFail("头像用数据层取好的现成的图（.asset），不在 cell 配置时开数据库事务，实际 \(String(describing: avatar.configuration.dataSource))")
+        }
+        XCTAssertEqual(image?.pngData(), expected?.pngData(), "头像取的是这个用户")
+        XCTAssertNotNil(image, "本机认识的用户至少有默认头像")
+        XCTAssertNotNil(avatar.primaryImage, "头像画出来了")
+        XCTAssertFalse(Self.texts(in: known.cellView).contains { $0.contains("tell.cc") }, "第一方卡没有域名行")
+
+        let unknown = try await hostedForFirstParty(stranger, dark: Theme.isDarkThemeEnabled)
+        defer { unknown.tearDown() }
+        if shooting {
+            try save(render(unknown), name: "w2-user-unknown.png")
+        }
+        let unknownCard = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: unknown.cellView))
+        XCTAssertNil(Self.findView(suffix: "ConversationAvatarView", in: unknownCard), "不认识的用户：默认头像（占位），不去取任何头像")
+        XCTAssertNotNil(Self.findPlaceholderAvatar(in: unknownCard), "默认头像是 56 pt 的圆形占位")
+    }
+
+    /// 默认头像：56 pt 的圆（`secondaryFill` 底，里面一个人形），不是头像视图。
+    private static func findPlaceholderAvatar(in view: UIView) -> UIImageView? {
+        if let imageView = view as? UIImageView, imageView.image != nil, abs(imageView.bounds.size.width - 56) < 0.6, abs(imageView.bounds.size.height - 56) < 0.6 {
+            return imageView
+        }
+        for subview in view.subviews {
+            if let found = findPlaceholderAvatar(in: subview) {
+                return found
+            }
+        }
+        return nil
+    }
+
+    private static let callUrl = "https://tell.cc/call#key=bcdf-ghkm-npqr-stxz-bcdf-ghkm-npqr-stxz"
+
+    /// `tellomi.call`（§5.2）：通话图标 + 房间名或「Tellomi 通话」，没有副标题，底部「加入通话」。原来 tell.cc 的通话链接被 Signal 自己的通话卡截走
+    /// （副行是发送端的描述、有域名行 tell.cc、按钮是卡外面另一个 Signal 的「加入」）。
+    @MainActor
+    func testATellomiCallLinkIsAFirstPartyCardWithItsOwnJoinButton() async throws {
+        let named = Fixture(
+            name: "call-named",
+            url: Self.callUrl,
+            previewTitle: "周五例会",
+            previewDescription: "Use this link to join a Tellomi call",
+            rich: .init(kind: "tellomi.call", provider: "tellomi", level: 1, attrs: []),
+            expectedLevel: "first_party",
+        )
+        let nameless = Fixture(name: "call-nameless", url: Self.callUrl, expectedLevel: "first_party")
+        for (fixture, title) in [(named, "周五例会"), (nameless, "Tellomi call")] {
+            let hosted = try await hostedForFirstParty(fixture, dark: Theme.isDarkThemeEnabled)
+            defer { hosted.tearDown() }
+            if shooting {
+                try save(render(hosted), name: "w2-\(fixture.name).png")
+            }
+            let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView), "\(fixture.name)：找不到卡片")
+            let texts = Self.texts(in: cardView)
+            XCTAssertTrue(texts.contains(title), "\(fixture.name)：标题是房间名或「Tellomi call」，实际 \(texts)")
+            XCTAssertNotNil(Self.findLabel(text: "Join Call", in: cardView), "\(fixture.name)：「加入通话」按钮在卡片里面，实际 \(texts)")
+            XCTAssertFalse(texts.contains { $0.contains("tell.cc") }, "\(fixture.name)：没有域名行，实际 \(texts)")
+            XCTAssertFalse(texts.contains { $0.contains("join a Tellomi call") }, "\(fixture.name)：没有发送端 / Signal 的描述，实际 \(texts)")
+            XCTAssertEqual(texts.count, 2, "\(fixture.name)：只有标题和按钮两行字（没有副标题），实际 \(texts)")
+            // Signal 自己的「加入」底部按钮不再有（卡片自带按钮，不重复）
+            XCTAssertNil(Self.findView(suffix: "CVMessageActionButton", in: hosted.cellView), "\(fixture.name)：卡外面没有第二个「加入」按钮")
+            // 通话图标：56 pt 的圆形占位（neutral），不是头像视图
+            XCTAssertNotNil(Self.findPlaceholderAvatar(in: cardView), "\(fixture.name)：通话图标 56 pt")
+            XCTAssertNil(Self.findView(suffix: "ConversationAvatarView", in: cardView))
+            // 点进入通话的行为不变：点卡片 → `handleUrl` → `CallLink(url:)`（和 Signal 通话卡同一条路）
+            let url = try XCTUnwrap(URL(string: Self.callUrl))
+            if case let .url(routed) = ConversationViewController.tellomiInAppRoute(for: url) {
+                XCTAssertNotNil(CallLink(url: routed), "\(fixture.name)：点开以后认得出是通话链接，进 presentLobby")
+            } else {
+                XCTFail("\(fixture.name)：tell.cc/call 应该走上游的通话链接解析")
+            }
+        }
+    }
+
+    /// 对照：Signal 自己的通话链接（`signal.link`）不是 Tellomi 的第一方对象，仍是 Signal 的通话卡 + 卡外面的「加入」按钮。
+    @MainActor
+    func testASignalCallLinkStaysSignalsCallCard() async throws {
+        let fixture = Fixture(
+            name: "signal-call",
+            url: "https://signal.link/call/#key=bcdf-ghkm-npqr-stxz-bcdf-ghkm-npqr-stxz",
+            previewTitle: "Weekly sync",
+            expectedLevel: "generic",
+        )
+        let hosted = try await hostedForFirstParty(fixture, dark: Theme.isDarkThemeEnabled)
+        defer { hosted.tearDown() }
+        if shooting {
+            try save(render(hosted), name: "w2-call-signal-old-form.png")
+        }
+        XCTAssertNotNil(Self.findView(suffix: "CVMessageActionButton", in: hosted.cellView), "Signal 的通话卡仍带着卡外面的「加入」按钮")
+        let cardView = try XCTUnwrap(Self.findView(suffix: "CVLinkPreviewView", in: hosted.cellView))
+        XCTAssertTrue(Self.texts(in: cardView).contains("Weekly sync"))
+    }
+
     /// 染色的卡在深色外观下：同一个色相、更暗的底、字色对比度仍达标；截图存 `cards-incoming-dark.png`。
     @MainActor
     func testTintedCardsFollowTheAppearance() async throws {

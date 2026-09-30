@@ -28,6 +28,10 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
     /// 品牌壳的随包图标（card-visual §3.9）：卡片的“图”是它，不是发送端的图；没有就是 nil。
     public let bundledIcon: TellomiLinkIcon.Icon?
 
+    /// 用户卡：本机认识这个人时，本地库里的头像（联系人照片 / 对方的资料头像 / 默认头像，card-visual §5.2）；不认识就是 nil（默认头像占位）。
+    /// 在数据层（有事务的地方）就取好：会话页的 cell 配置阶段不许开数据库事务。
+    public let userAvatar: UIImage?
+
     /// 不响应点击：还没接受的会话（消息请求）里的域名卡，陌生人发来的链接不能一点就打开
     /// （card-visual §7.3；同 Telegram iOS 对可疑发件人的 `isSuspiciousPeer`）。
     public let isInert: Bool
@@ -40,6 +44,7 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
         visual: TellomiLinkVisual.Visual = .none,
         firstParty: TellomiFirstPartyCard.Display? = nil,
         bundledIcon: TellomiLinkIcon.Icon? = nil,
+        userAvatar: UIImage? = nil,
         isInert: Bool = false,
     ) {
         self.base = base
@@ -49,6 +54,7 @@ public final class TellomiLinkPreviewCardState: LinkPreviewState {
         self.visual = visual
         self.firstParty = firstParty
         self.bundledIcon = bundledIcon
+        self.userAvatar = userAvatar
         self.isInert = isInert
     }
 

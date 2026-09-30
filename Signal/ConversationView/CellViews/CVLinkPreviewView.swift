@@ -33,6 +33,8 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
     fileprivate let firstPartyDivider = UIView()
     fileprivate let firstPartyActionLabel = CVLabel()
     fileprivate let firstPartyPlaceholder = CVImageView()
+    /// 本机认识的用户的真头像（56 pt 圆形，不带徽章）。
+    fileprivate let firstPartyAvatar = ConversationAvatarView(sizeClass: .fiftySix, localUserDisplayMode: .asUser, badged: false, useAutolayout: false)
 
     init() {
         super.init(name: "CVLinkPreviewView")
@@ -358,6 +360,8 @@ class CVLinkPreviewView: ManualStackViewWithLayer {
         firstPartyActionLabel.removeFromSuperview()
         firstPartyPlaceholder.image = nil
         firstPartyPlaceholder.removeFromSuperview()
+        firstPartyAvatar.reset()
+        firstPartyAvatar.removeFromSuperview()
     }
 }
 
@@ -803,12 +807,8 @@ private class CVLinkPreviewViewAdapterFirstParty: CVLinkPreviewViewAdapter {
         (linkPreview as? TellomiLinkPreviewCardState)?.firstParty
     }
 
-    /// 通话卡下面已经有 Signal 自己的「加入」按钮，这里不重复。
     private var actionText: String? {
-        guard let firstParty, firstParty.kind != .call else {
-            return nil
-        }
-        return firstParty.action
+        firstParty?.action
     }
 
     private var dividerHeight: CGFloat { 1 / UIScreen.main.scale }
@@ -917,9 +917,19 @@ private class CVLinkPreviewViewAdapterFirstParty: CVLinkPreviewViewAdapter {
         (linkPreview as? TellomiLinkPreviewCardState)?.tintColors?.text ?? .Signal.label
     }
 
-    /// 头像 / 封面：群和贴纸包用消息带来的图；用户、官网和没有图时用占位。
+    /// 头像 / 封面：群和贴纸包用消息带来的图；本机认识的用户用本地库里的头像（联系人照片 / 对方的资料头像 / 默认头像）；
+    /// 不认识的用户、通话、官网和没有图时用占位。
     private func avatarView(linkPreviewView: CVLinkPreviewView) -> UIView {
         let kind = firstParty?.kind
+        if kind == .user, let image = (linkPreview as? TellomiLinkPreviewCardState)?.userAvatar {
+            // 本地库里的头像（只读、不联网，card-visual §5.2，ADR-0063 §4.1），数据层已经取好；
+            // 头像视图拿现成的图（`.asset`），不在 cell 配置阶段开数据库事务。
+            let avatar = linkPreviewView.firstPartyAvatar
+            avatar.updateWithSneakyTransactionIfNecessary { config in
+                config.dataSource = .asset(avatar: image, badge: nil)
+            }
+            return avatar
+        }
         if
             kind == .group || kind == .sticker,
             linkPreview.hasLoadedImageOrBlurHash,
@@ -936,6 +946,10 @@ private class CVLinkPreviewViewAdapterFirstParty: CVLinkPreviewViewAdapter {
         placeholder.clipsToBounds = true
         placeholder.layer.cornerRadius = kind == .sticker || kind == .official ? 12 : Self.avatarSize / 2
         switch kind {
+        case .call:
+            placeholder.image = UIImage(named: "video-compact")?.withRenderingMode(.alwaysTemplate)
+            placeholder.tintColor = .Signal.secondaryLabel
+            placeholder.backgroundColor = .Signal.secondaryFill
         case .official:
             placeholder.contentMode = .scaleAspectFill
             placeholder.image = UIImage(resource: .AppIconPreview.default)
