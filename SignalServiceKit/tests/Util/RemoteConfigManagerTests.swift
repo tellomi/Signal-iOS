@@ -84,6 +84,22 @@ struct RemoteConfigTests {
         #expect(mergedConfig.lastKnownClockSkew == 3)
     }
 
+    /// Tellomi: the limit for creating a username is 20 (server `global.nicknames.max`, Android constant) even when the
+    /// server sent nothing; a served value still wins. Recognising existing usernames uses a separate, wider range.
+    @Test
+    func nicknameLengthLimits() {
+        let unset = RemoteConfig(clockSkew: 0, valueFlags: [:])
+        #expect(unset.minNicknameLength == 3)
+        #expect(unset.maxNicknameLength == 20)
+
+        let served = RemoteConfig(clockSkew: 0, valueFlags: [
+            "global.nicknames.min": "4",
+            "global.nicknames.max": "24",
+        ])
+        #expect(served.minNicknameLength == 4)
+        #expect(served.maxNicknameLength == 24)
+    }
+
     @Test
     func testNetConfig() {
         let remoteConfig = RemoteConfig(clockSkew: 0, valueFlags: [

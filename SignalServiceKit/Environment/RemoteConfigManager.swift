@@ -228,9 +228,15 @@ public class RemoteConfig {
         getUInt32Value(forFlag: .minNicknameLength, defaultValue: 3)
     }
 
-    /// The maximum length for a valid nickname, in Unicode codepoints.
+    /// The maximum length for a *new* nickname, in Unicode codepoints.
+    ///
+    /// Tellomi: the server sends `global.nicknames.max` = 20 (ADR-0066 §六), and Android hard-codes 20. Upstream falls back to
+    /// 32 when the flag is missing; that would let a client without a fetched config create 21–32 character usernames the
+    /// server cannot check (it only sees hashes). So the fallback is 20 too. This is the limit for creating a username only:
+    /// recognising an existing one (search, links) keeps the wider 3...32 range (`TellomiLinks`), so older 21–32 character
+    /// usernames still resolve.
     public var maxNicknameLength: UInt32 {
-        getUInt32Value(forFlag: .maxNicknameLength, defaultValue: 32)
+        getUInt32Value(forFlag: .maxNicknameLength, defaultValue: 20)
     }
 
     // MARK: -
