@@ -618,11 +618,13 @@ class ChatListCell: UITableViewCell, ReusableTableViewCell {
         var statusIndicatorImage: UIImage?
         var messageStatusViewTintColor = snippetColor
         var shouldAnimateStatusIcon = false
+        var tellomiRevealAtMs: UInt64?
 
         switch messageStatus {
         case .uploading, .sending:
             statusIndicatorImage = UIImage(named: "message_status_sending")
             shouldAnimateStatusIcon = true
+            tellomiRevealAtMs = threadViewModel.chatListInfo?.tellomiSendingIndicatorRevealAtMs
         case .sent, .skipped:
             if outgoingMessage.wasRemotelyDeleted {
                 return nil
@@ -632,7 +634,8 @@ class ChatListCell: UITableViewCell, ReusableTableViewCell {
             if outgoingMessage.wasRemotelyDeleted {
                 return nil
             }
-            statusIndicatorImage = UIImage(named: "message_status_delivered")
+            // Tellomi（#1184）：两档勾，已送达画成一个勾。
+            statusIndicatorImage = UIImage(named: "message_status_sent")
         case .read, .viewed:
             if outgoingMessage.wasRemotelyDeleted {
                 return nil
@@ -656,6 +659,7 @@ class ChatListCell: UITableViewCell, ReusableTableViewCell {
             image: image.withRenderingMode(.alwaysTemplate),
             tintColor: messageStatusViewTintColor,
             shouldAnimateStatusIcon: shouldAnimateStatusIcon,
+            tellomiRevealAtMs: tellomiRevealAtMs,
         )
     }
 
@@ -669,7 +673,34 @@ class ChatListCell: UITableViewCell, ReusableTableViewCell {
             messageStatusIconView.stopSpinning()
         }
 
+        tellomiRevealStatusIcon(
+            after: MessageRecipientStatusUtils.tellomiSendingIndicatorDelay(
+                revealAtMs: token.tellomiRevealAtMs,
+                nowMs: Date.ows_millisecondTimestamp(),
+            ),
+        )
+
         return messageStatusIconView
+    }
+
+    private var tellomiStatusRevealWorkItem: DispatchWorkItem?
+
+    /// Tellomi（#1184）：和气泡同一套 2 秒规则，转圈先占位不显示。
+    private func tellomiRevealStatusIcon(after delay: TimeInterval) {
+        tellomiStatusRevealWorkItem?.cancel()
+        tellomiStatusRevealWorkItem = nil
+
+        guard delay > 0 else {
+            messageStatusIconView.alpha = 1
+            return
+        }
+
+        messageStatusIconView.alpha = 0
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.messageStatusIconView.alpha = 1
+        }
+        tellomiStatusRevealWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
 
     // MARK: - Unread Indicator
@@ -949,6 +980,7 @@ class ChatListCell: UITableViewCell, ReusableTableViewCell {
             cvView.reset()
         }
         avatarView = nil
+        tellomiRevealStatusIcon(after: 0)
 
         // Some ManualStackViews are _NOT_ reset to facilitate reuse.
 
@@ -1033,6 +1065,8 @@ private struct CLVMessageStatusToken {
     let image: UIImage
     let tintColor: UIColor
     let shouldAnimateStatusIcon: Bool
+    /// Tellomi（#1184）：文字消息发送中的转圈到这个时间（毫秒）才露出来；nil = 立即。
+    var tellomiRevealAtMs: UInt64? = nil
 }
 
 // MARK: -
