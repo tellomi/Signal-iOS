@@ -2375,7 +2375,7 @@
 "COMPOSE_SCREEN_MISSING_CONTACTS_CTA" = "Open Settings";
 
 /* Multi-line label explaining why compose-screen contact picker is empty. */
-"COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "You can enable contacts access in the iOS Settings app to see which of your contacts are Tellomi users.";
+"COMPOSE_SCREEN_MISSING_CONTACTS_PERMISSION" = "You can enable contacts access in the iOS Settings app to show the names you’ve saved for your contacts in Tellomi.";
 
 /* Tellomi: shown at the top of the compose / member picker before the user has been asked for contacts access. Explains what contacts are used for. */
 "COMPOSE_SCREEN_CONTACTS_PERMISSION_PURPOSE_TELLOMI" = "Allow access to your contacts to show the names you’ve saved for them in Tellomi. Your contacts are not uploaded.";
@@ -5221,6 +5221,9 @@
 /* Hint in the photo picker's selected-only view that the photos can be dragged to change their order. */
 "IMAGE_PICKER_TELLOMI_DRAG_TO_REORDER" = "Drag to reorder";
 
+/* Button in the album viewer of the photo picker that opens the preview and editing screen for the photo being viewed. */
+"IMAGE_PICKER_TELLOMI_EDIT" = "Edit";
+
 /* Banner at the top of the photo picker when the user gave Tellomi access to only some photos. */
 "IMAGE_PICKER_TELLOMI_LIMITED_ACCESS" = "You’ve limited Tellomi’s access to your photos.";
 
@@ -6856,7 +6859,7 @@
 "ONBOARDING_MODE_SWITCH_WARNING_PROVISIONING" = "Registering this iPad will disable Tellomi on any other device currently registered with the same phone number.";
 
 /* Description of the 'Contacts' permission in the 'onboarding permissions' view. */
-"ONBOARDING_PERMISSIONS_CONTACTS_DESCRIPTION" = "Find people you know. Your contacts are encrypted and not visible to the Tellomi service.";
+"ONBOARDING_PERMISSIONS_CONTACTS_DESCRIPTION" = "Show the names you’ve saved for your contacts in Tellomi. Your contacts are not uploaded.";
 
 /* Title introducing the 'Contacts' permission in the 'onboarding permissions' view. */
 "ONBOARDING_PERMISSIONS_CONTACTS_TITLE" = "Contacts";
