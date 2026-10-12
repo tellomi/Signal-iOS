@@ -710,11 +710,30 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         }
     }
 
-    /// P-10：点照片本身（不是勾）：选上（没选的话），然后进上游的预览 / 编辑页。
+    /// 点照片本身（不是勾）：打开整本相册的查看器，从点的那张开始看，不自动选中（V-1）。
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
         guard let currentAlbum else { return }
-        let item = library.item(at: indexPath.item, in: currentAlbum)
+        presentAlbumViewer(album: currentAlbum, startingAt: indexPath.item)
+    }
+
+    private func presentAlbumViewer(album: TellomiPhotoPickerAlbum, startingAt index: Int) {
+        let viewer = TellomiPhotoPickerAlbumViewer(library: library, album: album, initialIndex: index)
+        viewer.selectionNumber = { [weak self] itemId in self?.selectionNumber(for: itemId) }
+        viewer.selectedCount = { [weak self] in self?.selectedIds.count ?? 0 }
+        viewer.onToggle = { [weak self] item in self?.toggleSelection(item) }
+        viewer.onShowSelected = { [weak self, weak viewer] in
+            viewer?.dismiss(animated: true) { self?.showSelectedOnly() }
+        }
+        viewer.onEdit = { [weak self, weak viewer] item in
+            viewer?.dismiss(animated: false) { self?.editFromAlbumViewer(item) }
+        }
+        viewer.onClose = { [weak viewer] in viewer?.dismiss(animated: true) }
+        viewer.modalPresentationStyle = .overFullScreen
+        present(viewer, animated: true)
+    }
+
+    private func editFromAlbumViewer(_ item: TellomiPhotoPickerItem) {
         if selectionNumber(for: item.id) == nil {
             guard setSelection(item: item, selected: true) else { return }
         }
@@ -784,7 +803,8 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             OWSLocalizedString("IMAGE_PICKER_TELLOMI_AT_MOST_FORMAT", comment: "Toast when trying to select more photos than allowed. Embeds {{ the maximum }}."),
             OWSFormat.formatInt(maxSelection),
         )
-        ToastController(text: text).presentToastView(from: .bottom, of: view, inset: view.safeAreaInsets.bottom + 80)
+        let host: UIView = presentedViewController?.view ?? view
+        ToastController(text: text).presentToastView(from: .bottom, of: host, inset: view.safeAreaInsets.bottom + 80)
     }
 
     /// 「✓N」「···」、底部说明栏跟着选中的数量出现 / 收起。
