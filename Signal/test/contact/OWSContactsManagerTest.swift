@@ -423,7 +423,7 @@ class OWSContactsManagerTest: SignalBaseTest {
         let userAci = Aci.randomForTesting()
         let userNumber = E164("+16505550121")!
         let strangerNumber = E164("+16505550122")!
-        SSKEnvironment.shared.databaseStorageRef.write { tx in
+        await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
             _ = try! SignalRecipient.insertRecord(aci: userAci, phoneNumber: userNumber, deviceIds: [.primary], tx: tx)
             _ = try! SignalRecipient.insertRecord(aci: .randomForTesting(), phoneNumber: strangerNumber, tx: tx)
         }
