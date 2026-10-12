@@ -8,14 +8,15 @@ import SignalUI
 
 /// Tellomi（tellomi/tellomi#1518，V-1；照 Telegram `TGMediaPickerModernGalleryMixin` 的网格点开）：
 /// 网格点照片打开整本相册的查看器，左右滑看整本相册，点开不自动选中；单击照片或右上角勾选即时增减（照 Telegram
-/// `TGMediaPickerGalleryPhotoItemView` 单击切换）；选中计数点开切出已选；「编辑」进上游的预览 / 编辑页，先看到当前这张。
+/// `TGMediaPickerGalleryPhotoItemView` 单击切换）；选中计数点开切出已选；底部「裁剪」「绘制」直接打开上游对应的工具，
+/// 「编辑」进上游的预览 / 编辑页，都先看到当前这张（照 Telegram `TGMediaPickerGalleryPhotoItem` 底部工具栏的 Crop / Paint）。
 final class TellomiPhotoPickerAlbumViewer: UIViewController {
 
     var selectionNumber: (String) -> Int? = { _ in nil }
     var selectedCount: () -> Int = { 0 }
     var onToggle: ((TellomiPhotoPickerItem) -> Void)?
     var onShowSelected: (() -> Void)?
-    var onEdit: ((TellomiPhotoPickerItem) -> Void)?
+    var onEdit: ((TellomiPhotoPickerItem, TellomiApprovalEditTool?) -> Void)?
     var onClose: (() -> Void)?
 
     private let library: TellomiPhotoPickerLibrary
@@ -92,6 +93,24 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
         return button
     }()
 
+    private lazy var cropButton = makeToolButton(
+        image: UIImage(imageLiteralResourceName: "crop-rotate"),
+        accessibilityLabel: OWSLocalizedString(
+            "ATTACHMENT_TOOL_BUTTON_CROP_SCALE_ACCESSIBILITY_LABEL",
+            comment: "Accessibility label for the 'crop/scale image' dialog.",
+        ),
+        tool: .crop,
+    )
+
+    private lazy var penButton = makeToolButton(
+        image: UIImage(imageLiteralResourceName: "brush-pen"),
+        accessibilityLabel: OWSLocalizedString(
+            "ATTACHMENT_TOOL_BUTTON_PEN_ACCESSIBILITY_LABEL",
+            comment: "Accessibility label for the 'pen' dialog.",
+        ),
+        tool: .pen,
+    )
+
     private lazy var editButton: UIButton = {
         var configuration = UIButton.Configuration.filled()
         configuration.baseBackgroundColor = .Signal.accent
@@ -100,6 +119,14 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
         configuration.title = OWSLocalizedString("IMAGE_PICKER_TELLOMI_EDIT", comment: "Button in the album viewer of the photo picker that opens the preview and editing screen for the photo being viewed.")
         configuration.contentInsets = .init(top: 10, leading: 24, bottom: 10, trailing: 24)
         return UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in self?.didTapEdit() })
+    }()
+
+    private lazy var bottomToolbar: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [cropButton, penButton, editButton])
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 12
+        return stack
     }()
 
     init(library: TellomiPhotoPickerLibrary, album: TellomiPhotoPickerAlbum, initialIndex: Int) {
@@ -156,8 +183,13 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
             countButton.topAnchor.constraint(equalTo: checkButton.bottomAnchor, constant: 4),
             countButton.heightAnchor.constraint(equalToConstant: 28),
 
-            editButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            editButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            cropButton.widthAnchor.constraint(equalToConstant: 44),
+            cropButton.heightAnchor.constraint(equalToConstant: 44),
+            penButton.widthAnchor.constraint(equalToConstant: 44),
+            penButton.heightAnchor.constraint(equalToConstant: 44),
+
+            bottomToolbar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            bottomToolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
         ])
         refreshChrome(animatedCheck: false)
     }
@@ -185,8 +217,22 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
     }
 
     private func didTapEdit() {
+        didTapEdit(tool: nil)
+    }
+
+    private func didTapEdit(tool: TellomiApprovalEditTool?) {
         guard items.indices.contains(currentIndex) else { return }
-        onEdit?(items[currentIndex])
+        onEdit?(items[currentIndex], tool)
+    }
+
+    private func makeToolButton(image: UIImage, accessibilityLabel: String, tool: TellomiApprovalEditTool) -> UIButton {
+        var configuration = UIButton.Configuration.gray()
+        configuration.image = image.withRenderingMode(.alwaysTemplate)
+        configuration.baseForegroundColor = .Signal.label
+        configuration.cornerStyle = .capsule
+        let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in self?.didTapEdit(tool: tool) })
+        button.accessibilityLabel = accessibilityLabel
+        return button
     }
 
     @objc private func handleDismissPan(_ gesture: UIPanGestureRecognizer) {
@@ -240,7 +286,7 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
     }
 
     private var chromeViews: [UIView] {
-        [closeButton, positionPill, checkButton, countButton, editButton]
+        [closeButton, positionPill, checkButton, countButton, bottomToolbar]
     }
 
     private var currentPageIsZoomed: Bool {
@@ -270,6 +316,9 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
         if items.indices.contains(currentIndex) {
             let itemId = items[currentIndex].id
             checkButton.setNumber(selectionNumber(itemId), accentColor: .Signal.accent, animated: animatedCheck)
+            let isImage = !items[currentIndex].isVideo
+            cropButton.isHidden = !isImage
+            penButton.isHidden = !isImage
         }
 
         let count = selectedCount()
@@ -524,6 +573,12 @@ extension TellomiPhotoPickerAlbumViewer {
     func tapEditForTesting() {
         didTapEdit()
     }
+
+    func tapToolForTesting(_ tool: TellomiApprovalEditTool) {
+        didTapEdit(tool: tool)
+    }
+
+    var isImageToolsShownForTesting: Bool { !cropButton.isHidden && !penButton.isHidden }
 }
 
 #endif

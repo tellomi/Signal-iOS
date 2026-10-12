@@ -465,6 +465,57 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertFalse(sent.separately)
     }
 
+    /// 查看器底部「绘制」「裁剪」：和「编辑」一样先选上当前这张、进上游的预览 / 编辑页，并直接打开对应的工具。
+    @MainActor
+    func testAlbumViewerPenAndCropShortcutsOpenTheMatchingUpstreamTool() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+
+        picker.tapCheckForTesting(itemIndex: 3)
+        picker.tapItemForTesting(itemIndex: 4)
+        let viewed = await waitUntil { self.albumViewer(over: picker) != nil }
+        XCTAssertTrue(viewed)
+        let viewer = try XCTUnwrap(albumViewer(over: picker))
+        XCTAssertTrue(viewer.isImageToolsShownForTesting, "图片上有「裁剪」「绘制」")
+
+        viewer.tapToolForTesting(.pen)
+        let penOpened = await waitUntil { self.approvalViewController(over: picker) != nil }
+        XCTAssertTrue(penOpened, "绘制进了上游的预览 / 编辑页")
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r3", "r4"], "和「编辑」一样先选上当前这张")
+        let penApproval = try XCTUnwrap(approvalViewController(over: picker))
+        XCTAssertTrue(penApproval.currentItem?.attachment.rawValue === hosted.library.attachmentsById["r4"]?.rawValue)
+        let penToolOnScreen = await waitUntil { penApproval.currentPageViewController?.presentedViewController is ImageEditorViewController }
+        XCTAssertTrue(penToolOnScreen, "直接打开了上游的涂鸦工具")
+
+        picker.attachmentApprovalDidCancel()
+        let penClosed = await waitUntil { picker.presentedViewController == nil }
+        XCTAssertTrue(penClosed)
+
+        picker.tapItemForTesting(itemIndex: 4)
+        let reviewed = await waitUntil { self.albumViewer(over: picker) != nil }
+        XCTAssertTrue(reviewed)
+        try XCTUnwrap(albumViewer(over: picker)).tapToolForTesting(.crop)
+        let cropOpened = await waitUntil { self.approvalViewController(over: picker) != nil }
+        XCTAssertTrue(cropOpened, "裁剪进了上游的预览 / 编辑页")
+        let cropApproval = try XCTUnwrap(approvalViewController(over: picker))
+        let cropToolOnScreen = await waitUntil { cropApproval.currentPageViewController?.presentedViewController is ImageEditorCropViewController }
+        XCTAssertTrue(cropToolOnScreen, "直接打开了上游的裁剪工具")
+    }
+
+    /// 视频没有「裁剪」「绘制」（上游对视频没有这两个工具），底部只剩「编辑」。
+    @MainActor
+    func testAlbumViewerHidesImageToolsForVideos() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+
+        picker.tapItemForTesting(itemIndex: 1)
+        let viewed = await waitUntil { self.albumViewer(over: picker) != nil }
+        XCTAssertTrue(viewed)
+        XCTAssertFalse(try XCTUnwrap(albumViewer(over: picker)).isImageToolsShownForTesting, "视频不显示「裁剪」「绘制」")
+    }
+
     /// 网格点照片：进整本相册的查看器，先看到点的那张，点开不自动选中。
     @MainActor
     func testTapPhotoOpensAlbumViewerAtThatPhotoWithoutSelecting() async throws {
