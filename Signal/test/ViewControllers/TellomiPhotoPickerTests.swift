@@ -477,7 +477,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         let viewed = await waitUntil { self.albumViewer(over: picker) != nil }
         XCTAssertTrue(viewed)
         let viewer = try XCTUnwrap(albumViewer(over: picker))
-        XCTAssertTrue(viewer.isImageToolsShownForTesting, "图片上有「裁剪」「绘制」")
+        XCTAssertTrue(viewer.isCropShownForTesting, "图片上有「裁剪」")
+        XCTAssertTrue(viewer.isPenShownForTesting, "图片上有「绘制」")
 
         viewer.tapToolForTesting(.pen)
         let penOpened = await waitUntil { self.approvalViewController(over: picker) != nil }
@@ -513,7 +514,24 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         picker.tapItemForTesting(itemIndex: 1)
         let viewed = await waitUntil { self.albumViewer(over: picker) != nil }
         XCTAssertTrue(viewed)
-        XCTAssertFalse(try XCTUnwrap(albumViewer(over: picker)).isImageToolsShownForTesting, "视频不显示「裁剪」「绘制」")
+        let viewer = try XCTUnwrap(albumViewer(over: picker))
+        XCTAssertFalse(viewer.isCropShownForTesting, "视频不显示「裁剪」")
+        XCTAssertFalse(viewer.isPenShownForTesting, "视频不显示「绘制」")
+    }
+
+    /// 动图（GIF）：上游预览页不支持裁剪 / 绘制，底部和视频一样只剩「编辑」。
+    @MainActor
+    func testAlbumViewerHidesImageToolsForAnimatedImages() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+
+        picker.tapItemForTesting(itemIndex: 5)
+        let viewed = await waitUntil { self.albumViewer(over: picker) != nil }
+        XCTAssertTrue(viewed)
+        let viewer = try XCTUnwrap(albumViewer(over: picker))
+        XCTAssertFalse(viewer.isCropShownForTesting, "动图不显示「裁剪」")
+        XCTAssertFalse(viewer.isPenShownForTesting, "动图不显示「绘制」")
     }
 
     /// 网格点照片：进整本相册的查看器，先看到点的那张，点开不自动选中。
@@ -1568,12 +1586,13 @@ private final class FakePhotoLibrary: TellomiPhotoPickerLibrary {
                 isVideo: index == 1 || index == 7,
                 duration: index == 1 ? 75 : 3_725,
                 isLivePhoto: index == 2,
+                isAnimatedImage: index == 5,
                 pixelSize: Self.pixelSizes[index % Self.pixelSizes.count],
                 asset: nil,
             )
         }
         screenshots = (0..<3).map { index in
-            TellomiPhotoPickerItem(id: "s\(index)", isVideo: false, duration: 0, isLivePhoto: false, pixelSize: CGSize(width: 1170, height: 2532), asset: nil)
+            TellomiPhotoPickerItem(id: "s\(index)", isVideo: false, duration: 0, isLivePhoto: false, isAnimatedImage: false, pixelSize: CGSize(width: 1170, height: 2532), asset: nil)
         }
     }
 

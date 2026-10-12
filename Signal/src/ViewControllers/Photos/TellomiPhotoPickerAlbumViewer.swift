@@ -121,8 +121,8 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
         return UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in self?.didTapEdit() })
     }()
 
-    private lazy var bottomToolbar: UIStackView = {
-        let stack = UIStackView(arrangedSubviews: [cropButton, penButton, editButton])
+    private lazy var toolsStack: UIStackView = {
+        let stack = UIStackView(arrangedSubviews: [cropButton, penButton])
         stack.axis = .horizontal
         stack.alignment = .center
         stack.spacing = 12
@@ -188,8 +188,10 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
             penButton.widthAnchor.constraint(equalToConstant: 44),
             penButton.heightAnchor.constraint(equalToConstant: 44),
 
-            bottomToolbar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            bottomToolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            editButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            editButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            toolsStack.trailingAnchor.constraint(equalTo: editButton.leadingAnchor, constant: -12),
+            toolsStack.centerYAnchor.constraint(equalTo: editButton.centerYAnchor),
         ])
         refreshChrome(animatedCheck: false)
     }
@@ -286,7 +288,7 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
     }
 
     private var chromeViews: [UIView] {
-        [closeButton, positionPill, checkButton, countButton, bottomToolbar]
+        [closeButton, positionPill, checkButton, countButton, toolsStack, editButton]
     }
 
     private var currentPageIsZoomed: Bool {
@@ -316,9 +318,8 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
         if items.indices.contains(currentIndex) {
             let itemId = items[currentIndex].id
             checkButton.setNumber(selectionNumber(itemId), accentColor: .Signal.accent, animated: animatedCheck)
-            let isImage = !items[currentIndex].isVideo
-            cropButton.isHidden = !isImage
-            penButton.isHidden = !isImage
+            let item = items[currentIndex]
+            toolsStack.isHidden = item.isVideo || item.isAnimatedImage
         }
 
         let count = selectedCount()
@@ -578,7 +579,8 @@ extension TellomiPhotoPickerAlbumViewer {
         didTapEdit(tool: tool)
     }
 
-    var isImageToolsShownForTesting: Bool { !cropButton.isHidden && !penButton.isHidden }
+    var isCropShownForTesting: Bool { !toolsStack.isHidden && !cropButton.isHidden }
+    var isPenShownForTesting: Bool { !toolsStack.isHidden && !penButton.isHidden }
 }
 
 #endif
