@@ -221,7 +221,7 @@
 "ALL_MEDIA_THUMBNAIL_LABEL_VIDEO" = "影片";
 
 /* Title for the view of all your signal connections */
-"ALL_SIGNAL_CONNECTIONS_TITLE" = "所有聯絡人";
+"ALL_SIGNAL_CONNECTIONS_TITLE" = "所有好友";
 
 /* notification body */
 "APN_Message" = "您可能有新訊息";
@@ -2426,7 +2426,7 @@
 "CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "「 %1$@ 」是此人在 Tellomi 中為自己設定的個人檔案名稱。";
 
 /* A label indicating a user is a signal connection. */
-"CONTACT_ABOUT_SHEET_SIGNAL_CONNECTION_LABEL" = "Tellomi 人脈";
+"CONTACT_ABOUT_SHEET_SIGNAL_CONNECTION_LABEL" = "Tellomi 好友";
 
 /* The title for a contact 'about' sheet. */
 "CONTACT_ABOUT_SHEET_TITLE" = "關於";
@@ -4154,7 +4154,7 @@
 "FORWARD_MESSAGE_TELLOMI_GRID_SECTION_GROUPS" = "群組";
 
 /* Tellomi: section title of recent contacts in forward search. */
-"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_RECENT" = "最近聯絡人";
+"FORWARD_MESSAGE_TELLOMI_GRID_SECTION_RECENT" = "最近好友";
 
 /* Tellomi: toast when trying to select more chats than allowed. Embeds {{the limit}}. */
 "FORWARD_MESSAGE_TELLOMI_GRID_SELECTION_LIMIT_%d" = "最多選 %d 個聊天";
@@ -5351,10 +5351,10 @@
 "INFO_MESSAGE_BLOCKED_OTHER_USER" = "你已封鎖此人。";
 
 /* Indicates that a previously-removed recipient has been added back to the current user's contacts. */
-"INFO_MESSAGE_CONTACT_REINSTATED" = "此人已被重新加回你的 Tellomi 聯絡人清單。";
+"INFO_MESSAGE_CONTACT_REINSTATED" = "此人已被重新加回你的 Tellomi 好友清單。";
 
 /* Indicates that the recipient has been removed from the current user's contacts and that messaging them will re-add them. */
-"INFO_MESSAGE_CONTACT_REMOVED" = "你已從 Tellomi 聯絡人清單中移除了此人，若向他們發送訊息，會將他們重新加回清單。";
+"INFO_MESSAGE_CONTACT_REMOVED" = "你已從 Tellomi 好友清單中移除了此人，若向他們發送訊息，會將他們重新加回清單。";
 
 /* When you start a chat with someone and then later learn their profile name, we insert an in-chat message with this string to record the identifier you originally used to contact them. Embeds {{ the identifier, either a phone number or a username }}. */
 "INFO_MESSAGE_LEARNED_PROFILE_KEY" = "你已開始與 %1$@ 聊天。";
@@ -5621,7 +5621,7 @@
 "LINK_PREVIEW_UNKNOWN_DOMAIN" = "連結預覽";
 
 /* Shown in an alert when trying to edit a contact. */
-"LINKED_DEVICE_CONTACTS_NOT_ALLOWED" = "無法再使用已連結裝置管理電話通訊錄。如要將 Tellomi 人脈新增至電話通訊錄，請在你的主要裝置上打開 Tellomi。";
+"LINKED_DEVICE_CONTACTS_NOT_ALLOWED" = "無法再使用已連結裝置管理電話通訊錄。如要將 Tellomi 好友新增至電話通訊錄，請在你的主要裝置上打開 Tellomi。";
 
 /* Bullet point on the linked devices info sheet, describing what can be linked. */
 "LINKED_DEVICE_INFO_SHEET_BULLET_1" = "你可以連結桌面電腦、平板電腦或其他手機。";
@@ -6433,7 +6433,7 @@
 "MY_STORIES_SETTINGS_VISIBILITY_ALL_SIGNAL_CONNECTIONS_EXCEPT_TITLE" = "所有人，除了…";
 
 /* Title for the visibility option */
-"MY_STORIES_SETTINGS_VISIBILITY_ALL_SIGNAL_CONNECTIONS_TITLE" = "所有 Tellomi 人脈";
+"MY_STORIES_SETTINGS_VISIBILITY_ALL_SIGNAL_CONNECTIONS_TITLE" = "所有 Tellomi 好友";
 
 /* Title for the visibility option */
 "MY_STORIES_SETTINGS_VISIBILITY_ONLY_SHARE_WITH_TITLE" = "只分享給…";
@@ -8434,7 +8434,7 @@
 "REGISTRATION_PROFILE_SETUP_GIVEN_NAME_FIELD_PLACEHOLDER" = "名字";
 
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the message on a sheet that appears when they do that. */
-"REGISTRATION_PROFILE_SETUP_MORE_INFO_DETAILS" = "你的聯絡人以及當你開始或接受新聊天時，對方將會看見你的姓名、相片和其變更。";
+"REGISTRATION_PROFILE_SETUP_MORE_INFO_DETAILS" = "你的好友以及當你開始或接受新聊天時，對方將會看見你的姓名、相片和其變更。";
 
 /* During registration, users set up their profile. They can learn more about the privacy of their profile by clicking a \"learn more\" button. This is the title on a sheet that appears when they do that. */
 "REGISTRATION_PROFILE_SETUP_MORE_INFO_TITLE" = "關於個人資料隱私";
@@ -8770,7 +8770,7 @@
 "SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_BUTTON_VERIFYING" = "正在進行加密驗證…";
 
 /* Body for a sheet introducing Key Transparency. */
-"SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_EDUCATION_SHEET_BODY" = "對於透過電話號碼建立聯繫的人，Tellomi 會透過稱為「金鑰透明度」的程序，自動確認聯絡對象是否安全。為了增加安全性，你仍然可以使用二維碼或比對安全碼手動驗證聯絡人。";
+"SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_EDUCATION_SHEET_BODY" = "對於透過電話號碼建立聯繫的人，Tellomi 會透過稱為「金鑰透明度」的程序，自動確認聯絡對象是否安全。為了增加安全性，你仍然可以使用二維碼或比對安全碼手動驗證好友。";
 
 /* Title for a sheet introducing Key Transparency. */
 "SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_EDUCATION_SHEET_TITLE" = "Tellomi 現在可自動驗證加密";
@@ -8794,7 +8794,7 @@
 "SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_NOT_AVAILABLE_SHEET_TITLE" = "自動驗證功能不適用於此聊天";
 
 /* Body for a sheet explaining that encryption auto-verification succeeded. */
-"SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_SUCCESS_SHEET_BODY" = "對於透過電話號碼建立聯繫的聯絡人，Tellomi 會透過稱為「金鑰透明度」的程序，自動確認聯絡對象是否安全。為了增加安全性，透過比較上一個畫面的數字或掃瞄對方裝置上的二維碼來手動驗證端對端加密。";
+"SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_SUCCESS_SHEET_BODY" = "對於透過電話號碼建立聯繫的好友，Tellomi 會透過稱為「金鑰透明度」的程序，自動確認聯絡對象是否安全。為了增加安全性，透過比較上一個畫面的數字或掃瞄對方裝置上的二維碼來手動驗證端對端加密。";
 
 /* Title for a sheet explaining that encryption auto-verification succeeded. */
 "SAFETY_NUMBERS_AUTOMATIC_VERIFICATION_SUCCESS_SHEET_TITLE" = "系統已對此聊天進行自動加密驗證";
@@ -8911,7 +8911,7 @@
 "SEARCH_FIELD_PLACE_HOLDER_TEXT" = "搜尋";
 
 /* section header for search results that match a contact who doesn't have an existing conversation */
-"SEARCH_SECTION_CONTACTS" = "其他聯絡人";
+"SEARCH_SECTION_CONTACTS" = "其他好友";
 
 /* section header for search results that match existing 1:1 chats */
 "SEARCH_SECTION_CONVERSATIONS" = "聊天";
@@ -9268,7 +9268,7 @@
 "SETTINGS_BLOCK_LIST_ADD_BUTTON" = "新增被封鎖的用戶";
 
 /* A label that indicates the user has no Signal contacts that they haven't blocked. */
-"SETTINGS_BLOCK_LIST_NO_CONTACTS" = "您沒有任何 Tellomi 聯絡人。";
+"SETTINGS_BLOCK_LIST_NO_CONTACTS" = "您沒有任何 Tellomi 好友。";
 
 /* A label that indicates the user's search has no matching results. */
 "SETTINGS_BLOCK_LIST_NO_SEARCH_RESULTS" = "查無結果";
@@ -10672,22 +10672,22 @@
 "STORY_SETTINGS_LEARN_MORE_SHEET_BULLET_3" = "你的手機通訊錄中有對方的聯絡資料";
 
 /* Footer for the explainer sheet for signal connections */
-"STORY_SETTINGS_LEARN_MORE_SHEET_FOOTER" = "你的人脈可以看到你的名字和相片。除非你對他們隱藏限時快拍，否則他們也可以看到你發送的「我的限時快拍」。";
+"STORY_SETTINGS_LEARN_MORE_SHEET_FOOTER" = "你的好友可以看到你的名字和相片。除非你對他們隱藏限時快拍，否則他們也可以看到你發送的「我的限時快拍」。";
 
 /* Header for the explainer sheet for signal connections */
-"STORY_SETTINGS_LEARN_MORE_SHEET_HEADER_FORMAT" = "<bold>Tellomi 人脈</bold>是你透過以下方式選擇而值得信任的人：";
+"STORY_SETTINGS_LEARN_MORE_SHEET_HEADER_FORMAT" = "<bold>Tellomi 好友</bold>是你透過以下方式選擇而值得信任的人：";
 
 /* Label for the stories section of the settings view */
 "STORY_SETTINGS_TITLE" = "限時快拍";
 
 /* Section footer for the 'viewers' section on the 'story settings' view */
-"STORY_SETTINGS_WHO_CAN_VIEW_THIS_FOOTER" = "選擇哪些 Tellomi 人脈可以瀏覽你的限時快拍。這不會影響你在更改前發送的限時快拍。";
+"STORY_SETTINGS_WHO_CAN_VIEW_THIS_FOOTER" = "選擇哪些 Tellomi 好友可以瀏覽你的限時快拍。這不會影響你在更改前發送的限時快拍。";
 
 /* Section header for the 'viewers' section on the 'story settings' view */
 "STORY_SETTINGS_WHO_CAN_VIEW_THIS_HEADER" = "誰可以瀏覽此限時快拍";
 
 /* Header for the 'viewers' section on the 'story settings' bottom sheet */
-"STORY_SETTINGS_WHO_CAN_VIEW_THIS_SHEET_HEADER" = "選擇哪些 Tellomi 人脈可以瀏覽你的限時快拍。你可以隨時在隱私設定中進行更改。";
+"STORY_SETTINGS_WHO_CAN_VIEW_THIS_SHEET_HEADER" = "選擇哪些 Tellomi 好友可以瀏覽你的限時快拍。你可以隨時在隱私設定中進行更改。";
 
 /* Tooltip text shown when the user selects a story as a destination for a long duration video that will be split into shorter segments. Embeds {{ segment duration in seconds }} */
 "STORY_VIDEO_SEGMENTATION_TOOLTIP_FORMAT" = "發送至限時快拍的影片將被剪輯成 %1$d 秒的短片，並以多則限時快拍發送。";

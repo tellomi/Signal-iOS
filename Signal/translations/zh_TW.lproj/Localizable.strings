@@ -221,7 +221,7 @@
 "ALL_MEDIA_THUMBNAIL_LABEL_VIDEO" = "影片";
 
 /* Title for the view of all your signal connections */
-"ALL_SIGNAL_CONNECTIONS_TITLE" = "所有聯絡人";
+"ALL_SIGNAL_CONNECTIONS_TITLE" = "所有好友";
 
 /* notification body */
 "APN_Message" = "你有新訊息";
@@ -2426,7 +2426,7 @@
 "CONTACT_ABOUT_SHEET_SECONDARY_NAME_TOOLTIP_MESSAGE" = "「 %1$@ 」是此人在 Tellomi 中為自己設定的個人檔案名稱。";
 
 /* A label indicating a user is a signal connection. */
-"CONTACT_ABOUT_SHEET_SIGNAL_CONNECTION_LABEL" = "Tellomi 人脈";
+"CONTACT_ABOUT_SHEET_SIGNAL_CONNECTION_LABEL" = "好友";
 
 /* The title for a contact 'about' sheet. */
 "CONTACT_ABOUT_SHEET_TITLE" = "關於";
@@ -5351,10 +5351,10 @@
 "INFO_MESSAGE_BLOCKED_OTHER_USER" = "你已封鎖此人。";
 
 /* Indicates that a previously-removed recipient has been added back to the current user's contacts. */
-"INFO_MESSAGE_CONTACT_REINSTATED" = "此人已被重新加回你的 Tellomi 聯絡人清單。";
+"INFO_MESSAGE_CONTACT_REINSTATED" = "此人已被重新加回你的 Tellomi 好友清單。";
 
 /* Indicates that the recipient has been removed from the current user's contacts and that messaging them will re-add them. */
-"INFO_MESSAGE_CONTACT_REMOVED" = "你已從 Tellomi 聯絡人清單中移除了此人，若向他們發送訊息，會將他們重新加回清單。";
+"INFO_MESSAGE_CONTACT_REMOVED" = "你已從 Tellomi 好友清單中移除了此人，若向他們發送訊息，會將他們重新加回清單。";
 
 /* When you start a chat with someone and then later learn their profile name, we insert an in-chat message with this string to record the identifier you originally used to contact them. Embeds {{ the identifier, either a phone number or a username }}. */
 "INFO_MESSAGE_LEARNED_PROFILE_KEY" = "你已開始與 %1$@ 聊天。";
@@ -5621,7 +5621,7 @@
 "LINK_PREVIEW_UNKNOWN_DOMAIN" = "連結預覽";
 
 /* Shown in an alert when trying to edit a contact. */
-"LINKED_DEVICE_CONTACTS_NOT_ALLOWED" = "無法再使用已連結裝置管理電話通訊錄。如要將 Tellomi 人脈新增至電話通訊錄，請在你的主要裝置上打開 Tellomi。";
+"LINKED_DEVICE_CONTACTS_NOT_ALLOWED" = "無法再使用已連結裝置管理電話通訊錄。如要將好友新增至電話通訊錄，請在你的主要裝置上打開 Tellomi。";
 
 /* Bullet point on the linked devices info sheet, describing what can be linked. */
 "LINKED_DEVICE_INFO_SHEET_BULLET_1" = "你可以連結桌面電腦、平板電腦或其他手機。";
@@ -5636,7 +5636,7 @@
 "LINKED_DEVICE_INFO_SHEET_HEADER" = "<bold>「已連結裝置」</bold>讓你在任何其他裝置上安全地存取你的 Tellomi 帳戶和訊息。";
 
 /* Shown in a banner when you tap the 'New Chat' icon at the top of the list of chats. */
-"LINKED_DEVICE_MANAGE_CONTACTS_BANNER" = "不再支援在已連結裝置上管理電話通訊錄。此裝置將繼續從你主要裝置上的 Tellomi 同步聯絡人清單的任何變更。";
+"LINKED_DEVICE_MANAGE_CONTACTS_BANNER" = "不再支援在已連結裝置上管理電話通訊錄。此裝置將繼續從你主要裝置上的 Tellomi 同步好友清單的任何變更。";
 
 /* A button shown in a banner when you tap the 'New Chat' icon at the top of the list of chats. Tapping it opens a website with more details. */
 "LINKED_DEVICE_MANAGE_CONTACTS_LEARN_MORE" = "了解更多";
@@ -6433,7 +6433,7 @@
 "MY_STORIES_SETTINGS_VISIBILITY_ALL_SIGNAL_CONNECTIONS_EXCEPT_TITLE" = "所有人，除了…";
 
 /* Title for the visibility option */
-"MY_STORIES_SETTINGS_VISIBILITY_ALL_SIGNAL_CONNECTIONS_TITLE" = "所有 Tellomi 聯絡人";
+"MY_STORIES_SETTINGS_VISIBILITY_ALL_SIGNAL_CONNECTIONS_TITLE" = "所有好友";
 
 /* Title for the visibility option */
 "MY_STORIES_SETTINGS_VISIBILITY_ONLY_SHARE_WITH_TITLE" = "僅和這些人分享…";
@@ -6445,7 +6445,7 @@
 "MY_STORY_NAME" = "我的限時快拍";
 
 /* Subtitle shown on my story in the conversation picker when sending a story for the first time with unset my story privacy settings. */
-"MY_STORY_PICKER_UNSET_PRIVACY_SUBTITLE" = "選擇誰能瀏覽你的限動";
+"MY_STORY_PICKER_UNSET_PRIVACY_SUBTITLE" = "選擇誰能瀏覽你的快拍";
 
 /* Title for the my story settings sheet */
 "MY_STORY_SETTINGS_SHEET_TITLE" = "「我的限時快拍」私隱設定";
@@ -6544,22 +6544,22 @@
 "NEW_NONCONTACT_CONVERSATION_VIEW_TITLE" = "以電話號碼搜尋";
 
 /* Title for the 'new private story' confirmation view */
-"NEW_PRIVATE_STORY_CONFIRM_TITLE" = "為限動命名";
+"NEW_PRIVATE_STORY_CONFIRM_TITLE" = "為快拍命名";
 
 /* Button to create a new private story */
 "NEW_PRIVATE_STORY_CREATE_BUTTON" = "建立";
 
 /* Message for error alert indicating that a story name is required. */
-"NEW_PRIVATE_STORY_MISSING_NAME_ALERT_MESSAGE" = "限動名稱為必填。";
+"NEW_PRIVATE_STORY_MISSING_NAME_ALERT_MESSAGE" = "快拍名稱為必填。";
 
 /* Title for error alert indicating that a story name is required. */
-"NEW_PRIVATE_STORY_MISSING_NAME_ALERT_TITLE" = "缺少限動名稱";
+"NEW_PRIVATE_STORY_MISSING_NAME_ALERT_TITLE" = "缺少快拍名稱";
 
 /* Section footer for the name text field on the 'new private story' creation view */
 "NEW_PRIVATE_STORY_NAME_FOOTER" = "只有你可看到此限時快拍的名稱。";
 
 /* Placeholder text for a new private story name */
-"NEW_PRIVATE_STORY_NAME_PLACEHOLDER" = "限動名稱 (必填)";
+"NEW_PRIVATE_STORY_NAME_PLACEHOLDER" = "快拍名稱 (必填)";
 
 /* The title for the 'new private story' view. */
 "NEW_PRIVATE_STORY_VIEW_TITLE" = "選取瀏覽者";
@@ -6580,7 +6580,7 @@
 "NEW_STORY_SHEET_GROUP_STORY_SUBTITLE" = "分享至現有的群組";
 
 /* Title for create group story row on the 'new story sheet' */
-"NEW_STORY_SHEET_GROUP_STORY_TITLE" = "新的群組限動";
+"NEW_STORY_SHEET_GROUP_STORY_TITLE" = "新的群組快拍";
 
 /* Title for the table cell in conversation settings for presenting the profile nickname editor. */
 "NICKNAME_BUTTON_TITLE" = "暱稱";
@@ -10453,7 +10453,7 @@
 "STORIES_DELETE_STORY_ACTION" = "刪除";
 
 /* Title asking the user if they are sure they want to delete their story */
-"STORIES_DELETE_STORY_ACTION_SHEET_TITLE" = "要刪除此限動嗎？若其他人已收到此限動，系統也會一併刪除。";
+"STORIES_DELETE_STORY_ACTION_SHEET_TITLE" = "要刪除此快拍嗎？若其他人已收到此快拍，系統也會一併刪除。";
 
 /* Title asking the user if they are sure they want to delete their story for themselves only. */
 "STORIES_DELETE_STORY_FOR_ME_ACTION_SHEET_TITLE" = "要刪除這個限時快拍嗎？由於群組已結束，此內容僅會針對你個人進行刪除";
@@ -10504,7 +10504,7 @@
 "STORIES_NO_VIEWS_YET" = "尚未觀看";
 
 /* Section footer for the 'replies & reactions' section in stories settings */
-"STORIES_REPLIES_AND_REACTIONS_FOOTER" = "讓大家知道誰能瀏覽你的限動，同時送出反應並回覆內容。";
+"STORIES_REPLIES_AND_REACTIONS_FOOTER" = "讓大家知道誰能瀏覽你的快拍，同時送出反應並回覆內容。";
 
 /* Section header for the 'replies & reactions' section in stories settings */
 "STORIES_REPLIES_AND_REACTIONS_HEADER" = "回覆及反應";
@@ -10597,7 +10597,7 @@
 "STORY_PRIVACY_SETTINGS" = "隱私權";
 
 /* Title for the story privacy settings view */
-"STORY_PRIVACY_TITLE" = "限動隱私設定";
+"STORY_PRIVACY_TITLE" = "快拍隱私設定";
 
 /* Text explaining that you reacted to someone else's story. Embeds {{ %1$@ reaction emoji, %2$@ story author name }}. */
 "STORY_REACTION_PREVIEW_FORMAT_SECOND_PERSON" = "你用 %1$@ 回應了 %2$@ 的限時快拍";
@@ -10633,7 +10633,7 @@
 "STORY_RESEND_FAILED_MESSAGE_ACTION_SHEET" = "無法傳送限時快拍。請檢查你的網絡連線，然後再試一次。";
 
 /* Title for the dialog asking user if they wish to resend a partially failed story message. */
-"STORY_RESEND_PARTIALLY_FAILED_MESSAGE_ACTION_SHEET" = "無法將此限動傳送給某些用戶。請檢查您的連線，然後再試一次";
+"STORY_RESEND_PARTIALLY_FAILED_MESSAGE_ACTION_SHEET" = "無法將此快拍傳送給某些用戶。請檢查您的連線，然後再試一次";
 
 /* The title for the 'select connections for story' view. */
 "STORY_SELECT_ALLOWED_CONNECTIONS_VIEW_TITLE" = "只分享給…";
@@ -10672,25 +10672,25 @@
 "STORY_SETTINGS_LEARN_MORE_SHEET_BULLET_3" = "你的手機通訊錄中有對方的聯絡資料";
 
 /* Footer for the explainer sheet for signal connections */
-"STORY_SETTINGS_LEARN_MORE_SHEET_FOOTER" = "你的人脈可以看到你的名字和相片。除非你對他們隱藏限時快拍，否則他們也可以看到你發送的「我的限時快拍」。";
+"STORY_SETTINGS_LEARN_MORE_SHEET_FOOTER" = "你的好友可以看到你的名字和相片。除非你對他們隱藏限時快拍，否則他們也可以看到你發送的「我的限時快拍」。";
 
 /* Header for the explainer sheet for signal connections */
-"STORY_SETTINGS_LEARN_MORE_SHEET_HEADER_FORMAT" = "<bold>Tellomi 人脈</bold>是你透過以下方式選擇而值得信任的人：";
+"STORY_SETTINGS_LEARN_MORE_SHEET_HEADER_FORMAT" = "<bold>好友</bold>是你透過以下方式選擇而值得信任的人：";
 
 /* Label for the stories section of the settings view */
 "STORY_SETTINGS_TITLE" = "限時快拍";
 
 /* Section footer for the 'viewers' section on the 'story settings' view */
-"STORY_SETTINGS_WHO_CAN_VIEW_THIS_FOOTER" = "選擇哪個 Tellomi 人脈可以瀏覽你的限時快拍。這不會影響你在更改前發送的限時快拍。";
+"STORY_SETTINGS_WHO_CAN_VIEW_THIS_FOOTER" = "選擇哪個好友可以瀏覽你的限時快拍。這不會影響你在更改前發送的限時快拍。";
 
 /* Section header for the 'viewers' section on the 'story settings' view */
 "STORY_SETTINGS_WHO_CAN_VIEW_THIS_HEADER" = "誰可以瀏覽此限時快拍";
 
 /* Header for the 'viewers' section on the 'story settings' bottom sheet */
-"STORY_SETTINGS_WHO_CAN_VIEW_THIS_SHEET_HEADER" = "選擇哪些 Tellomi 人脈可以瀏覽你的限時快拍。你可以隨時在隱私設定中進行更改。";
+"STORY_SETTINGS_WHO_CAN_VIEW_THIS_SHEET_HEADER" = "選擇哪些好友可以瀏覽你的限時快拍。你可以隨時在隱私設定中進行更改。";
 
 /* Tooltip text shown when the user selects a story as a destination for a long duration video that will be split into shorter segments. Embeds {{ segment duration in seconds }} */
-"STORY_VIDEO_SEGMENTATION_TOOLTIP_FORMAT" = "發布至限時快拍的影片將被剪輯成 %1$d 秒的短片，並以多則限動發佈。";
+"STORY_VIDEO_SEGMENTATION_TOOLTIP_FORMAT" = "發布至限時快拍的影片將被剪輯成 %1$d 秒的短片，並以多則快拍發佈。";
 
 /* Text shown the first time the user opens the story viewer instructing them how to use it. */
 "STORY_VIEWER_ONBOARDING_1" = "輕按以繼續操作";
