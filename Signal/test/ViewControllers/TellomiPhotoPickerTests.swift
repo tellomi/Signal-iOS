@@ -508,6 +508,27 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(picker.selectedIdsForTesting, ["r4"])
     }
 
+    /// 查看器里单击照片：切换选中，和右上角勾选一样即时增减（照 Telegram `TGMediaPickerGalleryPhotoItemView` 单击）。
+    @MainActor
+    func testAlbumViewerSingleTapOnPhotoTogglesSelection() async throws {
+        let hosted = host()
+        defer { hosted.tearDown() }
+        let picker = hosted.picker
+
+        picker.tapItemForTesting(itemIndex: 4)
+        let opened = await waitUntil { self.albumViewer(over: picker) != nil }
+        XCTAssertTrue(opened)
+        let viewer = try XCTUnwrap(albumViewer(over: picker))
+
+        viewer.tapPhotoForTesting()
+        XCTAssertEqual(picker.selectedIdsForTesting, ["r4"])
+        XCTAssertEqual(viewer.checkNumberTextForTesting, "1")
+
+        viewer.tapPhotoForTesting()
+        XCTAssertEqual(picker.selectedIdsForTesting, [])
+        XCTAssertNil(viewer.checkNumberTextForTesting)
+    }
+
     // MARK: - P-11 上限
 
     /// 下滑关闭：距离 128 或速度 700 任一达到即关。

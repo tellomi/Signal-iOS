@@ -7,8 +7,8 @@ import SignalServiceKit
 import SignalUI
 
 /// Tellomi（tellomi/tellomi#1518，V-1；照 Telegram `TGMediaPickerModernGalleryMixin` 的网格点开）：
-/// 网格点照片打开整本相册的查看器，左右滑看整本相册，点开不自动选中；右上角勾选即时增减；
-/// 选中计数点开切出已选；「编辑」进上游的预览 / 编辑页，先看到当前这张。
+/// 网格点照片打开整本相册的查看器，左右滑看整本相册，点开不自动选中；单击照片或右上角勾选即时增减（照 Telegram
+/// `TGMediaPickerGalleryPhotoItemView` 单击切换）；选中计数点开切出已选；「编辑」进上游的预览 / 编辑页，先看到当前这张。
 final class TellomiPhotoPickerAlbumViewer: UIViewController {
 
     var selectionNumber: (String) -> Int? = { _ in nil }
@@ -176,7 +176,11 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
 
     private func didTapCheck() {
         guard items.indices.contains(currentIndex) else { return }
-        onToggle?(items[currentIndex])
+        toggleSelection(of: items[currentIndex])
+    }
+
+    private func toggleSelection(of item: TellomiPhotoPickerItem) {
+        onToggle?(item)
         refreshChrome(animatedCheck: true)
     }
 
@@ -256,7 +260,7 @@ final class TellomiPhotoPickerAlbumViewer: UIViewController {
         let scaleWidth = bounds.width / content.width
         let scaleHeight = bounds.height / content.height
         let normal = min(scaleWidth, scaleHeight)
-        // 图比屏幕小得多时正常比例本身低于 0.05，下限不能压过正常比例。
+        // 图比屏幕大得多时普通比例本身低于 0.05，下限取较小者，免得下限高于普通比例（Telegram 固定 0.05）。
         return (min(0.05, normal), normal, max(scaleWidth, scaleHeight, normal * 3))
     }
 
@@ -300,6 +304,7 @@ extension TellomiPhotoPickerAlbumViewer: UICollectionViewDataSource, UICollectio
         if let page = cell as? TellomiAlbumViewerPageCell {
             let item = items[indexPath.item]
             page.onZoomChanged = { [weak self] zoomed in self?.collectionView.isScrollEnabled = !zoomed }
+            page.onSingleTap = { [weak self] in self?.toggleSelection(of: item) }
             page.configure(item: item, library: library, targetSize: pixelTargetSize(for: item))
         }
         return cell
@@ -341,6 +346,7 @@ private final class TellomiAlbumViewerPageCell: UICollectionViewCell, UIScrollVi
     static let reuseIdentifier = "TellomiAlbumViewerPageCell"
 
     var onZoomChanged: ((Bool) -> Void)?
+    var onSingleTap: (() -> Void)?
 
     private let scrollView = UIScrollView()
     private let imageView = UIImageView()
@@ -370,6 +376,10 @@ private final class TellomiAlbumViewerPageCell: UICollectionViewCell, UIScrollVi
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
         doubleTap.numberOfTapsRequired = 2
         scrollView.addGestureRecognizer(doubleTap)
+
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleSingleTap))
+        singleTap.require(toFail: doubleTap)
+        scrollView.addGestureRecognizer(singleTap)
     }
 
     required init?(coder: NSCoder) {
@@ -451,6 +461,10 @@ private final class TellomiAlbumViewerPageCell: UICollectionViewCell, UIScrollVi
         }
     }
 
+    @objc private func handleSingleTap() {
+        onSingleTap?()
+    }
+
     @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
         if isZoomed {
             scrollView.setZoomScale(normalZoomScale, animated: true)
@@ -496,6 +510,11 @@ extension TellomiPhotoPickerAlbumViewer {
 
     func tapCheckForTesting() {
         didTapCheck()
+    }
+
+    func tapPhotoForTesting() {
+        view.layoutIfNeeded()
+        (collectionView.cellForItem(at: IndexPath(item: currentIndex, section: 0)) as? TellomiAlbumViewerPageCell)?.onSingleTap?()
     }
 
     func tapCountForTesting() {
