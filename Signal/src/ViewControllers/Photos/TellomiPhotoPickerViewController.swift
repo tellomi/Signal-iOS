@@ -1084,7 +1084,7 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
             return TellomiSendPreviewViewController.Tile(aspectRatio: aspectRatio, loadImage: loadImage)
         }
         // 说明照输入框里看到的样子（@ 的是名字），有没有说明按要发的那份算。
-        let caption: String? = messageBodyForSending == nil ? nil : (captionTextView.text ?? "").ows_stripped()
+        let caption: String? = messageBodyForSending == nil ? nil : captionTextView.textStorage.string.ows_stripped()
         let onSend: () -> Void = { [weak button] in
             button?.sendActions(for: .primaryActionTriggered)
         }
