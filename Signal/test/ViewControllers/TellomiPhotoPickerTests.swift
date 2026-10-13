@@ -560,9 +560,10 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
 
         let width: CGFloat = 260
         let one = TellomiSendPreviewViewController.mosaicFrames(count: 1, width: width, firstAspectRatio: 3)
-        XCTAssertEqual(one.map(\.size), [CGSize(width: 260, height: (260 / 1.8).rounded())], "很宽的图按 1.8 封顶")
+        let cappedHeight: CGFloat = (width / 1.8).rounded()
+        XCTAssertEqual(one.map(\.size), [CGSize(width: width, height: cappedHeight)], "很宽的图按 1.8 封顶")
         let three = TellomiSendPreviewViewController.mosaicFrames(count: 3, width: width, firstAspectRatio: 1)
-        XCTAssertEqual(three[0].height, three[2].maxY, "左大右二")
+        XCTAssertEqual(three[0].size.height, three[2].maxY, "左大右二")
         XCTAssertEqual(three[1].minX, three[2].minX)
         let four = TellomiSendPreviewViewController.mosaicFrames(count: 4, width: width, firstAspectRatio: 1)
         XCTAssertEqual(Set(four.map(\.minY)).count, 2, "2 × 2")
