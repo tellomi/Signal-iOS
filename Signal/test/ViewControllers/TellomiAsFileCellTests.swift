@@ -139,6 +139,20 @@ final class TellomiAsFileCellTests: XCTestCase {
         XCTAssertLessThanOrEqual(text.maxY, media.minY + 0.5, "说明在图上面")
     }
 
+    /// ADR-0075 §4.4（owner 2026-10-14 照 Telegram）：有整条消息的说明时气泡只画它，不画给别的客户端的兼容文本。
+    @MainActor
+    func testTheBubbleShowsTheCaptionForTheWholeMessage_notTheTextForOtherClients() async throws {
+        let thread = makeThread()
+        let message = try await insertStream(renderingFlag: .default, fileName: "IMG_0017.PNG", thread: thread, body: "Trip\nSunset")
+        write { tx in TellomiCaptionAbove.setMessageCaption("Trip", messageUniqueId: message.uniqueId, tx: tx) }
+
+        let hosted = try await host(message: message, thread: thread, width: 402)
+        defer { hosted.tearDown() }
+        let texts = Self.texts(in: hosted.cellView)
+        XCTAssertTrue(texts.contains { $0 == "Trip" }, "\(texts)")
+        XCTAssertFalse(texts.contains { $0.contains("Sunset") }, "\(texts)")
+    }
+
     /// 没有标记：和上游一样，正文在图下面。
     @MainActor
     func testWithoutTheFlagTheCaptionStaysBelow() async throws {
