@@ -301,7 +301,7 @@ final class TellomiAsFileCellTests: XCTestCase {
         XCTAssertNil(Self.find(TellomiSpoilerCoverView.self, in: again.cellView))
     }
 
-    /// 给人看的截图：罩着（没下载 / 到了）和揭示以后，浅色和深色各一张。
+    /// 给人看的截图：罩着（到了）和揭示以后，浅色和深色各一张。没下载的不截：这个整窗截图里没下载的图（罩不罩都一样）画成黑的。
     @MainActor
     func testSpoilerShots() async throws {
         guard ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1" else {
@@ -316,7 +316,6 @@ final class TellomiAsFileCellTests: XCTestCase {
                 }
             }
             let messages = [
-                try await insertPointer(asFile: false, spoiler: true, thread: thread),
                 try await insertStream(renderingFlag: .default, fileName: "IMG_0010.PNG", thread: thread, spoiler: true),
                 uncovered,
             ]
