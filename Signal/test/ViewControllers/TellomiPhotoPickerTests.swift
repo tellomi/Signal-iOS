@@ -1738,7 +1738,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时截图")
         let screenSize = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.size }.first)
         for width in shotWidths where width == screenSize.width {
-            let hosted = host(width: width, height: screenSize.height, canSendAsFile: true, dockItems: TellomiAttachmentDockItem.attachmentSheetItems, asAttachmentSheet: true)
+            // 会话的气泡颜色（这里用绿色，和发送键的强调色分得开）
+            let hosted = host(width: width, height: screenSize.height, canSendAsFile: true, bubbleColor: .solidColor(color: UIColor(red: 0.23, green: 0.47, blue: 0.27, alpha: 1)), dockItems: TellomiAttachmentDockItem.attachmentSheetItems, asAttachmentSheet: true)
             for index in [0, 2, 3] {
                 hosted.picker.tapCheckForTesting(itemIndex: index)
             }
@@ -1768,6 +1769,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         maxSelection: Int = 32,
         initialText: String? = nil,
         chatBackground: UIView? = nil,
+        bubbleColor: ColorOrGradientValue? = nil,
         camera: TellomiPhotoPickerCamera? = nil,
         presentedFromRoot: Bool = false,
         dockItems: [TellomiAttachmentDockItem] = [],
@@ -1786,6 +1788,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             approvalDataSource: dataSource,
             stickerSheetDelegate: nil,
             chatBackground: chatBackground,
+            bubbleColor: bubbleColor,
             camera: camera,
             maxSelection: maxSelection,
             dockItems: dockItems,
