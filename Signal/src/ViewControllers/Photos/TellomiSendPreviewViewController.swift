@@ -40,7 +40,7 @@ final class TellomiSendPreviewViewController: UIViewController {
         static let buttonGap: CGFloat = 8
         /// 气泡底边比发送键底边高这么多（Telegram：6）。
         static let bubbleBottomOverButton: CGFloat = 6
-        static let menuSpacing: CGFloat = 8
+        static let menuSpacing: CGFloat = 7
         static let screenMargin: CGFloat = 8
         static let menuMinWidth: CGFloat = 250
         static let menuCornerRadius: CGFloat = 14

@@ -1076,23 +1076,27 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         let items = selectedIds.compactMap { selectedItems[$0] }
         guard sendPreview == nil, !items.isEmpty, !sendMenuItems().isEmpty else { return }
         let library = self.library
-        let tiles = items.map { item in
-            TellomiSendPreviewViewController.Tile(
-                aspectRatio: item.pixelSize.height > 0 ? item.pixelSize.width / item.pixelSize.height : 1,
-            ) { size, completion in
+        let tiles: [TellomiSendPreviewViewController.Tile] = items.map { item in
+            let aspectRatio: CGFloat = item.pixelSize.height > 0 ? item.pixelSize.width / item.pixelSize.height : 1
+            let loadImage: (CGSize, @escaping (UIImage?) -> Void) -> TellomiPhotoPickerRequest? = { size, completion in
                 library.requestThumbnail(for: item, targetSize: size, completion: completion)
             }
+            return TellomiSendPreviewViewController.Tile(aspectRatio: aspectRatio, loadImage: loadImage)
+        }
+        // 说明照输入框里看到的样子（@ 的是名字），有没有说明按要发的那份算。
+        let caption: String? = messageBodyForSending == nil ? nil : (captionTextView.text ?? "").ows_stripped()
+        let onSend: () -> Void = { [weak button] in
+            button?.sendActions(for: .primaryActionTriggered)
         }
         let preview = TellomiSendPreviewViewController(
             tiles: tiles,
-            caption: messageBodyForSending == nil ? nil : captionTextView.text.ows_stripped(),
+            caption: caption,
             captionAboveMedia: isCaptionAboveMedia,
             bubbleColor: bubbleColor,
             actions: sendPreviewActions(),
             sourceButton: button,
-        ) { [weak button] in
-            button?.sendActions(for: .primaryActionTriggered)
-        }
+            onSend: onSend,
+        )
         var presenter: UIViewController = self
         while let presented = presenter.presentedViewController, !presented.isBeingDismissed {
             presenter = presented
