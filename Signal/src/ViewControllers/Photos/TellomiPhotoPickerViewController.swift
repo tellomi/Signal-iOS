@@ -1067,14 +1067,19 @@ final class TellomiPhotoPickerViewController: OWSViewController, UICollectionVie
         }
         TellomiSendLongPressGestureRecognizer.install(on: sendButton, handler: handler)
         editingApproval?.tellomiSetSendLongPress(handler)
-        sendPreview?.update(captionAboveMedia: isCaptionAboveMedia, actions: sendPreviewActions())
+        presentedSendPreview?.update(captionAboveMedia: isCaptionAboveMedia, actions: sendPreviewActions())
     }
 
     private weak var sendPreview: TellomiSendPreviewViewController?
 
+    /// 正开着的预览（收起了就是 nil）。
+    private var presentedSendPreview: TellomiSendPreviewViewController? {
+        sendPreview?.presentingViewController == nil ? nil : sendPreview
+    }
+
     private func presentSendPreview(from button: UIButton) {
         let items = selectedIds.compactMap { selectedItems[$0] }
-        guard sendPreview == nil, !items.isEmpty, !sendMenuItems().isEmpty else { return }
+        guard presentedSendPreview == nil, !items.isEmpty, !sendMenuItems().isEmpty else { return }
         let library = self.library
         let tiles: [TellomiSendPreviewViewController.Tile] = items.map { item in
             let aspectRatio: CGFloat = item.pixelSize.height > 0 ? item.pixelSize.width / item.pixelSize.height : 1
@@ -1915,7 +1920,7 @@ extension TellomiPhotoPickerViewController {
         TellomiSendLongPressGestureRecognizer.installed(on: sendButton)?.fireForTesting()
     }
 
-    var sendPreviewForTesting: TellomiSendPreviewViewController? { sendPreview }
+    var sendPreviewForTesting: TellomiSendPreviewViewController? { presentedSendPreview }
 
     /// 网格发送键在窗口里的位置。
     var sendButtonFrameForTesting: CGRect { sendButton.convert(sendButton.bounds, to: nil) }

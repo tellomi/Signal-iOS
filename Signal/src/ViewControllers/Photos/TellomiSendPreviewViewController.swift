@@ -200,6 +200,17 @@ final class TellomiSendPreviewViewController: UIViewController {
         setContentVisible(false)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // 发送键画在预览里（放不下时挪上去），原处的先藏起来
+        sourceButton?.alpha = 0
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        sourceButton?.alpha = 1
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
