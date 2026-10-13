@@ -537,6 +537,10 @@ extension TellomiSendPreviewViewController {
     var layoutForTesting: Layout { computeLayout() }
 
     var moreTextForTesting: String? { moreLabel.superview == nil ? nil : moreLabel.text }
+
+    var debugBubbleForTesting: String {
+        "bubble=\(bubbleView.frame) bg=\(String(describing: bubbleView.backgroundColor)) alpha=\(bubbleView.alpha) hidden=\(bubbleView.isHidden) colorView=\(bubbleColorView.frame) colorBg=\(String(describing: bubbleColorView.backgroundColor)) colorSuper=\(bubbleColorView.superview === bubbleView) scroll=\(messageScrollView.frame) scrollAlpha=\(messageScrollView.alpha) subviews=\(bubbleView.subviews.map { type(of: $0) })"
+    }
 }
 
 #endif
