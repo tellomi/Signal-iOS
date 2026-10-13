@@ -216,6 +216,8 @@ public class SentMessageTranscriptReceiverImpl: SentMessageTranscriptReceiver {
             // Check for any placeholders inserted because of a previously undecryptable message
             // The sender may have resent the message. If so, we should swap it in place of the placeholder
             interactionStore.insertOrReplacePlaceholder(for: outgoingMessage, from: localIdentifiers.aciAddress, tx: tx)
+            // Tellomi（ADR-0068 §4.7）：别的设备发的，说明文字在媒体上方也记下。
+            TellomiCaptionAbove.setCaptionAboveMedia(messageParams.tellomiCaptionAboveMedia, messageUniqueId: outgoingMessage.uniqueId, tx: tx)
 
             if let validatedPollCreate = messageParams.validatedPollCreate {
                 do {
