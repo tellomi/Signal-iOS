@@ -1748,13 +1748,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             hosted.picker.longPressSendForTesting()
             let preview = try await presentedPreview(hosted.picker)
             try await settle()
+            XCTAssertTrue(preview.bubbleColorFillsTheBubbleForTesting)
             try save(render(hosted.window), name: "send-preview-caption-below.png", width: width)
-            // DEBUG
-            let layerImage = UIGraphicsImageRenderer(bounds: preview.view.bounds).image { context in
-                preview.view.layer.render(in: context.cgContext)
-            }
-            try save(layerImage, name: "debug-layer.png", width: width)
-            print("DEBUG bubble", preview.debugBubbleForTesting)
             preview.performActionForTesting(at: 0)
             try await settle()
             try save(render(hosted.window), name: "send-preview-caption-above.png", width: width)

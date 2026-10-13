@@ -146,6 +146,9 @@ final class TellomiSendPreviewViewController: UIViewController {
         // 会话的发出气泡颜色（可能是渐变）；没有就用强调色（同发送键）
         if let bubbleColor {
             bubbleColorView.configure(value: bubbleColor, referenceView: bubbleView)
+            // 它是手动布局的视图（不跟着父视图的 autoresizing），不放开的话下一轮布局会被压成 0
+            bubbleColorView.translatesAutoresizingMaskIntoConstraints = true
+            bubbleColorView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             bubbleView.addSubview(bubbleColorView)
         } else {
             bubbleView.backgroundColor = .Signal.accent
@@ -538,8 +541,9 @@ extension TellomiSendPreviewViewController {
 
     var moreTextForTesting: String? { moreLabel.superview == nil ? nil : moreLabel.text }
 
-    var debugBubbleForTesting: String {
-        "bubble=\(bubbleView.frame) bg=\(String(describing: bubbleView.backgroundColor)) alpha=\(bubbleView.alpha) hidden=\(bubbleView.isHidden) colorView=\(bubbleColorView.frame) colorBg=\(String(describing: bubbleColorView.backgroundColor)) colorSuper=\(bubbleColorView.superview === bubbleView) scroll=\(messageScrollView.frame) scrollAlpha=\(messageScrollView.alpha) subviews=\(bubbleView.subviews.map { type(of: $0) })"
+    /// 气泡底色那一层铺满了气泡（会话颜色时）。
+    var bubbleColorFillsTheBubbleForTesting: Bool {
+        bubbleColorView.superview == nil ? bubbleView.backgroundColor != nil : bubbleColorView.frame == bubbleView.bounds
     }
 }
 
