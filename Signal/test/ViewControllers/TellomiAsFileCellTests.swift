@@ -148,9 +148,10 @@ final class TellomiAsFileCellTests: XCTestCase {
 
         let hosted = try await host(message: message, thread: thread, width: 402)
         defer { hosted.tearDown() }
-        let texts = Self.texts(in: hosted.cellView)
-        XCTAssertTrue(texts.contains { $0 == "Trip" }, "\(texts)")
-        XCTAssertFalse(texts.contains { $0.contains("Sunset") }, "\(texts)")
+        // 正文不是 UILabel（CVTextLabel 自己画），看组件状态里给它的文字，再确认画出来了
+        let text = hosted.componentState.bodyText?.displayableText?.fullTextValue.accessibilityDescription
+        XCTAssertEqual(text, "Trip")
+        XCTAssertNotNil(CVComponentBodyText.findBodyTextRootView(hosted.cellView))
     }
 
     /// 没有标记：和上游一样，正文在图下面。
