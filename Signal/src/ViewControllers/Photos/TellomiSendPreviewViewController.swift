@@ -143,12 +143,13 @@ final class TellomiSendPreviewViewController: UIViewController {
         bubbleView.accessibilityLabel = caption
         bubbleView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapBackground)))
         messageScrollView.addSubview(bubbleView)
+        // 会话的发出气泡颜色（可能是渐变）；没有就用强调色（同发送键）
         if let bubbleColor {
             bubbleColorView.configure(value: bubbleColor, referenceView: bubbleView)
+            bubbleView.addSubview(bubbleColorView)
         } else {
-            bubbleColorView.backgroundColor = .Signal.accent
+            bubbleView.backgroundColor = .Signal.accent
         }
-        bubbleView.addSubview(bubbleColorView)
 
         for (index, tile) in tiles.prefix(5).enumerated() {
             let imageView = UIImageView()
