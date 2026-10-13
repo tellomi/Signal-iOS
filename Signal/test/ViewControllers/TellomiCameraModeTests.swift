@@ -63,6 +63,43 @@ final class TellomiCameraModeTests: SignalBaseTest {
         XCTAssertEqual(CameraCaptureSession.nextFlashMode(after: .auto, isVideoMode: true), .off)
     }
 
+    /// 截图（TELLOMI_SHOTS=1）：会话里的相机，拍照模式和录像模式（模拟器没有相机，取景框是黑的）。
+    func testScreenshots() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时截图")
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        window.frame = scene.screen.bounds
+        let camera = PhotoCaptureViewController(attachmentLimits: .currentLimits())
+        let delegate = CameraDelegate()
+        camera.delegate = delegate
+        camera.dataSource = delegate
+        window.rootViewController = camera
+        window.isHidden = false
+        defer { window.isHidden = true }
+        try await Task.sleep(nanoseconds: 800_000_000)
+        XCTAssertEqual(camera.cameraModeTitlesForTesting, [CommonStrings.attachmentTypeVideo.uppercased(), CommonStrings.attachmentTypePhoto.uppercased()])
+        try save(render(window), name: "camera-photo-mode.png", width: window.bounds.width)
+        camera.setVideoModeForTesting(true)
+        try await Task.sleep(nanoseconds: 500_000_000)
+        XCTAssertTrue(camera.isVideoModeForTesting)
+        try save(render(window), name: "camera-video-mode.png", width: window.bounds.width)
+    }
+
+    private func render(_ window: UIWindow) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        return UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+    }
+
+    private func save(_ image: UIImage, name: String, width: CGFloat) throws {
+        let root = ProcessInfo.processInfo.environment["TELLOMI_SHOTS_DIR"] ?? NSTemporaryDirectory()
+        let directory = URL(fileURLWithPath: root).appendingPathComponent("\(Int(width))")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try XCTUnwrap(image.pngData()).write(to: directory.appendingPathComponent(name))
+    }
+
     /// `.Signal.red` 是跟着深浅色变的颜色，每次取都是新对象：比较取出来的实际颜色。
     private func resolved(_ color: UIColor?) -> UIColor? {
         color?.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))
@@ -85,4 +122,27 @@ private final class RecordingDelegate: CameraCaptureControlDelegate {
     func cameraCaptureControlDidRequestCancelVideoRecording(_ control: CameraCaptureControl) { calls.append("cancel") }
     var zoomScaleReferenceDistance: CGFloat? { 100 }
     func cameraCaptureControl(_ control: CameraCaptureControl, didUpdateZoomLevel zoomLevel: CGFloat) {}
+}
+
+private final class CameraDelegate: PhotoCaptureViewControllerDelegate, PhotoCaptureViewControllerDataSource {
+    func photoCaptureViewControllerDidFinish(_ photoCaptureViewController: PhotoCaptureViewController) {}
+    func photoCaptureViewController(_ photoCaptureViewController: PhotoCaptureViewController, didFinishWithTextAttachment textAttachment: UnsentTextAttachment) {}
+    func photoCaptureViewControllerDidCancel(_ photoCaptureViewController: PhotoCaptureViewController) {}
+    func photoCaptureViewControllerDidTryToCaptureTooMany(_ photoCaptureViewController: PhotoCaptureViewController) {}
+    func photoCaptureViewControllerViewWillAppear(_ photoCaptureViewController: PhotoCaptureViewController) {}
+    func photoCaptureViewControllerCanCaptureMoreItems(_ photoCaptureViewController: PhotoCaptureViewController) -> Bool { true }
+    func photoCaptureViewControllerDidRequestPresentPhotoLibrary(_ photoCaptureViewController: PhotoCaptureViewController) {}
+    func photoCaptureViewController(
+        _ photoCaptureViewController: PhotoCaptureViewController,
+        didRequestSwitchCaptureModeTo captureMode: PhotoCaptureViewController.CaptureMode,
+        completion: @escaping (Bool) -> Void,
+    ) {
+        completion(true)
+    }
+    func photoCaptureViewControllerCanShowTextEditor(_ photoCaptureViewController: PhotoCaptureViewController) -> Bool { false }
+    func photoCaptureViewController(_ photoCaptureViewController: PhotoCaptureViewController, didTapCapturedItem item: AttachmentApprovalItem) {}
+
+    var numberOfMediaItems: Int { 0 }
+    func addMedia(attachment: PreviewableAttachment) {}
+    var cameraCaptureItems: [AttachmentApprovalItem] { [] }
 }
