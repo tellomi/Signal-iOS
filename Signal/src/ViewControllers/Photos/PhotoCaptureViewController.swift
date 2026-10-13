@@ -483,6 +483,7 @@ class PhotoCaptureViewController: OWSViewController, OWSNavigationChildControlle
     private func didSwipeToPhotoMode() {
         setVideoMode(false, animated: true)
     }
+
     // Composer mode selection control is only hidden when editing text story.
     private func updateComposerTypeSelectionControlVisibility(animated: Bool) {
         guard let composerTypeSelectionControl, isTextEditorUIInitialized else { return }
