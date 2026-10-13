@@ -1732,6 +1732,31 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         }
     }
 
+    /// 截图（TELLOMI_SHOTS=1）：长按发送的预览（#1519 M-5）——三张 + 说明在下、切到上面之后。窗口接在真实屏幕上（要安全区）。
+    @MainActor
+    func testSendPreviewScreenshots() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时截图")
+        let screenSize = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.screen.bounds.size }.first)
+        for width in shotWidths where width == screenSize.width {
+            let hosted = host(width: width, height: screenSize.height, canSendAsFile: true, dockItems: TellomiAttachmentDockItem.attachmentSheetItems, asAttachmentSheet: true)
+            for index in [0, 2, 3] {
+                hosted.picker.tapCheckForTesting(itemIndex: index)
+            }
+            hosted.picker.typeCaptionForTesting("Trip to the coast")
+            try await settle()
+            hosted.picker.longPressSendForTesting()
+            let preview = try await presentedPreview(hosted.picker)
+            try await settle()
+            try save(render(hosted.window), name: "send-preview-caption-below.png", width: width)
+            preview.performActionForTesting(at: 0)
+            try await settle()
+            try save(render(hosted.window), name: "send-preview-caption-above.png", width: width)
+            preview.tapBackgroundForTesting()
+            _ = await waitUntil { hosted.picker.sendPreviewForTesting == nil }
+            hosted.window.isHidden = true
+        }
+    }
+
     @MainActor
     private func host(
         width: CGFloat = 402,
