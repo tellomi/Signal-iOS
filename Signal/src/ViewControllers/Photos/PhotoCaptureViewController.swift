@@ -2735,20 +2735,3 @@ private class TextStoryComposerToolbarView: UIView {
         override var intrinsicContentSize: CGSize { buttonSize }
     }
 }
-
-#if TESTABLE_BUILD
-
-// Tellomi（tellomi/tellomi#1520 C-1）
-extension PhotoCaptureViewController {
-    var cameraModeTitlesForTesting: [String]? {
-        cameraModeControl.map { control in (0..<control.numberOfSegments).compactMap { control.titleForSegment(at: $0) } }
-    }
-
-    var isVideoModeForTesting: Bool { isVideoMode }
-
-    func setVideoModeForTesting(_ isVideoMode: Bool) {
-        setVideoMode(isVideoMode, animated: false)
-    }
-}
-
-#endif
