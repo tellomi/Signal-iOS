@@ -78,11 +78,11 @@ final class TellomiCameraModeTests: SignalBaseTest {
         defer { window.isHidden = true }
         try await Task.sleep(nanoseconds: 800_000_000)
         XCTAssertEqual(camera.cameraModeTitlesForTesting, [CommonStrings.attachmentTypeVideo.uppercased(), CommonStrings.attachmentTypePhoto.uppercased()])
-        try save(render(window), name: "camera-photo-mode.png", width: window.bounds.width)
+        try save(render(window), name: "camera-photo-mode.png", width: window.bounds.size.width)
         camera.setVideoModeForTesting(true)
         try await Task.sleep(nanoseconds: 500_000_000)
         XCTAssertTrue(camera.isVideoModeForTesting)
-        try save(render(window), name: "camera-video-mode.png", width: window.bounds.width)
+        try save(render(window), name: "camera-video-mode.png", width: window.bounds.size.width)
     }
 
     private func render(_ window: UIWindow) -> UIImage {
