@@ -36,13 +36,13 @@ final class TellomiCameraModeTests: SignalBaseTest {
         control.tapForTesting()
         XCTAssertEqual(delegate.calls, ["photo"])
         XCTAssertEqual(control.recordingState, .notRecording)
-        XCTAssertEqual(control.shutterInnerColorForTesting, .white)
+        XCTAssertEqual(resolved(control.shutterInnerColorForTesting), resolved(.white))
     }
 
     func testInVideoModeATapStartsRecordingAndASecondTapStopsIt() {
         let (control, delegate) = makeControl()
         control.isVideoMode = true
-        XCTAssertEqual(control.shutterInnerColorForTesting, UIColor.Signal.red, "录像模式快门是红的")
+        XCTAssertEqual(resolved(control.shutterInnerColorForTesting), resolved(UIColor.Signal.red), "录像模式快门是红的")
 
         control.tapForTesting()
         XCTAssertEqual(delegate.calls, ["start"])
@@ -61,6 +61,11 @@ final class TellomiCameraModeTests: SignalBaseTest {
         }
         XCTAssertEqual(seen, [.off, .on, .off])
         XCTAssertEqual(CameraCaptureSession.nextFlashMode(after: .auto, isVideoMode: true), .off)
+    }
+
+    /// `.Signal.red` 是跟着深浅色变的颜色，每次取都是新对象：比较取出来的实际颜色。
+    private func resolved(_ color: UIColor?) -> UIColor? {
+        color?.resolvedColor(with: UITraitCollection(userInterfaceStyle: .dark))
     }
 
     private func makeControl() -> (CameraCaptureControl, RecordingDelegate) {
