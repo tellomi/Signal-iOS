@@ -199,7 +199,9 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         XCTAssertLessThanOrEqual(short.message.maxX, button.frame.origin.x, "left of the send button")
 
         let long = layout(String(repeating: "A long message that wraps. ", count: 6))
-        XCTAssertEqual(long.message.size.width, 260, accuracy: 0.5, "a long text uses the full width")
+        // 折行后最宽的一行比最大宽度略窄（按词折），所以是「接近最宽」。
+        XCTAssertGreaterThan(long.message.size.width, 230, "a long text uses (about) the full width")
+        XCTAssertLessThanOrEqual(long.message.size.width, 260)
         XCTAssertGreaterThan(long.message.size.height, short.message.size.height)
     }
 
