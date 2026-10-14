@@ -96,6 +96,8 @@ extension ConversationViewController {
             canSendSeparately: true,
             // #1263：「···」→ 以文件发送（会话里一个一条地发）。
             canSendAsFile: true,
+            // M-4：收藏里「定时发送」叫「设置提醒」。
+            isNoteToSelf: thread.isNoteToSelf,
             hasQuotedReplyDraft: inputToolbar.quotedReplyDraft != nil,
             attachmentLimits: .currentLimits(),
             approvalDataSource: self,
@@ -188,6 +190,7 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         messageBody: MessageBody?,
         separately: Bool,
         captionAboveMedia: Bool,
+        scheduledAt: Date?,
     ) {
         // 从上游预览页发的时候它盖在网格上面，提示与安全码确认都从最上面那一层弹。
         let fromViewController = picker.presentedViewController ?? picker
@@ -196,19 +199,41 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
             fromViewController: fromViewController,
             title: CommonStrings.preparingModal,
             asyncBlock: { modal in
+                let didSend: Bool
                 if separately {
                     // 说明只挂最后一条，「说明在上方」也只对它（没有说明的那几条不记）。
+                    var sentAll = true
                     await TellomiPhotoPickerSending.sendSeparately(approvedAttachments, messageBody: messageBody) { part, body in
-                        await self.sendAttachments(part, messageBody: body, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia)
+                        let sent = await self.sendAttachments(part, messageBody: body, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia, tellomiScheduledAt: scheduledAt)
+                        sentAll = sentAll && sent
+                        return sent
                     }
+                    didSend = sentAll
                 } else {
-                    await self.sendAttachments(approvedAttachments, messageBody: messageBody, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia)
+                    didSend = await self.sendAttachments(approvedAttachments, messageBody: messageBody, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia, tellomiScheduledAt: scheduledAt)
                 }
                 modal.dismiss(completion: {
-                    self.dismiss(animated: true)
+                    self.dismiss(animated: true) {
+                        if didSend, let scheduledAt {
+                            self.tellomiShowScheduledToast(for: scheduledAt)
+                        }
+                    }
                 })
             },
         )
+    }
+
+    /// Tellomi（tellomi/tellomi#1519 M-4）：排好了说一声什么时候发。Telegram 两端排好后打开「定时消息」页；那一页是 M-4 下一步，
+    /// 在那之前先用提示。
+    func tellomiShowScheduledToast(for date: Date) {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.doesRelativeDateFormatting = true
+        let format = thread.isNoteToSelf
+            ? OWSLocalizedString("TELLOMI_SCHEDULE_REMINDER_SET_TOAST_FORMAT", comment: "Toast after setting a reminder in Saved Messages (note to self). Embeds {{date and time, e.g. 'Today at 14:35'}}.")
+            : OWSLocalizedString("TELLOMI_SCHEDULE_MESSAGE_SCHEDULED_TOAST_FORMAT", comment: "Toast after scheduling a message to be sent later. Embeds {{date and time, e.g. 'Today at 14:35'}}.")
+        presentToastCVC(String.nonPluralLocalizedStringWithFormat(format, formatter.string(from: date)))
     }
 
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?) {

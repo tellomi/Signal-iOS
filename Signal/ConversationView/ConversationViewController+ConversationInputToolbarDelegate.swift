@@ -383,6 +383,7 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
         messageBody: MessageBody?,
         attachmentLimits: OutgoingAttachmentLimits,
         captionAboveMedia: Bool = false,
+        tellomiScheduledAt: Date? = nil,
     ) async throws -> Bool {
         return try await tryToSendAttachments(
             approvedAttachments,
@@ -391,6 +392,7 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
             attachmentLimits: attachmentLimits,
             untrustedThreshold: Date().addingTimeInterval(-OWSIdentityManagerImpl.Constants.defaultUntrustedInterval),
             captionAboveMedia: captionAboveMedia,
+            tellomiScheduledAt: tellomiScheduledAt,
         )
     }
 
@@ -409,6 +411,7 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
         attachmentLimits: OutgoingAttachmentLimits,
         untrustedThreshold: Date,
         captionAboveMedia: Bool = false,
+        tellomiScheduledAt: Date? = nil,
     ) async throws -> Bool {
         AssertIsOnMainThread()
 
@@ -450,6 +453,23 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
         let hasViewOnceAttachment = approvedAttachments.isViewOnce
         owsPrecondition(!hasViewOnceAttachment || messageBody == nil)
         owsPrecondition(!hasViewOnceAttachment || inputToolbar.quotedReplyDraft == nil)
+
+        // Tellomi（tellomi/tellomi#1519 M-4）：长按发送里选了「定时发送」：排成定时消息，到点才进会话；不响发送音，引用草稿照样清掉。
+        if let tellomiScheduledAt {
+            try await TellomiScheduledMessageSender.shared.schedule(
+                body: messageBody,
+                attachments: sendableAttachments,
+                isViewOnce: approvedAttachments.isViewOnce,
+                thread: self.thread,
+                quotedReplyDraft: inputToolbar.quotedReplyDraft,
+                linkPreviewDraft: nil,
+                captionAboveMedia: captionAboveMedia && messageBody != nil,
+                at: tellomiScheduledAt,
+            )
+            inputToolbar.quotedReplyDraft = nil
+            NotificationCenter.default.post(name: ChatListViewController.clearSearch, object: nil)
+            return true
+        }
 
         ThreadUtil.enqueueMessage(
             body: messageBody,
@@ -958,6 +978,7 @@ extension ConversationViewController: SendMediaNavDelegate {
         attachmentLimits: OutgoingAttachmentLimits,
         clearsDraft: Bool = true,
         captionAboveMedia: Bool = false,
+        tellomiScheduledAt: Date? = nil,
     ) async -> Bool {
         // Tellomi（tellomi/tellomi#1518 V-6，owner 2026-10-14 照 TG）：静音当 GIF 发的视频单独成一条，其余照常成组；
         // 说明跟着其余那组（全是静音视频时跟着最后一条）。上一条没发出去就不再发后面的。
@@ -971,6 +992,7 @@ extension ConversationViewController: SendMediaNavDelegate {
                     attachmentLimits: attachmentLimits,
                     clearsDraft: clearsDraft,
                     captionAboveMedia: hasBody && captionAboveMedia,
+                    tellomiScheduledAt: tellomiScheduledAt,
                 )
                 guard sent else { return false }
             }
@@ -985,6 +1007,7 @@ extension ConversationViewController: SendMediaNavDelegate {
                 messageBody: messageBody,
                 attachmentLimits: attachmentLimits,
                 captionAboveMedia: captionAboveMedia,
+                tellomiScheduledAt: tellomiScheduledAt,
             )
         } catch {
             self.showErrorAlert(attachmentError: error as? SignalAttachmentError)

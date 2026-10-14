@@ -2233,6 +2233,7 @@ private final class RecordingPickerDelegate: TellomiPhotoPickerDelegate {
         let body: MessageBody?
         let separately: Bool
         var captionAboveMedia = false
+        var scheduledAt: Date?
     }
 
     var cancels = 0
@@ -2258,8 +2259,8 @@ private final class RecordingPickerDelegate: TellomiPhotoPickerDelegate {
         cameraRequests += 1
     }
 
-    func photoPicker(_ picker: TellomiPhotoPickerViewController, send approvedAttachments: ApprovedAttachments, messageBody: MessageBody?, separately: Bool, captionAboveMedia: Bool) {
-        sent.append(Sent(approved: approvedAttachments, body: messageBody, separately: separately, captionAboveMedia: captionAboveMedia))
+    func photoPicker(_ picker: TellomiPhotoPickerViewController, send approvedAttachments: ApprovedAttachments, messageBody: MessageBody?, separately: Bool, captionAboveMedia: Bool, scheduledAt: Date?) {
+        sent.append(Sent(approved: approvedAttachments, body: messageBody, separately: separately, captionAboveMedia: captionAboveMedia, scheduledAt: scheduledAt))
     }
 
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?) {
