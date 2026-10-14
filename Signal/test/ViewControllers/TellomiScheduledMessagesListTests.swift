@@ -104,8 +104,8 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         XCTAssertEqual(read { tx in TellomiScheduledMessageStore.fetch(id: soon.id, tx: tx)?.scheduledAt }, moved)
         let rescheduled = await waitUntil { screen.sectionsForTesting.last?.messages.last?.id == soon.id }
         XCTAssertTrue(rescheduled)
-        // 执行器的定时器跟着挂到现在最早的那条（第二条，两天后）。
-        let earliest = try XCTUnwrap(screen.sectionsForTesting.first?.messages.first?.scheduledAt)
+        // 执行器的定时器重新挂到所有会话里现在最早的那条。
+        let earliest = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.nextScheduledAt(tx: tx) })
         let timerMoved = await waitUntil { sender.nextTimerFireDateForTesting.map { abs($0.timeIntervalSince(earliest)) < 2 } ?? false }
         XCTAssertTrue(timerMoved)
 
