@@ -4,6 +4,7 @@
 //
 
 import LibSignalClient
+import UniformTypeIdentifiers
 import XCTest
 
 @testable import Signal
@@ -67,10 +68,29 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
         XCTAssertTrue(OWSFileSystem.ensureDirectoryExists(keptDirectory.path))
         XCTAssertTrue(OWSFileSystem.ensureDirectoryExists(orphan.path))
 
-        read { tx in TellomiScheduledMessageStore.deleteOrphanedDirectories(tx: tx) }
+        // 刚建的目录默认不动（可能正在排）；截止时间放到以后，两个都算旧的。
+        read { tx in TellomiScheduledMessageStore.deleteOrphanedDirectories(olderThan: Date().addingTimeInterval(-60), tx: tx) }
+        XCTAssertTrue(OWSFileSystem.fileOrFolderExists(url: orphan))
+        read { tx in TellomiScheduledMessageStore.deleteOrphanedDirectories(olderThan: Date().addingTimeInterval(60), tx: tx) }
 
         XCTAssertTrue(OWSFileSystem.fileOrFolderExists(url: keptDirectory))
         XCTAssertFalse(OWSFileSystem.fileOrFolderExists(url: orphan))
+    }
+
+    /// 会话合并：定时消息跟着去合并后的会话。
+    func testMergingChatsMovesTheirScheduledMessages() throws {
+        let message = try record(thread: "old", at: Date())
+        let other = try record(thread: "other", at: Date())
+        try write { tx in
+            try TellomiScheduledMessageStore.insert(message, tx: tx)
+            try TellomiScheduledMessageStore.insert(other, tx: tx)
+            TellomiScheduledMessageStore.moveAll(fromThreadUniqueId: "old", toThreadUniqueId: "new", tx: tx)
+        }
+        read { tx in
+            XCTAssertEqual(TellomiScheduledMessageStore.fetchAll(threadUniqueId: "new", tx: tx).map(\.id), [message.id])
+            XCTAssertEqual(TellomiScheduledMessageStore.fetchAll(threadUniqueId: "old", tx: tx), [])
+            XCTAssertEqual(TellomiScheduledMessageStore.fetchAll(threadUniqueId: "other", tx: tx).map(\.id), [other.id])
+        }
     }
 
     // MARK: - Sending
@@ -81,6 +101,7 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
         let thread = makeContactThread()
         let sender = makeSender()
         let body = MessageBody(text: "到点了", ranges: MessageBodyRanges(mentions: [], styles: [NSRangedValue(.bold, range: NSRange(location: 0, length: 2))]))
+        let scheduledAt = Date().addingTimeInterval(3600)
         let message = try await sender.schedule(
             body: body,
             attachments: [try await photo()],
@@ -89,7 +110,7 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
             quotedReplyDraft: nil,
             linkPreviewDraft: nil,
             captionAboveMedia: true,
-            at: Date().addingTimeInterval(3600),
+            at: scheduledAt,
         )
         XCTAssertEqual(message.attachments.count, 1)
         XCTAssertTrue(OWSFileSystem.fileOrFolderExists(url: TellomiScheduledMessageStore.fileUrl(for: message.attachments[0], messageId: message.id)))
@@ -109,6 +130,7 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
         XCTAssertEqual(sent.body, "到点了")
         XCTAssertEqual(sent.bodyRanges?.collapsedStyles.count, 1)
         XCTAssertGreaterThanOrEqual(sent.timestamp, beforeSending)
+        XCTAssertLessThan(sent.timestamp, scheduledAt.ows_millisecondsSince1970, "not the scheduled time")
         read { tx in
             let references = DependenciesBridge.shared.attachmentStore.fetchReferences(
                 owner: .messageBodyAttachment(messageRowId: sent.sqliteRowId!),
@@ -146,22 +168,40 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
         XCTAssertEqual(read { tx in TellomiScheduledMessageStore.fetchAll(tx: tx) }, [])
     }
 
-    /// 认领失败（记录已经没了）就不落库。
+    /// 同一条认领两次：第一次发出、删记录；第二次（记录没了）不落库。改到以后的也不发。
     @MainActor
-    func testAFailedClaimDoesNotInsertTheMessage() async throws {
+    func testTheClaimSendsOnceAndRespectsAReschedule() async throws {
+        // 不建执行器（它听到记录变化会自己去发）：直接写记录，只测认领。
         let thread = makeContactThread()
-        let didEnqueue = try await ThreadUtil.tellomiEnqueueScheduledMessage(
-            body: MessageBody(text: "不该出现", ranges: .empty),
-            attachments: [],
-            isViewOnce: false,
-            thread: thread,
-            quotedReplyDraft: nil,
-            linkPreviewDraft: nil,
-            captionAboveMedia: false,
-            claim: { _ in false },
-        )
-        XCTAssertFalse(didEnqueue)
-        XCTAssertTrue(outgoingMessages(in: thread).isEmpty)
+        let message = try record(thread: thread.uniqueId, at: Date().addingTimeInterval(-1), text: "只发一次")
+        let moved = try record(thread: thread.uniqueId, at: Date().addingTimeInterval(-1), text: "改到以后")
+        try write { tx in
+            try TellomiScheduledMessageStore.insert(message, tx: tx)
+            try TellomiScheduledMessageStore.insert(moved, tx: tx)
+            XCTAssertTrue(try TellomiScheduledMessageStore.reschedule(id: moved.id, to: Date().addingTimeInterval(3600), tx: tx))
+        }
+
+        func enqueue(_ message: TellomiScheduledMessage) async throws -> ThreadUtil.TellomiEnqueueOutcome {
+            try await ThreadUtil.tellomiEnqueueScheduledMessage(
+                body: try message.messageBody(),
+                attachments: [],
+                isViewOnce: false,
+                thread: thread,
+                quotedReplyDraft: nil,
+                linkPreviewDraft: nil,
+                captionAboveMedia: false,
+                claim: ThreadUtil.TellomiEnqueueClaim(
+                    isStillDue: { tx in TellomiScheduledMessageStore.isDue(id: message.id, now: Date(), tx: tx) },
+                    claim: { tx in TellomiScheduledMessageStore.remove(id: message.id, tx: tx) },
+                ),
+            )
+        }
+        XCTAssertEqual(try await enqueue(message), .enqueued)
+        XCTAssertEqual(try await enqueue(message), .notDue)
+        XCTAssertEqual(try await enqueue(moved), .notDue)
+
+        XCTAssertEqual(outgoingMessages(in: thread).map(\.body), ["只发一次"])
+        XCTAssertEqual(read { tx in TellomiScheduledMessageStore.fetchAll(tx: tx).map(\.id) }, [moved.id])
     }
 
     /// 删会话：定时消息跟着删。退群、拉黑：到点不发，记录删掉。
@@ -206,7 +246,7 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
         XCTAssertEqual(read { tx in TellomiScheduledMessageStore.fetchAll(tx: tx) }, [])
     }
 
-    /// 前台定时器挂在最早那一条上；发完挂下一条。
+    /// 前台定时器：排了就挂在最早那一条上（记录变化的通知挂的，不用先「回到前台」）；发完挂下一条。
     @MainActor
     func testTheTimerWaitsForTheEarliestMessage() async throws {
         let thread = makeContactThread()
@@ -225,7 +265,12 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
                 at: date,
             )
         }
-        await sender.flushDue()
+        // 通知是异步发到主线程的：让出主线程等它到（最多 5 秒）。
+        var waited: TimeInterval = 0
+        while sender.nextTimerFireDateForTesting.map({ abs($0.timeIntervalSince(soon)) >= 2 }) ?? true, waited < 5 {
+            try await Task.sleep(nanoseconds: 50_000_000)
+            waited += 0.05
+        }
         XCTAssertEqual(try XCTUnwrap(sender.nextTimerFireDateForTesting).timeIntervalSince(soon), 0, accuracy: 2)
 
         sender.now = { soon.addingTimeInterval(1) }
@@ -238,12 +283,12 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
 
     // MARK: - Helpers
 
-    private func record(thread: String, at date: Date, createdAt: Date = Date()) throws -> TellomiScheduledMessage {
+    private func record(thread: String, at date: Date, createdAt: Date = Date(), text: String = "x") throws -> TellomiScheduledMessage {
         try TellomiScheduledMessage(
             threadUniqueId: thread,
             scheduledAt: date,
             createdAt: createdAt,
-            body: MessageBody(text: "x", ranges: .empty),
+            body: MessageBody(text: text, ranges: .empty),
             attachments: [],
             isViewOnce: false,
             captionAboveMedia: false,
@@ -254,9 +299,7 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
 
     @MainActor
     private func makeSender() -> TellomiScheduledMessageSender {
-        let sender = TellomiScheduledMessageSender()
-        sender.activateForTesting()
-        return sender
+        TellomiScheduledMessageSender()
     }
 
     private func makeContactThread() -> TSContactThread {

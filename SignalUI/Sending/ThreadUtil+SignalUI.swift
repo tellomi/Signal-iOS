@@ -138,18 +138,20 @@ extension ThreadUtil {
         benchEventId: String,
         thread: TSThread,
         tellomiCaptionAboveMedia: Bool = false,
-        tellomiClaim: ((DBWriteTransaction) -> Bool)? = nil,
+        tellomiClaim: TellomiEnqueueClaim? = nil,
         persistenceCompletionHandler persistenceCompletion: PersistenceCompletion? = nil,
-    ) async -> Bool {
+    ) async -> TellomiEnqueueOutcome {
         return await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { writeTransaction in
-            // Tellomi（tellomi/tellomi#1519 M-4）：定时消息先在这个事务里认领（删定时记录），已经被发出 / 删掉就不发。
-            if let tellomiClaim, !tellomiClaim(writeTransaction) {
-                return false
+            // Tellomi（tellomi/tellomi#1519 M-4）：定时消息的记录已经没了（别处发了 / 删了）或改了时间就不发。
+            if let tellomiClaim, !tellomiClaim.isStillDue(writeTransaction) {
+                return .notDue
             }
             guard let preparedMessage = try? unpreparedMessage.prepare(tx: writeTransaction) else {
                 owsFailDebug("Failed to prepare message")
-                return false
+                return .failedToPrepare
             }
+            // Tellomi（#1519 M-4）：建好了才在同一个事务里删定时记录（认领）；建不成记录留着，下次再试。
+            tellomiClaim?.claim(writeTransaction)
             // Tellomi（tellomi/tellomi#1263，ADR-0068 §4.7）：进发送队列之前、同一个事务里记上，发送时组 DataMessage 读得到。
             if tellomiCaptionAboveMedia {
                 TellomiCaptionAbove.mark(preparedMessage, tx: writeTransaction)
@@ -176,16 +178,37 @@ extension ThreadUtil {
             {
                 thread.donateSendMessageIntent(for: messageForIntent, transaction: writeTransaction)
             }
-            return true
+            return .enqueued
         }
     }
 
     // MARK: - Tellomi
 
-    /// Tellomi（tellomi/tellomi#1519 M-4）：定时消息到点入队。和上面 `enqueueMessage(body:…)` 一样建消息——时间戳 = 现在
-    /// （实际发出时刻），阅后即焚取现在的设置（同安卓 `MessageTable.clearScheduledStatus`）——只是：
-    /// ① 落库的写事务里先 `claim`（删定时记录），返回 false（别处已经发了 / 删了）就不落库；
-    /// ② 等落库（或没落库）才返回，不出错时返回落没落库。
+    /// Tellomi（tellomi/tellomi#1519 M-4）：定时消息到点入队时的认领。两步都在落库的那个写事务里，所以几处同时发、
+    /// 崩溃重来都只会发一次。
+    public struct TellomiEnqueueClaim {
+        /// 落库前看（没有副作用）：记录还在、还是到点的。
+        public let isStillDue: (DBWriteTransaction) -> Bool
+        /// 消息建好以后：删记录。
+        public let claim: (DBWriteTransaction) -> Void
+
+        public init(isStillDue: @escaping (DBWriteTransaction) -> Bool, claim: @escaping (DBWriteTransaction) -> Void) {
+            self.isStillDue = isStillDue
+            self.claim = claim
+        }
+    }
+
+    public enum TellomiEnqueueOutcome {
+        case enqueued
+        /// 记录已经没了或改了时间：没落库。
+        case notDue
+        /// 消息建不成：没认领，记录还在。
+        case failedToPrepare
+    }
+
+    /// Tellomi（#1519 M-4）：定时消息到点入队。和上面 `enqueueMessage(body:…)` 一样建消息——时间戳 = 现在
+    /// （实际发出时刻），阅后即焚取现在的设置（同安卓 `MessageTable.clearScheduledStatus`）——只是落库时按 `claim` 认领，
+    /// 而且等落库（或没落库）才返回。
     public class func tellomiEnqueueScheduledMessage(
         body messageBody: MessageBody?,
         attachments: [SendableAttachment.ForSending],
@@ -194,8 +217,8 @@ extension ThreadUtil {
         quotedReplyDraft: DraftQuotedReplyModel?,
         linkPreviewDraft: OWSLinkPreviewDraft?,
         captionAboveMedia: Bool,
-        claim: @escaping (DBWriteTransaction) -> Bool,
-    ) async throws -> Bool {
+        claim: TellomiEnqueueClaim,
+    ) async throws -> TellomiEnqueueOutcome {
         let messageTimestamp = MessageTimestampGenerator.sharedInstance.generateTimestamp()
 
         let benchEventId = sendMessageBenchEventStart(messageTimestamp: messageTimestamp)
@@ -232,17 +255,17 @@ extension ThreadUtil {
                 tellomiClaim: claim,
             )
         }
-        let didEnqueue: Bool
+        let outcome: TellomiEnqueueOutcome
         do {
-            didEnqueue = try await task.value
+            outcome = try await task.value
         } catch {
             BenchEventComplete(eventId: benchEventId)
             throw error
         }
-        if !didEnqueue {
+        if outcome != .enqueued {
             BenchEventComplete(eventId: benchEventId)
         }
-        return didEnqueue
+        return outcome
     }
 
     private static func sendMessageBenchEventStart(messageTimestamp: UInt64) -> String {

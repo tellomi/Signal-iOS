@@ -12,9 +12,9 @@ public import SignalServiceKit
 /// 在后台或没开时等下次回到前台补发（`applicationDidBecomeActive`，同安卓启动时 `scheduleIfNecessary`）。
 /// 后台刷新顺手发、到点通知是下一步（方案 §6.2 / §6.3）。
 ///
-/// 到点发出：用当时的会话建消息（时间戳 = 发出时刻，阅后即焚取当时的设置）；落库的同一个写事务里删定时记录，
-/// 谁先删到谁发——崩溃重来、几处同时触发都不会重发，也不会漏。会话删了、退了群、拉黑了就不发，记录删掉、记日志
-/// （安卓退群时 `deleteScheduledMessages`，删会话时消息跟着删）。
+/// 到点发出：用当时的会话建消息（时间戳 = 发出时刻，阅后即焚取当时的设置）；消息建好后在落库的同一个写事务里删定时记录，
+/// 谁先删到谁发——崩溃重来、几处同时触发都不会重发，也不会漏。会话删了、退了群、只许管理员发言、拉黑了就不发，
+/// 记录删掉、记日志（安卓退群时 `deleteScheduledMessages`，删会话时消息跟着删）。
 @MainActor
 public final class TellomiScheduledMessageSender {
 
@@ -24,28 +24,34 @@ public final class TellomiScheduledMessageSender {
     var now: () -> Date = { Date() }
 
     private var timer: Timer?
-    private var hasActivated = false
+    private var hasCleanedUpFiles = false
     private var isFlushing = false
     private var needsAnotherFlush = false
-    /// 这次运行里建消息出错的（例如文件坏了）：不在这次运行里反复重试，下次启动再试；用户可以在定时消息列表里删掉。
-    private var failedThisRun = Set<String>()
+    /// 建消息出错的（例如文件坏了、磁盘满）：不反复重试，下次回到前台再试一次；用户可以在定时消息列表里删掉。
+    private var failedSinceActivation = Set<String>()
 
-    init() {}
+    init() {
+        // 一建出来就听：刚注册完还没「回到前台」过时排的也要挂定时器。
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(storeDidChange),
+            name: TellomiScheduledMessageStore.didChange,
+            object: nil,
+        )
+    }
 
     // MARK: - Lifecycle
 
-    /// 主 App 每次回到前台（已注册）：补发到点的，重排定时器。第一次还会清掉没有记录的文件、开始听记录变化。
+    /// 主 App 每次回到前台（已注册）：补发到点的，重排定时器。第一次还会在后台清掉没有记录的文件。
     public func applicationDidBecomeActive() {
-        if !hasActivated {
-            hasActivated = true
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(storeDidChange),
-                name: TellomiScheduledMessageStore.didChange,
-                object: nil,
-            )
-            SSKEnvironment.shared.databaseStorageRef.read { tx in
-                TellomiScheduledMessageStore.deleteOrphanedDirectories(tx: tx)
+        failedSinceActivation.removeAll()
+        if !hasCleanedUpFiles {
+            hasCleanedUpFiles = true
+            Task.detached(priority: .utility) {
+                let cutoff = Date().addingTimeInterval(-10 * .minute)
+                SSKEnvironment.shared.databaseStorageRef.read { tx in
+                    TellomiScheduledMessageStore.deleteOrphanedDirectories(olderThan: cutoff, tx: tx)
+                }
             }
         }
         Task { await flushDue() }
@@ -148,7 +154,7 @@ public final class TellomiScheduledMessageSender {
             let due = SSKEnvironment.shared.databaseStorageRef.read { tx in
                 TellomiScheduledMessageStore.fetchDue(now: now(), tx: tx)
             }
-            for message in due where !failedThisRun.contains(message.id) {
+            for message in due where !failedSinceActivation.contains(message.id) {
                 await send(message)
             }
         } while needsAnotherFlush
@@ -161,15 +167,13 @@ public final class TellomiScheduledMessageSender {
 
     private func send(_ message: TellomiScheduledMessage) async {
         let db = SSKEnvironment.shared.databaseStorageRef
+        let now = self.now()
         let disposition = db.read { tx -> Disposition in
             guard let thread = TSThread.anyFetch(uniqueId: message.threadUniqueId, transaction: tx) else {
                 return .discard("the chat is gone")
             }
-            if !thread.isLocalUserFullMemberOfThread || thread.isTerminatedGroup {
-                return .discard("not in the group any more")
-            }
-            if SSKEnvironment.shared.blockingManagerRef.isThreadBlocked(thread, transaction: tx) {
-                return .discard("the chat is blocked")
+            if let reason = TellomiScheduledMessageStore.reasonNotToSend(to: thread, tx: tx) {
+                return .discard(reason)
             }
             let missingFile = message.attachments.contains {
                 !OWSFileSystem.fileOrFolderExists(url: TellomiScheduledMessageStore.fileUrl(for: $0, messageId: message.id))
@@ -210,7 +214,7 @@ public final class TellomiScheduledMessageSender {
 
             ThreadUtil.addThreadToProfileWhitelistIfEmptyOrPendingRequestAndSetDefaultTimerWithSneakyTransaction(thread)
 
-            let didEnqueue = try await ThreadUtil.tellomiEnqueueScheduledMessage(
+            let outcome = try await ThreadUtil.tellomiEnqueueScheduledMessage(
                 body: try message.messageBody(),
                 attachments: attachments,
                 isViewOnce: message.isViewOnce,
@@ -218,16 +222,23 @@ public final class TellomiScheduledMessageSender {
                 quotedReplyDraft: message.replyInfo.flatMap(Self.quotedReplyDraft(for:)),
                 linkPreviewDraft: message.linkPreview?.draft,
                 captionAboveMedia: message.captionAboveMedia,
-                claim: { tx in TellomiScheduledMessageStore.remove(id: message.id, tx: tx) },
+                claim: ThreadUtil.TellomiEnqueueClaim(
+                    isStillDue: { tx in TellomiScheduledMessageStore.isDue(id: message.id, now: now, tx: tx) },
+                    claim: { tx in TellomiScheduledMessageStore.remove(id: message.id, tx: tx) },
+                ),
             )
-            if didEnqueue {
+            switch outcome {
+            case .enqueued:
                 Logger.info("Sent a scheduled message.")
-            } else {
-                Logger.info("A scheduled message was already sent or deleted.")
+            case .notDue:
+                Logger.info("A scheduled message was already sent, deleted or moved to later.")
+            case .failedToPrepare:
+                Logger.warn("Couldn't build a scheduled message; will retry on the next activation.")
+                failedSinceActivation.insert(message.id)
             }
         } catch {
-            Logger.warn("Couldn't send a scheduled message; will retry on the next launch: \(error)")
-            failedThisRun.insert(message.id)
+            Logger.warn("Couldn't send a scheduled message; will retry on the next activation: \(error)")
+            failedSinceActivation.insert(message.id)
         }
     }
 
@@ -264,11 +275,11 @@ public final class TellomiScheduledMessageSender {
         timer?.invalidate()
         timer = nil
         // 没注册时 `flushDue` 什么都不发：不挂，免得到点的那条让定时器一直立刻再触发。
-        guard hasActivated, DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered else {
+        guard DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered else {
             return
         }
         let next = SSKEnvironment.shared.databaseStorageRef.read { tx in
-            TellomiScheduledMessageStore.fetchAll(tx: tx).first { !failedThisRun.contains($0.id) }?.scheduledAt
+            TellomiScheduledMessageStore.fetchAll(tx: tx).first { !failedSinceActivation.contains($0.id) }?.scheduledAt
         }
         guard let next else {
             return
@@ -283,9 +294,5 @@ public final class TellomiScheduledMessageSender {
 
 #if TESTABLE_BUILD
     var nextTimerFireDateForTesting: Date? { timer?.fireDate }
-
-    func activateForTesting() {
-        hasActivated = true
-    }
 #endif
 }

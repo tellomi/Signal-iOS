@@ -66,7 +66,8 @@ public struct TellomiScheduledMessage: Codable, Equatable {
     }
 
     public let id: String
-    public let threadUniqueId: String
+    /// 会话合并时（`ThreadMerger`）改成合并后的会话。
+    public var threadUniqueId: String
     public var scheduledAt: Date
     /// 同一时刻排了几条（例如「单独发送」拆开的）时按它排先后。
     public let createdAt: Date
@@ -150,14 +151,15 @@ public enum TellomiScheduledMessageStore {
 
     // MARK: - Reads
 
-    /// 全部，按到点时刻（再按排定先后）排好。
+    /// 全部，按到点时刻（再按排定先后）排好。读不出来的那条跳过（记日志），不连累别的。
     public static func fetchAll(tx: DBReadTransaction) -> [TellomiScheduledMessage] {
-        let messages: [TellomiScheduledMessage]
-        do {
-            messages = try store.allCodableValues(transaction: tx)
-        } catch {
-            owsFailDebug("Couldn't read scheduled messages: \(error)")
-            return []
+        let messages = store.allKeys(transaction: tx).compactMap { key -> TellomiScheduledMessage? in
+            do {
+                return try store.getCodableValue(forKey: key, failDebugOnParseError: false, transaction: tx)
+            } catch {
+                Logger.warn("Skipping an unreadable scheduled message: \(error)")
+                return nil
+            }
         }
         return messages.sorted { lhs, rhs in
             if lhs.scheduledAt != rhs.scheduledAt {
@@ -172,11 +174,31 @@ public enum TellomiScheduledMessageStore {
 
     public static func fetch(id: String, tx: DBReadTransaction) -> TellomiScheduledMessage? {
         do {
-            return try store.getCodableValue(forKey: id, transaction: tx)
+            return try store.getCodableValue(forKey: id, failDebugOnParseError: false, transaction: tx)
         } catch {
-            owsFailDebug("Couldn't read scheduled message: \(error)")
+            Logger.warn("Couldn't read a scheduled message: \(error)")
             return nil
         }
+    }
+
+    /// 发送前最后确认（到点发送在落库的写事务里调）：记录还在，而且没被改到以后。
+    public static func isDue(id: String, now: Date, tx: DBReadTransaction) -> Bool {
+        guard let message = fetch(id: id, tx: tx) else {
+            return false
+        }
+        return message.scheduledAt <= now
+    }
+
+    /// 到点时这个会话还能不能发；不能就说为什么（记日志用），这条丢掉。
+    /// 同上游输入框能不能发（`canSendChatMessagesToThread`：退了群、群解散、只许管理员发言、旧版群、Signal 官方会话），加上拉黑。
+    public static func reasonNotToSend(to thread: TSThread, tx: DBReadTransaction) -> String? {
+        if !thread.canSendChatMessagesToThread() {
+            return "the chat doesn't allow sending"
+        }
+        if SSKEnvironment.shared.blockingManagerRef.isThreadBlocked(thread, transaction: tx) {
+            return "the chat is blocked"
+        }
+        return nil
     }
 
     /// 到点（`scheduledAt ≤ now`）的，按先后。
@@ -237,12 +259,28 @@ public enum TellomiScheduledMessageStore {
         }
     }
 
+    /// 会话合并（号码 / PNI 的会话并进 ACI 的会话）：定时消息跟着去合并后的会话（同上游 `mergeThreadReplyInfo`）。
+    public static func moveAll(fromThreadUniqueId: String, toThreadUniqueId: String, tx: DBWriteTransaction) {
+        let messages = fetchAll(threadUniqueId: fromThreadUniqueId, tx: tx)
+        guard !messages.isEmpty else { return }
+        for var message in messages {
+            message.threadUniqueId = toThreadUniqueId
+            do {
+                try store.setCodable(message, key: message.id, transaction: tx)
+            } catch {
+                owsFailDebug("Couldn't move a scheduled message: \(error)")
+            }
+        }
+        postDidChange(tx: tx)
+    }
+
     /// 没有记录的目录（删记录后、删文件前崩了，或排定时写了文件、没写成记录）：启动时清掉。
-    public static func deleteOrphanedDirectories(tx: DBReadTransaction) {
+    /// 刚建不久的不动：可能正在排（文件已复制、记录还没写）。
+    public static func deleteOrphanedDirectories(olderThan cutoff: Date, tx: DBReadTransaction) {
         let ids = Set(store.allKeys(transaction: tx))
         let contents: [URL]
         do {
-            contents = try FileManager.default.contentsOfDirectory(at: rootDirectory(), includingPropertiesForKeys: nil)
+            contents = try FileManager.default.contentsOfDirectory(at: rootDirectory(), includingPropertiesForKeys: [.creationDateKey])
         } catch CocoaError.fileReadNoSuchFile, CocoaError.fileNoSuchFile {
             return
         } catch {
@@ -250,6 +288,10 @@ public enum TellomiScheduledMessageStore {
             return
         }
         for url in contents where !ids.contains(url.lastPathComponent) {
+            let createdAt = (try? url.resourceValues(forKeys: [.creationDateKey]))?.creationDate
+            if let createdAt, createdAt > cutoff {
+                continue
+            }
             Logger.info("Deleting orphaned scheduled message files.")
             deleteDirectory(url)
         }

@@ -1447,13 +1447,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 await SSKEnvironment.shared.groupMessageProcessorManagerRef.startAllProcessors()
             }
 
-            // Tellomi（tellomi/tellomi#1519 M-4）：补发到点的定时消息、挂前台定时器（同安卓启动时 `scheduleIfNecessary`）。
-            TellomiScheduledMessageSender.shared.applicationDidBecomeActive()
-
             // At this point, potentially lengthy DB locking migrations could be running.
             // Avoid blocking app launch by putting all further possible DB access in async block
             DispatchQueue.main.async {
                 SSKEnvironment.shared.contactManagerImplRef.fetchSystemContactsOnceIfAlreadyAuthorized()
+
+                // Tellomi（tellomi/tellomi#1519 M-4）：补发到点的定时消息、挂前台定时器（同安卓启动时 `scheduleIfNecessary`）。
+                TellomiScheduledMessageSender.shared.applicationDidBecomeActive()
 
                 if !UIApplication.shared.isRegisteredForRemoteNotifications {
                     Logger.info("Retrying to register for remote notifications since user hasn't registered yet.")
