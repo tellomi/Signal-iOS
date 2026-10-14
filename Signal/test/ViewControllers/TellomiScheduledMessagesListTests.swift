@@ -171,12 +171,12 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         }
         let short = layout("Hi")
         XCTAssertTrue(short.tiles.isEmpty)
-        XCTAssertLessThan(short.message.width, 120, "a short text gets a narrow bubble")
-        XCTAssertLessThanOrEqual(short.message.maxX, button.frame.minX, "left of the send button")
+        XCTAssertLessThan(short.message.size.width, 120, "a short text gets a narrow bubble")
+        XCTAssertLessThanOrEqual(short.message.maxX, button.frame.origin.x, "left of the send button")
 
         let long = layout(String(repeating: "A long message that wraps. ", count: 6))
-        XCTAssertEqual(long.message.width, 260, accuracy: 0.5, "a long text uses the full width")
-        XCTAssertGreaterThan(long.message.height, short.message.height)
+        XCTAssertEqual(long.message.size.width, 260, accuracy: 0.5, "a long text uses the full width")
+        XCTAssertGreaterThan(long.message.size.height, short.message.size.height)
     }
 
     /// 截图（TELLOMI_SHOTS=1）：一个会话的定时消息页（两天、带图、带说明）。
