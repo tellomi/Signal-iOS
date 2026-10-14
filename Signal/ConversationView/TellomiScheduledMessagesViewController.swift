@@ -109,6 +109,9 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
         sections = Self.sections(for: messages)
         emptyLabel.isHidden = !messages.isEmpty
         tableView.reloadData()
+        tableView.layoutIfNeeded()
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
         scrollToBottom()
     }
 
