@@ -513,6 +513,20 @@ public class ConversationInputToolbar: UIView, QuotedReplyPreviewDelegate {
     /// 输入框右边给按钮留的宽度（不含日历键）。
     private var tellomiBaseInFieldButtonsAreaWidth: CGFloat = 0
 
+    /// Tellomi（#1519 M-4）：发送键长按（会话页弹「发出去是什么样」的预览 +「定时发送」，同 Telegram 两端）；nil = 不挂。
+    func tellomiSetSendLongPress(_ handler: ((UIButton) -> Void)?) {
+        guard let sendButton = tellomiSendButton else { return }
+        TellomiSendLongPressGestureRecognizer.install(on: sendButton, handler: handler)
+    }
+
+    /// 发送键（iOS 26 起它就是右边那个键；之前在右边那一组里）。
+    var tellomiSendButton: UIButton? {
+        if let button = trailingEdgeControl as? UIButton {
+            return button
+        }
+        return (trailingEdgeControl as? RightEdgeControlsView)?.sendButton
+    }
+
     private lazy var keyboardButton = Buttons.keyboardButton(
         primaryAction: UIAction { [weak self] _ in
             self?.keyboardButtonPressed()

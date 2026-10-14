@@ -142,6 +142,43 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         _ = try await schedule(sender, "别的会话", in: makeContactThread(), at: later)
     }
 
+    /// 会话输入框里长按发送（M-4，同 TG 两端）：只有文字时气泡贴着文字宽；字多了到最宽、换行。菜单里是「定时发送」。
+    @MainActor
+    func testTheTextOnlyPreviewFitsTheText() throws {
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 874))
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        defer { window.isHidden = true }
+        let button = UIButton(frame: CGRect(x: 350, y: 800, width: 40, height: 40))
+        root.view.addSubview(button)
+
+        func layout(_ text: String) -> TellomiSendPreviewViewController.Layout {
+            let preview = TellomiSendPreviewViewController(
+                tiles: [],
+                caption: text,
+                captionAboveMedia: false,
+                bubbleColor: nil,
+                actions: [.init(title: TellomiScheduleTimeSheet.title(isReminder: false), image: nil, keepsPresented: false, handler: {})],
+                sourceButton: button,
+                onSend: {},
+            )
+            root.present(preview, animated: false)
+            preview.view.layoutIfNeeded()
+            defer { preview.dismiss(animated: false) }
+            XCTAssertEqual(preview.actionTitlesForTesting, ["Schedule Message"])
+            return preview.layoutForTesting
+        }
+        let short = layout("Hi")
+        XCTAssertTrue(short.tiles.isEmpty)
+        XCTAssertLessThan(short.message.width, 120, "a short text gets a narrow bubble")
+        XCTAssertLessThanOrEqual(short.message.maxX, button.frame.minX, "left of the send button")
+
+        let long = layout(String(repeating: "A long message that wraps. ", count: 6))
+        XCTAssertEqual(long.message.width, 260, accuracy: 0.5, "a long text uses the full width")
+        XCTAssertGreaterThan(long.message.height, short.message.height)
+    }
+
     /// 截图（TELLOMI_SHOTS=1）：一个会话的定时消息页（两天、带图、带说明）。
     @MainActor
     func testScheduledMessagesScreenshot() async throws {

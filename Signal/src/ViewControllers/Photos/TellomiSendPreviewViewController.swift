@@ -302,7 +302,14 @@ final class TellomiSendPreviewViewController: UIViewController {
             return sourceButton.convert(sourceButton.bounds, to: view)
         }()
 
-        let bubbleWidth = max(120, min(Metrics.bubbleMaxWidth, source.minX - Metrics.buttonGap - safe.minX - Metrics.screenMargin))
+        let maxBubbleWidth = max(120, min(Metrics.bubbleMaxWidth, source.minX - Metrics.buttonGap - safe.minX - Metrics.screenMargin))
+        // 只有文字（会话输入框里长按发送，#1519 M-4）：气泡贴着文字宽，同会话里的文字气泡。
+        let bubbleWidth: CGFloat = {
+            guard tiles.isEmpty, caption != nil else { return maxBubbleWidth }
+            let insets = Metrics.captionInsets
+            let fits = captionLabel.sizeThatFits(CGSize(width: maxBubbleWidth - insets.left - insets.right, height: .greatestFiniteMagnitude))
+            return min(maxBubbleWidth, max(60, ceil(fits.width) + insets.left + insets.right))
+        }()
         let tileFrames = Self.mosaicFrames(count: tiles.count, width: bubbleWidth, firstAspectRatio: tiles.first?.aspectRatio ?? 1)
         let mosaicHeight = tileFrames.map(\.maxY).max() ?? 0
         let captionSize: CGSize = caption == nil ? .zero : {
