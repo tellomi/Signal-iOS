@@ -62,20 +62,63 @@ final class TellomiScheduleTimeSheet: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// 底部弹出（系统 sheet，高度贴着内容）。
+    /// 底部弹出（系统 sheet，高度贴着内容；字号调大时跟着高，放不下就到最高）。iOS 15 没有自定义高度：用整页。
     func present(from presenter: UIViewController) {
         modalPresentationStyle = .pageSheet
         if let sheet = sheetPresentationController {
             if #available(iOS 16.0, *) {
-                // 关闭键 16 + 36、间距 16、滚轮 216、间距 16、按钮 50、底部 16（系统另加底部安全区）。
-                sheet.detents = [.custom(identifier: .init("tellomiScheduleTime")) { _ in 366 }]
+                let width = presenter.view.bounds.width
+                sheet.detents = [.custom(identifier: .init("tellomiScheduleTime")) { [weak self] context in
+                    guard let self else { return context.maximumDetentValue }
+                    return min(self.contentHeight(width: width), context.maximumDetentValue)
+                }]
             } else {
-                sheet.detents = [.medium()]
+                sheet.detents = [.large()]
             }
             sheet.prefersGrabberVisible = false
             sheet.preferredCornerRadius = 24
         }
         presenter.present(self, animated: true)
+    }
+
+    /// 内容要多高（不含底部安全区，系统另加）。
+    func contentHeight(width: CGFloat) -> CGFloat {
+        loadViewIfNeeded()
+        let size = view.systemLayoutSizeFitting(
+            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel,
+        )
+        return ceil(size.height)
+    }
+
+    // MARK: - Keeping the earliest time fresh
+
+    /// 开着的时候每 15 秒把最早时间往后挪（同 TG iOS 旧版选时间：过去的时间不给选），按钮字跟着变。
+    private var refreshTimer: Timer?
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        refreshTimer?.invalidate()
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshMinimumDate() }
+        }
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        refreshTimer?.invalidate()
+        refreshTimer = nil
+    }
+
+    private func refreshMinimumDate() {
+        let minimum = Self.minimumDate(now: now())
+        guard datePicker.minimumDate != minimum else { return }
+        datePicker.minimumDate = minimum
+        if datePicker.date < minimum {
+            datePicker.setDate(minimum, animated: true)
+        }
+        updateConfirmTitle()
     }
 
     override func viewDidLoad() {
@@ -95,7 +138,10 @@ final class TellomiScheduleTimeSheet: UIViewController {
         datePicker.minimumDate = Self.minimumDate(now: now)
         datePicker.maximumDate = Self.maximumDate(now: now)
         datePicker.date = Self.defaultDate(now: now)
-        datePicker.addAction(UIAction { [weak self] _ in self?.updateConfirmTitle() }, for: .valueChanged)
+        datePicker.addAction(UIAction { [weak self] _ in
+            self?.refreshMinimumDate()
+            self?.updateConfirmTitle()
+        }, for: .valueChanged)
 
         for subview in [closeButton, titleLabel, datePicker, confirmButton] {
             subview.translatesAutoresizingMaskIntoConstraints = false
@@ -211,6 +257,7 @@ final class TellomiScheduleTimeSheet: UIViewController {
     }
 
 #if TESTABLE_BUILD
+    func refreshMinimumDateForTesting() { refreshMinimumDate() }
     var confirmTitleForTesting: String? { confirmButton.configuration?.title }
     var datePickerForTesting: UIDatePicker { datePicker }
     func tapConfirmForTesting() { didTapConfirm() }

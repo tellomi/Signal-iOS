@@ -448,14 +448,14 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
             return false
         }
 
-        let didAddToProfileWhitelist = ThreadUtil.addThreadToProfileWhitelistIfEmptyOrPendingRequestAndSetDefaultTimerWithSneakyTransaction(self.thread)
-
         let hasViewOnceAttachment = approvedAttachments.isViewOnce
         owsPrecondition(!hasViewOnceAttachment || messageBody == nil)
         owsPrecondition(!hasViewOnceAttachment || inputToolbar.quotedReplyDraft == nil)
 
         // Tellomi（tellomi/tellomi#1519 M-4）：长按发送里选了「定时发送」：排成定时消息，到点才进会话；不响发送音，引用草稿照样清掉。
-        if let tellomiScheduledAt {
+        // 分享资料、默认阅后即焚这些「发了才算」的事留到真正发出时（执行器发之前做），删掉定时消息就什么都没发生过。
+        // 准备附件（编辑、压视频）花的时间里已经过了点：直接照常发。
+        if let tellomiScheduledAt, tellomiScheduledAt > Date() {
             try await TellomiScheduledMessageSender.shared.schedule(
                 body: messageBody,
                 attachments: sendableAttachments,
@@ -470,6 +470,8 @@ extension ConversationViewController: ConversationInputToolbarDelegate {
             NotificationCenter.default.post(name: ChatListViewController.clearSearch, object: nil)
             return true
         }
+
+        let didAddToProfileWhitelist = ThreadUtil.addThreadToProfileWhitelistIfEmptyOrPendingRequestAndSetDefaultTimerWithSneakyTransaction(self.thread)
 
         ThreadUtil.enqueueMessage(
             body: messageBody,

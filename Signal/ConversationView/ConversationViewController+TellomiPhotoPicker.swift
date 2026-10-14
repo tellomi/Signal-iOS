@@ -199,22 +199,20 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
             fromViewController: fromViewController,
             title: CommonStrings.preparingModal,
             asyncBlock: { modal in
-                let didSend: Bool
+                // M-4：拆成几条时可能排进去一部分就出错了：按「这次排进去了没有」提示，不按全部成没成。
+                let startedAt = Date()
                 if separately {
                     // 说明只挂最后一条，「说明在上方」也只对它（没有说明的那几条不记）。
-                    var sentAll = true
                     await TellomiPhotoPickerSending.sendSeparately(approvedAttachments, messageBody: messageBody) { part, body in
-                        let sent = await self.sendAttachments(part, messageBody: body, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia, tellomiScheduledAt: scheduledAt)
-                        sentAll = sentAll && sent
-                        return sent
+                        await self.sendAttachments(part, messageBody: body, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia, tellomiScheduledAt: scheduledAt)
                     }
-                    didSend = sentAll
                 } else {
-                    didSend = await self.sendAttachments(approvedAttachments, messageBody: messageBody, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia, tellomiScheduledAt: scheduledAt)
+                    await self.sendAttachments(approvedAttachments, messageBody: messageBody, from: fromViewController, attachmentLimits: attachmentLimits, captionAboveMedia: captionAboveMedia, tellomiScheduledAt: scheduledAt)
                 }
+                let scheduledSome = scheduledAt != nil && self.tellomiHasScheduledMessages(since: startedAt)
                 modal.dismiss(completion: {
                     self.dismiss(animated: true) {
-                        if didSend, let scheduledAt {
+                        if scheduledSome, let scheduledAt {
                             self.tellomiShowScheduledToast(for: scheduledAt)
                         }
                     }
@@ -223,7 +221,15 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         )
     }
 
-    /// Tellomi（tellomi/tellomi#1519 M-4）：排好了说一声什么时候发。Telegram 两端排好后打开「定时消息」页；那一页是 M-4 下一步，
+    /// Tellomi（tellomi/tellomi#1519 M-4）：这个会话从 `date` 起排进去过定时消息没有。
+    func tellomiHasScheduledMessages(since date: Date) -> Bool {
+        let threadUniqueId = thread.uniqueId
+        return SSKEnvironment.shared.databaseStorageRef.read { tx in
+            TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx).contains { $0.createdAt >= date }
+        }
+    }
+
+    /// Tellomi（#1519 M-4）：排好了说一声什么时候发。Telegram 两端排好后打开「定时消息」页；那一页是 M-4 下一步，
     /// 在那之前先用提示。
     func tellomiShowScheduledToast(for date: Date) {
         let formatter = DateFormatter()

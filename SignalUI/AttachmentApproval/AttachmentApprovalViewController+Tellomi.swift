@@ -50,6 +50,11 @@ extension AttachmentApprovalViewController {
     }
 
     #if TESTABLE_BUILD
+    /// 同手指点这一页的发送键（普通发送）。
+    func tellomiTapSendForTesting() {
+        mediaCaptionToolbar.proceedButton.sendActions(for: .primaryActionTriggered)
+    }
+
     /// 同手指按住这一页的发送键。
     func tellomiLongPressSendForTesting() {
         TellomiSendLongPressGestureRecognizer.installed(on: mediaCaptionToolbar.proceedButton)?.fireForTesting()

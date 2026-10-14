@@ -10406,10 +10406,10 @@
 "TELLOMI_SCHEDULE_MESSAGE" = "Schedule Message";
 
 /* Toast after scheduling a message to be sent later. Embeds {{date and time, e.g. 'Today at 14:35'}}. */
-"TELLOMI_SCHEDULE_MESSAGE_SCHEDULED_TOAST_FORMAT" = "Scheduled for %@.";
+"TELLOMI_SCHEDULE_MESSAGE_SCHEDULED_TOAST_FORMAT" = "Scheduled: %@";
 
 /* Toast after setting a reminder in Saved Messages (note to self). Embeds {{date and time, e.g. 'Today at 14:35'}}. */
-"TELLOMI_SCHEDULE_REMINDER_SET_TOAST_FORMAT" = "Reminder set for %@.";
+"TELLOMI_SCHEDULE_REMINDER_SET_TOAST_FORMAT" = "Reminder set: %@";
 
 /* Button in the reminder time sheet (Saved Messages) for a day after tomorrow. Embeds {{date}} and {{time}}. */
 "TELLOMI_SCHEDULE_REMIND_ON_FORMAT" = "Remind on %1$@ at %2$@";

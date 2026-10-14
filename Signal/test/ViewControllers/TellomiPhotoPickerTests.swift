@@ -650,9 +650,9 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertNil(next.scheduledAt, "普通发送不带时间")
     }
 
-    /// 上游预览 / 编辑页的发送键长按里选「定时发送」：那一页照常发送（编辑画进去），交回来时带着时间；之后在那一页普通发送不带。
+    /// 上游预览 / 编辑页的发送键长按里选「定时发送」：那一页照常发送，交回来时带着时间；之后在同一页普通发送不带时间。
     @MainActor
-    func testSchedulingFromTheEditorKeepsItsEdits() async throws {
+    func testSchedulingFromTheEditorThenSendingNormally() async throws {
         let hosted = host(canSendAsFile: true)
         defer { hosted.tearDown() }
         let picker = hosted.picker
@@ -671,7 +671,11 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         let sent = try await nextSend(hosted, count: 1)
         XCTAssertEqual(sent.scheduledAt, at)
         XCTAssertEqual(sent.approved.attachments.count, 1)
-        XCTAssertNil(editor.tellomiPendingScheduledAt, "按下发送那一刻就取走了")
+
+        // 还在这一页（测试里的会话页不收起它）：普通发送不带上一次的时间。
+        editor.tellomiTapSendForTesting()
+        let next = try await nextSend(hosted, count: 2)
+        XCTAssertNil(next.scheduledAt)
     }
 
     /// 收藏（给自己）里叫「设置提醒」（同 Telegram 两端 `SetReminder`）。
@@ -2061,7 +2065,10 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
             }
             return top
         }
-        let shown = await waitUntil { (topmost() as? TellomiScheduleTimeSheet)?.viewIfLoaded?.window != nil }
+        let shown = await waitUntil {
+            guard let sheet = topmost() as? TellomiScheduleTimeSheet else { return false }
+            return sheet.viewIfLoaded?.window != nil && !sheet.isBeingPresented
+        }
         XCTAssertTrue(shown, "弹出选时间")
         return try XCTUnwrap(topmost() as? TellomiScheduleTimeSheet)
     }

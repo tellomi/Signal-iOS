@@ -78,4 +78,35 @@ final class TellomiScheduleTimeSheetTests: XCTestCase {
         sheet.tapConfirmForTesting()
         XCTAssertEqual(chosen, TellomiScheduleTimeSheet.defaultDate(now: now))
     }
+
+    /// 开着放了一会儿：最早时间跟着往后挪，选着的过去时间被推上来；点按钮时再按当时的「现在」推一次。
+    @MainActor
+    func testTheEarliestTimeMovesWhileTheSheetIsOpen() {
+        var now = Date()
+        var chosen: Date?
+        let sheet = TellomiScheduleTimeSheet(isReminder: false, now: { now }) { chosen = $0 }
+        sheet.loadViewIfNeeded()
+        let picker = sheet.datePickerForTesting
+        picker.date = TellomiScheduleTimeSheet.minimumDate(now: now)
+
+        now = now.addingTimeInterval(10 * 60)
+        sheet.refreshMinimumDateForTesting()
+        XCTAssertEqual(picker.minimumDate, TellomiScheduleTimeSheet.minimumDate(now: now))
+        XCTAssertEqual(picker.date, TellomiScheduleTimeSheet.minimumDate(now: now))
+        XCTAssertEqual(sheet.confirmTitleForTesting, TellomiScheduleTimeSheet.confirmTitle(for: picker.date, now: now, isReminder: false))
+
+        // 定时器还没来得及刷新就点了：照样推到点按钮那一刻的最早时间。
+        now = now.addingTimeInterval(5 * 60)
+        sheet.tapConfirmForTesting()
+        XCTAssertEqual(chosen, TellomiScheduleTimeSheet.minimumDate(now: now))
+    }
+
+    /// 高度贴着内容：比滚轮 + 按钮高，又不会大出一截；字号调大时更高。
+    @MainActor
+    func testTheSheetIsAsTallAsItsContent() {
+        let sheet = TellomiScheduleTimeSheet(isReminder: false) { _ in }
+        let height = sheet.contentHeight(width: 402)
+        XCTAssertGreaterThan(height, 216 + 50)
+        XCTAssertLessThan(height, 420)
+    }
 }
