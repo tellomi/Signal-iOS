@@ -2040,7 +2040,7 @@ extension TellomiPhotoPickerViewController {
     /// 发送键长按弹出的菜单里有哪几项；长按不弹时 nil。
     var sendMenuTitlesForTesting: [String]? {
         guard TellomiSendLongPressGestureRecognizer.installed(on: sendButton)?.isEnabled == true else { return nil }
-        return sendMenuItems().map { Self.title(for: $0, selectedCount: selectedIds.count) }
+        return sendMenuItems().map { Self.title(for: $0, selectedCount: selectedIds.count, isNoteToSelf: isNoteToSelf) }
     }
 
     /// 同手指按住网格的发送键。

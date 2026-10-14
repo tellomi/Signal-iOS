@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EE9DBA1D6EB11929E491BA2B /* TellomiScheduleTimeSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B288B9485831E699AC92BE8 /* TellomiScheduleTimeSheetTests.swift */; };
 		F00977AD4FAEC90AC057A9F9 /* TellomiScheduleTimeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93AAA7D8533518274946A1E /* TellomiScheduleTimeSheet.swift */; };
 		AEDC6C5429F6FDB3867841C4 /* TellomiScheduledMessageNotificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C8E426A816B9C163299D78 /* TellomiScheduledMessageNotificationTests.swift */; };
 		B97A1EA34E8F6FAE68798D44 /* TellomiScheduledMessageNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B5621A866C3C46BE1B2D248 /* TellomiScheduledMessageNotifications.swift */; };
@@ -4444,6 +4445,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5B288B9485831E699AC92BE8 /* TellomiScheduleTimeSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiScheduleTimeSheetTests.swift; sourceTree = "<group>"; };
 		B93AAA7D8533518274946A1E /* TellomiScheduleTimeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiScheduleTimeSheet.swift; sourceTree = "<group>"; };
 		C1C8E426A816B9C163299D78 /* TellomiScheduledMessageNotificationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiScheduledMessageNotificationTests.swift; sourceTree = "<group>"; };
 		1B5621A866C3C46BE1B2D248 /* TellomiScheduledMessageNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiScheduledMessageNotifications.swift; sourceTree = "<group>"; };
@@ -10100,6 +10102,7 @@
 				A700770A7A33416692237DF5 /* TellomiVideoLevelTests.swift */,
 				805CBB2A6487FD76D22DECAC /* TellomiMutedVideoTests.swift */,
 				D0B193FF5C16EE0F9436217B /* TellomiScheduledMessageTests.swift */,
+				5B288B9485831E699AC92BE8 /* TellomiScheduleTimeSheetTests.swift */,
 				C1C8E426A816B9C163299D78 /* TellomiScheduledMessageNotificationTests.swift */,
 				5D49C2289FD00A87FFAC2A24 /* TellomiCaptureFilmstripTests.swift */,
 				C4BD449DE6812A48D2CAACBA /* TellomiCaptureLockTests.swift */,
@@ -19978,6 +19981,7 @@
 				4675DBEFDCC84C3E01819C6E /* TellomiVideoLevelTests.swift in Sources */,
 				74A84450739B8C893E8E22A3 /* TellomiMutedVideoTests.swift in Sources */,
 				907A926689426E912880A57C /* TellomiScheduledMessageTests.swift in Sources */,
+				EE9DBA1D6EB11929E491BA2B /* TellomiScheduleTimeSheetTests.swift in Sources */,
 				AEDC6C5429F6FDB3867841C4 /* TellomiScheduledMessageNotificationTests.swift in Sources */,
 				D14974CEB7DC3B396F0FF2E4 /* TellomiCaptureFilmstripTests.swift in Sources */,
 				1486A43C609ED88D791AE53D /* TellomiCaptureLockTests.swift in Sources */,

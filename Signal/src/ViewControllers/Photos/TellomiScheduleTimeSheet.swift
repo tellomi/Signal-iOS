@@ -130,6 +130,10 @@ final class TellomiScheduleTimeSheet: UIViewController {
     private func didTapConfirm() {
         let date = Self.clamped(datePicker.date, now: now())
         let onSchedule = self.onSchedule
+        guard presentingViewController != nil else {
+            onSchedule(date)
+            return
+        }
         dismiss(animated: true) { onSchedule(date) }
     }
 
