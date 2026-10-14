@@ -103,7 +103,7 @@ public final class TellomiScheduledMessageSender {
     // MARK: - Scheduling
 
     /// 一个会话最多排这么多条（同 Telegram：服务器上限 100，两端都提示 `MessageScheduledLimitReached`）。
-    public static let maxScheduledPerChat = 100
+    public nonisolated static let maxScheduledPerChat = 100
 
     public enum ScheduleError: Error, LocalizedError {
         case tooManyScheduled
