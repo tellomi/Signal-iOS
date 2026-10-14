@@ -320,6 +320,206 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         try XCTUnwrap(image.pngData()).write(to: directory.appendingPathComponent("scheduled-messages-list.png"))
     }
 
+    // MARK: - Writing and editing（M-4 第五步，照 TG 两端：定时消息页底下能写新的、长按能改）
+
+    /// 记录里改文字：换正文，到点时刻、排定先后不变；说明删光了就谈不上在上面；记录没了返回 nil。
+    func testTheStoreEditsTheText() throws {
+        var original = try record(at: date(10, 20, 9), text: "原文")
+        original.captionAboveMedia = true
+        try write { tx in try TellomiScheduledMessageStore.insert(original, tx: tx) }
+
+        let old = try write { tx in
+            try TellomiScheduledMessageStore.edit(id: original.id, body: MessageBody(text: "改过", ranges: .empty), linkPreview: nil, tx: tx)
+        }
+        XCTAssertEqual(old, original)
+        let edited = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: original.id, tx: tx) })
+        XCTAssertEqual(try edited.messageBody()?.text, "改过")
+        XCTAssertEqual(edited.scheduledAt, original.scheduledAt)
+        XCTAssertEqual(edited.createdAt, original.createdAt)
+        XCTAssertTrue(edited.captionAboveMedia)
+
+        _ = try write { tx in
+            try TellomiScheduledMessageStore.edit(id: original.id, body: MessageBody(text: "", ranges: .empty), linkPreview: nil, tx: tx)
+        }
+        let cleared = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: original.id, tx: tx) })
+        XCTAssertNil(cleared.body)
+        XCTAssertFalse(cleared.captionAboveMedia)
+
+        let gone = try write { tx in
+            try TellomiScheduledMessageStore.edit(id: "gone", body: MessageBody(text: "x", ranges: .empty), linkPreview: nil, tx: tx)
+        }
+        XCTAssertNil(gone)
+    }
+
+    /// 到点建消息的这段时间里改了文字：认领时发现内容换了，不发旧的（改过的那版接着到点再发）。
+    func testAnEditDuringSendingStopsTheOldText() throws {
+        let original = try record(at: Date().addingTimeInterval(-1), text: "旧的")
+        try write { tx in try TellomiScheduledMessageStore.insert(original, tx: tx) }
+        XCTAssertTrue(read { tx in TellomiScheduledMessageStore.isStillDue(original, now: Date(), tx: tx) })
+        _ = try write { tx in
+            try TellomiScheduledMessageStore.edit(id: original.id, body: MessageBody(text: "新的", ranges: .empty), linkPreview: nil, tx: tx)
+        }
+        XCTAssertFalse(read { tx in TellomiScheduledMessageStore.isStillDue(original, now: Date(), tx: tx) }, "the old snapshot")
+        let current = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: original.id, tx: tx) })
+        XCTAssertTrue(read { tx in TellomiScheduledMessageStore.isStillDue(current, now: Date(), tx: tx) })
+    }
+
+    /// 执行器改文字：预览没变就沿用原来的图文件；去掉预览就删图；换了网址另存新图、删旧图。
+    /// 纯文字的不能改成空的；改的这会儿已经发出去了返回 false。
+    @MainActor
+    func testTheSenderEditsTextAndLinkPreview() async throws {
+        let thread = makeContactThread()
+        let sender = TellomiScheduledMessageSender()
+        let imageData = try XCTUnwrap(UIImage.image(color: .systemBlue, size: CGSize(square: 20)).pngData())
+        let draft = OWSLinkPreviewDraft(url: URL(string: "https://example.com")!, title: "Example", imageData: imageData, imageMimeType: "image/png", isForwarded: false)
+        let message = try await sender.schedule(
+            body: MessageBody(text: "看 https://example.com", ranges: .empty),
+            attachments: [],
+            isViewOnce: false,
+            thread: thread,
+            quotedReplyDraft: nil,
+            linkPreviewDraft: draft,
+            captionAboveMedia: false,
+            at: Date().addingTimeInterval(3600),
+        )
+        let directory = TellomiScheduledMessageStore.directory(for: message.id)
+        let firstImage = try XCTUnwrap(message.linkPreview?.imageFileName)
+
+        // 同一个预览（编辑时从记录里取出来的那份）：图文件不动
+        let sameDraft = try XCTUnwrap(message.linkPreview?.draft(in: directory))
+        let edited = try await sender.edit(id: message.id, body: MessageBody(text: "快看 https://example.com", ranges: .empty), linkPreviewDraft: sameDraft)
+        XCTAssertTrue(edited)
+        var current = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: message.id, tx: tx) })
+        XCTAssertEqual(try current.messageBody()?.text, "快看 https://example.com")
+        XCTAssertEqual(current.scheduledAt, message.scheduledAt)
+        XCTAssertEqual(current.linkPreview?.imageFileName, firstImage)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: directory.appendingPathComponent(firstImage).path))
+
+        // 换了网址：新图另存，旧图删掉
+        let otherImage = try XCTUnwrap(UIImage.image(color: .systemRed, size: CGSize(square: 20)).pngData())
+        let otherDraft = OWSLinkPreviewDraft(url: URL(string: "https://example.org")!, title: "Other", imageData: otherImage, imageMimeType: "image/png", isForwarded: false)
+        _ = try await sender.edit(id: message.id, body: MessageBody(text: "https://example.org", ranges: .empty), linkPreviewDraft: otherDraft)
+        current = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: message.id, tx: tx) })
+        let secondImage = try XCTUnwrap(current.linkPreview?.imageFileName)
+        XCTAssertNotEqual(secondImage, firstImage)
+        XCTAssertEqual(try Data(contentsOf: directory.appendingPathComponent(secondImage)), otherImage)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent(firstImage).path))
+        XCTAssertEqual(current.linkPreview?.draft(in: directory).title, "Other")
+
+        // 去掉预览：图也删掉
+        _ = try await sender.edit(id: message.id, body: MessageBody(text: "不要预览了", ranges: .empty), linkPreviewDraft: nil)
+        current = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: message.id, tx: tx) })
+        XCTAssertNil(current.linkPreview)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent(secondImage).path))
+
+        // 纯文字改成空的：不让
+        do {
+            _ = try await sender.edit(id: message.id, body: MessageBody(text: "", ranges: .empty), linkPreviewDraft: nil)
+            XCTFail("a text-only message can't become empty")
+        } catch {}
+
+        // 已经发出去（记录没了）
+        write { tx in _ = TellomiScheduledMessageStore.remove(id: message.id, tx: tx) }
+        let lost = try await sender.edit(id: message.id, body: MessageBody(text: "晚了", ranges: .empty), linkPreviewDraft: nil)
+        XCTAssertFalse(lost)
+    }
+
+    /// 定时消息页：能发的会话底下有输入框，长按多一项「编辑」（排在复制后面、删除前面，同 TG iOS）；
+    /// 编辑时原文进输入框、出「编辑消息」那条，保存后写进记录、收起；纯文字改空了不能存，有图的可以。
+    @MainActor
+    func testTheScreenEditsAMessage() async throws {
+        let thread = makeContactThread()
+        let sender = TellomiScheduledMessageSender()
+        let message = try await schedule(sender, "原来的字", in: thread, at: Date().addingTimeInterval(3600))
+        let screen = TellomiScheduledMessagesViewController(threadUniqueId: thread.uniqueId, thread: thread, isNoteToSelf: false, bubbleColor: nil, sender: sender)
+        screen.loadViewIfNeeded()
+        let composeBar = try XCTUnwrap(screen.composeBarForTesting)
+        XCTAssertEqual(screen.menuElements(for: message, text: "原来的字").map(\.title), ["Send Now", "Reschedule", "Copy", "Edit", "Delete"])
+
+        // 空的时候不能点
+        XCTAssertFalse(composeBar.submitButtonForTesting.isEnabled)
+        XCTAssertEqual(composeBar.submitButtonForTesting.accessibilityLabel, "Schedule Message")
+
+        // 先写了一半新的，再去改一条：改完放回来
+        composeBar.setTextForTesting("写了一半")
+        screen.beginEditingForTesting(message)
+        XCTAssertEqual(composeBar.editingMessageId, message.id)
+        XCTAssertTrue(composeBar.isEditHeaderShownForTesting)
+        XCTAssertEqual(composeBar.messageBody.text, "原来的字")
+        XCTAssertEqual(composeBar.submitButtonForTesting.accessibilityLabel, CommonStrings.saveButton)
+        composeBar.setTextForTesting("")
+        XCTAssertFalse(composeBar.canSubmit, "text-only: can't be emptied")
+        composeBar.setTextForTesting("改好的字")
+        XCTAssertTrue(composeBar.canSubmit)
+        composeBar.submitForTesting()
+        let saved = await waitUntil {
+            (try? self.read { tx in TellomiScheduledMessageStore.fetch(id: message.id, tx: tx) }?.messageBody()?.text) == "改好的字"
+        }
+        XCTAssertTrue(saved)
+        let closed = await waitUntil { composeBar.editingMessageId == nil }
+        XCTAssertTrue(closed)
+        XCTAssertFalse(composeBar.isEditHeaderShownForTesting)
+        XCTAssertEqual(composeBar.messageBody.text, "写了一半", "the half-written new message comes back")
+        let stillThere = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: message.id, tx: tx) })
+        XCTAssertEqual(stillThere.scheduledAt, message.scheduledAt)
+
+        // 有图的：说明可以删光
+        let withPhoto = try await sender.schedule(
+            body: MessageBody(text: "说明", ranges: .empty),
+            attachments: [try await photo(.systemOrange)],
+            isViewOnce: false,
+            thread: thread,
+            quotedReplyDraft: nil,
+            linkPreviewDraft: nil,
+            captionAboveMedia: true,
+            at: Date().addingTimeInterval(7200),
+        )
+        _ = await waitUntil { screen.sectionsForTesting.flatMap(\.messages).count == 2 }
+        screen.beginEditingForTesting(withPhoto)
+        composeBar.setTextForTesting("")
+        XCTAssertTrue(composeBar.canSubmit, "a photo's caption can be removed")
+        composeBar.submitForTesting()
+        let captionGone = await waitUntil {
+            self.read { tx in TellomiScheduledMessageStore.fetch(id: withPhoto.id, tx: tx) }?.body == nil
+        }
+        XCTAssertTrue(captionGone)
+        let photoKept = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: withPhoto.id, tx: tx) })
+        XCTAssertEqual(photoKept.attachments.count, 1)
+        XCTAssertFalse(photoKept.captionAboveMedia)
+
+        // 改的那条被删了：收起编辑
+        screen.beginEditingForTesting(stillThere)
+        screen.deleteForTesting(stillThere)
+        XCTAssertNil(composeBar.editingMessageId)
+    }
+
+    /// 定时消息页底下写新的：选好时间后排进去（同会话页长按发送那条路），输入框清空。
+    /// 会话现在不能发（退了群之类）就没有输入框，也没有「编辑」。
+    @MainActor
+    func testTheScreenSchedulesANewMessage() async throws {
+        let thread = makeContactThread()
+        let sender = TellomiScheduledMessageSender()
+        let screen = TellomiScheduledMessagesViewController(threadUniqueId: thread.uniqueId, thread: thread, isNoteToSelf: false, bubbleColor: nil, sender: sender)
+        screen.loadViewIfNeeded()
+        let composeBar = try XCTUnwrap(screen.composeBarForTesting)
+        composeBar.setTextForTesting("页里写的")
+        XCTAssertTrue(composeBar.canSubmit)
+        let at = Date().addingTimeInterval(5400)
+        await screen.scheduleNewForTesting(body: composeBar.messageBody, at: at)
+        let scheduled = read { tx in TellomiScheduledMessageStore.fetchAll(threadUniqueId: thread.uniqueId, tx: tx) }
+        XCTAssertEqual(scheduled.map { try? $0.messageBody()?.text }, ["页里写的"])
+        XCTAssertEqual(scheduled.first?.scheduledAt, at)
+        XCTAssertEqual(composeBar.messageBody.text, "")
+        XCTAssertEqual(screen.sectionsForTesting.flatMap(\.messages).map(\.id), scheduled.map(\.id))
+
+        // 没有会话（只读的列表）：没有输入框、没有「编辑」
+        let readOnly = TellomiScheduledMessagesViewController(threadUniqueId: thread.uniqueId, isNoteToSelf: false, bubbleColor: nil, sender: sender)
+        readOnly.loadViewIfNeeded()
+        XCTAssertNil(readOnly.composeBarForTesting)
+        let first = try XCTUnwrap(scheduled.first)
+        XCTAssertFalse(readOnly.menuElements(for: first, text: "页里写的").map(\.title).contains("Edit"))
+    }
+
     // MARK: - Helpers
 
     private func record(at date: Date, thread: String = "t", text: String = "x") throws -> TellomiScheduledMessage {
