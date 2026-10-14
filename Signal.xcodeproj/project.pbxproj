@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A28BD0467E6DDE1C378AE122 /* TellomiTestWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5509F6948AC0F21F7C03E39C /* TellomiTestWindow.swift */; };
 		AC0321167F1B63C3997210D4 /* TellomiImageAdjustViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3675DF55C96AD35AE5265F7B /* TellomiImageAdjustViewControllerTests.swift */; };
 		D41529141EFD1714CF27BB44 /* TellomiImageAdjustViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2C2A7A48A7A1E314AAC61CA /* TellomiImageAdjustViewController.swift */; };
 		9948927ED4C905209CEAA345 /* TellomiAdjustmentSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46FA69BBAE9AC62B12AE90B6 /* TellomiAdjustmentSlider.swift */; };
@@ -4459,6 +4460,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5509F6948AC0F21F7C03E39C /* TellomiTestWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiTestWindow.swift; sourceTree = "<group>"; };
 		3675DF55C96AD35AE5265F7B /* TellomiImageAdjustViewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiImageAdjustViewControllerTests.swift; sourceTree = "<group>"; };
 		C2C2A7A48A7A1E314AAC61CA /* TellomiImageAdjustViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiImageAdjustViewController.swift; sourceTree = "<group>"; };
 		46FA69BBAE9AC62B12AE90B6 /* TellomiAdjustmentSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiAdjustmentSlider.swift; sourceTree = "<group>"; };
@@ -12500,6 +12502,7 @@
 				D1139A000000000000000005 /* TellomiUpdateRequiredTest.swift */,
 				D1338A000000000000000001 /* TellomiPushCrossBorderConsentTest.swift */,
 				D1338A000000000000000003 /* TellomiCrossBorderNoticeTest.swift */,
+				5509F6948AC0F21F7C03E39C /* TellomiTestWindow.swift */,
 				4C83AC4123C55D9C00D4F2E6 /* SignalBaseTest.swift */,
 			);
 			path = test;
@@ -19964,6 +19967,7 @@
 				D1139A000000000000000006 /* TellomiUpdateRequiredTest.swift in Sources */,
 				D1338A000000000000000002 /* TellomiPushCrossBorderConsentTest.swift in Sources */,
 				D1338A000000000000000004 /* TellomiCrossBorderNoticeTest.swift in Sources */,
+				A28BD0467E6DDE1C378AE122 /* TellomiTestWindow.swift in Sources */,
 				53B8904D5C7D8D68C0681DAC /* TellomiExternalLinkOpenerTest.swift in Sources */,
 				F9B3A92F293554090071EB95 /* ASWebAuthenticationSessionUtilTest.swift in Sources */,
 				50B6BCB42AEC58250010FB3B /* AuthorMergeHelperBuilderTest.swift in Sources */,

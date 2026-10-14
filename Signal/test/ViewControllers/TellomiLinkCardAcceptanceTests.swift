@@ -1094,7 +1094,7 @@ final class TellomiLinkCardAcceptanceTests: XCTestCase {
 
         let delegate = MockConversationView(model: .init(items: []), hasWallpaper: false, customChatColor: nil)
         let cellHeight = renderItem.cellMeasurement.cellSize.height
-        let window = UIWindow(frame: CGRect(x: 0, y: 150, width: width, height: cellHeight + 24))
+        let window = UIWindow.tellomiTestWindow(frame: CGRect(x: 0, y: 150, width: width, height: cellHeight + 24))
         window.overrideUserInterfaceStyle = dark ? .dark : .light
         window.backgroundColor = dark ? .black : .white
         let cellView = CVCellView()
