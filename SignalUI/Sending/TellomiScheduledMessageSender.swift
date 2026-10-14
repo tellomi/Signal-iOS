@@ -67,7 +67,7 @@ public final class TellomiScheduledMessageSender {
     /// 改时间（定时消息页）。上次建不成的这次再试（到新时间）。
     public func reschedule(id: String, to date: Date) async {
         do {
-            try await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
+            _ = try await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
                 try TellomiScheduledMessageStore.reschedule(id: id, to: date, tx: tx)
             }
         } catch {
