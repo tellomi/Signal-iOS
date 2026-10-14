@@ -33,8 +33,18 @@ private func uncaughtExceptionHandler(_ exception: NSException) {
     Logger.flush()
 }
 
-@main
-final class AppDelegate: UIResponder, UIApplicationDelegate {
+/// Owns the state and behaviors of the app's lifecycle.
+///
+/// Lifecycle events are delivered by UIKit to ``AppDelegate``, which forwards
+/// them here.
+@MainActor
+final class AppLifecycleManager: NSObject, UNUserNotificationCenterDelegate {
+
+    static let shared = AppLifecycleManager()
+
+    override private init() {
+        super.init()
+    }
 
     // MARK: - Constants
 
@@ -44,11 +54,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: - Lifecycle
 
-    func applicationWillEnterForeground(_ application: UIApplication) {
+    func willEnterForeground() {
         Logger.info("")
     }
 
-    func applicationDidBecomeActive(_ application: UIApplication) {
+    func didBecomeActive() {
         AssertIsOnMainThread()
         if CurrentAppContext().isRunningTests {
             return
@@ -77,7 +87,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     private let flushQueue = DispatchQueue(label: "org.signal.flush", qos: .utility)
 
-    func applicationWillResignActive(_ application: UIApplication) {
+    func willResignActive() {
         AssertIsOnMainThread()
 
         Logger.warn("")
@@ -99,7 +109,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    func applicationDidEnterBackground(_ application: UIApplication) {
+    func didEnterBackground() {
         Logger.info("")
 
         if shouldKillAppWhenBackgrounded {
@@ -107,11 +117,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    func applicationDidReceiveMemoryWarning(_ application: UIApplication) {
+    func didReceiveMemoryWarning() {
         Logger.info("")
     }
 
-    func applicationWillTerminate(_ application: UIApplication) {
+    func willTerminate() {
         // If we reach this point, the app has launched & terminated successfully,
         // which means this flag can be cleared.
         CurrentAppContext().appUserDefaults().removeObject(forKey: Constants.appLaunchesAttemptedKey)
@@ -121,12 +131,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: - App Launch
 
-    private lazy var appReadiness = AppReadinessImpl()
+    private nonisolated let appReadiness = AppReadinessImpl()
 
-    func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil,
-    ) -> Bool {
+    func didFinishLaunching(launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let launchStartedAt = CACurrentMediaTime()
 
         NSSetUncaughtExceptionHandler(uncaughtExceptionHandler(_:))
@@ -181,7 +188,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 databaseFileUrl: SDSDatabaseStorage.grdbDatabaseFileUrl,
                 keychainStorage: keychainStorage,
             )
-        } catch KeychainError.notAllowed where application.applicationState == .background {
+        } catch KeychainError.notAllowed where UIApplication.shared.applicationState == .background {
             notifyThatPhoneMustBeUnlocked()
         } catch {
             // It's so corrupt that we can't even try to repair it.
@@ -1389,28 +1396,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: -
 
-    func userNotificationCenter(
-        _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification,
-        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void,
-    ) {
-        appReadiness.runNowOrWhenAppDidBecomeReadySync {
-            // Tellomi（tellomi/tellomi#1519 M-4）：定时消息的到点通知在前台不弹，前台定时器自己发（顺手再发一遍到点的）。
-            if TellomiScheduledMessageNotifications.isScheduledMessageNotification(notification) {
-                completionHandler([])
-                Task { await TellomiScheduledMessageSender.shared.flushDue() }
-                return
-            }
-            // We need to respect the in-app notification sound preference. This method, which is called
-            // for modern UNUserNotification users, could be a place to do that, but since we'd still
-            // need to handle this behavior for legacy UINotification users anyway, we "allow" all
-            // notification options here, and rely on the shared logic in NotificationPresenterImpl to
-            // honor notification sound preferences for both modern and legacy users.
-            let options: UNNotificationPresentationOptions = [.badge, .banner, .list, .sound]
-            completionHandler(options)
-        }
-    }
-
     private func terminalErrorViewController() -> UIViewController {
         let storyboard = UIStoryboard(name: "Launch Screen", bundle: nil)
         guard let viewController = storyboard.instantiateInitialViewController() else {
@@ -1622,7 +1607,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: - Orientation
 
-    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+    func supportedInterfaceOrientations(for window: UIWindow?) -> UIInterfaceOrientationMask {
         if CurrentAppContext().isRunningTests || didAppLaunchFail {
             return .portrait
         }
@@ -1641,7 +1626,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: - Notifications
 
-    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    func didRegisterForRemoteNotifications(deviceToken: Data) {
         AssertIsOnMainThread()
 
         if didAppLaunchFail {
@@ -1654,7 +1639,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+    func didFailToRegisterForRemoteNotifications(error: Error) {
         AssertIsOnMainThread()
 
         if didAppLaunchFail {
@@ -1671,10 +1656,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-    func application(
-        _ application: UIApplication,
-        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void,
+    func didReceiveRemoteNotification(
+        _ userInfo: [AnyHashable: Any],
+        completionHandler: @escaping (UIBackgroundFetchResult) -> Void,
     ) {
         AssertIsOnMainThread()
 
@@ -1786,12 +1770,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     ///
     /// If you do not implement this method or if your implementation returns
     /// false, iOS tries to create a document for your app to open using a URL.
-    @available(iOS, deprecated: 13.0) // hack to mute deprecation warnings; this is not deprecated
-    func application(
-        _ application: UIApplication,
-        continue userActivity: NSUserActivity,
-        restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void,
-    ) -> Bool {
+    @available(iOS, deprecated: 13.0)
+    func handle(userActivity: NSUserActivity) -> Bool {
         AssertIsOnMainThread()
 
         if didAppLaunchFail {
@@ -1957,9 +1937,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: - Shortcut Items
 
-    func application(
-        _ application: UIApplication,
-        performActionFor shortcutItem: UIApplicationShortcutItem,
+    func performAction(
+        for shortcutItem: UIApplicationShortcutItem,
         completionHandler: @escaping (Bool) -> Void,
     ) {
         AssertIsOnMainThread()
@@ -2007,12 +1986,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: - URL Handling
 
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        AssertIsOnMainThread()
-        return handleOpenUrl(url)
-    }
-
-    private func handleOpenUrl(_ url: URL) -> Bool {
+    func handleOpenUrl(_ url: URL) -> Bool {
         AssertIsOnMainThread()
 
         if didAppLaunchFail {
@@ -2035,15 +2009,35 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         return true
     }
-}
 
-// MARK: - UNUserNotificationCenterDelegate
+    // MARK: - UNUserNotificationCenterDelegate
 
-extension AppDelegate: UNUserNotificationCenterDelegate {
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void,
+    ) {
+        appReadiness.runNowOrWhenAppDidBecomeReadySync {
+            // Tellomi（tellomi/tellomi#1519 M-4）：定时消息的到点通知在前台不弹，前台定时器自己发（顺手再发一遍到点的）。
+            if TellomiScheduledMessageNotifications.isScheduledMessageNotification(notification) {
+                completionHandler([])
+                Task { await TellomiScheduledMessageSender.shared.flushDue() }
+                return
+            }
+            // We need to respect the in-app notification sound preference. This method, which is called
+            // for modern UNUserNotification users, could be a place to do that, but since we'd still
+            // need to handle this behavior for legacy UINotification users anyway, we "allow" all
+            // notification options here, and rely on the shared logic in NotificationPresenterImpl to
+            // honor notification sound preferences for both modern and legacy users.
+            let options: UNNotificationPresentationOptions = [.badge, .banner, .list, .sound]
+            completionHandler(options)
+        }
+    }
+
     // The method will be called on the delegate when the user responded to the notification by opening the application,
     // dismissing the notification or choosing a UNNotificationAction. The delegate must be set before the application
     // returns from application:didFinishLaunchingWithOptions:.
-    func userNotificationCenter(
+    nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void,
