@@ -1644,10 +1644,12 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
 
     /// G-6（照 Telegram `AttachmentPanel.update`）：选上第一张时 dock 淡出缩小（截图在动）、说明栏淡入；全部取消时 dock 淡入、说明栏淡出。
     @MainActor
-    func testDockAndSendBarSwapIsAnimated() throws {
+    func testDockAndSendBarSwapIsAnimated() async throws {
         let hosted = host(dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
         defer { hosted.tearDown() }
         let picker = hosted.picker
+        // 截图要画过一次的视图（在 App 里 dock 一直在屏幕上）。
+        try await settle()
         XCTAssertEqual(picker.bottomBarFadingOutCountForTesting, 0)
 
         picker.tapCheckForTesting(itemIndex: 0)
@@ -1655,6 +1657,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(picker.bottomBarFadingOutCountForTesting, 1, "dock 的截图在淡出")
         XCTAssertTrue(picker.isSendBarFadingInForTesting, "说明栏在淡入")
 
+        try await settle()
+        XCTAssertEqual(picker.bottomBarFadingOutCountForTesting, 0, "淡出完了截图拿掉")
         picker.tapCheckForTesting(itemIndex: 0)
         XCTAssertTrue(picker.isDockShownForTesting)
         XCTAssertTrue(picker.isDockFadingInForTesting, "dock 在淡入")
