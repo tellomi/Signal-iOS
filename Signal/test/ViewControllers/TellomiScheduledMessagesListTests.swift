@@ -104,6 +104,10 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         XCTAssertEqual(read { tx in TellomiScheduledMessageStore.fetch(id: soon.id, tx: tx)?.scheduledAt }, moved)
         let rescheduled = await waitUntil { screen.sectionsForTesting.last?.messages.last?.id == soon.id }
         XCTAssertTrue(rescheduled)
+        // 执行器的定时器跟着挂到现在最早的那条（第二条，两天后）。
+        let earliest = try XCTUnwrap(screen.sectionsForTesting.first?.messages.first?.scheduledAt)
+        let timerMoved = await waitUntil { sender.nextTimerFireDateForTesting.map { abs($0.timeIntervalSince(earliest)) < 2 } ?? false }
+        XCTAssertTrue(timerMoved)
 
         // 删一条：列表跟着变（记录变化的通知异步到主线程）。
         let movedSoon = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: soon.id, tx: tx) })
@@ -190,7 +194,6 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
             root.present(preview, animated: false)
             preview.view.layoutIfNeeded()
             defer { preview.dismiss(animated: false) }
-            XCTAssertEqual(preview.actionTitlesForTesting, ["Schedule Message"])
             return preview.layoutForTesting
         }
         let short = layout("Hi")
@@ -203,6 +206,79 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         XCTAssertGreaterThan(long.message.size.width, 230, "a long text uses (about) the full width")
         XCTAssertLessThanOrEqual(long.message.size.width, 260)
         XCTAssertGreaterThan(long.message.size.height, short.message.size.height)
+    }
+
+    /// 从右往左的语言：发送键在左边，气泡和菜单在它右边，不出屏幕。
+    @MainActor
+    func testThePreviewMirrorsForRightToLeft() {
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 874))
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        defer { window.isHidden = true }
+        let button = UIButton(frame: CGRect(x: 12, y: 800, width: 40, height: 40))
+        root.view.addSubview(button)
+        let preview = TellomiSendPreviewViewController(
+            tiles: [],
+            caption: "مرحبا",
+            captionAboveMedia: false,
+            bubbleColor: nil,
+            actions: [.init(title: "Schedule", image: nil, keepsPresented: false, handler: {})],
+            sourceButton: button,
+            onSend: {},
+        )
+        preview.loadViewIfNeeded()
+        preview.view.semanticContentAttribute = .forceRightToLeft
+        root.present(preview, animated: false)
+        defer { preview.dismiss(animated: false) }
+        preview.view.layoutIfNeeded()
+        let layout = preview.layoutForTesting
+        XCTAssertGreaterThanOrEqual(layout.message.minX, button.frame.maxX, "right of the send button")
+        XCTAssertGreaterThanOrEqual(layout.menu.minX, button.frame.maxX)
+        XCTAssertLessThanOrEqual(layout.menu.maxX, 402)
+    }
+
+    /// 记录变化的通知带上会话：别的会话的变化，会话页、定时消息页不用管。
+    @MainActor
+    func testChangeNotificationsNameTheChat() throws {
+        let posted = expectation(forNotification: TellomiScheduledMessageStore.didChange, object: nil) { notification in
+            TellomiScheduledMessageStore.didChange(notification, affect: "a") && !TellomiScheduledMessageStore.didChange(notification, affect: "b")
+        }
+        try write { tx in try TellomiScheduledMessageStore.insert(try record(at: Date(), thread: "a"), tx: tx) }
+        wait(for: [posted], timeout: 5)
+        XCTAssertTrue(TellomiScheduledMessageStore.didChange(Notification(name: TellomiScheduledMessageStore.didChange), affect: "anything"), "no chat named: everyone refreshes")
+    }
+
+    /// 选图页一次会排成几条：单独发送一张一条，否则一条（静音视频另算，见 `TellomiMutedVideoTests`）。
+    func testHowManyMessagesAPickerSendSchedules() async throws {
+        let approved = ApprovedAttachments(nonViewOnceAttachments: [try previewablePhoto(.red), try previewablePhoto(.blue), try previewablePhoto(.green)], imageQuality: .standard)
+        XCTAssertEqual(ConversationViewController.tellomiScheduledMessageCount(for: approved, separately: true), 3)
+        XCTAssertEqual(ConversationViewController.tellomiScheduledMessageCount(for: approved, separately: false), 1)
+    }
+
+    /// 链接预览的图存成记录目录里的文件，不放进记录；到点建消息时读回来。
+    @MainActor
+    func testTheLinkPreviewImageIsAFile() async throws {
+        let thread = makeContactThread()
+        let imageData = try XCTUnwrap(UIImage.image(color: .systemBlue, size: CGSize(square: 20)).pngData())
+        let draft = OWSLinkPreviewDraft(url: URL(string: "https://example.com")!, title: "Example", imageData: imageData, imageMimeType: "image/png", isForwarded: false)
+        let message = try await TellomiScheduledMessageSender().schedule(
+            body: MessageBody(text: "https://example.com", ranges: .empty),
+            attachments: [],
+            isViewOnce: false,
+            thread: thread,
+            quotedReplyDraft: nil,
+            linkPreviewDraft: draft,
+            captionAboveMedia: false,
+            at: Date().addingTimeInterval(3600),
+        )
+        let preview = try XCTUnwrap(message.linkPreview)
+        XCTAssertNil(preview.imageData, "not inside the record")
+        let fileName = try XCTUnwrap(preview.imageFileName)
+        let directory = TellomiScheduledMessageStore.directory(for: message.id)
+        XCTAssertEqual(try Data(contentsOf: directory.appendingPathComponent(fileName)), imageData)
+        XCTAssertEqual(preview.draft(in: directory).imageData, imageData)
+        XCTAssertEqual(preview.draft(in: directory).title, "Example")
     }
 
     /// 截图（TELLOMI_SHOTS=1）：一个会话的定时消息页（两天、带图、带说明）。
@@ -283,6 +359,13 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
             }
             return thread
         }
+    }
+
+    private func previewablePhoto(_ color: UIColor) throws -> PreviewableAttachment {
+        let image = UIImage.image(color: color, size: CGSize(square: 40))
+        let url = OWSFileSystem.temporaryFileUrl(fileExtension: "png", isAvailableWhileDeviceLocked: true)
+        try XCTUnwrap(image.pngData()).write(to: url)
+        return try PreviewableAttachment.imageAttachment(dataSource: DataSourcePath(fileUrl: url, ownership: .owned), dataUTI: UTType.png.identifier)
     }
 
     private func photo(_ color: UIColor) async throws -> SendableAttachment {

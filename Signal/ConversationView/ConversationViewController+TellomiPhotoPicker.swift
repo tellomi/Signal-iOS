@@ -194,14 +194,11 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
     ) {
         // 从上游预览页发的时候它盖在网格上面，提示与安全码确认都从最上面那一层弹。
         let fromViewController = picker.presentedViewController ?? picker
-        // M-4：先看排不排得下（一个会话最多 100 条，同 TG），排不下就在选图页上说，什么都不排、也不压视频。
+        // M-4：排不排得下（一个会话最多 100 条，同 TG）。选时间之前已经粗查过（一条都排不下就不弹选时间）；这里按拆成几条精确查，
+        // 排不下就在选图页上说、一条都不排。
         if scheduledAt != nil {
-            let needed = separately ? approvedAttachments.attachments.count : (TellomiMutedVideoSending.messageGroups(approvedAttachments)?.groups.count ?? 1)
-            let threadUniqueId = thread.uniqueId
-            let capacity = SSKEnvironment.shared.databaseStorageRef.read { tx in
-                TellomiScheduledMessageSender.remainingCapacity(threadUniqueId: threadUniqueId, tx: tx)
-            }
-            if needed > capacity {
+            let needed = Self.tellomiScheduledMessageCount(for: approvedAttachments, separately: separately)
+            if needed > tellomiScheduledMessageCapacity() {
                 OWSActionSheets.showActionSheet(
                     message: TellomiScheduledMessageSender.ScheduleError.tooManyScheduled.localizedDescription,
                     fromViewController: fromViewController,
@@ -254,6 +251,10 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
             bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
             from: self,
         )
+    }
+
+    func photoPickerScheduledMessageCapacity(_ picker: TellomiPhotoPickerViewController) -> Int {
+        tellomiScheduledMessageCapacity()
     }
 
     func tellomiScheduledMessagesButtonPressed() {

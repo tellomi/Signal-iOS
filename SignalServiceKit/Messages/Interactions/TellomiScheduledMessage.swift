@@ -29,21 +29,25 @@ public struct TellomiScheduledMessage: Codable, Equatable {
         }
     }
 
-    /// `OWSLinkPreviewDraft` 的字段（排定时已经取好，到点不再上网取）。
+    /// `OWSLinkPreviewDraft` 的字段（排定时已经取好，到点不再上网取）。预览图另存成记录目录里的文件（`imageFileName`），
+    /// 不放进记录：每次读记录都要解码整条。
     public struct LinkPreview: Codable, Equatable {
         public let url: URL
         public let title: String?
+        /// 旧格式才有（图放在记录里）；新排的是 nil、图在 `imageFileName`。
         public let imageData: Data?
+        public let imageFileName: String?
         public let imageMimeType: String?
         public let previewDescription: String?
         public let date: Date?
         public let isForwarded: Bool
         public let rich: Data?
 
-        public init(_ draft: OWSLinkPreviewDraft) {
+        public init(_ draft: OWSLinkPreviewDraft, imageFileName: String?) {
             url = draft.url
             title = draft.title
-            imageData = draft.imageData
+            imageData = nil
+            self.imageFileName = draft.imageData == nil ? nil : imageFileName
             imageMimeType = draft.imageMimeType
             previewDescription = draft.previewDescription
             date = draft.date
@@ -51,11 +55,13 @@ public struct TellomiScheduledMessage: Codable, Equatable {
             rich = draft.rich
         }
 
-        public var draft: OWSLinkPreviewDraft {
-            OWSLinkPreviewDraft(
+        /// - Parameter directory: 这条记录的目录（预览图文件在里面）。
+        public func draft(in directory: URL) -> OWSLinkPreviewDraft {
+            let fileData = imageFileName.flatMap { try? Data(contentsOf: directory.appendingPathComponent($0)) }
+            return OWSLinkPreviewDraft(
                 url: url,
                 title: title,
-                imageData: imageData,
+                imageData: fileData ?? imageData,
                 imageMimeType: imageMimeType,
                 previewDescription: previewDescription,
                 date: date,

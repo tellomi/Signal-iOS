@@ -161,6 +161,17 @@ public final class TellomiScheduledMessageSender {
         let directory = TellomiScheduledMessageStore.directory(for: id)
         do {
             let storedAttachments = try await Self.storeFiles(attachments, in: directory)
+            var linkPreviewImageFileName: String?
+            if let imageData = linkPreviewDraft?.imageData {
+                guard OWSFileSystem.ensureDirectoryExists(directory.path) else {
+                    throw OWSAssertionError("Couldn't create the scheduled message directory.")
+                }
+                let fileName = "link-preview"
+                let url = directory.appendingPathComponent(fileName)
+                try imageData.write(to: url, options: .completeFileProtectionUntilFirstUserAuthentication)
+                OWSFileSystem.protectFileOrFolder(atPath: url.path)
+                linkPreviewImageFileName = fileName
+            }
             let message = try TellomiScheduledMessage(
                 id: id,
                 threadUniqueId: thread.uniqueId,
@@ -170,7 +181,7 @@ public final class TellomiScheduledMessageSender {
                 isViewOnce: isViewOnce,
                 captionAboveMedia: captionAboveMedia && body?.isEmpty == false,
                 replyInfo: quotedReplyDraft.flatMap(Self.replyInfo(for:)),
-                linkPreview: linkPreviewDraft.map(TellomiScheduledMessage.LinkPreview.init),
+                linkPreview: linkPreviewDraft.map { TellomiScheduledMessage.LinkPreview($0, imageFileName: linkPreviewImageFileName) },
             )
             try await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
                 try TellomiScheduledMessageStore.insert(message, tx: tx)
@@ -316,7 +327,7 @@ public final class TellomiScheduledMessageSender {
                 isViewOnce: message.isViewOnce,
                 thread: thread,
                 quotedReplyDraft: message.replyInfo.flatMap(Self.quotedReplyDraft(for:)),
-                linkPreviewDraft: message.linkPreview?.draft,
+                linkPreviewDraft: message.linkPreview?.draft(in: TellomiScheduledMessageStore.directory(for: message.id)),
                 captionAboveMedia: message.captionAboveMedia,
                 claim: ThreadUtil.TellomiEnqueueClaim(
                     isStillDue: { tx in TellomiScheduledMessageStore.isDue(id: message.id, now: now, tx: tx) },

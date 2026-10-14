@@ -15,6 +15,8 @@ import SignalUI
 extension ConversationViewController {
 
     func tellomiPresentTextSendPreview(from button: UIButton) {
+        // 同上游发送：先把键盘的自动更正接受了，预览、定时的是同一段字。
+        inputToolbar?.acceptAutocorrectSuggestion()
         guard
             hasViewWillAppearEverBegun,
             let inputToolbar,
@@ -48,6 +50,11 @@ extension ConversationViewController {
     }
 
     private func tellomiPresentTextScheduleSheet() {
+        // 排满了（一个会话 100 条）就先说，不用选完时间才知道。
+        guard tellomiScheduledMessageCapacity() > 0 else {
+            OWSActionSheets.showActionSheet(message: TellomiScheduledMessageSender.ScheduleError.tooManyScheduled.localizedDescription)
+            return
+        }
         let sheet = TellomiScheduleTimeSheet(isReminder: thread.isNoteToSelf) { [weak self] date in
             Task { await self?.tellomiScheduleTextMessage(at: date) }
         }
@@ -78,6 +85,12 @@ extension ConversationViewController {
         )
         guard identityIsConfirmed else { return }
 
+        // 解除拉黑、确认安全码花的时间里已经过了点：照常发出去（同选图那条路）。
+        guard date > Date() else {
+            sendButtonPressed()
+            return
+        }
+
         do {
             try await TellomiScheduledMessageSender.shared.schedule(
                 body: messageBody,
@@ -106,5 +119,21 @@ extension ConversationViewController {
             thread.updateWithDraft(draftMessageBody: nil, replyInfo: nil, editTargetTimestamp: nil, transaction: tx)
         }
         tellomiOpenScheduledMessages()
+    }
+
+    /// 这个会话还能排几条定时消息。
+    func tellomiScheduledMessageCapacity() -> Int {
+        let threadUniqueId = thread.uniqueId
+        return SSKEnvironment.shared.databaseStorageRef.read { tx in
+            TellomiScheduledMessageSender.remainingCapacity(threadUniqueId: threadUniqueId, tx: tx)
+        }
+    }
+
+    /// 选图页这一次会排成几条（同 `sendAttachments` 的拆法：单独发送一张一条；静音视频各自一条）。
+    static func tellomiScheduledMessageCount(for approvedAttachments: ApprovedAttachments, separately: Bool) -> Int {
+        if separately {
+            return approvedAttachments.attachments.count
+        }
+        return TellomiMutedVideoSending.messageGroups(approvedAttachments)?.groups.count ?? 1
     }
 }

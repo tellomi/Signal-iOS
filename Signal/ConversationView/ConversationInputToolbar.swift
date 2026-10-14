@@ -516,9 +516,23 @@ public class ConversationInputToolbar: UIView, QuotedReplyPreviewDelegate {
     private var tellomiBaseInFieldButtonsAreaWidth: CGFloat = 0
 
     /// Tellomi（#1519 M-4）：发送键长按（会话页弹「发出去是什么样」的预览 +「定时发送」，同 Telegram 两端）；nil = 不挂。
+    /// 只在真能定时发送时启用（发送键亮着、不是改消息、不是语音）：别的时候按久了照常是按下没松开（松开就发）。
     func tellomiSetSendLongPress(_ handler: ((UIButton) -> Void)?) {
         guard let sendButton = tellomiSendButton else { return }
         TellomiSendLongPressGestureRecognizer.install(on: sendButton, handler: handler)
+        tellomiHasSendLongPress = handler != nil
+        tellomiUpdateSendLongPressEnabled(rightEdgeControlsState: nil)
+    }
+
+    private var tellomiHasSendLongPress = false
+    private var tellomiSendLongPressAllowed = false
+
+    private func tellomiUpdateSendLongPressEnabled(rightEdgeControlsState: TrailingEdgeControlState?) {
+        if let rightEdgeControlsState {
+            tellomiSendLongPressAllowed = rightEdgeControlsState == .sendButton && !isShowingVoiceMemoUI && !isEditingMessage
+        }
+        guard let sendButton = tellomiSendButton else { return }
+        TellomiSendLongPressGestureRecognizer.installed(on: sendButton)?.isEnabled = tellomiHasSendLongPress && tellomiSendLongPressAllowed
     }
 
     /// 发送键（iOS 26 起它就是右边那个键；之前在右边那一组里）。
@@ -1056,6 +1070,7 @@ public class ConversationInputToolbar: UIView, QuotedReplyPreviewDelegate {
         // On iOS 26 there are Camera and Voice Note buttons inside of the text input field:
         // those would be hidden to match pre-iOS 26 behavior.
         let hideAllTextFieldButtons = rightEdgeControlsState != .default || inputTextView.untrimmedText.rangeOfCharacter(from: .newlines) != nil
+        tellomiUpdateSendLongPressEnabled(rightEdgeControlsState: rightEdgeControlsState)
         // Sticker/keyboard buttons will also be hidden if there's whitespace-only input.
         let textFieldHasAnyInput = !inputTextView.untrimmedText.isEmpty
         let hideInputMethodButtons = hideAllTextFieldButtons || textFieldHasAnyInput || hasQuotedMessage
