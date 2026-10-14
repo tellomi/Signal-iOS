@@ -67,7 +67,8 @@ final class TellomiScheduleTimeSheet: UIViewController {
         modalPresentationStyle = .pageSheet
         if let sheet = sheetPresentationController {
             if #available(iOS 16.0, *) {
-                sheet.detents = [.custom(identifier: .init("tellomiScheduleTime")) { _ in 400 }]
+                // 关闭键 16 + 36、间距 16、滚轮 216、间距 16、按钮 50、底部 16（系统另加底部安全区）。
+                sheet.detents = [.custom(identifier: .init("tellomiScheduleTime")) { _ in 366 }]
             } else {
                 sheet.detents = [.medium()]
             }
