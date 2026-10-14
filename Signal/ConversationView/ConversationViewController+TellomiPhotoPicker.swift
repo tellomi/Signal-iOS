@@ -194,12 +194,27 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
     ) {
         // 从上游预览页发的时候它盖在网格上面，提示与安全码确认都从最上面那一层弹。
         let fromViewController = picker.presentedViewController ?? picker
+        // M-4：先看排不排得下（一个会话最多 100 条，同 TG），排不下就在选图页上说，什么都不排、也不压视频。
+        if scheduledAt != nil {
+            let needed = separately ? approvedAttachments.attachments.count : (TellomiMutedVideoSending.messageGroups(approvedAttachments)?.groups.count ?? 1)
+            let threadUniqueId = thread.uniqueId
+            let capacity = SSKEnvironment.shared.databaseStorageRef.read { tx in
+                TellomiScheduledMessageSender.remainingCapacity(threadUniqueId: threadUniqueId, tx: tx)
+            }
+            if needed > capacity {
+                OWSActionSheets.showActionSheet(
+                    message: TellomiScheduledMessageSender.ScheduleError.tooManyScheduled.localizedDescription,
+                    fromViewController: fromViewController,
+                )
+                return
+            }
+        }
         let attachmentLimits = picker.attachmentLimits
         ModalActivityIndicatorViewController.present(
             fromViewController: fromViewController,
             title: CommonStrings.preparingModal,
             asyncBlock: { modal in
-                // M-4：拆成几条时可能排进去一部分就出错了：按「这次排进去了没有」提示，不按全部成没成。
+                // M-4：拆成几条时可能排进去一部分就出错了：按「这次排进去了没有」决定打不打开定时消息，不按全部成没成。
                 let startedAt = Date()
                 if separately {
                     // 说明只挂最后一条，「说明在上方」也只对它（没有说明的那几条不记）。
@@ -246,16 +261,19 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
     }
 
     @objc
-    func tellomiScheduledMessagesDidChange() {
-        tellomiRefreshScheduledMessagesButton()
+    func tellomiScheduledMessagesDidChange(_ notification: Notification) {
+        guard SSKEnvironment.hasShared, TellomiScheduledMessageStore.didChange(notification, affect: thread.uniqueId) else { return }
+        tellomiRefreshScheduledMessagesButton(animated: true)
     }
 
-    func tellomiRefreshScheduledMessagesButton() {
+    /// 打开会话时（建输入框）不带动画，之后带。
+    func tellomiRefreshScheduledMessagesButton(animated: Bool = false) {
         guard let inputToolbar else { return }
         let threadUniqueId = thread.uniqueId
-        inputToolbar.tellomiHasScheduledMessages = SSKEnvironment.shared.databaseStorageRef.read { tx in
+        let hasScheduledMessages = SSKEnvironment.shared.databaseStorageRef.read { tx in
             !TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx).isEmpty
         }
+        inputToolbar.tellomiSetHasScheduledMessages(hasScheduledMessages, animated: animated)
     }
 
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?) {

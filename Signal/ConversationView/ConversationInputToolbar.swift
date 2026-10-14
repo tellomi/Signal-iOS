@@ -503,11 +503,13 @@ public class ConversationInputToolbar: UIView, QuotedReplyPreviewDelegate {
 
     /// Tellomi（#1519 M-4）：这个会话有没有定时消息（会话页按记录变化设）。有、而且输入框空着时，输入框里出日历键（同 TG 两端：
     /// iOS `isTextEmpty && hasScheduledMessages`，安卓 `scheduledMessagesCount > 0` 且没在打字）。
-    var tellomiHasScheduledMessages = false {
-        didSet {
-            guard tellomiHasScheduledMessages != oldValue else { return }
-            ensureButtonVisibility(withAnimation: true, doLayout: true)
-        }
+    private(set) var tellomiHasScheduledMessages = false
+
+    /// 打开会话时不带动画（`animated: false`），之后记录变化时带动画（同别的输入框按钮缩放出现）。
+    func tellomiSetHasScheduledMessages(_ hasScheduledMessages: Bool, animated: Bool) {
+        guard hasScheduledMessages != tellomiHasScheduledMessages else { return }
+        tellomiHasScheduledMessages = hasScheduledMessages
+        ensureButtonVisibility(withAnimation: animated, doLayout: true)
     }
 
     /// 输入框右边给按钮留的宽度（不含日历键）。
@@ -887,8 +889,9 @@ public class ConversationInputToolbar: UIView, QuotedReplyPreviewDelegate {
             ])
         }
         tellomiBaseInFieldButtonsAreaWidth = inputTextView.inFieldButtonsAreaWidth
-        // 显隐同贴纸键，用透明度（`setView`）；一开始不出。
+        // 显隐同贴纸键，用透明度和缩放（`setView`）；一开始不出。
         tellomiScheduledMessagesButton.alpha = 0
+        tellomiScheduledMessagesButton.transform = .scale(0.1)
 
         // 3. Configure horizontal layout: Attachment button, message components, Camera|VoiceNote|Send button.
         leadingEdgeControl.translatesAutoresizingMaskIntoConstraints = false

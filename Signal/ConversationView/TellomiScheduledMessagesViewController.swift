@@ -30,6 +30,7 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
     private let tableView = UITableView(frame: .zero, style: .plain)
     private let emptyLabel = UILabel()
     private var sections = [Section]()
+    private var hasScrolledToBottom = false
 
     struct Section {
         let day: Date
@@ -92,36 +93,44 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
         emptyLabel.autoPinEdge(toSuperviewMargin: .leading, relation: .greaterThanOrEqual)
         emptyLabel.autoPinEdge(toSuperviewMargin: .trailing, relation: .greaterThanOrEqual)
 
-        NotificationCenter.default.addObserver(self, selector: #selector(storeDidChange), name: TellomiScheduledMessageStore.didChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(storeDidChange(_:)), name: TellomiScheduledMessageStore.didChange, object: nil)
         reload()
     }
 
     @objc
-    private func storeDidChange() {
-        guard SSKEnvironment.hasShared else { return }
+    private func storeDidChange(_ notification: Notification) {
+        guard SSKEnvironment.hasShared, TellomiScheduledMessageStore.didChange(notification, affect: threadUniqueId) else { return }
         reload()
     }
 
+    /// 没变就不动（别的会话的变化、同样的内容）；变了重画，不跳动滚动位置（只在第一次打开时滚到底）。
     private func reload() {
         let messages = SSKEnvironment.shared.databaseStorageRef.read { tx in
             TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx)
         }
-        sections = Self.sections(for: messages)
+        let newSections = Self.sections(for: messages)
+        // 一开始 `sections` 是空的、空提示是显示着的：空会话不用动。
+        guard newSections.map(\.messages) != sections.map(\.messages) else {
+            return
+        }
+        sections = newSections
         emptyLabel.isHidden = !messages.isEmpty
         tableView.reloadData()
-        tableView.layoutIfNeeded()
         view.setNeedsLayout()
-        view.layoutIfNeeded()
-        scrollToBottom()
     }
 
-    /// 同聊天页：条目少时贴着底部，多时滚到最下面（最晚发的那条）。
+    /// 同聊天页：条目少时贴着底部，多时第一次打开滚到最下面（最晚发的那条）。
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        tableView.layoutIfNeeded()
         let visibleHeight = tableView.bounds.height - tableView.safeAreaInsets.top - tableView.safeAreaInsets.bottom
         let topInset = max(0, visibleHeight - tableView.contentSize.height)
         if abs(tableView.contentInset.top - topInset) > 0.5 {
             tableView.contentInset.top = topInset
+        }
+        if !hasScrolledToBottom, tableView.bounds.height > 0, !sections.isEmpty {
+            hasScrolledToBottom = true
+            scrollToBottom()
         }
     }
 
@@ -249,14 +258,9 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
     }
 
     private func reschedule(_ message: TellomiScheduledMessage) {
+        let sender = self.sender
         let sheet = TellomiScheduleTimeSheet(isReminder: isNoteToSelf, initialDate: message.scheduledAt) { date in
-            SSKEnvironment.shared.databaseStorageRef.asyncWrite { tx in
-                do {
-                    try TellomiScheduledMessageStore.reschedule(id: message.id, to: date, tx: tx)
-                } catch {
-                    Logger.warn("Couldn't reschedule a scheduled message: \(error)")
-                }
-            }
+            Task { await sender.reschedule(id: message.id, to: date) }
         }
         sheet.present(from: self)
     }
@@ -269,10 +273,13 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
 
 #if TESTABLE_BUILD
     var sectionsForTesting: [Section] { sections }
+    func plainTextForTesting(_ message: TellomiScheduledMessage) -> String? { plainText(for: message) }
     var isEmptyShownForTesting: Bool { !emptyLabel.isHidden }
     var tableViewForTesting: UITableView { tableView }
     func sendNowForTesting(_ message: TellomiScheduledMessage) { sendNow(message) }
     func deleteForTesting(_ message: TellomiScheduledMessage) { delete(message) }
+    /// 同「改时间」选好了时间（不弹选时间页）。
+    func rescheduleForTesting(_ message: TellomiScheduledMessage, to date: Date) async { await sender.reschedule(id: message.id, to: date) }
 #endif
 }
 
@@ -320,7 +327,11 @@ private final class ScheduledMessageCell: UITableViewCell {
     private let timeLabel = UILabel()
     private var loadTasks = [Task<Void, Never>]()
 
-    private static let thumbnailCache = NSCache<NSURL, UIImage>()
+    private static let thumbnailCache: NSCache<NSURL, UIImage> = {
+        let cache = NSCache<NSURL, UIImage>()
+        cache.countLimit = 200
+        return cache
+    }()
     private static let maxTiles = 4
     private static let tileSize: CGFloat = 64
 
@@ -366,6 +377,7 @@ private final class ScheduledMessageCell: UITableViewCell {
         super.prepareForReuse()
         loadTasks.forEach { $0.cancel() }
         loadTasks = []
+        bubbleColorView.reset()
     }
 
     func configure(with message: TellomiScheduledMessage, text: String?, bubbleColor: ColorOrGradientValue?) {

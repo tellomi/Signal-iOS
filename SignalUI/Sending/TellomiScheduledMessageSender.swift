@@ -64,6 +64,24 @@ public final class TellomiScheduledMessageSender {
         syncNotifications()
     }
 
+    /// 改时间（定时消息页）。上次建不成的这次再试（到新时间）。
+    public func reschedule(id: String, to date: Date) async {
+        do {
+            try await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { tx in
+                try TellomiScheduledMessageStore.reschedule(id: id, to: date, tx: tx)
+            }
+        } catch {
+            Logger.warn("Couldn't reschedule a scheduled message: \(error)")
+        }
+        failedSinceActivation.remove(id)
+        scheduleTimer()
+    }
+
+    /// 这个会话还能排几条（到上限 `maxScheduledPerChat` 为止）。
+    public static func remainingCapacity(threadUniqueId: String, tx: DBReadTransaction) -> Int {
+        max(0, maxScheduledPerChat - TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx).count)
+    }
+
     /// 到点通知上点了它或「立即发送」：这一条马上发（还没到点的提前到现在），等它进了发送队列再返回。
     public func sendNow(id: String) async {
         let now = self.now()
@@ -133,10 +151,10 @@ public final class TellomiScheduledMessageSender {
         at date: Date,
     ) async throws -> TellomiScheduledMessage {
         let threadUniqueId = thread.uniqueId
-        let alreadyScheduled = SSKEnvironment.shared.databaseStorageRef.read { tx in
-            TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx).count
+        let capacity = SSKEnvironment.shared.databaseStorageRef.read { tx in
+            Self.remainingCapacity(threadUniqueId: threadUniqueId, tx: tx)
         }
-        guard alreadyScheduled < Self.maxScheduledPerChat else {
+        guard capacity > 0 else {
             throw ScheduleError.tooManyScheduled
         }
         let id = UUID().uuidString

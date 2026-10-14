@@ -83,10 +83,31 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         XCTAssertEqual(menu.map(\.title), ["Send Now", "Reschedule", "Copy", "Delete"])
         let delete = try XCTUnwrap(menu.last as? UIMenu)
         XCTAssertEqual(delete.children.map(\.title), ["Delete Scheduled Message"])
-        XCTAssertEqual(screen.menuElements(for: soon, text: nil).map(\.title), ["Send Now", "Reschedule", "Delete"], "no Copy without text")
+
+        // 只有图、没有字的：没有「复制」。
+        let photosOnly = try await sender.schedule(
+            body: nil,
+            attachments: [try await photo(.systemOrange)],
+            isViewOnce: false,
+            thread: other,
+            quotedReplyDraft: nil,
+            linkPreviewDraft: nil,
+            captionAboveMedia: false,
+            at: Date().addingTimeInterval(3600),
+        )
+        XCTAssertNil(screen.plainTextForTesting(photosOnly))
+        XCTAssertEqual(screen.menuElements(for: photosOnly, text: screen.plainTextForTesting(photosOnly)).map(\.title), ["Send Now", "Reschedule", "Delete"])
+
+        // 改时间：写进记录，列表跟着换到新的那天。
+        let moved = TellomiScheduleTimeSheet.defaultDate(now: Date()).addingTimeInterval(4 * 86_400)
+        await screen.rescheduleForTesting(soon, to: moved)
+        XCTAssertEqual(read { tx in TellomiScheduledMessageStore.fetch(id: soon.id, tx: tx)?.scheduledAt }, moved)
+        let rescheduled = await waitUntil { screen.sectionsForTesting.last?.messages.last?.id == soon.id }
+        XCTAssertTrue(rescheduled)
 
         // 删一条：列表跟着变（记录变化的通知异步到主线程）。
-        screen.deleteForTesting(soon)
+        let movedSoon = try XCTUnwrap(read { tx in TellomiScheduledMessageStore.fetch(id: soon.id, tx: tx) })
+        screen.deleteForTesting(movedSoon)
         let updated = await waitUntil { screen.sectionsForTesting.flatMap(\.messages).count == 1 }
         XCTAssertTrue(updated)
 
@@ -110,9 +131,9 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         XCTAssertTrue(screen.isEmptyShownForTesting)
     }
 
-    /// 改时间：选时间页带着原来的时间打开（同 TG 两端）。
+    /// 改时间：选时间页带着原来的时间打开（同 TG 两端）。（写进记录见上面列表的用例。）
     @MainActor
-    func testReschedulingStartsAtTheCurrentTime() {
+    func testTheRescheduleSheetStartsAtTheCurrentTime() {
         let current = TellomiScheduleTimeSheet.defaultDate(now: Date()).addingTimeInterval(3 * 86_400)
         let sheet = TellomiScheduleTimeSheet(isReminder: false, initialDate: current) { _ in }
         sheet.loadViewIfNeeded()
@@ -126,10 +147,13 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         let sender = TellomiScheduledMessageSender()
         let later = Date().addingTimeInterval(3600)
         try write { tx in
-            for index in 0..<TellomiScheduledMessageSender.maxScheduledPerChat {
+            for index in 0..<(TellomiScheduledMessageSender.maxScheduledPerChat - 1) {
                 try TellomiScheduledMessageStore.insert(try record(at: later, thread: thread.uniqueId, text: "\(index)"), tx: tx)
             }
         }
+        XCTAssertEqual(read { tx in TellomiScheduledMessageSender.remainingCapacity(threadUniqueId: thread.uniqueId, tx: tx) }, 1)
+        _ = try await schedule(sender, "第 100 条", in: thread, at: later)
+        XCTAssertEqual(read { tx in TellomiScheduledMessageSender.remainingCapacity(threadUniqueId: thread.uniqueId, tx: tx) }, 0)
         do {
             _ = try await schedule(sender, "第 101 条", in: thread, at: later)
             XCTFail("the 101st should be refused")
