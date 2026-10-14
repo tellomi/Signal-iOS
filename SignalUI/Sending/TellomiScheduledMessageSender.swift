@@ -86,7 +86,7 @@ public final class TellomiScheduledMessageSender {
             return false
         }
         guard body?.isEmpty == false || !current.attachments.isEmpty else {
-            throw OWSAssertionError("A scheduled message can't be edited to nothing.")
+            throw EditError.nothingLeft
         }
         let directory = TellomiScheduledMessageStore.directory(for: id)
         var newImageFileName: String?
@@ -136,6 +136,11 @@ public final class TellomiScheduledMessageSender {
         failedSinceActivation.remove(id)
         scheduleTimer()
         return true
+    }
+
+    public enum EditError: Error {
+        /// 纯文字的改成了空的（界面上存不了，这里再挡一次）。
+        case nothingLeft
     }
 
     private static func isSamePreview(_ stored: TellomiScheduledMessage.LinkPreview, _ draft: OWSLinkPreviewDraft) -> Bool {

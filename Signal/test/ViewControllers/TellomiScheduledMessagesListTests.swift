@@ -303,6 +303,7 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
 
         let screen = TellomiScheduledMessagesViewController(
             threadUniqueId: thread.uniqueId,
+            thread: thread,
             isNoteToSelf: false,
             bubbleColor: .solidColor(color: UIColor(red: 0.23, green: 0.47, blue: 0.27, alpha: 1)),
             sender: sender,
@@ -311,13 +312,23 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         window.rootViewController = OWSNavigationController(rootViewController: screen)
         window.isHidden = false
         defer { window.isHidden = true }
-        _ = await waitUntil(timeout: 3) { false }
-        let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
-            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
-        }
         let directory = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TELLOMI_SHOTS_DIR"] ?? NSTemporaryDirectory()).appendingPathComponent("402")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        try XCTUnwrap(image.pngData()).write(to: directory.appendingPathComponent("scheduled-messages-list.png"))
+        func shoot(_ name: String) async throws {
+            _ = await waitUntil(timeout: 3) { false }
+            let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+            }
+            try XCTUnwrap(image.pngData()).write(to: directory.appendingPathComponent("\(name).png"))
+        }
+        // 底下的输入框（M-4 第五步）：空的、写了字、在改一条（带图的那条，「编辑消息」后面一张小图）
+        try await shoot("scheduled-messages-list")
+        let composeBar = try XCTUnwrap(screen.composeBarForTesting)
+        composeBar.setTextForTesting("See you at 8")
+        try await shoot("scheduled-messages-compose")
+        let photos = try XCTUnwrap(screen.sectionsForTesting.flatMap(\.messages).first { !$0.attachments.isEmpty })
+        screen.beginEditingForTesting(photos)
+        try await shoot("scheduled-messages-edit")
     }
 
     // MARK: - Writing and editing（M-4 第五步，照 TG 两端：定时消息页底下能写新的、长按能改）
@@ -416,7 +427,8 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         do {
             _ = try await sender.edit(id: message.id, body: MessageBody(text: "", ranges: .empty), linkPreviewDraft: nil)
             XCTFail("a text-only message can't become empty")
-        } catch {}
+        } catch TellomiScheduledMessageSender.EditError.nothingLeft {
+        }
 
         // 已经发出去（记录没了）
         write { tx in _ = TellomiScheduledMessageStore.remove(id: message.id, tx: tx) }
