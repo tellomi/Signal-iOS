@@ -61,6 +61,8 @@ final class TellomiImageEditorTextTests: SignalBaseTest {
         let viewSize = CGSize(square: 400)
         for (alignment, mode) in [(NSTextAlignment.left, CATextLayerAlignmentMode.left), (.center, .center), (.right, .right)] {
             let textItem = item(color: .white, decorationStyle: .semiTransparentBackground, textAlignment: alignment)
+            // 图层的前后次序按它在模型里的位置排，先放进模型。
+            model.append(item: textItem)
             let layer = try XCTUnwrap(ImageEditorCanvasView.textLayerForTesting(item: textItem, model: model, viewSize: viewSize))
             XCTAssertEqual(layer.alignmentMode, mode)
         }
