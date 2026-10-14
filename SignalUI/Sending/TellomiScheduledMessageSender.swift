@@ -19,7 +19,7 @@ public import SignalServiceKit
 @MainActor
 public final class TellomiScheduledMessageSender {
 
-    public static let shared = TellomiScheduledMessageSender()
+    public static let shared = TellomiScheduledMessageSender(managesNotifications: true)
 
     /// 测试换掉。
     var now: () -> Date = { Date() }
@@ -32,7 +32,11 @@ public final class TellomiScheduledMessageSender {
     /// 建消息出错的（例如文件坏了、磁盘满）：不反复重试，下次回到前台再试一次；用户可以在定时消息列表里删掉。
     private var failedSinceActivation = Set<String>()
 
-    init() {
+    /// 到点通知是 App 全局的一份，只让 `shared` 管（测试里建的执行器不碰系统通知）。
+    private let managesNotifications: Bool
+
+    init(managesNotifications: Bool = false) {
+        self.managesNotifications = managesNotifications
         // 一建出来就听：刚注册完还没「回到前台」过时排的也要挂定时器。
         NotificationCenter.default.addObserver(
             self,
@@ -88,6 +92,7 @@ public final class TellomiScheduledMessageSender {
     private var notificationSync: Task<Void, Never>?
 
     private func syncNotifications() {
+        guard managesNotifications else { return }
         let previous = notificationSync
         notificationSync = Task {
             await previous?.value
