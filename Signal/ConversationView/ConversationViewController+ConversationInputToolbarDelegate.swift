@@ -1011,6 +1011,10 @@ extension ConversationViewController: SendMediaNavDelegate {
                 captionAboveMedia: captionAboveMedia,
                 tellomiScheduledAt: tellomiScheduledAt,
             )
+        } catch TellomiScheduledMessageSender.ScheduleError.tooManyScheduled {
+            // Tellomi（#1519 M-4）：一个会话最多 100 条定时消息（同 Telegram 两端的上限提示 `MessageScheduledLimitReached`）。
+            OWSActionSheets.showActionSheet(message: TellomiScheduledMessageSender.ScheduleError.tooManyScheduled.localizedDescription)
+            return false
         } catch {
             self.showErrorAlert(attachmentError: error as? SignalAttachmentError)
             return false

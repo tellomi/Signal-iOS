@@ -24,6 +24,7 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
     private let threadUniqueId: String
     private let isNoteToSelf: Bool
     private let bubbleColor: ColorOrGradientValue?
+    private let sender: TellomiScheduledMessageSender
     private let now: () -> Date
 
     private let tableView = UITableView(frame: .zero, style: .plain)
@@ -35,10 +36,17 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
         let messages: [TellomiScheduledMessage]
     }
 
-    init(threadUniqueId: String, isNoteToSelf: Bool, bubbleColor: ColorOrGradientValue?, now: @escaping () -> Date = { Date() }) {
+    init(
+        threadUniqueId: String,
+        isNoteToSelf: Bool,
+        bubbleColor: ColorOrGradientValue?,
+        sender: TellomiScheduledMessageSender = .shared,
+        now: @escaping () -> Date = { Date() },
+    ) {
         self.threadUniqueId = threadUniqueId
         self.isNoteToSelf = isNoteToSelf
         self.bubbleColor = bubbleColor
+        self.sender = sender
         self.now = now
         super.init(nibName: nil, bundle: nil)
     }
@@ -224,7 +232,8 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
     }
 
     private func sendNow(_ message: TellomiScheduledMessage) {
-        Task { await TellomiScheduledMessageSender.shared.sendNow(id: message.id) }
+        let sender = self.sender
+        Task { await sender.sendNow(id: message.id) }
     }
 
     private func reschedule(_ message: TellomiScheduledMessage) {

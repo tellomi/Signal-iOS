@@ -102,7 +102,25 @@ public final class TellomiScheduledMessageSender {
 
     // MARK: - Scheduling
 
+    /// 一个会话最多排这么多条（同 Telegram：服务器上限 100，两端都提示 `MessageScheduledLimitReached`）。
+    public static let maxScheduledPerChat = 100
+
+    public enum ScheduleError: Error, LocalizedError {
+        case tooManyScheduled
+
+        public var errorDescription: String? {
+            String.nonPluralLocalizedStringWithFormat(
+                OWSLocalizedString(
+                    "TELLOMI_SCHEDULED_MESSAGES_LIMIT_REACHED_FORMAT",
+                    comment: "Alert when a chat already has the maximum number of scheduled messages. Embeds {{the maximum, e.g. 100}}.",
+                ),
+                OWSFormat.formatInt(TellomiScheduledMessageSender.maxScheduledPerChat),
+            )
+        }
+    }
+
     /// 排一条：附件（已渲染 / 压缩好的）复制到记录自己的目录，记下来。`at` 已过也行：马上发。
+    /// 这个会话已经排满 `maxScheduledPerChat` 条时抛 `ScheduleError.tooManyScheduled`。
     @discardableResult
     public func schedule(
         body: MessageBody?,
@@ -114,6 +132,13 @@ public final class TellomiScheduledMessageSender {
         captionAboveMedia: Bool,
         at date: Date,
     ) async throws -> TellomiScheduledMessage {
+        let threadUniqueId = thread.uniqueId
+        let alreadyScheduled = SSKEnvironment.shared.databaseStorageRef.read { tx in
+            TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx).count
+        }
+        guard alreadyScheduled < Self.maxScheduledPerChat else {
+            throw ScheduleError.tooManyScheduled
+        }
         let id = UUID().uuidString
         let directory = TellomiScheduledMessageStore.directory(for: id)
         do {

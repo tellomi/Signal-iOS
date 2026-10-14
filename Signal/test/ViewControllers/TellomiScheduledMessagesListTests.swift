@@ -1,0 +1,244 @@
+//
+// Copyright 2026 重庆半格智能科技有限公司
+// SPDX-License-Identifier: AGPL-3.0-only
+//
+
+import UniformTypeIdentifiers
+import XCTest
+
+@testable import Signal
+@testable import SignalServiceKit
+@testable import SignalUI
+
+/// Tellomi（tellomi/tellomi#1519 M-4，照 Telegram 两端）：一个会话的「定时消息」页——按天分组、组头、空的时候、长按菜单、
+/// 改时间带着原来的时间、删除；一个会话最多 100 条。
+final class TellomiScheduledMessagesListTests: SignalBaseTest {
+
+    override func setUp() {
+        super.setUp()
+        write { tx in
+            (DependenciesBridge.shared.registrationStateChangeManager as! RegistrationStateChangeManagerImpl).registerForTests(
+                localIdentifiers: .forUnitTests,
+                tx: tx,
+            )
+            SSKPreferences.setAreIntentDonationsEnabled(false, transaction: tx)
+        }
+    }
+
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+        return calendar
+    }
+
+    private func date(_ month: Int, _ day: Int, _ hour: Int, year: Int = 2026) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour))!
+    }
+
+    // MARK: - Rules
+
+    func testMessagesAreGroupedByDayInOrder() throws {
+        let messages = try [
+            record(at: date(10, 14, 18)),
+            record(at: date(10, 14, 21)),
+            record(at: date(10, 15, 9)),
+            record(at: date(11, 2, 9)),
+        ]
+        let sections = TellomiScheduledMessagesViewController.sections(for: messages, calendar: calendar)
+        XCTAssertEqual(sections.map(\.messages.count), [2, 1, 1])
+        XCTAssertEqual(sections.map(\.day), [date(10, 14, 0), date(10, 15, 0), date(11, 2, 0)])
+    }
+
+    func testDayHeaders() {
+        let now = date(10, 14, 10)
+        let locale = Locale(identifier: "en_US")
+        func title(_ day: Date) -> String {
+            TellomiScheduledMessagesViewController.dayTitle(for: day, now: now, calendar: calendar, locale: locale)
+        }
+        XCTAssertEqual(title(date(10, 14, 0)), "Scheduled for today")
+        XCTAssertEqual(title(date(10, 15, 0)), "Scheduled for October 15")
+        XCTAssertEqual(title(date(1, 3, 0, year: 2027)), "Scheduled for January 3, 2027")
+    }
+
+    // MARK: - Screen
+
+    @MainActor
+    func testTheScreenListsThisChatsMessagesAndUpdates() async throws {
+        let thread = makeContactThread()
+        let other = makeContactThread()
+        let sender = TellomiScheduledMessageSender()
+        let soon = try await schedule(sender, "第一条", in: thread, at: Date().addingTimeInterval(3600))
+        _ = try await schedule(sender, "第二条", in: thread, at: Date().addingTimeInterval(2 * 86_400))
+        _ = try await schedule(sender, "别的会话", in: other, at: Date().addingTimeInterval(3600))
+
+        let screen = TellomiScheduledMessagesViewController(threadUniqueId: thread.uniqueId, isNoteToSelf: false, bubbleColor: nil, sender: sender)
+        screen.loadViewIfNeeded()
+        XCTAssertEqual(screen.title, "Scheduled Messages")
+        XCTAssertEqual(screen.sectionsForTesting.flatMap(\.messages).map { try? $0.messageBody()?.text }, ["第一条", "第二条"])
+        XCTAssertEqual(screen.sectionsForTesting.count, 2, "two different days")
+        XCTAssertFalse(screen.isEmptyShownForTesting)
+
+        // 长按菜单：立即发送、改时间、复制、删除（删除要再确认一次）。
+        let menu = screen.menuElements(for: soon, text: "第一条")
+        XCTAssertEqual(menu.map(\.title), ["Send Now", "Reschedule", "Copy", "Delete"])
+        let delete = try XCTUnwrap(menu.last as? UIMenu)
+        XCTAssertEqual(delete.children.map(\.title), ["Delete Scheduled Message"])
+        XCTAssertEqual(screen.menuElements(for: soon, text: nil).map(\.title), ["Send Now", "Reschedule", "Delete"], "no Copy without text")
+
+        // 删一条：列表跟着变（记录变化的通知异步到主线程）。
+        screen.deleteForTesting(soon)
+        let updated = await waitUntil { screen.sectionsForTesting.flatMap(\.messages).count == 1 }
+        XCTAssertTrue(updated)
+
+        // 立即发送：发出去以后列表空了，页面不关，显示空的提示（同 TG 两端）。
+        let last = try XCTUnwrap(screen.sectionsForTesting.first?.messages.first)
+        screen.sendNowForTesting(last)
+        let empty = await waitUntil { screen.isEmptyShownForTesting }
+        XCTAssertTrue(empty)
+        let sent = read { tx in
+            ((try? InteractionFinder(threadUniqueId: thread.uniqueId).fetchAllInteractions(rowIdFilter: .newest, limit: 10, tx: tx)) ?? [])
+                .compactMap { ($0 as? TSOutgoingMessage)?.body }
+        }
+        XCTAssertEqual(sent, ["第二条"])
+    }
+
+    @MainActor
+    func testSavedMessagesCallsThemReminders() {
+        let screen = TellomiScheduledMessagesViewController(threadUniqueId: "t", isNoteToSelf: true, bubbleColor: nil, sender: TellomiScheduledMessageSender())
+        screen.loadViewIfNeeded()
+        XCTAssertEqual(screen.title, "Reminders")
+        XCTAssertTrue(screen.isEmptyShownForTesting)
+    }
+
+    /// 改时间：选时间页带着原来的时间打开（同 TG 两端）。
+    @MainActor
+    func testReschedulingStartsAtTheCurrentTime() {
+        let current = TellomiScheduleTimeSheet.defaultDate(now: Date()).addingTimeInterval(3 * 86_400)
+        let sheet = TellomiScheduleTimeSheet(isReminder: false, initialDate: current) { _ in }
+        sheet.loadViewIfNeeded()
+        XCTAssertEqual(sheet.datePickerForTesting.date, current)
+    }
+
+    /// 一个会话最多 100 条（同 TG 的上限）；别的会话不受影响。
+    @MainActor
+    func testAChatHoldsAtMostAHundred() async throws {
+        let thread = makeContactThread()
+        let sender = TellomiScheduledMessageSender()
+        let later = Date().addingTimeInterval(3600)
+        try write { tx in
+            for index in 0..<TellomiScheduledMessageSender.maxScheduledPerChat {
+                try TellomiScheduledMessageStore.insert(try record(at: later, thread: thread.uniqueId, text: "\(index)"), tx: tx)
+            }
+        }
+        do {
+            _ = try await schedule(sender, "第 101 条", in: thread, at: later)
+            XCTFail("the 101st should be refused")
+        } catch TellomiScheduledMessageSender.ScheduleError.tooManyScheduled {
+            XCTAssertEqual(
+                TellomiScheduledMessageSender.ScheduleError.tooManyScheduled.localizedDescription,
+                "Sorry, you can't schedule more than 100 messages.",
+            )
+        }
+        _ = try await schedule(sender, "别的会话", in: makeContactThread(), at: later)
+    }
+
+    /// 截图（TELLOMI_SHOTS=1）：一个会话的定时消息页（两天、带图、带说明）。
+    @MainActor
+    func testScheduledMessagesScreenshot() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时截图")
+        let thread = makeContactThread()
+        let sender = TellomiScheduledMessageSender()
+        let today = Date().addingTimeInterval(1800)
+        _ = try await schedule(sender, "Don't forget the tickets!", in: thread, at: today)
+        _ = try await sender.schedule(
+            body: MessageBody(text: "Photos from the trip", ranges: .empty),
+            attachments: [try await photo(.systemOrange), try await photo(.systemTeal), try await photo(.systemPink)],
+            isViewOnce: false,
+            thread: thread,
+            quotedReplyDraft: nil,
+            linkPreviewDraft: nil,
+            captionAboveMedia: false,
+            at: today.addingTimeInterval(86_400 + 3600),
+        )
+        _ = try await schedule(sender, "Happy birthday 🎉", in: thread, at: today.addingTimeInterval(5 * 86_400))
+
+        let screen = TellomiScheduledMessagesViewController(
+            threadUniqueId: thread.uniqueId,
+            isNoteToSelf: false,
+            bubbleColor: .solidColor(color: UIColor(red: 0.23, green: 0.47, blue: 0.27, alpha: 1)),
+            sender: sender,
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 874))
+        window.rootViewController = OWSNavigationController(rootViewController: screen)
+        window.isHidden = false
+        defer { window.isHidden = true }
+        _ = await waitUntil(timeout: 3) { false }
+        let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+        let directory = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TELLOMI_SHOTS_DIR"] ?? NSTemporaryDirectory()).appendingPathComponent("402")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try XCTUnwrap(image.pngData()).write(to: directory.appendingPathComponent("scheduled-messages-list.png"))
+    }
+
+    // MARK: - Helpers
+
+    private func record(at date: Date, thread: String = "t", text: String = "x") throws -> TellomiScheduledMessage {
+        try TellomiScheduledMessage(
+            threadUniqueId: thread,
+            scheduledAt: date,
+            body: MessageBody(text: text, ranges: .empty),
+            attachments: [],
+            isViewOnce: false,
+            captionAboveMedia: false,
+            replyInfo: nil,
+            linkPreview: nil,
+        )
+    }
+
+    @MainActor
+    @discardableResult
+    private func schedule(_ sender: TellomiScheduledMessageSender, _ text: String, in thread: TSThread, at date: Date) async throws -> TellomiScheduledMessage {
+        try await sender.schedule(
+            body: MessageBody(text: text, ranges: .empty),
+            attachments: [],
+            isViewOnce: false,
+            thread: thread,
+            quotedReplyDraft: nil,
+            linkPreviewDraft: nil,
+            captionAboveMedia: false,
+            at: date,
+        )
+    }
+
+    private func makeContactThread() -> TSContactThread {
+        write { tx in
+            let thread = ContactThreadFactory().create(transaction: tx)
+            if let aci = thread.contactAddress.aci {
+                var recipient = DependenciesBridge.shared.recipientFetcher.fetchOrCreate(serviceId: aci, tx: tx)
+                SSKEnvironment.shared.profileManagerRef.addRecipientToProfileWhitelist(&recipient, userProfileWriter: .debugging, tx: tx)
+            }
+            return thread
+        }
+    }
+
+    private func photo(_ color: UIColor) async throws -> SendableAttachment {
+        let image = UIImage.image(color: color, size: CGSize(square: 200))
+        let url = OWSFileSystem.temporaryFileUrl(fileExtension: "png", isAvailableWhileDeviceLocked: true)
+        try XCTUnwrap(image.pngData()).write(to: url)
+        let previewable = try PreviewableAttachment.imageAttachment(dataSource: DataSourcePath(fileUrl: url, ownership: .owned), dataUTI: UTType.png.identifier)
+        return try await SendableAttachment.forPreviewableAttachment(previewable, imageQualityLevel: .one)
+    }
+
+    @MainActor
+    private func waitUntil(timeout: TimeInterval = 5, _ condition: () -> Bool) async -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            if Date() > deadline {
+                return false
+            }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+        return true
+    }
+}

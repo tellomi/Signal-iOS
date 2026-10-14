@@ -212,8 +212,9 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
                 let scheduledSome = scheduledAt != nil && self.tellomiHasScheduledMessages(since: startedAt)
                 modal.dismiss(completion: {
                     self.dismiss(animated: true) {
-                        if scheduledSome, let scheduledAt {
-                            self.tellomiShowScheduledToast(for: scheduledAt)
+                        // 同 Telegram 两端：排好了就打开这个会话的定时消息。
+                        if scheduledSome {
+                            self.tellomiOpenScheduledMessages()
                         }
                     }
                 })
@@ -229,17 +230,32 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         }
     }
 
-    /// Tellomi（#1519 M-4）：排好了说一声什么时候发。Telegram 两端排好后打开「定时消息」页；那一页是 M-4 下一步，
-    /// 在那之前先用提示。
-    func tellomiShowScheduledToast(for date: Date) {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        formatter.doesRelativeDateFormatting = true
-        let format = thread.isNoteToSelf
-            ? OWSLocalizedString("TELLOMI_SCHEDULE_REMINDER_SET_TOAST_FORMAT", comment: "Toast after setting a reminder in Saved Messages (note to self). Embeds {{date and time, e.g. 'Today at 14:35'}}.")
-            : OWSLocalizedString("TELLOMI_SCHEDULE_MESSAGE_SCHEDULED_TOAST_FORMAT", comment: "Toast after scheduling a message to be sent later. Embeds {{date and time, e.g. 'Today at 14:35'}}.")
-        presentToastCVC(String.nonPluralLocalizedStringWithFormat(format, formatter.string(from: date)))
+    /// Tellomi（#1519 M-4）：这个会话的定时消息（输入框日历键、排好之后）。
+    func tellomiOpenScheduledMessages() {
+        dismissKeyBoard()
+        TellomiScheduledMessagesViewController.present(
+            threadUniqueId: thread.uniqueId,
+            isNoteToSelf: thread.isNoteToSelf,
+            bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
+            from: self,
+        )
+    }
+
+    func tellomiScheduledMessagesButtonPressed() {
+        tellomiOpenScheduledMessages()
+    }
+
+    @objc
+    func tellomiScheduledMessagesDidChange() {
+        tellomiRefreshScheduledMessagesButton()
+    }
+
+    func tellomiRefreshScheduledMessagesButton() {
+        guard let inputToolbar else { return }
+        let threadUniqueId = thread.uniqueId
+        inputToolbar.tellomiHasScheduledMessages = SSKEnvironment.shared.databaseStorageRef.read { tx in
+            !TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx).isEmpty
+        }
     }
 
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didChangeMessageBody messageBody: MessageBody?) {
