@@ -59,6 +59,8 @@ public final class TellomiScheduledMessageSender {
 
     @objc
     private func storeDidChange() {
+        // 通知是异步投到主线程的，可能晚于环境拆掉（只在测试里会这样）。
+        guard SSKEnvironment.hasShared else { return }
         scheduleTimer()
     }
 
