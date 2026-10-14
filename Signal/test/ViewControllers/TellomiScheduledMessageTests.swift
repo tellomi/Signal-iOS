@@ -196,9 +196,12 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
                 ),
             )
         }
-        XCTAssertEqual(try await enqueue(message), .enqueued)
-        XCTAssertEqual(try await enqueue(message), .notDue)
-        XCTAssertEqual(try await enqueue(moved), .notDue)
+        let first = try await enqueue(message)
+        let second = try await enqueue(message)
+        let rescheduled = try await enqueue(moved)
+        XCTAssertEqual(first, .enqueued)
+        XCTAssertEqual(second, .notDue)
+        XCTAssertEqual(rescheduled, .notDue)
 
         XCTAssertEqual(outgoingMessages(in: thread).map(\.body), ["只发一次"])
         XCTAssertEqual(read { tx in TellomiScheduledMessageStore.fetchAll(tx: tx).map(\.id) }, [moved.id])
