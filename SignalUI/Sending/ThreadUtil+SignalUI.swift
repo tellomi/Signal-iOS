@@ -132,17 +132,23 @@ extension ThreadUtil {
     }
 
     /// WARNING: MUST be called on enqueueSendQueue!
+    @discardableResult
     private class func enqueueMessageSync(
         _ unpreparedMessage: UnpreparedOutgoingMessage,
         benchEventId: String,
         thread: TSThread,
         tellomiCaptionAboveMedia: Bool = false,
+        tellomiClaim: ((DBWriteTransaction) -> Bool)? = nil,
         persistenceCompletionHandler persistenceCompletion: PersistenceCompletion? = nil,
-    ) async {
-        await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { writeTransaction in
+    ) async -> Bool {
+        return await SSKEnvironment.shared.databaseStorageRef.awaitableWrite { writeTransaction in
+            // Tellomi（tellomi/tellomi#1519 M-4）：定时消息先在这个事务里认领（删定时记录），已经被发出 / 删掉就不发。
+            if let tellomiClaim, !tellomiClaim(writeTransaction) {
+                return false
+            }
             guard let preparedMessage = try? unpreparedMessage.prepare(tx: writeTransaction) else {
                 owsFailDebug("Failed to prepare message")
-                return
+                return false
             }
             // Tellomi（tellomi/tellomi#1263，ADR-0068 §4.7）：进发送队列之前、同一个事务里记上，发送时组 DataMessage 读得到。
             if tellomiCaptionAboveMedia {
@@ -170,7 +176,73 @@ extension ThreadUtil {
             {
                 thread.donateSendMessageIntent(for: messageForIntent, transaction: writeTransaction)
             }
+            return true
         }
+    }
+
+    // MARK: - Tellomi
+
+    /// Tellomi（tellomi/tellomi#1519 M-4）：定时消息到点入队。和上面 `enqueueMessage(body:…)` 一样建消息——时间戳 = 现在
+    /// （实际发出时刻），阅后即焚取现在的设置（同安卓 `MessageTable.clearScheduledStatus`）——只是：
+    /// ① 落库的写事务里先 `claim`（删定时记录），返回 false（别处已经发了 / 删了）就不落库；
+    /// ② 等落库（或没落库）才返回，不出错时返回落没落库。
+    public class func tellomiEnqueueScheduledMessage(
+        body messageBody: MessageBody?,
+        attachments: [SendableAttachment.ForSending],
+        isViewOnce: Bool,
+        thread: TSThread,
+        quotedReplyDraft: DraftQuotedReplyModel?,
+        linkPreviewDraft: OWSLinkPreviewDraft?,
+        captionAboveMedia: Bool,
+        claim: @escaping (DBWriteTransaction) -> Bool,
+    ) async throws -> Bool {
+        let messageTimestamp = MessageTimestampGenerator.sharedInstance.generateTimestamp()
+
+        let benchEventId = sendMessageBenchEventStart(messageTimestamp: messageTimestamp)
+        let task = self.enqueueSendQueue.enqueue {
+            let messageBody = try await messageBody.mapAsync {
+                try await DependenciesBridge.shared.attachmentContentValidator
+                    .prepareOversizeTextIfNeeded($0)
+            } ?? nil
+            let linkPreviewDataSource = try await linkPreviewDraft.mapAsync {
+                try await DependenciesBridge.shared.linkPreviewManager.buildDataSource(from: $0)
+            }
+            let quotedReplyDraft = try await quotedReplyDraft.mapAsync {
+                try await DependenciesBridge.shared.quotedReplyManager.prepareDraftForSending($0)
+            }
+
+            let unpreparedMessage = SSKEnvironment.shared.databaseStorageRef.read { readTransaction in
+                UnpreparedOutgoingMessage.build(
+                    thread: thread,
+                    timestamp: messageTimestamp,
+                    messageBody: messageBody,
+                    mediaAttachments: attachments,
+                    isViewOnce: isViewOnce,
+                    quotedReplyDraft: quotedReplyDraft,
+                    linkPreviewDataSource: linkPreviewDataSource,
+                    transaction: readTransaction,
+                )
+            }
+
+            return await Self.enqueueMessageSync(
+                unpreparedMessage,
+                benchEventId: benchEventId,
+                thread: thread,
+                tellomiCaptionAboveMedia: captionAboveMedia && messageBody != nil,
+                tellomiClaim: claim,
+            )
+        }
+        let didEnqueue: Bool
+        do {
+            didEnqueue = try await task.value
+        } catch {
+            BenchEventComplete(eventId: benchEventId)
+            throw error
+        }
+        if !didEnqueue {
+            BenchEventComplete(eventId: benchEventId)
+        }
+        return didEnqueue
     }
 
     private static func sendMessageBenchEventStart(messageTimestamp: UInt64) -> String {
