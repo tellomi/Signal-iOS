@@ -146,6 +146,7 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
     }()
 
     private let placeholderLabel = UILabel()
+    private var placeholderLeadingConstraint: NSLayoutConstraint!
     private var textViewHeightConstraint: NSLayoutConstraint!
 
     private let editHeader = UIView()
@@ -242,7 +243,8 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
             textView.leadingAnchor.constraint(equalTo: textBackground.leadingAnchor, constant: 8),
             textView.trailingAnchor.constraint(equalTo: textBackground.trailingAnchor, constant: -8),
         ])
-        placeholderLabel.autoPinEdge(.leading, to: .leading, of: textView, withOffset: 5)
+        // 和打出来的字对齐：文字区的内边距 + 行首留白（`layoutSubviews` 里按当时的值改）
+        placeholderLeadingConstraint = placeholderLabel.autoPinEdge(.leading, to: .leading, of: textView, withOffset: 5)
         placeholderLabel.autoPinEdge(.trailing, to: .trailing, of: textView, withOffset: -5, relation: .lessThanOrEqual)
         placeholderLabel.autoAlignAxis(.horizontal, toSameAxisOf: textView)
 
@@ -288,6 +290,10 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        let textLeading = textView.textContainerInset.left + textView.textContainer.lineFragmentPadding
+        if placeholderLeadingConstraint.constant != textLeading {
+            placeholderLeadingConstraint.constant = textLeading
+        }
         updateTextViewHeight()
     }
 
