@@ -330,20 +330,23 @@ public class UserNotificationPresenter {
         Self.notificationCenter.removeAllDeliveredNotifications()
     }
 
+    static func shouldClearOnAppActivate(categoryIdentifier: String) -> Bool {
+        // Tellomi（tellomi/tellomi#1519 M-4）：定时消息的到点通知还要等到点才弹，进出前台都不清（发出后由它自己撤）。
+        if categoryIdentifier == TellomiScheduledMessageNotifications.categoryIdentifier {
+            return false
+        }
+        guard let appNotificationCategory = AppNotificationCategory(rawValue: categoryIdentifier) else {
+            return true
+        }
+        return appNotificationCategory.shouldClearOnAppActivate
+    }
+
     public func clearNotificationsForAppActivate() {
         Logger.info("Clearing notifications for app activate.")
 
         Task {
             let shouldRemoveNotificationRequestPredicate: (UNNotificationRequest) -> Bool = { request in
-                guard
-                    let appNotificationCategory = AppNotificationCategory(
-                        rawValue: request.content.categoryIdentifier,
-                    )
-                else {
-                    return true
-                }
-
-                return appNotificationCategory.shouldClearOnAppActivate
+                Self.shouldClearOnAppActivate(categoryIdentifier: request.content.categoryIdentifier)
             }
 
             let pendingNotificationIDsToRemove = await Self.notificationCenter.pendingNotificationRequests()

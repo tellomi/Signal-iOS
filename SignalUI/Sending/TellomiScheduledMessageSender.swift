@@ -175,10 +175,11 @@ public final class TellomiScheduledMessageSender {
 
     /// 发出到点的（按先后，一条一条）。已经在发的时候又被叫：等这一轮，它发完再看一遍。
     /// 返回时到点的都已进了发送队列（或丢掉 / 记为失败）：后台刷新、「立即发送」接着等发送队列发完。
+    /// 调用方被取消（后台刷新、通知动作的 27 秒限时到了）就停在两条之间：没发的还到点，下次再发（认领保证不重不漏）。
     public func flushDue() async {
         if let currentFlush {
             needsAnotherFlush = true
-            await currentFlush.value
+            await Self.wait(for: currentFlush)
             return
         }
         let flush = Task { @MainActor in
@@ -195,12 +196,21 @@ public final class TellomiScheduledMessageSender {
                     TellomiScheduledMessageStore.fetchDue(now: now(), tx: tx)
                 }
                 for message in due where !failedSinceActivation.contains(message.id) {
+                    guard !Task.isCancelled else { return }
                     await send(message)
                 }
-            } while needsAnotherFlush
+            } while needsAnotherFlush && !Task.isCancelled
         }
         currentFlush = flush
-        await flush.value
+        await Self.wait(for: flush)
+    }
+
+    private static func wait(for flush: Task<Void, Never>) async {
+        await withTaskCancellationHandler {
+            await flush.value
+        } onCancel: {
+            flush.cancel()
+        }
     }
 
     private enum Disposition {

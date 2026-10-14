@@ -21,6 +21,7 @@ public enum TellomiScheduledMessageNotifications {
     private static let messageIdKey = "TellomiScheduledMessageId"
     private static let threadIdKey = "TellomiScheduledMessageThreadId"
     private static let scheduledAtKey = "TellomiScheduledMessageScheduledAt"
+    private static let titleKey = "TellomiScheduledMessageTitle"
 
     static var category: UNNotificationCategory {
         UNNotificationCategory(
@@ -86,12 +87,15 @@ public enum TellomiScheduledMessageNotifications {
         let messageId: String
         let threadUniqueId: String
         let scheduledAt: Date
+        /// 会话名；通知设置是「不显示名字也不显示内容」时 nil，这时也不和这个会话的通知归成一组（同上游 `threadIdentifier`）。
         let title: String?
     }
 
     struct Pending: Equatable {
         let identifier: String
         let scheduledAt: Date?
+        var threadUniqueId: String?
+        var title: String?
     }
 
     struct Plan: Equatable {
@@ -113,10 +117,13 @@ public enum TellomiScheduledMessageNotifications {
         let wantedById = Dictionary(wanted.map { (identifier(messageId: $0.messageId), $0) }, uniquingKeysWith: { first, _ in first })
         var pendingOk = Set<String>()
         for request in pending where request.identifier.hasPrefix(identifierPrefix) {
+            // 时间、会话（合并后会变）、标题（改名、改通知设置）都对得上才留着，否则重排。
             if
                 let match = wantedById[request.identifier],
                 let scheduledAt = request.scheduledAt,
-                abs(match.scheduledAt.timeIntervalSince(scheduledAt)) < 0.001
+                abs(match.scheduledAt.timeIntervalSince(scheduledAt)) < 0.001,
+                match.threadUniqueId == request.threadUniqueId,
+                match.title == request.title
             {
                 pendingOk.insert(request.identifier)
             } else {
@@ -132,9 +139,7 @@ public enum TellomiScheduledMessageNotifications {
     public static func sync(now: Date = Date()) async {
         let center = UNUserNotificationCenter.current()
         let wanted = SSKEnvironment.shared.databaseStorageRef.read(block: wanted(tx:))
-        let pending = await center.pendingNotificationRequests().map { request in
-            Pending(identifier: request.identifier, scheduledAt: (request.content.userInfo[scheduledAtKey] as? Double).map(Date.init(timeIntervalSinceReferenceDate:)))
-        }
+        let pending = await center.pendingNotificationRequests().map(pending(for:))
         let delivered = await center.deliveredNotifications().map(\.request.identifier)
 
         let plan = plan(wanted: wanted, pending: pending, delivered: delivered, now: now)
@@ -154,15 +159,32 @@ public enum TellomiScheduledMessageNotifications {
     }
 
     /// 每条记录要的通知；标题照通知设置：「不显示名字」时不写会话名。正文永远不写消息内容。
+    /// 到点也发不出去的（会话没了、退了群、拉黑了，或没注册）不排：不许诺一条发不出去的消息。
     static func wanted(tx: DBReadTransaction) -> [Wanted] {
+        guard DependenciesBridge.shared.tsAccountManager.registrationState(tx: tx).isRegistered else {
+            return []
+        }
         let previewType = DependenciesBridge.shared.notificationPreferencesManager.previewType(tx: tx)
-        return TellomiScheduledMessageStore.fetchAll(tx: tx).map { message in
-            var title: String?
-            if previewType != .noNameNoPreview, let thread = TSThread.anyFetch(uniqueId: message.threadUniqueId, transaction: tx) {
-                title = SSKEnvironment.shared.contactManagerRef.displayName(for: thread, transaction: tx)
+        return TellomiScheduledMessageStore.fetchAll(tx: tx).compactMap { message in
+            guard
+                let thread = TSThread.anyFetch(uniqueId: message.threadUniqueId, transaction: tx),
+                TellomiScheduledMessageStore.reasonNotToSend(to: thread, tx: tx) == nil
+            else {
+                return nil
             }
+            let title = previewType == .noNameNoPreview ? nil : SSKEnvironment.shared.contactManagerRef.displayName(for: thread, transaction: tx)
             return Wanted(messageId: message.id, threadUniqueId: message.threadUniqueId, scheduledAt: message.scheduledAt, title: title)
         }
+    }
+
+    static func pending(for request: UNNotificationRequest) -> Pending {
+        let userInfo = request.content.userInfo
+        return Pending(
+            identifier: request.identifier,
+            scheduledAt: (userInfo[scheduledAtKey] as? Double).map(Date.init(timeIntervalSinceReferenceDate:)),
+            threadUniqueId: userInfo[threadIdKey] as? String,
+            title: userInfo[titleKey] as? String,
+        )
     }
 
     static func request(for item: Wanted) -> UNNotificationRequest {
@@ -176,13 +198,22 @@ public enum TellomiScheduledMessageNotifications {
             comment: "Body of the notification shown when a scheduled message is due and the app isn't open. It never includes the message text.",
         )
         content.sound = .default
-        content.threadIdentifier = item.threadUniqueId
-        content.userInfo = [
+        if item.title != nil {
+            content.threadIdentifier = item.threadUniqueId
+        }
+        var userInfo: [AnyHashable: Any] = [
             messageIdKey: item.messageId,
             threadIdKey: item.threadUniqueId,
             scheduledAtKey: item.scheduledAt.timeIntervalSinceReferenceDate,
         ]
-        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: item.scheduledAt)
+        if let title = item.title {
+            userInfo[titleKey] = title
+        }
+        content.userInfo = userInfo
+        // 带上时区：换时区、夏令时回拨时还是那一刻（不带时区的日期分量按「当地钟面」触发）。
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: item.scheduledAt)
+        components.timeZone = calendar.timeZone
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         return UNNotificationRequest(identifier: identifier(messageId: item.messageId), content: content, trigger: trigger)
     }

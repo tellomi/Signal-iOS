@@ -110,13 +110,15 @@ public class MessageFetchBGRefreshTask {
         }
     }
 
-    /// Tellomi（#1519 M-4）：平常 `now + refreshInterval`；最早的定时消息更早就取它（已过的取现在）。
+    /// Tellomi（#1519 M-4）：平常 `now + refreshInterval`；最早的定时消息更早就取它。
+    /// 已经过了点还没发的（前台本该发掉，多半是一直建不成）：15 分钟后再来，不每次都要「马上」。
     static func tellomiEarliestBeginDate(now: Date, refreshInterval: TimeInterval, nextScheduledMessage: Date?) -> Date {
         let regular = now.addingTimeInterval(refreshInterval)
         guard let nextScheduledMessage else {
             return regular
         }
-        return min(regular, max(now, nextScheduledMessage))
+        let overdueRetry = now.addingTimeInterval(15 * .minute)
+        return min(regular, nextScheduledMessage > now ? nextScheduledMessage : overdueRetry)
     }
 
     private func performTask(_ task: BGTask) {

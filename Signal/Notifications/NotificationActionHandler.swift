@@ -22,10 +22,11 @@ public class NotificationActionHandler {
         // Tellomi（tellomi/tellomi#1519 M-4）：定时消息的到点通知——点它：发出并打开会话；点「立即发送」：只发出。
         if TellomiScheduledMessageNotifications.isScheduledMessageNotification(response.notification) {
             if let scheduled = TellomiScheduledMessageNotifications.response(for: response.notification, actionIdentifier: response.actionIdentifier) {
-                await TellomiScheduledMessageSender.shared.sendNow(id: scheduled.messageId)
+                // 先打开会话（马上看得到），再发。
                 if scheduled.opensChat {
                     showThread(uniqueId: scheduled.threadUniqueId)
                 }
+                await TellomiScheduledMessageSender.shared.sendNow(id: scheduled.messageId)
             }
             return
         }
