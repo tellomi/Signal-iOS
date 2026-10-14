@@ -12,7 +12,8 @@ public class UserNotificationConfig {
 
     class var allNotificationCategories: Set<UNNotificationCategory> {
         let categories = AppNotificationCategory.allCases.map { notificationCategory($0) }
-        return Set(categories)
+        // Tellomi（tellomi/tellomi#1519 M-4）：定时消息的到点通知（带「立即发送」）。
+        return Set(categories + [TellomiScheduledMessageNotifications.category])
     }
 
     class func notificationActions(for category: AppNotificationCategory) -> [UNNotificationAction] {

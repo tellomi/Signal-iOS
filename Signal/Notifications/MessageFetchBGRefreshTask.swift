@@ -5,6 +5,7 @@
 
 import BackgroundTasks
 public import SignalServiceKit
+import SignalUI
 
 /**
  * Utility class for managing the BGAppRefreshTask we use as a "keepalive" for
@@ -82,7 +83,13 @@ public class MessageFetchBGRefreshTask {
         // launch the app without internet. That scenario is unlikely, so is left unhandled.
         let refreshInterval: TimeInterval = RemoteConfig.current.backgroundRefreshInterval
         let request = BGAppRefreshTaskRequest(identifier: Self.taskIdentifier)
-        request.earliestBeginDate = dateProvider().addingTimeInterval(refreshInterval)
+        // Tellomi（tellomi/tellomi#1519 M-4）：有定时消息就提前到最早那一条（同一时间只能有一个 App Refresh 标识，只能并进来）。
+        let nextScheduledMessage = SSKEnvironment.shared.databaseStorageRef.read(block: TellomiScheduledMessageStore.nextScheduledAt(tx:))
+        request.earliestBeginDate = Self.tellomiEarliestBeginDate(
+            now: dateProvider(),
+            refreshInterval: refreshInterval,
+            nextScheduledMessage: nextScheduledMessage,
+        )
 
         do {
             try BGTaskScheduler.shared.submit(request)
@@ -103,6 +110,15 @@ public class MessageFetchBGRefreshTask {
         }
     }
 
+    /// Tellomi（#1519 M-4）：平常 `now + refreshInterval`；最早的定时消息更早就取它（已过的取现在）。
+    static func tellomiEarliestBeginDate(now: Date, refreshInterval: TimeInterval, nextScheduledMessage: Date?) -> Date {
+        let regular = now.addingTimeInterval(refreshInterval)
+        guard let nextScheduledMessage else {
+            return regular
+        }
+        return min(regular, max(now, nextScheduledMessage))
+    }
+
     private func performTask(_ task: BGTask) {
         Logger.info("performing background fetch")
         Task {
@@ -110,6 +126,8 @@ public class MessageFetchBGRefreshTask {
             let result = await Result {
                 try await withCooperativeTimeout(seconds: 27) {
                     await backgroundMessageFetcher.start()
+                    // Tellomi（#1519 M-4）：顺手发出到点的定时消息；下面等外发队列发完。
+                    await TellomiScheduledMessageSender.shared.flushDue()
                     try await backgroundMessageFetcher.waitForFetchingProcessingAndSideEffects()
                 }
             }
