@@ -505,6 +505,43 @@ final class TellomiScheduledMessagesListTests: SignalBaseTest {
         XCTAssertNil(composeBar.editingMessageId)
     }
 
+    /// 阅后即焚的没有「编辑」（不许带说明）；正在存 / 排时按钮不让点；排新的那会儿开始改另一条，正在改的字不被清掉，
+    /// 放在一边的那份（就是刚排的那条）丢掉。
+    @MainActor
+    func testEditGuards() async throws {
+        let thread = makeContactThread()
+        let sender = TellomiScheduledMessageSender()
+        let viewOnce = try await sender.schedule(
+            body: nil,
+            attachments: [try await photo(.systemOrange)],
+            isViewOnce: true,
+            thread: thread,
+            quotedReplyDraft: nil,
+            linkPreviewDraft: nil,
+            captionAboveMedia: false,
+            at: Date().addingTimeInterval(3600),
+        )
+        let text = try await schedule(sender, "要改的", in: thread, at: Date().addingTimeInterval(7200))
+        let screen = TellomiScheduledMessagesViewController(threadUniqueId: thread.uniqueId, thread: thread, isNoteToSelf: false, bubbleColor: nil, sender: sender)
+        screen.loadViewIfNeeded()
+        XCTAssertEqual(screen.menuElements(for: viewOnce, text: nil).map(\.title), ["Send Now", "Reschedule", "Delete"])
+        XCTAssertTrue(screen.menuElements(for: text, text: "要改的").map(\.title).contains("Edit"))
+
+        let composeBar = try XCTUnwrap(screen.composeBarForTesting)
+        composeBar.setTextForTesting("新写的")
+        composeBar.isBusy = true
+        XCTAssertFalse(composeBar.canSubmit)
+        XCTAssertFalse(composeBar.submitButtonForTesting.isEnabled)
+        composeBar.isBusy = false
+        XCTAssertTrue(composeBar.canSubmit)
+
+        screen.beginEditingForTesting(text)
+        composeBar.clearAfterSubmit()
+        XCTAssertEqual(composeBar.messageBody.text, "要改的", "the text being edited stays")
+        composeBar.endEditing()
+        XCTAssertEqual(composeBar.messageBody.text, "", "the set-aside draft was the one just scheduled")
+    }
+
     /// 定时消息页底下写新的：选好时间后排进去（同会话页长按发送那条路），输入框清空。
     /// 会话现在不能发（退了群之类）就没有输入框，也没有「编辑」。
     @MainActor

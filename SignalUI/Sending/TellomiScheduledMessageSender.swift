@@ -101,7 +101,7 @@ public final class TellomiScheduledMessageSender {
                     }
                     let fileName = "link-preview-\(UUID().uuidString)"
                     let url = directory.appendingPathComponent(fileName)
-                    try imageData.write(to: url, options: .completeFileProtectionUntilFirstUserAuthentication)
+                    try imageData.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
                     OWSFileSystem.protectFileOrFolder(atPath: url.path)
                     newImageFileName = fileName
                 }

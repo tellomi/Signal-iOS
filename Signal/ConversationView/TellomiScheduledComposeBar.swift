@@ -40,6 +40,11 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
     /// 开始改之前输入框里写了一半的新消息：改完 / 取消后放回去。
     private var stashedDraft: MessageBody?
 
+    /// 正在存 / 正在排：按钮先不让再点（连点两下会存两遍）。
+    var isBusy = false {
+        didSet { updateContent(animated: false) }
+    }
+
     init(thread: TSThread, isReminder: Bool) {
         self.thread = thread
         self.isReminder = isReminder
@@ -65,6 +70,7 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
         }
         editingMessageId = message.id
         editingHasAttachments = !message.attachments.isEmpty
+        linkPreviewFetchState = nil
         editThumbnailView.image = thumbnail
         editThumbnailView.isHidden = thumbnail == nil
         linkPreviewFetchState = makeLinkPreviewFetchState(initialDraft: linkPreviewDraft)
@@ -91,8 +97,12 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
         updateContent(animated: true)
     }
 
-    /// 排好了一条新的：清空。
+    /// 排好了一条新的：清空。排的这会儿已经开始改另一条了，就丢掉放在一边的那份（它就是刚排的那条），不动正在改的字。
     func clearAfterSubmit() {
+        if editingMessageId != nil {
+            stashedDraft = nil
+            return
+        }
         linkPreviewFetchState = makeLinkPreviewFetchState(initialDraft: nil)
         textView.setMessageBody(nil, txProvider: DependenciesBridge.shared.db.readTxProvider)
         updateContent(animated: true)
@@ -100,6 +110,9 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
 
     /// 现在能不能点发送 / 保存：新的要有字；改的要有字，或者那条有附件（说明可以删光）。
     var canSubmit: Bool {
+        if isBusy {
+            return false
+        }
         if !textView.isWhitespaceOrEmpty {
             return true
         }
@@ -317,7 +330,9 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
     }
 
     private func makeLinkPreviewFetchState(initialDraft: OWSLinkPreviewDraft?) -> LinkPreviewFetchState? {
+        // 改带附件的那条：不取预览（同排定时那条路——有附件的消息不带链接预览）
         guard
+            !editingHasAttachments,
             initialDraft != nil || !textView.isEmpty || editingMessageId != nil,
             let linkPreviewFetcher = SUIEnvironment.shared.linkPreviewFetcher
         else {
@@ -334,7 +349,7 @@ final class TellomiScheduledComposeBar: UIView, BodyRangesTextViewDelegate {
     }
 
     private func updateLinkPreview(animated: Bool) {
-        if linkPreviewFetchState == nil, !textView.isEmpty {
+        if linkPreviewFetchState == nil, !textView.isEmpty, !editingHasAttachments {
             linkPreviewFetchState = makeLinkPreviewFetchState(initialDraft: nil)
         }
         linkPreviewFetchState?.update(textView.messageBodyForSending, enableIfEmpty: true)

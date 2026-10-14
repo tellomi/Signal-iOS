@@ -119,7 +119,9 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
         emptyLabel.textAlignment = .center
         emptyLabel.numberOfLines = 0
         view.addSubview(emptyLabel)
-        emptyLabel.autoCenterInSuperview()
+        emptyLabel.autoAlignAxis(toSuperviewAxis: .vertical)
+        // 空的提示在列表那块的正中（有输入框时不压到它上面）
+        emptyLabel.autoAlignAxis(.horizontal, toSameAxisOf: tableView)
         emptyLabel.autoPinEdge(toSuperviewMargin: .leading, relation: .greaterThanOrEqual)
         emptyLabel.autoPinEdge(toSuperviewMargin: .trailing, relation: .greaterThanOrEqual)
 
@@ -139,7 +141,8 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
             TellomiScheduledMessageStore.fetchAll(threadUniqueId: threadUniqueId, tx: tx)
         }
         let newSections = Self.sections(for: messages)
-        // 正在改的那条没了（到点发出去了）：收起编辑，说一声改动没存上（自己删的在 `delete` 里先收起了）
+        // 正在改的那条没了（到点发出去了）：收起编辑，说一声改动没存上。
+        // 自己点的「立即发送」「删除」在那里先收起了；保存时撞上的由保存那边说，这里先收起、它就不再说一遍。
         if let composeBar, let editingId = composeBar.editingMessageId, !messages.contains(where: { $0.id == editingId }) {
             composeBar.endEditing()
             showAlreadySentNotice()
@@ -167,10 +170,14 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
             hasScrolledToBottom = true
             scrollToBottom()
         }
-        // 键盘起来、列表变矮：同聊天页，最后一条跟着上去
+        // 键盘起来、列表变矮：同聊天页，最后一条跟着上去；在改的时候让改的那条留在眼前
         let tableHeight = tableView.bounds.height
-        if tableHeight < lastTableHeight - 0.5, composeBar?.isTyping == true {
-            scrollToBottom()
+        if tableHeight < lastTableHeight - 0.5, let composeBar, composeBar.isTyping {
+            if let editingId = composeBar.editingMessageId {
+                scroll(to: editingId, animated: false)
+            } else {
+                scrollToBottom()
+            }
         }
         lastTableHeight = tableHeight
     }
@@ -181,11 +188,11 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
         tableView.scrollToRow(at: IndexPath(row: lastRow, section: lastSection), at: .bottom, animated: animated)
     }
 
-    private func scroll(to messageId: String) {
+    private func scroll(to messageId: String, animated: Bool = true) {
         for (sectionIndex, section) in sections.enumerated() {
             if let row = section.messages.firstIndex(where: { $0.id == messageId }) {
                 tableView.layoutIfNeeded()
-                tableView.scrollToRow(at: IndexPath(row: row, section: sectionIndex), at: .middle, animated: true)
+                tableView.scrollToRow(at: IndexPath(row: row, section: sectionIndex), at: .middle, animated: animated)
                 return
             }
         }
@@ -291,8 +298,9 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
                 UIPasteboard.general.string = text
             })
         }
-        // 「编辑」：同 TG iOS 排在复制后面、删除前面（会话现在不能发的时候没有输入框，也就不能改）
-        if composeBar != nil {
+        // 「编辑」：同 TG iOS 排在复制后面、删除前面（会话现在不能发的时候没有输入框，也就不能改）。
+        // 阅后即焚的不给改：它不许带说明（同会话页排定时那条路）
+        if composeBar != nil, !message.isViewOnce {
             elements.append(UIAction(title: CommonStrings.editButton, image: UIImage(systemName: "pencil")) { [weak self] _ in
                 self?.beginEditing(message)
             })
@@ -310,6 +318,9 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
     }
 
     private func sendNow(_ message: TellomiScheduledMessage) {
+        if composeBar?.editingMessageId == message.id {
+            composeBar?.endEditing()
+        }
         let sender = self.sender
         Task { await sender.sendNow(id: message.id) }
     }
@@ -391,6 +402,8 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
             untrustedThreshold: Date().addingTimeInterval(-OWSIdentityManagerImpl.Constants.defaultUntrustedInterval),
         )
         guard identityIsConfirmed else { return }
+        composeBar.isBusy = true
+        defer { composeBar.isBusy = false }
         do {
             // 解除拉黑、确认安全码花的时间里已经过了点也照排：执行器马上发出去
             let message = try await sender.schedule(
@@ -417,14 +430,16 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
     /// 改好了一条：换掉文字和预览，到点时刻不变。改的这会儿已经发出去了就说一声。
     func composeBar(_ composeBar: TellomiScheduledComposeBar, didSubmitEditOf messageId: String, body: MessageBody, linkPreviewDraft: OWSLinkPreviewDraft?) {
         let sender = self.sender
-        Task { [weak self] in
+        composeBar.isBusy = true
+        Task { [weak self, weak composeBar] in
+            defer { composeBar?.isBusy = false }
             do {
                 let edited = try await sender.edit(id: messageId, body: body, linkPreviewDraft: linkPreviewDraft)
                 guard let self else { return }
-                // 先收起，`reload` 才不会把它当成「改的那条没了」
-                if self.composeBar?.editingMessageId == messageId {
-                    self.composeBar?.endEditing()
-                }
+                // 还在改这一条：先收起（`reload` 才不会把它当成「改的那条没了」）；没存上就说一声。
+                // 已经不在改了：是 `reload` 先看到它没了，已经收起、说过了
+                guard self.composeBar?.editingMessageId == messageId else { return }
+                self.composeBar?.endEditing()
                 if edited {
                     self.reload()
                 } else {
