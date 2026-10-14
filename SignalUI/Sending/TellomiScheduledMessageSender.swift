@@ -263,7 +263,8 @@ public final class TellomiScheduledMessageSender {
     private func scheduleTimer() {
         timer?.invalidate()
         timer = nil
-        guard hasActivated else {
+        // 没注册时 `flushDue` 什么都不发：不挂，免得到点的那条让定时器一直立刻再触发。
+        guard hasActivated, DependenciesBridge.shared.tsAccountManager.registrationStateWithMaybeSneakyTransaction.isRegistered else {
             return
         }
         let next = SSKEnvironment.shared.databaseStorageRef.read { tx in
