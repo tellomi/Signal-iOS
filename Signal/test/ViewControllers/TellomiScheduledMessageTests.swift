@@ -21,6 +21,8 @@ final class TellomiScheduledMessageTests: SignalBaseTest {
                 localIdentifiers: .forUnitTests,
                 tx: tx,
             )
+            // 发出去时上游会给 Siri 建议捐一条意图，要画头像（强转成 OWSContactsManager），测试环境的假通讯录过不去。
+            SSKPreferences.setAreIntentDonationsEnabled(false, transaction: tx)
         }
     }
 
