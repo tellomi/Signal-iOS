@@ -184,7 +184,7 @@ public final class TellomiScheduledMessageSender {
         switch disposition {
         case .discard(let reason):
             Logger.warn("Dropping a scheduled message: \(reason).")
-            await db.awaitableWrite { tx in
+            _ = await db.awaitableWrite { tx in
                 TellomiScheduledMessageStore.remove(id: message.id, tx: tx)
             }
             return
