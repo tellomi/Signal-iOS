@@ -112,7 +112,16 @@ final class TellomiScheduledMessagesViewController: UIViewController, UITableVie
         scrollToBottom()
     }
 
-    /// 同聊天页：最近要发的在最下面。
+    /// 同聊天页：条目少时贴着底部，多时滚到最下面（最晚发的那条）。
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let visibleHeight = tableView.bounds.height - tableView.safeAreaInsets.top - tableView.safeAreaInsets.bottom
+        let topInset = max(0, visibleHeight - tableView.contentSize.height)
+        if abs(tableView.contentInset.top - topInset) > 0.5 {
+            tableView.contentInset.top = topInset
+        }
+    }
+
     private func scrollToBottom() {
         guard let lastSection = sections.indices.last, let lastRow = sections[lastSection].messages.indices.last else { return }
         tableView.layoutIfNeeded()
