@@ -66,6 +66,63 @@ final class TellomiImageEditorTextTests: SignalBaseTest {
         }
     }
 
+    /// 截图（TELLOMI_SHOTS=1）：文字工具条（多了对齐键）和发出去的图（左对齐 + 半透明底、居中 + 白底）。
+    @MainActor
+    func testScreenshots() throws {
+        let environment = ProcessInfo.processInfo.environment
+        try XCTSkipUnless(environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时截图")
+        let directory = URL(fileURLWithPath: environment["TELLOMI_SHOTS_DIR"] ?? NSTemporaryDirectory())
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 120))
+        window.overrideUserInterfaceStyle = .dark
+        let host = UIViewController()
+        host.view.backgroundColor = .black
+        window.rootViewController = host
+        window.isHidden = false
+        let toolbar = TextStylingToolbar(showsAlignment: true)
+        toolbar.textAlignment = .left
+        toolbar.decorationStyle = .semiTransparentBackground
+        toolbar.frame = host.view.bounds
+        host.view.addSubview(toolbar)
+        window.layoutIfNeeded()
+        let toolbarImage = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+        try XCTUnwrap(toolbarImage.pngData()).write(to: directory.appendingPathComponent("editor-text-toolbar.png"))
+        window.isHidden = true
+
+        let image = UIGraphicsImageRenderer(size: CGSize(square: 600)).image { context in
+            UIColor(rgbHex: 0x3a7bd5).setFill()
+            context.fill(CGRect(origin: .zero, size: CGSize(square: 600)))
+            UIColor(rgbHex: 0xf5d76e).setFill()
+            context.fill(CGRect(x: 0, y: 300, width: 600, height: 300))
+        }
+        let model = try ImageEditorModel(normalizedImage: NormalizedImage.forImage(image))
+        model.append(item: ImageEditorTextItem(
+            text: "Left\nsemi background\nline",
+            color: .white,
+            fontSize: ImageEditorTextItem.defaultFontSize,
+            decorationStyle: .semiTransparentBackground,
+            textAlignment: .left,
+            fontReferenceImageWidth: 600,
+            unitCenter: ImageEditorSample(x: 0.5, y: 0.3),
+            unitWidth: 0.8,
+        ))
+        model.append(item: ImageEditorTextItem(
+            text: "Right\naligned text",
+            color: .black,
+            fontSize: ImageEditorTextItem.defaultFontSize,
+            decorationStyle: .semiTransparentBackground,
+            textAlignment: .right,
+            fontReferenceImageWidth: 600,
+            unitCenter: ImageEditorSample(x: 0.5, y: 0.75),
+            unitWidth: 0.8,
+        ))
+        let output = try XCTUnwrap(ImageEditorCanvasView.renderForOutput(model: model, transform: model.currentTransform()))
+        try XCTUnwrap(output.pngData()).write(to: directory.appendingPathComponent("editor-text-output.png"))
+    }
+
     private func item(
         color: UIColor,
         decorationStyle: MediaTextView.DecorationStyle,
