@@ -7,23 +7,8 @@ import Photos
 import SignalServiceKit
 import SignalUI
 
-/// Tellomi（tellomi/tellomi#1261）：会话「+ → 照片」打开 Telegram 式的选图网格（`TellomiPhotoPickerViewController`）。
+/// Tellomi（tellomi/tellomi#1261）：会话「+」打开附件 Sheet，默认页是 Telegram 式的选图网格（`TellomiPhotoPickerViewController`）。
 extension ConversationViewController {
-
-    /// 读相册要「照片」权限（上游的系统选择器不要）：没给过就先问；已经拒绝 / 受限制就照旧弹系统选择器，权限引导以 #1115 为准。
-    func chooseFromLibraryWithTellomiPicker(fallback: @escaping () -> Void) {
-        AssertIsOnMainThread()
-
-        switch PHPhotoLibrary.authorizationStatus(for: .readWrite) {
-        case .denied, .restricted:
-            fallback()
-        default:
-            Task { @MainActor in
-                guard await self.ows_askForMediaLibraryPermissions(for: .readWrite) else { return }
-                self.presentTellomiPhotoPicker()
-            }
-        }
-    }
 
     // MARK: - 附件 Sheet（#1115）
 
@@ -36,10 +21,10 @@ extension ConversationViewController {
         case .notDetermined:
             Task { @MainActor in
                 _ = await self.ows_askForMediaLibraryPermissions(for: .readWrite)
-                self.presentTellomiPhotoPicker(asAttachmentSheet: true)
+                self.presentTellomiAttachmentSheetNow()
             }
         default:
-            presentTellomiPhotoPicker(asAttachmentSheet: true)
+            presentTellomiAttachmentSheetNow()
         }
     }
 
@@ -67,7 +52,7 @@ extension ConversationViewController {
         sheet.prefersGrabberVisible = true
     }
 
-    private func presentTellomiPhotoPicker(asAttachmentSheet: Bool = false) {
+    private func presentTellomiAttachmentSheetNow() {
         guard hasViewWillAppearEverBegun, let inputToolbar else { return }
 
         let picker = TellomiPhotoPickerViewController(
@@ -87,7 +72,7 @@ extension ConversationViewController {
             chatBackground: viewState.wallpaperViewBuilder?.build().asPreviewView(),
             bubbleColor: viewState.conversationStyle.bubbleChatColorOutgoing,
             camera: TellomiSystemPickerCamera(),
-            dockItems: asAttachmentSheet ? TellomiAttachmentDockItem.attachmentSheetItems : [],
+            dockItems: TellomiAttachmentDockItem.attachmentSheetItems,
         )
         picker.delegate = self
 
@@ -135,15 +120,11 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
         dismiss(animated: true) { [weak self] in
             guard let self else { return }
             switch item {
-            case .gallery:
+            case .gallery, .file, .poll, .location:
+                // 都在 Sheet 里换页（tellomiOpenInSheet 总会接走），走不到这里（清单 C-6）。
                 break
-            case .file:
-                self.fileButtonPressed()
-            case .location:
-                self.locationButtonPressed()
-            case .poll:
-                self.pollButtonPressed()
             case .contact:
+                // 只有 BuildFlags.accountIdentifierSharing 打开时走这里：上游换成 RecipientPicker，那条还没搬进 Sheet。
                 self.contactButtonPressed()
             case .gif:
                 // owner 2026-09-26 临时加回：上游附件面板 GIF 键的同一个处理（didTapGif → gifButtonPressed → showGifPicker）。

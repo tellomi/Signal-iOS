@@ -108,11 +108,11 @@ extension ConversationViewController: TellomiAttachmentNavigationPageDelegate {
         dismiss(animated: true) { [weak self] in
             guard let self else { return }
             switch item {
-            case .location: self.locationButtonPressed()
+            // accountIdentifierSharing 打开时的联系人（上游 RecipientPicker，还没搬进 Sheet）
             case .contact: self.contactButtonPressed()
             case .gif: self.gifButtonPressed()
-            case .poll: self.pollButtonPressed()
-            case .gallery, .file: break
+            // 都在 Sheet 里换页，走不到这里（清单 C-6）
+            case .gallery, .file, .poll, .location: break
             }
         }
     }
