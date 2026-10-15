@@ -103,7 +103,7 @@ final class TellomiFeatureIntroTests: SignalBaseTest {
             let host = try makeHost()
             host.root.present(intro.makeSheet(), animated: false)
             try await Task.sleep(nanoseconds: 600_000_000)
-            try save(render(host.window), name: "whats-new-\(intro.rawValue).png", width: host.window.bounds.width)
+            try save(render(host.window), name: "whats-new-\(intro.rawValue).png", width: host.window.bounds.size.width)
             host.root.dismiss(animated: false)
             host.window.isHidden = true
         }
