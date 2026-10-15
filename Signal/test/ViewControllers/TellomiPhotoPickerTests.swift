@@ -993,6 +993,9 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         let viewed = await waitUntil { self.albumViewer(over: picker) != nil }
         XCTAssertTrue(viewed)
         let viewer = try XCTUnwrap(albumViewer(over: picker))
+        // 弹出动画走完、查看器在窗口里了，说明框才能成为第一响应者。
+        let onScreen = await waitUntil { viewer.view.window != nil && !viewer.isBeingPresented }
+        XCTAssertTrue(onScreen)
         XCTAssertFalse(viewer.isCaptionDimShownForTesting)
 
         XCTAssertTrue(viewer.beginCaptionEditingForTesting())
@@ -1156,6 +1159,8 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         let opened = await waitUntil { self.albumViewer(over: picker) != nil }
         XCTAssertTrue(opened)
         let viewer = try XCTUnwrap(albumViewer(over: picker))
+        let onScreen = await waitUntil { viewer.view.window != nil && !viewer.isBeingPresented }
+        XCTAssertTrue(onScreen)
         try await settle()
         try save(render(hosted.window), name: "picker-viewer-caption-empty.png", width: 402)
 
