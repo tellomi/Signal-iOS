@@ -52,14 +52,34 @@ private final class TellomiTestWindowJanitor: NSObject, XCTestObservation {
 
     func detachAll() {
         guard !windows.isEmpty else { return }
-        for window in windows {
-            window.isHidden = true
-            window.rootViewController = nil
-            window.windowScene = nil
+        var controllers: [WeakController] = []
+        autoreleasepool {
+            for window in windows {
+                var controller = window.rootViewController
+                while let current = controller {
+                    controllers.append(WeakController(current))
+                    controller = current.presentedViewController
+                }
+                window.isHidden = true
+                window.rootViewController = nil
+                window.windowScene = nil
+            }
+            windows.removeAll()
         }
-        windows.removeAll()
-        // 摘下来之后排进主队列的收尾也在这里跑完，不留到环境拆掉以后。
-        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+        // 控制器释放时还会用到测试环境（比如 `MediaGallery.deinit` 读 `SSKEnvironment`），播放器的收尾又是异步的：
+        // 在这里转主循环，等这些控制器真的放掉（最多 2 秒），再让 `tearDown` 拆环境。
+        let deadline = Date(timeIntervalSinceNow: 2)
+        repeat {
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.02))
+        } while controllers.contains(where: { $0.controller != nil }) && Date() < deadline
+    }
+
+    private struct WeakController {
+        weak var controller: UIViewController?
+
+        init(_ controller: UIViewController) {
+            self.controller = controller
+        }
     }
 
     /// 兜底：不是 `SignalBaseTest` 的测试类（不拆环境）也在测试结束时摘掉。
