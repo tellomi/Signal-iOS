@@ -141,7 +141,7 @@ enum TellomiFeatureIntro: String, CaseIterable {
     /// 卡片把图标放进正方形框里（上游 `HeroSheetViewController` 定死 24 / 32 见方、拉伸填满）；SF Symbol 多半不是正方形，
     /// 先按比例画进正方形透明底，免得被拉宽、压扁。保持 template，颜色跟着卡片的 tint。
     static func symbolImage(_ name: String, side: CGFloat) -> UIImage {
-        let configuration = UIImage.SymbolConfiguration(pointSize: side * 0.75, weight: .regular)
+        let configuration = UIImage.SymbolConfiguration(pointSize: side, weight: .regular)
         guard let symbol = UIImage(systemName: name, withConfiguration: configuration) else {
             owsFailDebug("missing SF Symbol \(name)")
             return UIImage()

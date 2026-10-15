@@ -102,7 +102,8 @@ final class TellomiFeatureIntroTests: SignalBaseTest {
         for intro in TellomiFeatureIntro.allCases {
             let host = try makeHost()
             host.root.present(intro.makeSheet(), animated: false)
-            try await Task.sleep(nanoseconds: 600_000_000)
+            // 上游的 InteractiveSheet 量完内容再把高度调上去（带动画），等它停下来再拍。
+            try await Task.sleep(nanoseconds: 2_000_000_000)
             try save(render(host.window), name: "whats-new-\(intro.rawValue).png", width: host.window.bounds.size.width)
             host.root.dismiss(animated: false)
             host.window.isHidden = true
