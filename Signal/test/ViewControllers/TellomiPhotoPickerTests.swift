@@ -923,7 +923,7 @@ final class TellomiPhotoPickerTests: SignalBaseTest {
         XCTAssertEqual(viewer.captionTextForTesting, "今天的照片")
         viewer.view.layoutIfNeeded()
         XCTAssertLessThanOrEqual(viewer.toolsFrameForTesting.maxY, viewer.sendBarFrameForTesting.minY, "工具键在说明栏上面")
-        XCTAssertGreaterThan(viewer.toolsFrameForTesting.height, 0)
+        XCTAssertGreaterThan(viewer.toolsFrameForTesting.size.height, 0)
 
         viewer.typeCaptionForTesting("海边")
         XCTAssertEqual(picker.captionTextForTesting, "海边", "网格的说明框跟着变")
