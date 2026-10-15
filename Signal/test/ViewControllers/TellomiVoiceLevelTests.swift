@@ -69,7 +69,7 @@ final class TellomiVoiceLevelTests: XCTestCase {
         button.transform = CGAffineTransform(translationX: -40, y: 0)
         try await Task.sleep(nanoseconds: 300_000_000)
         XCTAssertEqual(halo.alpha, TellomiVoiceLevelHalo.haloAlpha * 0.5, accuracy: 0.001)
-        XCTAssertEqual(halo.transform.tx, -40 * halo.levelScale, accuracy: 0.5, "平移跟着按钮")
+        XCTAssertEqual(halo.transform.tx, -40, accuracy: 0.5, "平移跟着按钮（缩放绕光晕自己的中心）")
         XCTAssertGreaterThan(halo.levelScale, 1.3, "-10 dB 时光晕明显变大")
 
         halo.removeFromSuperview()
