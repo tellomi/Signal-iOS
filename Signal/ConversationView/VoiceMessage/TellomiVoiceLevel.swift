@@ -27,7 +27,7 @@ enum TellomiVoiceLevel {
 
 /// 光晕本身：每帧读一次电平，用临界阻尼弹簧（同安卓 `TellomiMotion.Fade`：刚度 1600、阻尼比 1）平滑后缩放；
 /// 位置、透明度跟着它垫在下面的那个按钮（按钮有平移、收起时变淡变小）。减弱动态效果时不显示。
-final class TellomiVoiceLevelHalo: CircleView {
+final class TellomiVoiceLevelHalo: UIView {
 
     static let haloAlpha: CGFloat = 0.3
     private static let stiffness: CGFloat = 1600
@@ -63,6 +63,11 @@ final class TellomiVoiceLevelHalo: CircleView {
         displayLink = nil
         isHidden = true
         transform = .identity
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.cornerRadius = bounds.width / 2
     }
 
     override func didMoveToWindow() {
