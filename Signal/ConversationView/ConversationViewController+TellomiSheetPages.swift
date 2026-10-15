@@ -11,7 +11,7 @@ import SignalUI
 extension ConversationViewController {
 
     /// dock 的这一格能不能在同一个 Sheet 里换页；能就换（联系人先问通讯录权限，允许了才换），返回 true；
-    /// 不能（位置、GIF、联系人走另一种选择器时）返回 false，调用方照旧先收起 Sheet 再走上游的流程。
+    /// 不能（GIF、联系人走另一种选择器时）返回 false，调用方照旧先收起 Sheet 再走上游的流程。
     func tellomiOpenInSheet(_ item: TellomiAttachmentDockItem, container: TellomiAttachmentSheetController) -> Bool {
         guard let page = TellomiAttachmentSheetController.page(for: item) else { return false }
         switch page {
@@ -23,7 +23,7 @@ extension ConversationViewController {
                 performWhenAllowed: { [weak container] in container?.show(.contact) },
                 presentErrorFrom: container,
             )
-        case .gallery, .files, .poll:
+        case .gallery, .files, .poll, .location:
             container.show(page)
         }
         return true
@@ -57,6 +57,44 @@ extension ConversationViewController {
         page.retainedObjects.append(adapter)
         page.delegate = self
         return page
+    }
+}
+
+extension ConversationViewController {
+
+    /// 「位置」页：上游的 `LocationPicker`（Apple 地图、搜索、长按选点、当前位置），发出走会话页现有的 `didPickLocation`；
+    /// 发完、✕ 都收起整个 Sheet（上游取消会经 openAttachmentKeyboard 再把 Sheet 弹回来，这里不弹）。同 Telegram iOS `.location`。
+    /// 地图要拖，Sheet 不许下拉关（✕ 照样能关），进来就展开到全屏。
+    func makeTellomiLocationPage() -> UIViewController {
+        let adapter = TellomiAttachmentLocationAdapter(conversation: self)
+        let picker = LocationPicker()
+        picker.delegate = adapter
+        picker.onFinish = { [weak self] in
+            self?.dismiss(animated: true)
+        }
+        let page = TellomiAttachmentNavigationPage(root: picker, dockItem: .location, dockItems: TellomiAttachmentDockItem.attachmentSheetItems)
+        page.retainedObjects.append(adapter)
+        page.isModalInPresentation = true
+        page.delegate = self
+        return page
+    }
+}
+
+/// 位置页的代理：上游 `LocationPicker` 只弱引用代理，由页面持有它。
+final class TellomiAttachmentLocationAdapter: LocationPickerDelegate {
+
+    private weak var conversation: ConversationViewController?
+
+    init(conversation: ConversationViewController) {
+        self.conversation = conversation
+    }
+
+    func didPickLocation(_ locationPicker: LocationPicker, location: Location) {
+        conversation?.didPickLocation(locationPicker, location: location)
+    }
+
+    func locationPickerDidCancel() {
+        conversation?.dismiss(animated: true)
     }
 }
 

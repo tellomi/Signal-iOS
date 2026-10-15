@@ -503,12 +503,12 @@ final class TellomiAttachmentFilesTests: SignalBaseTest {
         XCTAssertFalse(container.visibleChildForTesting === first)
     }
 
-    func testGalleryFilesPollAndContactArePagesOfTheSheet() {
+    func testEveryDockItemButGifIsAPageOfTheSheet() {
         XCTAssertEqual(TellomiAttachmentSheetController.page(for: .gallery), .gallery)
         XCTAssertEqual(TellomiAttachmentSheetController.page(for: .file), .files)
         XCTAssertEqual(TellomiAttachmentSheetController.page(for: .poll), .poll)
         XCTAssertEqual(TellomiAttachmentSheetController.page(for: .contact), .contact)
-        XCTAssertNil(TellomiAttachmentSheetController.page(for: .location), "位置还是先收起再走上游")
+        XCTAssertEqual(TellomiAttachmentSheetController.page(for: .location), .location)
         XCTAssertNil(TellomiAttachmentSheetController.page(for: .gif), "GIF 等 #1012 挪到表情面板")
     }
 

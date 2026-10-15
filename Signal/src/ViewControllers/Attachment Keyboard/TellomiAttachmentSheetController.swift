@@ -19,11 +19,12 @@ final class TellomiAttachmentSheetController: UIViewController {
         case files
         case poll
         case contact
+        case location
     }
 
     let photoPicker: TellomiPhotoPickerViewController
     private let makePage: (Page) -> UIViewController?
-    /// 「文件」页只建一次（来回切换状态还在）；投票、联系人页每次进都新建（上次没发的输入、搜索不留着）。
+    /// 「文件」页只建一次（来回切换状态还在）；投票、联系人、位置页每次进都新建（上次没发的输入、搜索、选点不留着）。
     private var filesPage: UIViewController?
     private var otherPage: UIViewController?
 
@@ -70,7 +71,7 @@ final class TellomiAttachmentSheetController: UIViewController {
             guard let files = filesPage ?? makePage(.files) else { return }
             filesPage = files
             to = files
-        case .poll, .contact:
+        case .poll, .contact, .location:
             guard let other = makePage(page) else { return }
             to = other
         }
@@ -104,7 +105,7 @@ final class TellomiAttachmentSheetController: UIViewController {
         switch page {
         case .gallery: return photoPicker
         case .files: return filesPage ?? photoPicker
-        case .poll, .contact: return otherPage ?? photoPicker
+        case .poll, .contact, .location: return otherPage ?? photoPicker
         }
     }
 
@@ -145,7 +146,8 @@ final class TellomiAttachmentSheetController: UIViewController {
         case .file: return .files
         case .poll: return .poll
         case .contact: return .contact
-        case .location, .gif: return nil
+        case .location: return .location
+        case .gif: return nil
         }
     }
 }

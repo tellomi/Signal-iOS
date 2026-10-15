@@ -37,12 +37,12 @@ extension ConversationViewController: TellomiAttachmentFilesDelegate {
         switch item {
         case .file:
             break
-        case .gallery, .poll, .contact:
+        case .gallery, .poll, .contact, .location:
             if let container = page.parent as? TellomiAttachmentSheetController, tellomiOpenInSheet(item, container: container) {
                 return
             }
             fallthrough
-        case .location, .gif:
+        case .gif:
             dismiss(animated: true) { [weak self] in
                 guard let self else { return }
                 switch item {
