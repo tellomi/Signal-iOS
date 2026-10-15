@@ -600,12 +600,13 @@ final class TellomiAttachmentFilesTests: SignalBaseTest {
             (.poll, "poll", {
                 TellomiAttachmentPollPage(poll: NewPollViewController2(maxOptionCount: 10), dockItems: TellomiAttachmentDockItem.allCases)
             }),
+            // 上游 ContactPickerViewController 在测试环境里拿不到真的通讯录管理器（FakeContactsManager 转不成 OWSContactsManager 会崩），
+            // 这里放一个同标题的空页看导航栏和 dock 的位置。
             (.contact, "contact", {
-                TellomiAttachmentNavigationPage(
-                    root: ContactPickerViewController(allowsMultipleSelection: false, subtitleCellType: .none),
-                    dockItem: .contact,
-                    dockItems: TellomiAttachmentDockItem.allCases,
-                )
+                let placeholder = UIViewController()
+                placeholder.view.backgroundColor = .Signal.groupedBackground
+                placeholder.title = OWSLocalizedString("CONTACT_PICKER_TITLE", comment: "navbar title for contact picker when sharing a contact")
+                return TellomiAttachmentNavigationPage(root: placeholder, dockItem: .contact, dockItems: TellomiAttachmentDockItem.allCases)
             }),
             (.location, "location", {
                 TellomiAttachmentNavigationPage(root: LocationPicker(), dockItem: .location, dockItems: TellomiAttachmentDockItem.allCases)
