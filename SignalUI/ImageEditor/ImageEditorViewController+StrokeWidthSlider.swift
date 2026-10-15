@@ -112,6 +112,7 @@ extension ImageEditorViewController {
     func handleSliderValueChanged(value: Float) {
         strokeWidthValues[currentStrokeType] = value
         updateStrokeWidthPreviewSize()
+        applyLineWidthToSelectedShape()
     }
 
     func setStrokeWidthSlider(revealed: Bool) {
