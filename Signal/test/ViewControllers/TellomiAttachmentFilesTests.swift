@@ -503,19 +503,52 @@ final class TellomiAttachmentFilesTests: SignalBaseTest {
         XCTAssertFalse(container.visibleChildForTesting === first)
     }
 
-    func testOnlyGalleryFilesAndPollArePagesOfTheSheet() {
+    func testGalleryFilesPollAndContactArePagesOfTheSheet() {
         XCTAssertEqual(TellomiAttachmentSheetController.page(for: .gallery), .gallery)
         XCTAssertEqual(TellomiAttachmentSheetController.page(for: .file), .files)
         XCTAssertEqual(TellomiAttachmentSheetController.page(for: .poll), .poll)
-        XCTAssertNil(TellomiAttachmentSheetController.page(for: .location))
-        XCTAssertNil(TellomiAttachmentSheetController.page(for: .contact))
-        XCTAssertNil(TellomiAttachmentSheetController.page(for: .gif))
+        XCTAssertEqual(TellomiAttachmentSheetController.page(for: .contact), .contact)
+        XCTAssertNil(TellomiAttachmentSheetController.page(for: .location), "位置还是先收起再走上游")
+        XCTAssertNil(TellomiAttachmentSheetController.page(for: .gif), "GIF 等 #1012 挪到表情面板")
+    }
+
+    func testContactPageShowsInsideTheSameSheetWithItsOwnDock() throws {
+        let picker = TellomiPhotoPickerViewController(
+            library: EmptyPhotoLibrary(),
+            initialMessageBody: nil,
+            defaultImageQuality: .standard,
+            canSendSeparately: true,
+            hasQuotedReplyDraft: false,
+            attachmentLimits: .currentLimits(),
+            approvalDataSource: FilesTestApprovalDataSource(),
+            stickerSheetDelegate: nil,
+            dockItems: TellomiAttachmentDockItem.allCases,
+        )
+        let root = UIViewController()
+        let container = TellomiAttachmentSheetController(photoPicker: picker) { page in
+            page == .contact ? TellomiAttachmentNavigationPage(root: root, dockItem: .contact, dockItems: TellomiAttachmentDockItem.allCases) : nil
+        }
+        container.loadViewIfNeeded()
+
+        container.show(.contact, animated: false)
+        let page = try XCTUnwrap(container.visibleChildForTesting as? TellomiAttachmentNavigationPage)
+        XCTAssertTrue(page.navigation.viewControllers.first === root)
+        XCTAssertNil(container.presentedViewController)
+        XCTAssertTrue(page.wantsExpandedSheet)
+
+        let delegate = RecordingNavigationPageDelegate()
+        page.delegate = delegate
+        page.loadViewIfNeeded()
+        XCTAssertTrue(page.isDockShownForTesting)
+        page.selectDockItemForTesting(.contact)
+        page.selectDockItemForTesting(.poll)
+        XCTAssertEqual(delegate.items, [.poll], "重复点「联系人」由页面自己处理，别的交给会话页")
     }
 
     func testPollPageWaitsForTheSheetBeforeTheKeyboardAndHandsOtherDockItemsOn() {
         let poll = NewPollViewController2(maxOptionCount: 10)
         let page = TellomiAttachmentPollPage(poll: poll, dockItems: TellomiAttachmentDockItem.allCases)
-        let delegate = RecordingPollPageDelegate()
+        let delegate = RecordingNavigationPageDelegate()
         page.delegate = delegate
         page.loadViewIfNeeded()
 
@@ -1057,10 +1090,10 @@ private final class FilesTestApprovalDataSource: AttachmentApprovalViewControlle
     func attachmentApprovalMentionCacheInvalidationKey() -> String { "tellomi-files-tests" }
 }
 
-private final class RecordingPollPageDelegate: TellomiAttachmentPollPageDelegate {
+private final class RecordingNavigationPageDelegate: TellomiAttachmentNavigationPageDelegate {
     var items: [TellomiAttachmentDockItem] = []
 
-    func pollPage(_ page: TellomiAttachmentPollPage, didSelectDockItem item: TellomiAttachmentDockItem) {
+    func navigationPage(_ page: TellomiAttachmentNavigationPage, didSelectDockItem item: TellomiAttachmentDockItem) {
         items.append(item)
     }
 }
