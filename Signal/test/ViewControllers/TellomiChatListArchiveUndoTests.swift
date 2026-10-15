@@ -78,6 +78,25 @@ final class TellomiChatListArchiveUndoTests: SignalBaseTest {
         XCTAssertEqual(pinCompleted, false, "置顶后行还在，照旧弹回")
     }
 
+    /// 提示条的样子（只在 TELLOMI_SHOTS=1 时截）：右边「撤销」在玻璃底上看得清。
+    @MainActor
+    func testArchivedToastScreenshot() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["TELLOMI_SHOTS"] == "1", "只在 TELLOMI_SHOTS=1 时截图")
+        let host = try makeHost()
+        defer { host.window.isHidden = true }
+        host.provider.tellomiPresentArchivedUndo(threadUniqueIds: ["a"], pinnedThreadUniqueIds: [])
+        try await Task.sleep(nanoseconds: 800_000_000)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let image = UIGraphicsImageRenderer(bounds: host.window.bounds, format: format).image { _ in
+            host.window.drawHierarchy(in: host.window.bounds, afterScreenUpdates: true)
+        }
+        let root = ProcessInfo.processInfo.environment["TELLOMI_SHOTS_DIR"] ?? NSTemporaryDirectory()
+        let directory = URL(fileURLWithPath: root).appendingPathComponent("402")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try XCTUnwrap(image.pngData()).write(to: directory.appendingPathComponent("chat-list-archived-undo-toast.png"))
+    }
+
     // MARK: -
 
     private struct Host {
