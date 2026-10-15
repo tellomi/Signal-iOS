@@ -124,7 +124,7 @@ final class TellomiImageEditorShapeTests: SignalBaseTest {
         XCTAssertFalse(model.items.contains { $0 is ImageEditorShapeItem })
     }
 
-    /// 选中的形状跟着色条变色、跟着粗细滑杆变粗细；没选中时色条不动形状。
+    /// 选中的形状跟着色条变色、跟着粗细滑杆变粗细；换笔就把它放下，之后色条不动形状。
     @MainActor
     func testColorAndWidthFollowTheSelectedShape() throws {
         let model = try Self.model(color: .gray)
@@ -146,10 +146,14 @@ final class TellomiImageEditorShapeTests: SignalBaseTest {
         XCTAssertGreaterThan(wider.unitLineWidth, before.unitLineWidth)
         XCTAssertEqual(wider.itemId, before.itemId)
 
-        editor.imageEditorView.selectedTransformableItemID = nil
+        // 换笔就把形状放下：换上箭头的默认橙色，形状还是蓝的。
+        editor.drawToolbar.select(strokeType: .arrow)
+        XCTAssertNil(editor.imageEditorView.selectedShapeItem)
+        XCTAssertEqual((model.item(forId: before.itemId) as? ImageEditorShapeItem)?.color, .blue)
+
         let green = ColorPickerBarColor(color: .green, palettePhase: 0.375)
         editor.colorPickerBarValueChanged(color: green)
-        XCTAssertEqual((model.item(forId: before.itemId) as? ImageEditorShapeItem)?.color, .blue)
+        XCTAssertEqual((model.item(forId: before.itemId) as? ImageEditorShapeItem)?.color, .blue, "nothing selected, the color bar leaves the shape alone")
     }
 
     /// 画笔模式里：按在选中的形状上是挪它（画线、长按填满都不接这一下），别处照旧画；别的模式不受影响。
