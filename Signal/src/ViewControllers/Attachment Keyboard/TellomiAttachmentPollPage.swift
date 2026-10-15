@@ -33,6 +33,13 @@ class TellomiAttachmentNavigationPage: UIViewController, TellomiAttachmentSheetP
         self.dockItem = dockItem
         self.dock = dockItems.isEmpty ? nil : TellomiAttachmentDock(items: dockItems, selectedItem: dockItem)
         super.init(nibName: nil, bundle: nil)
+        // 上游页面的搜索栏（位置、联系人）放在导航栏里：iOS 26 默认会挪到底部工具栏，正好压在 dock 下面。
+        if #available(iOS 16, *) {
+            root.navigationItem.preferredSearchBarPlacement = .stacked
+        }
+        if #available(iOS 26, *) {
+            root.navigationItem.searchBarPlacementAllowsToolbarIntegration = false
+        }
     }
 
     @available(*, unavailable)
