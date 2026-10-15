@@ -68,6 +68,8 @@ final class TellomiLinkCardAcceptanceTests: XCTestCase {
 
     @MainActor
     override func tearDown() {
+        // 先把这个测试开的窗口摘下来，环境还在时让它们收尾（TellomiTestWindow.swift）。
+        UIWindow.tellomiDetachTestWindows()
         MockSSKEnvironment.deactivate(oldContext: self.oldContext)
         super.tearDown()
     }

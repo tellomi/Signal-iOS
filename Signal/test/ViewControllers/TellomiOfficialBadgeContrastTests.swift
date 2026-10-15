@@ -67,6 +67,8 @@ final class TellomiOfficialBadgeContrastTests: XCTestCase {
     override func tearDown() {
         // 让 Theme 回到「跟系统走」，别把强制的外观带给后面的用例
         Theme.setIsDarkThemeEnabledForTests(nil)
+        // 先把这个测试开的窗口摘下来，环境还在时让它们收尾（TellomiTestWindow.swift）。
+        UIWindow.tellomiDetachTestWindows()
         MockSSKEnvironment.deactivate(oldContext: self.oldContext)
         super.tearDown()
     }
