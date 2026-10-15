@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
+import SignalServiceKit
 import UIKit
 
 /// Tellomi（2026-10-16，owner 发来的方案第 6 节「方案 A」）：Tellomi 相册查看器就地打开上游的裁剪 / 绘制 / 调色工具。
