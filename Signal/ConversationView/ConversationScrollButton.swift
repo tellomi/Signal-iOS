@@ -36,7 +36,7 @@ public class ConversationScrollButton: UIButton {
                 transition.type = .push
                 transition.subtype = unreadCount > oldValue ? .fromTop : .fromBottom
             }
-            unreadCountLabel.layer.add(transition, forKey: "tellomiUnreadCount")
+            unreadCountLabel.layer.add(transition, forKey: kCATransition)
         }
         if !shouldHideBadge {
             unreadCountLabel.text = String.localizedStringWithFormat("%u", unreadCount)
@@ -185,7 +185,7 @@ extension ConversationScrollButton {
     var unreadBadgeAlphaForTesting: CGFloat { unreadBadge.alpha }
     var unreadTextForTesting: String? { unreadCountLabel.text }
     /// 数字正在滚（新数字推进来）。
-    var isRollingUnreadCountForTesting: Bool { unreadCountLabel.layer.animation(forKey: "tellomiUnreadCount") != nil }
+    var isRollingUnreadCountForTesting: Bool { unreadCountLabel.layer.animation(forKey: kCATransition) != nil }
 }
 
 #endif
