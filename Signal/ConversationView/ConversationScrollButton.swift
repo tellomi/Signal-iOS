@@ -57,7 +57,7 @@ public class ConversationScrollButton: UIButton {
             unreadBadge.transform = hiddenTransform
             unreadBadge.isHidden = false
         }
-        let animator = TellomiMotion.animator(.snap) {
+        let animator = TellomiMotion.animator(TellomiMotion.snap) {
             self.unreadBadge.alpha = shouldHideBadge ? 0 : 1
             self.unreadBadge.transform = shouldHideBadge ? hiddenTransform : .identity
         }

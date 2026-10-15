@@ -5,6 +5,7 @@
 
 public import Foundation
 import SignalServiceKit
+import SignalUI
 public import UIKit
 
 extension ConversationViewController {
@@ -144,7 +145,7 @@ extension ConversationViewController {
         }
 
         if shouldAnimateChanges {
-            let animator = TellomiMotion.animator(.snap, animations: alphaBlock)
+            let animator = TellomiMotion.animator(TellomiMotion.snap, animations: alphaBlock)
             animator.addCompletion { _ in completionBlock() }
             animator.startAnimation()
         } else {
