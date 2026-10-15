@@ -5,6 +5,7 @@
 
 import SignalServiceKit
 import UIKit
+import Vision
 
 /// Tellomi（tellomi/tellomi#1593 E5-3，Epic #1523）：调色页。
 ///
@@ -15,8 +16,7 @@ import UIKit
 /// - 按住照片看原图，提示条显示「原图」；
 /// - 下面取消 / 完成：取消回到打开时的样子，完成算一步撤销。
 ///
-/// 只列已经能画出来的工具（`availableTools`），后面的子 Issue 做好一项加一项；色调 / 模糊 / 曲线是 Telegram 的单独页签，
-/// 等那几项做了再加页签。数值的写法照 Telegram iOS：值 ÷ 最大值，两位小数，带正负号（+0.35）。
+/// 只列已经能画出来的工具（`availableTools`），后面的子 Issue 做好一项加一项；色调、模糊、曲线是单独的页签（E5-6、E5-8、E5-7）。数值的写法照 Telegram iOS：值 ÷ 最大值，两位小数，带正负号（+0.35）。
 public final class TellomiImageAdjustViewController: OWSViewController {
 
     /// 入口按钮的图标：Signal 的图标里没有调色这一类，用系统的 SF Symbol（Telegram 的图标不能拿）。
@@ -25,7 +25,7 @@ public final class TellomiImageAdjustViewController: OWSViewController {
     }
 
     /// 照 Telegram iOS `PGPhotoEditor.availableTools` 的顺序，只放已经能画的。
-    static let availableTools: [TellomiImageAdjustments.Tool] = [.exposure, .contrast, .saturation, .warmth, .fade, .highlights, .shadows]
+    static let availableTools: [TellomiImageAdjustments.Tool] = [.enhance, .exposure, .contrast, .saturation, .warmth, .fade, .highlights, .shadows, .vignette, .grain, .sharpen]
 
     private let model: ImageEditorModel
     private let initialAdjustments: TellomiImageAdjustments
@@ -38,7 +38,23 @@ public final class TellomiImageAdjustViewController: OWSViewController {
     /// 照 Telegram iOS：工具列表区高度固定（约四行半），工具多了在里面上下滚，不往上盖住照片。
     private let rowsScrollView = UIScrollView()
     private static let maxRowsHeight: CGFloat = 52 * 4.5
-    private let bottomBar = ImageEditorToolbar(tools: [])
+    /// 页签：工具、色调、模糊、曲线（照 Telegram iOS 调整页）。
+    private let bottomBar = ImageEditorToolbar(tools: [.tellomiAdjustTools, .tellomiAdjustTint, .tellomiAdjustBlur, .tellomiAdjustCurves])
+    private let blurPanel = TellomiBlurPanelView()
+    private let blurOverlay = TellomiBlurOverlayView()
+    private let tintPanel = TintPanelView()
+    private let curvesPanel = TellomiCurvesPanelView()
+    private let curvesOverlay = TellomiCurvesOverlayView()
+    private var curveChannel: TellomiCurveChannel = .all
+
+    enum Tab {
+        case tools
+        case tint
+        case blur
+        case curves
+    }
+
+    private(set) var currentTab: Tab = .tools
     private let hudLabel = HUDLabel()
     private var rows: [TellomiImageAdjustments.Tool: RowView] = [:]
 
@@ -80,23 +96,14 @@ public final class TellomiImageAdjustViewController: OWSViewController {
         rowsScrollView.delaysContentTouches = false
         rowsScrollView.addSubview(rowsStack)
         panelView.addSubview(rowsScrollView)
-        for tool in Self.availableTools {
-            let row = RowView(tool: tool, value: adjustments[tool])
-            row.slider.addAction(UIAction { [weak self, weak row] _ in
-                guard let self, let row else { return }
-                self.sliderChanged(tool: tool, value: row.slider.value)
-            }, for: .valueChanged)
-            row.slider.interactionBegan = { [weak self, weak row] in
-                guard let self, let row else { return }
-                self.setDragging(true, row: row)
-            }
-            row.slider.interactionEnded = { [weak self, weak row] in
-                guard let self, let row else { return }
-                self.setDragging(false, row: row)
-            }
-            rows[tool] = row
-            rowsStack.addArrangedSubview(row)
+        // 美肤：照片里有人脸才出现，排第一（照两端 TG）；已经磨过的（再打开调色页）直接出现。
+        if adjustments.skin > 0 {
+            addRow(.skin)
         }
+        for tool in Self.availableTools {
+            addRow(tool)
+        }
+        detectFaces()
 
         panelView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(panelView)
@@ -104,6 +111,71 @@ public final class TellomiImageAdjustViewController: OWSViewController {
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(bottomBar)
         bottomBar.cancelButton.addAction(UIAction { [weak self] _ in self?.finish(done: false) }, for: .primaryActionTriggered)
+        bottomBar.selectedToolButton = .tellomiAdjustTools
+        bottomBar.setAccessibilityLabel(
+            OWSLocalizedString("IMAGE_EDITOR_TELLOMI_ADJUST", comment: "Image editor: name of the tool that adjusts exposure, contrast, colour and so on. Also its button's accessibility label."),
+            for: .tellomiAdjustTools,
+        )
+        bottomBar.setAccessibilityLabel(
+            OWSLocalizedString("IMAGE_EDITOR_TELLOMI_ADJUST_TINT", comment: "Image editor, adjustments: the tint tab (colours for shadows and highlights)."),
+            for: .tellomiAdjustTint,
+        )
+        bottomBar.setAccessibilityLabel(
+            OWSLocalizedString("IMAGE_EDITOR_TELLOMI_ADJUST_CURVES", comment: "Image editor, adjustments: the curves tab (tone curves for all channels, red, green and blue)."),
+            for: .tellomiAdjustCurves,
+        )
+        bottomBar.addAction(UIAction { [weak self] _ in self?.showTab(.tools) }, for: .tellomiAdjustTools)
+        bottomBar.addAction(UIAction { [weak self] _ in self?.showTab(.tint) }, for: .tellomiAdjustTint)
+        bottomBar.addAction(UIAction { [weak self] _ in self?.showTab(.curves) }, for: .tellomiAdjustCurves)
+        bottomBar.setAccessibilityLabel(
+            OWSLocalizedString("IMAGE_EDITOR_TELLOMI_ADJUST_BLUR", comment: "Image editor, adjustments: the blur tab (tilt-shift: blur outside a circle or a band)."),
+            for: .tellomiAdjustBlur,
+        )
+        bottomBar.addAction(UIAction { [weak self] _ in self?.showTab(.blur) }, for: .tellomiAdjustBlur)
+
+        tintPanel.translatesAutoresizingMaskIntoConstraints = false
+        tintPanel.isHidden = true
+        tintPanel.update(shadows: adjustments.tintShadows, highlights: adjustments.tintHighlights)
+        tintPanel.onSelect = { [weak self] shadows, color in
+            self?.tintSelected(shadows: shadows, color: color)
+        }
+        panelView.addSubview(tintPanel)
+
+        curvesPanel.translatesAutoresizingMaskIntoConstraints = false
+        curvesPanel.isHidden = true
+        curvesPanel.onSelect = { [weak self] channel in
+            self?.selectCurveChannel(channel)
+        }
+        panelView.addSubview(curvesPanel)
+
+        // 曲线层盖在照片看得见的那块上（画布的裁剪框），和照片一起缩放。
+        curvesOverlay.translatesAutoresizingMaskIntoConstraints = false
+        curvesOverlay.isHidden = true
+        curvesOverlay.update(curves: adjustments.curves, channel: curveChannel)
+        curvesOverlay.onChange = { [weak self] channel, index, value in
+            self?.curvePointChanged(channel: channel, index: index, value: value)
+        }
+        view.addSubview(curvesOverlay)
+
+        blurPanel.translatesAutoresizingMaskIntoConstraints = false
+        blurPanel.isHidden = true
+        blurPanel.select(adjustments.blur.kind)
+        blurPanel.onSelect = { [weak self] kind in
+            self?.blurKindSelected(kind)
+        }
+        panelView.addSubview(blurPanel)
+
+        blurOverlay.translatesAutoresizingMaskIntoConstraints = false
+        blurOverlay.isHidden = true
+        blurOverlay.update(blur: adjustments.blur)
+        blurOverlay.mappingProvider = { [weak self] size in
+            guard let self else { return nil }
+            return TellomiImageUnitMapping(viewSize: size, imageSize: self.model.srcImageSizePixels, transform: self.model.currentTransform())
+        }
+        blurOverlay.onChange = { [weak self] blur in
+            self?.blurChanged(blur)
+        }
+        view.addSubview(blurOverlay)
         bottomBar.doneButton.addAction(UIAction { [weak self] _ in self?.finish(done: true) }, for: .primaryActionTriggered)
 
         hudLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -141,6 +213,30 @@ public final class TellomiImageAdjustViewController: OWSViewController {
             rowsStack.bottomAnchor.constraint(equalTo: rowsScrollView.contentLayoutGuide.bottomAnchor),
             rowsStack.widthAnchor.constraint(equalTo: rowsScrollView.frameLayoutGuide.widthAnchor),
 
+            // 色调页签和工具列表占同一块地方，面板高度不跟着页签变（照 Telegram iOS 面板固定高度）。
+            tintPanel.leadingAnchor.constraint(equalTo: panelView.leadingAnchor, constant: 16),
+            tintPanel.trailingAnchor.constraint(equalTo: panelView.trailingAnchor, constant: -16),
+            tintPanel.centerYAnchor.constraint(equalTo: panelView.centerYAnchor),
+            tintPanel.topAnchor.constraint(greaterThanOrEqualTo: panelView.topAnchor, constant: 4),
+
+            curvesPanel.leadingAnchor.constraint(equalTo: panelView.leadingAnchor, constant: 16),
+            curvesPanel.trailingAnchor.constraint(equalTo: panelView.trailingAnchor, constant: -16),
+            curvesPanel.centerYAnchor.constraint(equalTo: panelView.centerYAnchor),
+
+            blurPanel.leadingAnchor.constraint(equalTo: panelView.leadingAnchor, constant: 16),
+            blurPanel.trailingAnchor.constraint(equalTo: panelView.trailingAnchor, constant: -16),
+            blurPanel.centerYAnchor.constraint(equalTo: panelView.centerYAnchor),
+
+            blurOverlay.topAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.topAnchor),
+            blurOverlay.leadingAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.leadingAnchor),
+            blurOverlay.trailingAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.trailingAnchor),
+            blurOverlay.bottomAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.bottomAnchor),
+
+            curvesOverlay.topAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.topAnchor),
+            curvesOverlay.leadingAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.leadingAnchor),
+            curvesOverlay.trailingAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.trailingAnchor),
+            curvesOverlay.bottomAnchor.constraint(equalTo: imageEditorView.gestureReferenceView.bottomAnchor),
+
             imageEditorView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             imageEditorView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             imageEditorView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
@@ -151,6 +247,60 @@ public final class TellomiImageAdjustViewController: OWSViewController {
         ])
     }
 
+    private func addRow(_ tool: TellomiImageAdjustments.Tool, at index: Int? = nil) {
+        let row = RowView(tool: tool, value: adjustments[tool])
+        row.slider.addAction(UIAction { [weak self, weak row] _ in
+            guard let self, let row else { return }
+            self.sliderChanged(tool: tool, value: row.slider.value)
+        }, for: .valueChanged)
+        row.slider.interactionBegan = { [weak self, weak row] in
+            guard let self, let row else { return }
+            self.setDragging(true, row: row)
+        }
+        row.slider.interactionEnded = { [weak self, weak row] in
+            guard let self, let row else { return }
+            self.setDragging(false, row: row)
+        }
+        rows[tool] = row
+        if let index {
+            rowsStack.insertArrangedSubview(row, at: index)
+        } else {
+            rowsStack.addArrangedSubview(row)
+        }
+    }
+
+    /// Tellomi（tellomi/tellomi#1599 E5-9）：美肤这一行照两端 TG 只在认出人脸时出现（`TGPhotoToolsController` 的 `requiresFaces`、
+    /// 安卓 `PhotoFilterView` 的 `hasFaces`）。用 Vision 在原图上找，找到了把这一行加在最上面。
+    private func detectFaces() {
+        guard rows[.skin] == nil, let srcImage = ImageEditorCanvasView.loadSrcImage(model: model), let cgImage = srcImage.cgImage else { return }
+        let orientation: CGImagePropertyOrientation = switch srcImage.imageOrientation {
+        case .up: .up
+        case .down: .down
+        case .left: .left
+        case .right: .right
+        case .upMirrored: .upMirrored
+        case .downMirrored: .downMirrored
+        case .leftMirrored: .leftMirrored
+        case .rightMirrored: .rightMirrored
+        @unknown default: .up
+        }
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let request = VNDetectFaceRectanglesRequest()
+            let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
+            let hasFaces = (try? handler.perform([request])) != nil && !(request.results ?? []).isEmpty
+            DispatchQueue.main.async {
+                if hasFaces {
+                    self?.showSkinRow()
+                }
+            }
+        }
+    }
+
+    func showSkinRow() {
+        guard rows[.skin] == nil else { return }
+        addRow(.skin, at: 0)
+    }
+
     // MARK: - Editing
 
     private func sliderChanged(tool: TellomiImageAdjustments.Tool, value: Float) {
@@ -159,6 +309,66 @@ public final class TellomiImageAdjustViewController: OWSViewController {
         model.replace(adjustments: adjustments, suppressUndo: true)
         rows[tool]?.update(value: adjustments[tool])
         showHUD(Self.hudText(tool: tool, value: adjustments[tool]))
+    }
+
+    private func showTab(_ tab: Tab) {
+        currentTab = tab
+        switch tab {
+        case .tools:
+            bottomBar.selectedToolButton = .tellomiAdjustTools
+        case .tint:
+            bottomBar.selectedToolButton = .tellomiAdjustTint
+        case .blur:
+            bottomBar.selectedToolButton = .tellomiAdjustBlur
+        case .curves:
+            bottomBar.selectedToolButton = .tellomiAdjustCurves
+        }
+        rowsScrollView.isHidden = tab != .tools
+        tintPanel.isHidden = tab != .tint
+        curvesPanel.isHidden = tab != .curves
+        blurPanel.isHidden = tab != .blur
+        // 曲线、模糊页签里照片上的手势都给那一层（照 TG：这时按住照片不看原图）。
+        curvesOverlay.isHidden = tab != .curves
+        blurOverlay.isHidden = tab != .blur
+    }
+
+    /// 选「关 / 径向 / 线性」：中心、半径、角度留着上次的。
+    private func blurKindSelected(_ kind: TellomiImageAdjustments.Blur.Kind) {
+        var blur = adjustments.blur
+        blur.kind = kind
+        blurChanged(blur)
+        blurPanel.select(kind)
+    }
+
+    /// 模糊变了：和拖滑杆一样只改预览，完成时整段算一步撤销。
+    private func blurChanged(_ blur: TellomiImageAdjustments.Blur) {
+        adjustments.blur = blur
+        model.replace(adjustments: adjustments, suppressUndo: true)
+        blurOverlay.update(blur: blur)
+    }
+
+    private func selectCurveChannel(_ channel: TellomiCurveChannel) {
+        curveChannel = channel
+        curvesPanel.select(channel)
+        curvesOverlay.update(curves: adjustments.curves, channel: channel)
+    }
+
+    /// 拖曲线的点：和拖滑杆一样只改预览，完成时整段算一步撤销。
+    private func curvePointChanged(channel: TellomiCurveChannel, index: Int, value: Float) {
+        adjustments.curves[keyPath: channel.keyPath][index] = value
+        model.replace(adjustments: adjustments, suppressUndo: true)
+        curvesOverlay.update(curves: adjustments.curves, channel: curveChannel)
+    }
+
+    /// 点色块：和拖滑杆一样只改预览，完成时整段算一步撤销。
+    private func tintSelected(shadows: Bool, color: TellomiImageAdjustments.TintColor?) {
+        if shadows {
+            adjustments.tintShadows = color
+        } else {
+            adjustments.tintHighlights = color
+        }
+        model.replace(adjustments: adjustments, suppressUndo: true)
+        tintPanel.update(shadows: adjustments.tintShadows, highlights: adjustments.tintHighlights)
     }
 
     private func setDragging(_ dragging: Bool, row: RowView) {
@@ -263,6 +473,38 @@ public final class TellomiImageAdjustViewController: OWSViewController {
         rows[tool]?.valueLabel.text
     }
 
+    func showTintTabForTesting(_ showsTint: Bool) {
+        showTab(showsTint ? .tint : .tools)
+    }
+
+    func showTabForTesting(_ tab: Tab) {
+        showTab(tab)
+    }
+
+    var curvesOverlayForTesting: TellomiCurvesOverlayView {
+        curvesOverlay
+    }
+
+    var curvesPanelForTesting: TellomiCurvesPanelView {
+        curvesPanel
+    }
+
+    var blurOverlayForTesting: TellomiBlurOverlayView {
+        blurOverlay
+    }
+
+    var blurPanelForTesting: TellomiBlurPanelView {
+        blurPanel
+    }
+
+    var isTintTabShownForTesting: Bool {
+        !tintPanel.isHidden && rowsScrollView.isHidden
+    }
+
+    var tintPanelForTesting: TintPanelView {
+        tintPanel
+    }
+
     var hudTextForTesting: String? {
         hudLabel.isHidden ? nil : hudLabel.text
     }
@@ -328,6 +570,157 @@ public final class TellomiImageAdjustViewController: OWSViewController {
                 self.titleLabel.alpha = hidden ? 0 : 1
                 self.valueLabel.alpha = hidden ? 0 : 1
             }
+        }
+    }
+
+    // MARK: - Tint
+
+    /// 色调页签（照 Telegram iOS `TGPhotoEditorTintToolView`）：上面「阴影」「高光」两个切换，下面一排 8 个色块（第一个是「不加」），
+    /// 均匀铺开。色值是自己挑的，个数和 Telegram 一样；没有强度滑杆（O8：只有 Telegram iOS 能调强度）。
+    final class TintPanelView: UIView {
+
+        /// (是不是暗部, 选的颜色；nil = 不加)
+        var onSelect: ((Bool, TellomiImageAdjustments.TintColor?) -> Void)?
+
+        private(set) var editsShadows = true
+        private var shadowsColor: TellomiImageAdjustments.TintColor?
+        private var highlightsColor: TellomiImageAdjustments.TintColor?
+
+        private let shadowsButton = UIButton(type: .custom)
+        private let highlightsButton = UIButton(type: .custom)
+        private let swatchesStack = UIStackView()
+        private(set) var swatches: [SwatchView] = []
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+
+            for (button, title) in [
+                (shadowsButton, TellomiImageAdjustViewController.title(for: .shadows)),
+                (highlightsButton, TellomiImageAdjustViewController.title(for: .highlights)),
+            ] {
+                button.setTitle(title, for: .normal)
+                button.titleLabel?.font = .dynamicTypeSubheadlineClamped
+                button.setTitleColor(UIColor(white: 0.5, alpha: 1), for: .normal)
+                button.setTitleColor(.white, for: .selected)
+            }
+            shadowsButton.addAction(UIAction { [weak self] _ in self?.setEditsShadows(true) }, for: .touchDown)
+            highlightsButton.addAction(UIAction { [weak self] _ in self?.setEditsShadows(false) }, for: .touchDown)
+
+            let modes = UIStackView(arrangedSubviews: [shadowsButton, highlightsButton])
+            modes.distribution = .fillEqually
+
+            swatchesStack.distribution = .equalSpacing
+            swatchesStack.alignment = .center
+
+            let column = UIStackView(arrangedSubviews: [modes, swatchesStack])
+            column.axis = .vertical
+            column.spacing = 12
+            column.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(column)
+            NSLayoutConstraint.activate([
+                column.topAnchor.constraint(equalTo: topAnchor),
+                column.leadingAnchor.constraint(equalTo: leadingAnchor),
+                column.trailingAnchor.constraint(equalTo: trailingAnchor),
+                column.bottomAnchor.constraint(equalTo: bottomAnchor),
+            ])
+            rebuildSwatches()
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+
+        func update(shadows: TellomiImageAdjustments.TintColor?, highlights: TellomiImageAdjustments.TintColor?) {
+            shadowsColor = shadows
+            highlightsColor = highlights
+            refreshSelection()
+        }
+
+        func setEditsShadows(_ editsShadows: Bool) {
+            self.editsShadows = editsShadows
+            rebuildSwatches()
+        }
+
+        private var palette: [TellomiImageAdjustments.TintColor?] {
+            editsShadows ? TellomiImageAdjustments.TintColor.shadowsPalette : TellomiImageAdjustments.TintColor.highlightsPalette
+        }
+
+        private func rebuildSwatches() {
+            shadowsButton.isSelected = editsShadows
+            highlightsButton.isSelected = !editsShadows
+            swatches.forEach { $0.removeFromSuperview() }
+            let modeTitle = TellomiImageAdjustViewController.title(for: editsShadows ? .shadows : .highlights)
+            swatches = palette.enumerated().map { index, color in
+                let swatch = SwatchView(color: color)
+                swatch.accessibilityLabel = color == nil
+                    ? OWSLocalizedString("IMAGE_EDITOR_TELLOMI_ADJUST_TINT_NONE", comment: "Image editor, adjustments, tint: the swatch that removes the tint.")
+                    : "\(modeTitle) \(index)"
+                swatch.addAction(UIAction { [weak self] _ in
+                    guard let self else { return }
+                    self.onSelect?(self.editsShadows, color)
+                }, for: .touchUpInside)
+                swatchesStack.addArrangedSubview(swatch)
+                return swatch
+            }
+            refreshSelection()
+        }
+
+        private func refreshSelection() {
+            let current = editsShadows ? shadowsColor : highlightsColor
+            for swatch in swatches {
+                swatch.isSelected = swatch.color == current
+            }
+        }
+    }
+
+    /// 一个色块：彩色的是实心圆，「不加」是白圈；选中的外面多一圈白环。
+    final class SwatchView: UIControl {
+        let color: TellomiImageAdjustments.TintColor?
+        private let fill = CAShapeLayer()
+        private let ring = CAShapeLayer()
+
+        init(color: TellomiImageAdjustments.TintColor?) {
+            self.color = color
+            super.init(frame: .zero)
+            isAccessibilityElement = true
+            accessibilityTraits = .button
+            if let color {
+                fill.fillColor = UIColor(red: CGFloat(color.red), green: CGFloat(color.green), blue: CGFloat(color.blue), alpha: 1).cgColor
+            } else {
+                fill.fillColor = UIColor.clear.cgColor
+                fill.strokeColor = UIColor.white.cgColor
+                fill.lineWidth = 2
+            }
+            ring.fillColor = UIColor.clear.cgColor
+            ring.strokeColor = UIColor.white.cgColor
+            ring.lineWidth = 2
+            layer.addSublayer(fill)
+            layer.addSublayer(ring)
+            NSLayoutConstraint.activate([
+                widthAnchor.constraint(equalToConstant: 32),
+                heightAnchor.constraint(equalToConstant: 32),
+            ])
+            updateSelection()
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+
+        override var isSelected: Bool {
+            didSet { updateSelection() }
+        }
+
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            let center = CGPoint(x: bounds.midX, y: bounds.midY)
+            fill.path = UIBezierPath(arcCenter: center, radius: 10, startAngle: 0, endAngle: .pi * 2, clockwise: true).cgPath
+            ring.path = UIBezierPath(arcCenter: center, radius: 14.5, startAngle: 0, endAngle: .pi * 2, clockwise: true).cgPath
+        }
+
+        private func updateSelection() {
+            ring.isHidden = !isSelected
+            accessibilityTraits = isSelected ? [.button, .selected] : .button
         }
     }
 

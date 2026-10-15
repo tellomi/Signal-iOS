@@ -724,7 +724,7 @@ class ImageEditorCanvasView: UIView, ImageEditorModelObserver {
         }
         let imageLayer = CALayer()
         // Tellomi（tellomi/tellomi#1592 E5-2）：调过色就画原尺寸的调色图。
-        imageLayer.contents = tellomiFullBaseImage(model: model, srcImage: srcImage) ?? srcImage.cgImage
+        imageLayer.contents = tellomiFullBaseImage(model: model, srcImage: srcImage, transform: transform) ?? srcImage.cgImage
         imageLayer.contentsScale = srcImage.scale
         updateImageLayer(
             imageLayer: imageLayer,
@@ -796,7 +796,59 @@ class ImageEditorCanvasView: UIView, ImageEditorModelObserver {
                 transform: transform,
                 viewSize: viewSize,
             )
+        case .shape:
+            guard let shapeItem = item as? ImageEditorShapeItem else {
+                owsFailDebug("Item has unexpected type: \(type(of: item)).")
+                return nil
+            }
+            return shapeLayerForItem(
+                item: shapeItem,
+                model: model,
+                isFaded: item.itemId == fadedItemID,
+                transform: transform,
+                viewSize: viewSize,
+            )
         }
+    }
+
+    /// Tellomi（tellomi/tellomi#1522 E-3）：形状是一个矢量图层，摆法和贴纸一样（中心、缩放、旋转），和贴纸、文字在同一层。
+    private class func shapeLayerForItem(
+        item: ImageEditorShapeItem,
+        model: ImageEditorModel,
+        isFaded: Bool,
+        transform: ImageEditorTransform,
+        viewSize: CGSize,
+    ) -> CALayer {
+        AssertIsOnMainThread()
+
+        let imageFrame = ImageEditorCanvasView.imageFrame(
+            forViewSize: viewSize,
+            imageSize: model.srcImageSizePixels,
+            transform: transform,
+        )
+        let shortSide = min(imageFrame.width, imageFrame.height)
+        let size = item.size(shortSide: shortSide)
+        let lineWidth = item.lineWidth(shortSide: shortSide)
+        let center = item.unitCenter.fromUnitCoordinates(viewBounds: imageFrame)
+
+        let layer = CAShapeLayer()
+        layer.frame = CGRect(x: center.x - size.width / 2, y: center.y - size.height / 2, width: size.width, height: size.height)
+        layer.path = TellomiShapePath.path(kind: item.kind, size: size, lineWidth: lineWidth, isFilled: item.isFilled)
+        if item.kind == .arrow || item.isFilled {
+            layer.fillColor = item.color.cgColor
+            layer.strokeColor = nil
+        } else {
+            layer.fillColor = nil
+            layer.strokeColor = item.color.cgColor
+            layer.lineWidth = lineWidth
+            layer.lineJoin = .round
+        }
+        layer.contentsScale = UITraitCollection.current.displayScale * item.scaling * transform.scaling
+        layer.setAffineTransform(CGAffineTransform.scale(item.scaling).rotated(by: item.rotationRadians))
+        layer.zPosition = zPositionForItem(item: item, model: model, zPositionBase: textLayerZ)
+        layer.name = item.itemId
+        layer.opacity = isFaded ? 0.5 : 1
+        return layer
     }
 
     private class func strokeLayerForItem(
@@ -831,6 +883,27 @@ class ImageEditorCanvasView: UIView, ImageEditorModelObserver {
         shapeLayer.lineWidth = strokeWidth
         shapeLayer.strokeColor = item.color?.cgColor
         shapeLayer.frame = CGRect(origin: .zero, size: viewSize)
+
+        // Tellomi（tellomi/tellomi#1522 E-2）：长按填满——整块画布涂满（笔、荧光笔），或作橡皮 / 模糊的遮罩盖满整块画布。
+        if item.isFill {
+            shapeLayer.path = UIBezierPath(rect: shapeLayer.bounds).cgPath
+            shapeLayer.lineWidth = 0
+            shapeLayer.strokeColor = nil
+            switch item.strokeType {
+            case .eraser:
+                shapeLayer.fillColor = UIColor.black.cgColor
+                return eraserLayerForItem(item: item, model: model, transform: transform, viewSize: viewSize, mask: shapeLayer)
+            case .blur:
+                guard let blurredImageLayer = optionalBlurredImageLayer else { return nil }
+                shapeLayer.fillColor = UIColor.black.cgColor
+                blurredImageLayer.mask = shapeLayer
+                return blurredImageLayer
+            case .pen, .highlighter, .arrow, .neon:
+                shapeLayer.fillColor = item.color?.cgColor
+                shapeLayer.zPosition = zPositionForItem(item: item, model: model, zPositionBase: brushLayerZ)
+                return shapeLayer
+            }
+        }
 
         // Blur region origins are specified in "image unit" coordinates,
         // but need to be rendered in "canvas" coordinates. The imageFrame
@@ -1079,7 +1152,7 @@ class ImageEditorCanvasView: UIView, ImageEditorModelObserver {
         }
         let imageLayer = CALayer()
         // Tellomi（tellomi/tellomi#1592 E5-2）：橡皮露出来的是调色后的照片。
-        imageLayer.contents = tellomiEraserBaseImage(model: model) ?? srcImage.cgImage
+        imageLayer.contents = tellomiEraserBaseImage(model: model, transform: transform) ?? srcImage.cgImage
         imageLayer.contentsScale = srcImage.scale
         updateImageLayer(imageLayer: imageLayer, viewSize: viewSize, imageSize: model.srcImageSizePixels, transform: transform)
         return imageLayer
@@ -1517,7 +1590,7 @@ class ImageEditorCanvasView: UIView, ImageEditorModelObserver {
         viewSize: CGSize,
     ) -> CALayer? {
         // Tellomi（tellomi/tellomi#1592 E5-2）：打码从调色后的底图取样。
-        guard let blurredSourceImage = tellomiBlurredBaseImage(model: model) else {
+        guard let blurredSourceImage = tellomiBlurredBaseImage(model: model, transform: transform) else {
             // If we fail to generate the blur image, or it's not ready yet, use a black mask
             let layer = CALayer()
             layer.frame = imageFrame(forViewSize: viewSize, imageSize: model.srcImageSizePixels, transform: transform)
@@ -1682,9 +1755,8 @@ class ImageEditorCanvasView: UIView, ImageEditorModelObserver {
     // MARK: - ImageEditorModelObserver
 
     func imageEditorModelDidChange(before: ImageEditorContents, after: ImageEditorContents) {
-        if before.adjustments != after.adjustments {
-            tellomiUpdateBaseImage()
-        }
+        // 调色变了要重画底图；裁剪变了（这里 before == after）而暗角不是 0 也要，暗角跟着画框。没变时走缓存，不重画。
+        tellomiUpdateBaseImage()
         updateAllContent()
         updateLayout()
     }

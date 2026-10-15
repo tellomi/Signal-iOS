@@ -10,7 +10,7 @@ import XCTest
 @testable import SignalServiceKit
 @testable import SignalUI
 
-/// Tellomi（tellomi/tellomi#1592 E5-2）：调色的渲染——每一项的方向、查找表和数学一致、预览和发出的图一致、全默认跳过整条管线。
+/// Tellomi（tellomi/tellomi#1592 E5-2、#1595 E5-5、#1597 E5-7、#1598 E5-8、#1599 E5-9 增强 / 美肤）：调色的渲染——每一项的方向、查找表和数学一致、预览和发出的图一致、全默认跳过整条管线。
 @MainActor
 final class TellomiImageAdjustmentsRendererTests: SignalBaseTest {
 
@@ -94,6 +94,10 @@ final class TellomiImageAdjustmentsRendererTests: SignalBaseTest {
             (SIMD3(0.8, 0.8, 0.8), adjustments(highlights: 100), SIMD3(0.93593, 0.93593, 0.93593)),
             (SIMD3(0.8, 0.8, 0.8), adjustments(highlights: -100), SIMD3(0.72233, 0.72233, 0.72233)),
             (SIMD3(0.3, 0.5, 0.7), adjustments(exposure: 10, fade: 40, highlights: -50, shadows: 60), SIMD3(0.35348, 0.52817, 0.70425)),
+            // E5-6
+            (SIMD3(0.2, 0.2, 0.2), adjustments(tintShadows: 0xD14B3F), SIMD3(0.2801, 0.1792, 0.17017)),
+            (SIMD3(0.8, 0.8, 0.8), adjustments(tintHighlights: 0x8CB4FF), SIMD3(0.77221, 0.80233, 0.8588)),
+            (SIMD3(0.3, 0.5, 0.7), adjustments(warmth: 20, tintShadows: 0x2E8FA8, tintHighlights: 0xFFB870), SIMD3(0.3001, 0.50469, 0.67501)),
         ]
         for (input, adjustments, expected) in cases {
             let output = Renderer.adjust(input, adjustments)
@@ -118,6 +122,244 @@ final class TellomiImageAdjustmentsRendererTests: SignalBaseTest {
             XCTAssertGreaterThanOrEqual(output, previous - 1e-6, "step \(step)")
             previous = output
         }
+    }
+
+    /// 色调：暗部色只动暗部、亮部色只动亮部，往那个颜色的色相偏；两个色板各 8 个，第一个是「不加」，色值和安卓一样。
+    func testTint() {
+        XCTAssertEqual(TellomiImageAdjustments.TintColor.shadowsPalette.count, 8)
+        XCTAssertEqual(TellomiImageAdjustments.TintColor.highlightsPalette.count, 8)
+        XCTAssertNil(TellomiImageAdjustments.TintColor.shadowsPalette[0])
+        XCTAssertEqual(TellomiImageAdjustments.TintColor.shadowsPalette[1], TellomiImageAdjustments.TintColor(rgb: 0xD14B3F))
+
+        let darkened = Renderer.adjust(SIMD3(repeating: 0.15), adjustments(tintShadows: 0xD14B3F))
+        XCTAssertGreaterThan(darkened.x, darkened.z, "暗部偏红")
+        XCTAssertEqual(Renderer.adjust(SIMD3(repeating: 1), adjustments(tintShadows: 0xD14B3F)), SIMD3(repeating: 1))
+
+        let brightened = Renderer.adjust(SIMD3(repeating: 0.85), adjustments(tintHighlights: 0x8CB4FF))
+        XCTAssertGreaterThan(brightened.z, brightened.x, "亮部偏蓝")
+        XCTAssertEqual(Renderer.adjust(SIMD3(repeating: 0), adjustments(tintHighlights: 0x8CB4FF)), SIMD3(repeating: 0))
+    }
+
+    /// 曲线：单调三次插值，和安卓 `ImageAdjustmentsColorTest.curvesMatchTheSharedReferenceValues` 同一组参考值
+    /// （默认 / S 形 / 抬黑压白 / 中间平 / 反相 / 不单调）；不会冲过相邻两点。
+    func testCurvesMatchTheSharedReferenceValues() {
+        let cases: [([Float], [(Float, Float)])] = [
+            ([0, 25, 50, 75, 100], [(0.1, 0.1), (0.33, 0.33), (0.5, 0.5), (0.9, 0.9)]),
+            ([0, 15, 50, 85, 100], [(0.1, 0.0504), (0.2, 0.1072), (0.33, 0.2472), (0.6, 0.6496), (0.9, 0.9496)]),
+            ([20, 40, 60, 80, 90], [(0, 0.2), (0.1, 0.28), (0.37, 0.496), (0.5, 0.6), (1, 0.9)]),
+            ([0, 50, 50, 50, 100], [(0.1, 0.248), (0.3, 0.5), (0.6, 0.5), (0.8, 0.536)]),
+            ([100, 75, 50, 25, 0], [(0.1, 0.9), (0.5, 0.5), (0.8, 0.2)]),
+            ([0, 40, 30, 80, 100], [(0.2, 0.3712), (0.3, 0.3896), (0.45, 0.3104), (0.6, 0.4424)]),
+        ]
+        for (levels, samples) in cases {
+            let points = curvePoints(levels)
+            for (x, expected) in samples {
+                XCTAssertEqual(Renderer.curveValue(points, at: x), expected, accuracy: 1e-4, "\(levels) at \(x)")
+            }
+        }
+
+        // 中间平的那段（0.25…0.75 都是 0.5）一点不冲出去。
+        for step in 25...75 {
+            XCTAssertEqual(Renderer.curveValue(curvePoints([0, 50, 50, 50, 100]), at: Float(step) / 100), 0.5, accuracy: 1e-6)
+        }
+    }
+
+    /// 曲线在调色的最前面：「全部」三个通道都过，红 / 绿 / 蓝只动自己那个通道；默认曲线不动颜色。
+    func testCurvesApplyPerChannel() {
+        var adjustments = TellomiImageAdjustments.default
+        adjustments.curves.all = curvePoints([0, 15, 50, 85, 100])
+        assertClose(Renderer.adjust(SIMD3(0.2, 0.33, 0.6), adjustments), SIMD3(0.1072, 0.2472, 0.6496))
+
+        var red = TellomiImageAdjustments.default
+        red.curves.red = curvePoints([20, 40, 60, 80, 90])
+        assertClose(Renderer.adjust(SIMD3(0.5, 0.5, 0.5), red), SIMD3(0.6, 0.5, 0.5))
+
+        var both = red
+        both.curves.all = curvePoints([0, 15, 50, 85, 100])
+        both.curves.blue = curvePoints([100, 75, 50, 25, 0])
+        let expected = SIMD3<Float>(Renderer.curveValue(both.curves.red, at: 0.1072), 0.2472, 1 - 0.6496)
+        assertClose(Renderer.adjust(SIMD3(0.2, 0.33, 0.6), both), expected)
+    }
+
+    /// 查找表里的曲线和直接算的数学差不过 2/255。
+    func testLookupTableMatchesTheMathWithCurves() throws {
+        let size = 32
+        let image = try makeImage(width: size, height: size) { x, y in
+            SIMD3(Float(x) / Float(size - 1), Float(y) / Float(size - 1), Float((x + y) % size) / Float(size - 1))
+        }
+        var adjusted = adjustments(exposure: 10, contrast: 10)
+        adjusted.curves.all = curvePoints([0, 15, 50, 85, 100])
+        adjusted.curves.green = curvePoints([10, 35, 55, 70, 95])
+        let output = try XCTUnwrap(Renderer.apply(adjusted, to: image))
+        var worst: Float = 0
+        for (input, output) in zip(try pixels(of: image), try pixels(of: output)) {
+            worst = max(worst, simd_reduce_max(simd_abs(Renderer.adjust(input, adjusted) - output)))
+        }
+        XCTAssertLessThanOrEqual(worst, 2 / 255, "最大误差 \(worst * 255)/255")
+    }
+
+    // MARK: - E5-8 blur
+
+    /// 两端同一套：小图方框模糊的半径、三遍方框模糊、遮罩。和安卓 `ImageAdjustmentsDetailTest.blurMatchesTheSharedReferenceValues` 同一组。
+    func testBlurMatchesTheSharedReferenceValues() {
+        XCTAssertEqual(Renderer.blurRadius(forLongSide: 512), 6)
+        XCTAssertEqual(Renderer.blurRadius(forLongSide: 300), 3)
+        XCTAssertEqual(Renderer.blurRadius(forLongSide: 64), 1)
+
+        var impulse = [Int](repeating: 0, count: 21)
+        impulse[10] = 255
+        var row = impulse
+        for _ in 0..<3 { row = Renderer.boxBlurPass(row, radius: 2) }
+        XCTAssertEqual(row, [0, 0, 0, 0, 2, 6, 12, 20, 31, 37, 39, 37, 31, 20, 12, 6, 2, 0, 0, 0, 0])
+        var edges = [10, 200, 30, 40, 250, 60, 70]
+        for _ in 0..<3 { edges = Renderer.boxBlurPass(edges, radius: 1) }
+        XCTAssertEqual(edges, [77, 83, 93, 105, 109, 103, 93])
+
+        let size = SIMD2<Float>(400, 300)
+        var radial = TellomiImageAdjustments.Blur()
+        radial.kind = .radial
+        radial.falloff = 0.12
+        radial.size = 0.24
+        XCTAssertEqual(Renderer.blurMask(radial, at: SIMD2(0.5, 0.5), imageSize: size), 0, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.blurMask(radial, at: SIMD2(0.5 + 0.18 * 300 / 400, 0.5), imageSize: size), 0.5, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.blurMask(radial, at: SIMD2(0.9, 0.5), imageSize: size), 1, accuracy: 1e-5)
+
+        var linear = TellomiImageAdjustments.Blur()
+        linear.kind = .linear
+        linear.falloff = 0.15
+        linear.size = 0.35
+        XCTAssertEqual(Renderer.blurMask(linear, at: SIMD2(0.1, 0.75), imageSize: size), 0.5, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.blurMask(linear, at: SIMD2(0.9, 0.5), imageSize: size), 0, accuracy: 1e-5)
+        linear.centerX = 0.4
+        linear.centerY = 0.6
+        linear.falloff = 0.1
+        linear.size = 0.3
+        linear.angle = .pi / 6
+        XCTAssertEqual(Renderer.blurMask(linear, at: SIMD2(0.4, 0.8), imageSize: size), 0.30385, accuracy: 1e-4)
+    }
+
+    /// 径向：中心那块原样清楚（细条纹还在），外面糊成平均色；同一张图两次画一样（小图缓存）。
+    func testRadialBlurKeepsTheCenterSharp() throws {
+        let stripes = try makeImage(width: 400, height: 300) { x, _ in SIMD3(repeating: x % 2 == 0 ? 0.2 : 0.8) }
+        var adjustments = TellomiImageAdjustments.default
+        adjustments.blur.kind = .radial
+        adjustments.blur.falloff = 0.12
+        adjustments.blur.size = 0.24
+        let output = try pixels(of: XCTUnwrap(Renderer.apply(adjustments, to: stripes)))
+        func at(_ x: Int, _ y: Int) -> Float { output[y * 400 + x].x }
+        XCTAssertGreaterThan(abs(at(200, 150) - at(201, 150)), 0.5, "中心清楚")
+        XCTAssertLessThan(abs(at(10, 10) - at(11, 10)), 0.05, "角上糊了")
+        XCTAssertEqual(at(10, 10), 0.5, accuracy: 0.05)
+        XCTAssertEqual(try pixels(of: XCTUnwrap(Renderer.apply(adjustments, to: stripes))), output)
+    }
+
+    /// 线性（横带）：中间那一横条清楚，上下糊；转 90° 之后变成竖带。
+    func testLinearBlurBand() throws {
+        let stripes = try makeImage(width: 400, height: 300) { x, _ in SIMD3(repeating: x % 2 == 0 ? 0.2 : 0.8) }
+        var adjustments = TellomiImageAdjustments.default
+        adjustments.blur.kind = .linear
+        adjustments.blur.falloff = 0.1
+        adjustments.blur.size = 0.2
+        let horizontal = try pixels(of: XCTUnwrap(Renderer.apply(adjustments, to: stripes)))
+        XCTAssertGreaterThan(abs(horizontal[150 * 400 + 20].x - horizontal[150 * 400 + 21].x), 0.5, "横带中间清楚")
+        XCTAssertLessThan(abs(horizontal[5 * 400 + 200].x - horizontal[5 * 400 + 201].x), 0.05, "上面糊了")
+
+        adjustments.blur.angle = .pi / 2
+        let vertical = try pixels(of: XCTUnwrap(Renderer.apply(adjustments, to: stripes)))
+        XCTAssertGreaterThan(abs(vertical[5 * 400 + 200].x - vertical[5 * 400 + 201].x), 0.5, "转成竖带，中间一竖条清楚")
+        XCTAssertLessThan(abs(vertical[150 * 400 + 20].x - vertical[150 * 400 + 21].x), 0.05, "左边糊了")
+    }
+
+    // MARK: - E5-9 enhance
+
+    /// 两端同一套：16 × 12 的一张小图算出的 16 张表、按位置插值后的值。和安卓 `ImageAdjustmentsDetailTest.enhanceMatchesTheSharedReferenceValues` 同一组。
+    func testEnhanceMatchesTheSharedReferenceValues() {
+        let width = 16
+        let height = 12
+        var values = [UInt8]()
+        for y in 0..<height {
+            for x in 0..<width {
+                values.append(UInt8(min(255, ((x * 13 + y * 29 + (x * y) % 7) % 256) / 2 + 40)))
+            }
+        }
+        XCTAssertEqual(Array(values.prefix(8)), [40, 46, 53, 59, 66, 72, 79, 85])
+        let luts = Renderer.enhanceLuts(values: values, width: width, height: height)
+        XCTAssertEqual(luts.count, 16 * 256)
+        XCTAssertEqual([40, 60, 80, 100, 120, 160].map { luts[$0] }, [21, 106, 213, 255, 255, 255])
+        XCTAssertEqual([40, 60, 80, 100, 120, 160].map { luts[5 * 256 + $0] }, [0, 0, 0, 0, 43, 255])
+        XCTAssertEqual([40, 60, 80, 100, 120, 160].map { luts[15 * 256 + $0] }, [0, 21, 21, 21, 21, 234])
+        XCTAssertEqual(luts.reduce(0) { $0 + Int($1) }, 615_884)
+
+        XCTAssertEqual(Renderer.enhanceValue(luts, value: 0.3, at: SIMD2(0.1, 0.1)), 0.83529, accuracy: 1e-4)
+        XCTAssertEqual(Renderer.enhanceValue(luts, value: 0.5, at: SIMD2(0.5, 0.5)), 0.58333, accuracy: 1e-4)
+        XCTAssertEqual(Renderer.enhanceValue(luts, value: 0.4, at: SIMD2(0.8, 0.3)), 0.54141, accuracy: 1e-4)
+        XCTAssertEqual(Renderer.enhanceValue(luts, value: 0.6, at: SIMD2(0.95, 0.95)), 0.74902, accuracy: 1e-4)
+    }
+
+    /// 增强把一张发灰（只占中间一段亮度）的图拉开：暗的更暗、亮的更亮；色相不变（三个通道按比例）；0 时不动。
+    func testEnhanceStretchesAFlatImage() throws {
+        let flat = try makeImage(width: 256, height: 192) { x, y in
+            let v = 0.35 + 0.3 * Float((x + y) % 64) / 63
+            return SIMD3(v, v * 0.8, v * 0.6)
+        }
+        var adjustments = TellomiImageAdjustments.default
+        adjustments.enhance = 100
+        let input = try pixels(of: flat)
+        let output = try pixels(of: XCTUnwrap(Renderer.apply(adjustments, to: flat)))
+        let inputRange = (input.map(\.x).max() ?? 0) - (input.map(\.x).min() ?? 0)
+        let outputRange = (output.map(\.x).max() ?? 0) - (output.map(\.x).min() ?? 0)
+        XCTAssertGreaterThan(outputRange, inputRange + 0.2, "亮度拉开了")
+        let sample = output[100 * 256 + 37]
+        XCTAssertEqual(sample.y / sample.x, 0.8, accuracy: 0.03, "色相不变")
+    }
+
+    // MARK: - E5-9 soften skin
+
+    /// 两端同一套：小图方框模糊的半径、肤色权重、边缘保留。和安卓 `ImageAdjustmentsDetailTest.skinMatchesTheSharedReferenceValues` 同一组。
+    func testSkinMatchesTheSharedReferenceValues() {
+        XCTAssertEqual(Renderer.skinRadius(forLongSide: 768), 3)
+        XCTAssertEqual(Renderer.skinRadius(forLongSide: 400), 2)
+        XCTAssertEqual(Renderer.skinRadius(forLongSide: 100), 1)
+
+        XCTAssertEqual(Renderer.skinWeight(SIMD3(224, 172, 140) / 255), 1, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.skinWeight(SIMD3(1, 1, 1)), 0, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.skinWeight(SIMD3(0.2, 0.4, 0.9)), 0, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.skinWeight(SIMD3(0.7, 0.65, 0.6)), 0.97305, accuracy: 1e-4)
+        XCTAssertEqual(Renderer.skinWeight(SIMD3(0.68, 0.66, 0.62)), 0.13426, accuracy: 1e-4)
+
+        XCTAssertEqual(Renderer.skinEdgeKeep(0), 1, accuracy: 1e-6)
+        XCTAssertEqual(Renderer.skinEdgeKeep(0.05), 0.95703, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.skinEdgeKeep(0.08), 0.5, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.skinEdgeKeep(0.2), 0, accuracy: 1e-6)
+    }
+
+    /// 美肤只磨肤色：左半边是带细纹理的肤色，磨完起伏小了很多；右半边是带同样纹理的蓝色，不动。
+    func testSkinSmoothsSkinOnly() throws {
+        let image = try makeImage(width: 400, height: 300) { x, y in
+            let bump: Float = (x + y) % 2 == 0 ? 0.03 : -0.03
+            return x < 200 ? SIMD3(0.85 + bump, 0.62 + bump, 0.52 + bump) : SIMD3(0.2 + bump, 0.4 + bump, 0.9 + bump)
+        }
+        var adjustments = TellomiImageAdjustments.default
+        adjustments.skin = 100
+        let input = try pixels(of: image)
+        let output = try pixels(of: XCTUnwrap(Renderer.apply(adjustments, to: image)))
+        func ripple(_ values: [SIMD3<Float>], x: Int) -> Float { abs(values[150 * 400 + x].x - values[150 * 400 + x + 1].x) }
+        XCTAssertLessThan(ripple(output, x: 100), ripple(input, x: 100) * 0.4, "肤色磨平了")
+        XCTAssertEqual(ripple(output, x: 300), ripple(input, x: 300), accuracy: 1 / 255, "蓝色不动")
+    }
+
+    private func assertClose(_ actual: SIMD3<Float>, _ expected: SIMD3<Float>, line: UInt = #line) {
+        XCTAssertLessThanOrEqual(simd_reduce_max(simd_abs(actual - expected)), 1e-4, "\(actual) vs \(expected)", line: line)
+    }
+
+    private func curvePoints(_ levels: [Float]) -> TellomiImageAdjustments.CurvePoints {
+        var points = TellomiImageAdjustments.CurvePoints()
+        points.blacks = levels[0]
+        points.shadows = levels[1]
+        points.midtones = levels[2]
+        points.highlights = levels[3]
+        points.whites = levels[4]
+        return points
     }
 
     // MARK: - Image pipeline
@@ -181,10 +423,10 @@ final class TellomiImageAdjustmentsRendererTests: SignalBaseTest {
         let model = try ImageEditorModel(normalizedImage: NormalizedImage.forImage(UIImage.image(color: .gray, size: CGSize(square: 400))))
         let blurred = try makeImage(width: 30, height: 20) { _, _ in SIMD3(repeating: 0.5) }
         model.blurredSourceImage = blurred
-        XCTAssertTrue(ImageEditorCanvasView.tellomiBlurredBaseImage(model: model) === blurred)
+        XCTAssertTrue(ImageEditorCanvasView.tellomiBlurredBaseImage(model: model, transform: model.currentTransform()) === blurred)
 
         model.replace(adjustments: adjustments(exposure: -80))
-        let adjustedBlur = try XCTUnwrap(ImageEditorCanvasView.tellomiBlurredBaseImage(model: model))
+        let adjustedBlur = try XCTUnwrap(ImageEditorCanvasView.tellomiBlurredBaseImage(model: model, transform: model.currentTransform()))
         XCTAssertLessThan(try centerPixel(of: adjustedBlur).x, 0.4)
     }
 
@@ -203,6 +445,184 @@ final class TellomiImageAdjustmentsRendererTests: SignalBaseTest {
         XCTAssertLessThan(elapsedMs, 5000)
     }
 
+    // MARK: - E5-5 sharpen, grain, vignette
+
+    /// 两端同一套：噪声块的字节、「格」的大小、颗粒权重、暗角强度和压暗。按 `docs/product/specs/media-editor-adjustments-e5.md`
+    /// 第 4 节 E5-5 的定义算出来，安卓 `ImageAdjustmentsDetailTest.matchesTheSharedReferenceValues` 用的是同一组。
+    func testDetailMatchesTheSharedReferenceValues() {
+        let noise = Renderer.noiseTile
+        XCTAssertEqual(noise.count, 256 * 256)
+        XCTAssertEqual(Array(noise.prefix(16)), [225, 139, 100, 0, 242, 254, 138, 18, 150, 70, 19, 157, 142, 158, 38, 231])
+        XCTAssertEqual(noise.reduce(0) { $0 + Int($1) }, 8_380_824)
+        XCTAssertEqual(noise[256], 185)
+        XCTAssertEqual(noise[256 * 256 - 1], 198)
+
+        XCTAssertEqual(Renderer.detailUnit(forLongSide: 1000), 1)
+        XCTAssertEqual(Renderer.detailUnit(forLongSide: 2048), 1)
+        XCTAssertEqual(Renderer.detailUnit(forLongSide: 4032), 1.96875)
+
+        XCTAssertEqual(Renderer.grainWeight(0.5), 1, accuracy: 1e-6)
+        XCTAssertEqual(Renderer.grainWeight(0.9), 0.488, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.grainWeight(0.25), 0.875, accuracy: 1e-6)
+        XCTAssertEqual(Renderer.grainWeight(0), 0, accuracy: 1e-6)
+
+        XCTAssertEqual(Renderer.vignetteStrength(1, at: CGPoint(x: 1, y: 1)), 1, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.vignetteStrength(1, at: CGPoint(x: 1, y: 0)), 0.35355, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.vignetteStrength(1, at: CGPoint(x: 0.5, y: 0.5)), 0.125, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.vignetteStrength(1, at: CGPoint(x: 2, y: 2)), 1, accuracy: 1e-5, "画框外不再加深")
+        XCTAssertEqual(Renderer.vignette(0.5, strength: 1), 0.14146, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.vignette(1, strength: 1), 0.65, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.vignette(0.8, strength: 1), 0.39784, accuracy: 1e-5)
+        XCTAssertEqual(Renderer.vignette(0.5, strength: 0.35355), 0.3265, accuracy: 1e-4)
+        XCTAssertEqual(Renderer.vignette(0.2, strength: 0.5), 0.06282, accuracy: 1e-5)
+    }
+
+    /// 锐化：一条竖直的边两侧拉开（帐篷核、2.5 倍，参考值 0.275 / 0.725，同安卓），平的地方不动，图边不被外面拉暗。
+    func testSharpenMatchesTheMath() throws {
+        let image = try makeImage(width: 16, height: 6) { x, _ in SIMD3(repeating: x < 8 ? 0.4 : 0.6) }
+        let output = try XCTUnwrap(Renderer.apply(detail(sharpen: 100), to: image))
+        let sharpened = try pixels(of: output)
+        func at(_ x: Int, _ y: Int) -> Float { sharpened[y * 16 + x].x }
+        XCTAssertEqual(at(7, 3), 0.275, accuracy: 2.5 / 255)
+        XCTAssertEqual(at(8, 3), 0.725, accuracy: 2.5 / 255)
+        XCTAssertEqual(at(7, 3), at(7, 0), accuracy: 1 / 255, "上下边和中间一样")
+        XCTAssertEqual(at(2, 3), 0.4, accuracy: 1.5 / 255)
+        XCTAssertEqual(at(13, 3), 0.6, accuracy: 1.5 / 255)
+        XCTAssertEqual(at(0, 0), 0.4, accuracy: 1.5 / 255, "图边不被外面拉暗")
+
+        let half = try pixels(of: XCTUnwrap(Renderer.apply(detail(sharpen: 50), to: image)))
+        XCTAssertEqual(half[3 * 16 + 7].x, 0.3375, accuracy: 2.5 / 255)
+    }
+
+    /// 颗粒：中灰上有起伏（标准差 0.01…0.04），平均不变，三个通道一样（单色）；纯黑不加；噪声固定，同一张图画两次一样。
+    func testGrainAddsMonochromeMidtoneNoise() throws {
+        let gray = try makeImage(width: 128, height: 128) { _, _ in SIMD3(repeating: 0.5) }
+        let output = try pixels(of: XCTUnwrap(Renderer.apply(detail(grain: 100), to: gray)))
+        let values = output.map(\.x)
+        let mean = values.reduce(0, +) / Float(values.count)
+        let deviation = (values.map { ($0 - mean) * ($0 - mean) }.reduce(0, +) / Float(values.count)).squareRoot()
+        XCTAssertEqual(mean, 0.5, accuracy: 0.01)
+        XCTAssertGreaterThan(deviation, 0.01)
+        XCTAssertLessThan(deviation, 0.04)
+        XCTAssertTrue(output.allSatisfy { abs($0.x - $0.y) <= 1 / 255 && abs($0.y - $0.z) <= 1 / 255 }, "单色颗粒")
+
+        let again = try pixels(of: XCTUnwrap(Renderer.apply(detail(grain: 100), to: gray)))
+        XCTAssertEqual(output, again)
+
+        let black = try makeImage(width: 32, height: 32) { _, _ in SIMD3(repeating: 0) }
+        XCTAssertTrue(try pixels(of: XCTUnwrap(Renderer.apply(detail(grain: 100), to: black))).allSatisfy { $0 == SIMD3(repeating: 0) })
+    }
+
+    /// 暗角：中心不动、四角最暗，和数学一致（角上的中灰 ≈ 0.14）。
+    func testVignetteMatchesTheMath() throws {
+        let gray = try makeImage(width: 200, height: 100) { _, _ in SIMD3(repeating: 0.5) }
+        let output = try pixels(of: XCTUnwrap(Renderer.apply(detail(vignette: 100), to: gray)))
+        func at(_ x: Int, _ y: Int) -> Float { output[y * 200 + x].x }
+        let input = Float(128) / 255
+        XCTAssertEqual(at(100, 50), input, accuracy: 1.5 / 255)
+        for (x, y) in [(0, 0), (199, 0), (0, 99), (199, 99), (30, 70)] {
+            let d = CGPoint(x: 2 * (CGFloat(x) + 0.5) / 200 - 1, y: 2 * (CGFloat(y) + 0.5) / 100 - 1)
+            let expected = Renderer.vignette(input, strength: Renderer.vignetteStrength(1, at: d))
+            XCTAssertEqual(at(x, y), expected, accuracy: 2.5 / 255, "(\(x), \(y))")
+        }
+        XCTAssertLessThan(at(0, 0), 0.16)
+    }
+
+    /// 暗角跟着画框（裁剪后的输出范围）走：放大 2 倍只看中间一半时，原图 (0.25, 0.25) 是画框的左上角；左右翻转时原图左上角是画框右上角。
+    func testVignetteFrameFollowsTheCrop() {
+        let size = CGSize(width: 200, height: 100)
+        let full = ImageEditorCanvasView.tellomiVignetteFrame(imageSize: size, transform: .defaultTransform(srcImageSizePixels: size))
+        assertMaps(full, CGPoint(x: 0, y: 0), to: CGPoint(x: -1, y: -1))
+        assertMaps(full, CGPoint(x: 0.5, y: 0.5), to: .zero)
+        assertMaps(full, CGPoint(x: 1, y: 1), to: CGPoint(x: 1, y: 1))
+
+        let zoomed = ImageEditorCanvasView.tellomiVignetteFrame(
+            imageSize: size,
+            transform: ImageEditorTransform(outputSizePixels: size, unitTranslation: .zero, rotationRadians: 0, scaling: 2, isFlipped: false),
+        )
+        assertMaps(zoomed, CGPoint(x: 0.25, y: 0.25), to: CGPoint(x: -1, y: -1))
+        assertMaps(zoomed, CGPoint(x: 0.75, y: 0.75), to: CGPoint(x: 1, y: 1))
+
+        let flipped = ImageEditorCanvasView.tellomiVignetteFrame(
+            imageSize: size,
+            transform: ImageEditorTransform(outputSizePixels: size, unitTranslation: .zero, rotationRadians: 0, scaling: 1, isFlipped: true),
+        )
+        assertMaps(flipped, CGPoint(x: 0, y: 0), to: CGPoint(x: 1, y: -1))
+    }
+
+    /// 发出的图：裁剪（放大 2 倍）后暗角在裁剪后的四角，不在原图四角；画布上的预览跟着裁剪重画，暗角是 0 时裁剪变了不重画。
+    func testOutputVignetteIsCenteredOnTheCrop() throws {
+        let size = CGSize(width: 400, height: 200)
+        let source = try makeImage(width: 400, height: 200) { _, _ in SIMD3(repeating: 0.5) }
+        let model = try ImageEditorModel(normalizedImage: NormalizedImage.forImage(UIImage(cgImage: source)))
+        model.replace(adjustments: detail(vignette: 100))
+        let previewBefore = try XCTUnwrap(ImageEditorCanvasView.tellomiPreviewBaseImage(model: model))
+
+        let zoomed = ImageEditorTransform(outputSizePixels: size, unitTranslation: .zero, rotationRadians: 0, scaling: 2, isFlipped: false)
+        model.replace(transform: zoomed)
+        let output = try XCTUnwrap(ImageEditorCanvasView.renderForOutput(model: model, transform: zoomed)?.cgImage)
+        let outputPixels = try pixels(of: output)
+        let corner = outputPixels[2 * output.width + 2].x
+        let center = try centerPixel(of: output).x
+        XCTAssertLessThan(corner, 0.2, "裁剪后的角上压得最暗")
+        XCTAssertEqual(center, Float(128) / 255, accuracy: 2 / 255)
+
+        let previewAfter = try XCTUnwrap(ImageEditorCanvasView.tellomiPreviewBaseImage(model: model))
+        XCTAssertFalse(previewAfter === previewBefore, "裁剪变了，暗角重画")
+
+        var noVignette = detail(grain: 30)
+        noVignette.exposure = 10
+        model.replace(adjustments: noVignette)
+        let first = try XCTUnwrap(ImageEditorCanvasView.tellomiPreviewBaseImage(model: model))
+        model.replace(transform: .defaultTransform(srcImageSizePixels: size))
+        XCTAssertTrue(try XCTUnwrap(ImageEditorCanvasView.tellomiPreviewBaseImage(model: model)) === first, "没有暗角时裁剪变了不重画")
+    }
+
+    /// 打码的小模糊图：调色和暗角照加，锐化、颗粒不加。
+    func testFaceBlurGetsVignetteButNoGrain() throws {
+        let model = try ImageEditorModel(normalizedImage: NormalizedImage.forImage(UIImage.image(color: .gray, size: CGSize(square: 400))))
+        let blurred = try makeImage(width: 60, height: 60) { _, _ in SIMD3(repeating: 0.5) }
+        model.blurredSourceImage = blurred
+        var adjustments = detail(grain: 100, vignette: 100)
+        adjustments.sharpen = 100
+        model.replace(adjustments: adjustments)
+        let adjustedBlur = try XCTUnwrap(ImageEditorCanvasView.tellomiBlurredBaseImage(model: model, transform: model.currentTransform()))
+        let blurPixels = try pixels(of: adjustedBlur)
+        XCTAssertLessThan(blurPixels[0].x, 0.2, "角上有暗角")
+        let middle = blurPixels[(30 * 60)..<(30 * 60 + 60)].map(\.x)[25..<35]
+        XCTAssertLessThanOrEqual((middle.max() ?? 0) - (middle.min() ?? 0), 2 / 255, "中间没有颗粒")
+    }
+
+    /// 12MP 原尺寸烘焙，锐化 + 颗粒 + 暗角 + 调色都开：耗时记进 PR。
+    func testTwelveMegapixelDetailBakeTime() throws {
+        let image = try makeImage(width: 4032, height: 3024) { x, y in
+            SIMD3(Float(x % 256) / 255, Float(y % 256) / 255, Float((x ^ y) % 256) / 255)
+        }
+        var adjusted = detail(sharpen: 60, grain: 50, vignette: 50)
+        adjusted.exposure = 20
+        _ = Renderer.apply(detail(sharpen: 1, grain: 1, vignette: 1), to: image) // 预热
+        let start = CACurrentMediaTime()
+        let output = Renderer.apply(adjusted, to: image)
+        let elapsedMs = (CACurrentMediaTime() - start) * 1000
+        XCTAssertNotNil(output)
+        print("TELLOMI_E55_12MP_BAKE_MS=\(Int(elapsedMs))")
+        XCTAssertLessThan(elapsedMs, 5000)
+    }
+
+    private func detail(sharpen: Float = 0, grain: Float = 0, vignette: Float = 0) -> TellomiImageAdjustments {
+        var adjustments = TellomiImageAdjustments.default
+        adjustments.sharpen = sharpen
+        adjustments.grain = grain
+        adjustments.vignette = vignette
+        return adjustments
+    }
+
+    private func assertMaps(_ frame: CGAffineTransform, _ unit: CGPoint, to expected: CGPoint, line: UInt = #line) {
+        let mapped = unit.applying(frame)
+        XCTAssertEqual(mapped.x, expected.x, accuracy: 1e-6, line: line)
+        XCTAssertEqual(mapped.y, expected.y, accuracy: 1e-6, line: line)
+    }
+
     // MARK: - Helpers
 
     private let sampleColors: [SIMD3<Float>] = [
@@ -217,6 +637,8 @@ final class TellomiImageAdjustmentsRendererTests: SignalBaseTest {
         fade: Float = 0,
         highlights: Float = 0,
         shadows: Float = 0,
+        tintShadows: UInt32? = nil,
+        tintHighlights: UInt32? = nil,
     ) -> TellomiImageAdjustments {
         var adjustments = TellomiImageAdjustments.default
         adjustments.exposure = exposure
@@ -226,6 +648,8 @@ final class TellomiImageAdjustmentsRendererTests: SignalBaseTest {
         adjustments.fade = fade
         adjustments.highlights = highlights
         adjustments.shadows = shadows
+        adjustments.tintShadows = tintShadows.map { TellomiImageAdjustments.TintColor(rgb: $0) }
+        adjustments.tintHighlights = tintHighlights.map { TellomiImageAdjustments.TintColor(rgb: $0) }
         return adjustments
     }
 

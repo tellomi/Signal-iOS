@@ -5205,8 +5205,35 @@
 /* Image editor: name of the tool that adjusts exposure, contrast, colour and so on. Also its button's accessibility label. */
 "IMAGE_EDITOR_TELLOMI_ADJUST" = "調整";
 
+/* Image editor, adjustments: the blur tab (tilt-shift: blur outside a circle or a band). */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR" = "模糊";
+
+/* Image editor, adjustments, blur: blur everything outside a band. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR_LINEAR" = "線性";
+
+/* Image editor, adjustments, blur: no blur. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR_OFF" = "關";
+
+/* Image editor, adjustments, blur: blur everything outside a circle. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR_RADIAL" = "徑向";
+
 /* Image editor, adjustments: name of the contrast tool. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_CONTRAST" = "對比度";
+
+/* Image editor, adjustments: the curves tab (tone curves for all channels, red, green and blue). */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES" = "曲線";
+
+/* Image editor, adjustments, curves: the curve that changes all three colour channels. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_ALL" = "全部";
+
+/* Image editor, adjustments, curves: the blue channel's curve. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_BLUE" = "藍";
+
+/* Image editor, adjustments, curves: the green channel's curve. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_GREEN" = "綠";
+
+/* Image editor, adjustments, curves: the red channel's curve. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_RED" = "紅";
 
 /* Image editor, adjustments: name of the tool that automatically enhances the photo. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_ENHANCE" = "增強";
@@ -5238,6 +5265,12 @@
 /* Image editor, adjustments: name of the tool that smooths skin. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_SKIN" = "美膚";
 
+/* Image editor, adjustments: the tint tab (colours for shadows and highlights). */
+"IMAGE_EDITOR_TELLOMI_ADJUST_TINT" = "色調";
+
+/* Image editor, adjustments, tint: the swatch that removes the tint. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_TINT_NONE" = "不加";
+
 /* Image editor, adjustments: name of the vignette tool. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_VIGNETTE" = "暗角";
 
@@ -5264,6 +5297,27 @@
 
 /* Accessibility label of the eyedropper button in the image editor's draw and text tools; it lets the user pick a color from the photo. */
 "IMAGE_EDITOR_TELLOMI_EYEDROPPER" = "從圖片中取色";
+
+/* Image editor brush menu: submenu that adds a shape (rectangle, circle, bubble, star, arrow) to the image. */
+"IMAGE_EDITOR_TELLOMI_SHAPES" = "形狀";
+
+/* Image editor shapes menu: a straight arrow shape. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_ARROW" = "箭嘴";
+
+/* Image editor shapes menu: a speech bubble. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_BUBBLE" = "氣泡";
+
+/* Image editor shapes menu: a circle. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_CIRCLE" = "圓形";
+
+/* Image editor shapes menu: toggle that makes new shapes filled instead of outlined. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_FILL" = "填滿";
+
+/* Image editor shapes menu: a rectangle. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_RECTANGLE" = "矩形";
+
+/* Image editor shapes menu: a five-pointed star. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_STAR" = "星形";
 
 /* Accessibility label of the button in the image editor's text tool that cycles the text alignment between left, center and right. */
 "IMAGE_EDITOR_TELLOMI_TEXT_ALIGNMENT" = "文字對齊";

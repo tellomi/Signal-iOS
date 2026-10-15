@@ -5029,8 +5029,35 @@
 /* Image editor: name of the tool that adjusts exposure, contrast, colour and so on. Also its button's accessibility label. */
 "IMAGE_EDITOR_TELLOMI_ADJUST" = "Подешавање";
 
+/* Image editor, adjustments: the blur tab (tilt-shift: blur outside a circle or a band). */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR" = "Замућење";
+
+/* Image editor, adjustments, blur: blur everything outside a band. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR_LINEAR" = "Линеарно";
+
+/* Image editor, adjustments, blur: no blur. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR_OFF" = "Искључено";
+
+/* Image editor, adjustments, blur: blur everything outside a circle. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_BLUR_RADIAL" = "Радијално";
+
 /* Image editor, adjustments: name of the contrast tool. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_CONTRAST" = "Контраст";
+
+/* Image editor, adjustments: the curves tab (tone curves for all channels, red, green and blue). */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES" = "Криве";
+
+/* Image editor, adjustments, curves: the curve that changes all three colour channels. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_ALL" = "Све";
+
+/* Image editor, adjustments, curves: the blue channel's curve. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_BLUE" = "Плава";
+
+/* Image editor, adjustments, curves: the green channel's curve. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_GREEN" = "Зелена";
+
+/* Image editor, adjustments, curves: the red channel's curve. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_CURVES_RED" = "Црвена";
 
 /* Image editor, adjustments: name of the tool that automatically enhances the photo. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_ENHANCE" = "Побољшај";
@@ -5062,6 +5089,12 @@
 /* Image editor, adjustments: name of the tool that smooths skin. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_SKIN" = "Изглађивање коже";
 
+/* Image editor, adjustments: the tint tab (colours for shadows and highlights). */
+"IMAGE_EDITOR_TELLOMI_ADJUST_TINT" = "Нијанса";
+
+/* Image editor, adjustments, tint: the swatch that removes the tint. */
+"IMAGE_EDITOR_TELLOMI_ADJUST_TINT_NONE" = "Без";
+
 /* Image editor, adjustments: name of the vignette tool. */
 "IMAGE_EDITOR_TELLOMI_ADJUST_VIGNETTE" = "Вињета";
 
@@ -5088,6 +5121,27 @@
 
 /* Accessibility label of the eyedropper button in the image editor's draw and text tools; it lets the user pick a color from the photo. */
 "IMAGE_EDITOR_TELLOMI_EYEDROPPER" = "Pick a color from the photo";
+
+/* Image editor brush menu: submenu that adds a shape (rectangle, circle, bubble, star, arrow) to the image. */
+"IMAGE_EDITOR_TELLOMI_SHAPES" = "Shapes";
+
+/* Image editor shapes menu: a straight arrow shape. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_ARROW" = "Arrow";
+
+/* Image editor shapes menu: a speech bubble. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_BUBBLE" = "Bubble";
+
+/* Image editor shapes menu: a circle. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_CIRCLE" = "Circle";
+
+/* Image editor shapes menu: toggle that makes new shapes filled instead of outlined. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_FILL" = "Fill";
+
+/* Image editor shapes menu: a rectangle. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_RECTANGLE" = "Rectangle";
+
+/* Image editor shapes menu: a five-pointed star. */
+"IMAGE_EDITOR_TELLOMI_SHAPE_STAR" = "Star";
 
 /* Accessibility label of the button in the image editor's text tool that cycles the text alignment between left, center and right. */
 "IMAGE_EDITOR_TELLOMI_TEXT_ALIGNMENT" = "Text Alignment";
