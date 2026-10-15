@@ -828,8 +828,8 @@ extension ConversationViewController: LocationPickerDelegate {
     }
 
     public func locationPickerDidCancel() {
+        // Tellomi（P-3）：取消停在聊天页，不再弹回附件 Sheet。
         self.dismiss(animated: true)
-        self.openAttachmentKeyboard()
     }
 }
 
@@ -837,7 +837,7 @@ extension ConversationViewController: LocationPickerDelegate {
 
 extension ConversationViewController: UIDocumentPickerDelegate {
     public func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-        self.openAttachmentKeyboard()
+        // Tellomi（P-3）：取消停在聊天页，不再弹回附件 Sheet。
     }
 
     public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
@@ -942,8 +942,10 @@ extension ConversationViewController: UIDocumentPickerDelegate {
 
 extension ConversationViewController: SendMediaNavDelegate {
     func sendMediaNavDidCancel(_ sendMediaNavigationController: SendMediaNavigationController) {
+        // Tellomi（P-3）：聊天栏的相机键、没有照片权限时的系统选择器，取消都停在聊天页——上游这里会弹回附件面板，
+        // 附件面板改成 Sheet 后就变成「没开过 Sheet，取消相机却冒出 Sheet」。Sheet 里的相机格取消回 Sheet 走的是
+        // `TellomiPickerCameraRoute`，不经过这里。
         self.dismiss(animated: true, completion: nil)
-        self.openAttachmentKeyboard()
     }
 
     func sendMediaNav(

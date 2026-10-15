@@ -43,25 +43,6 @@ extension ConversationViewController {
         }
     }
 
-    /// 上游好几处是先 `dismiss(animated:)` 再马上「回到附件面板」：前一页还在收起时弹不出来，等它收完再弹。
-    func presentTellomiAttachmentSheetWhenPossible(attempt: Int = 0) {
-        guard let presented = presentedViewController else {
-            presentTellomiAttachmentSheet()
-            return
-        }
-        if presented.isBeingDismissed, let coordinator = presented.transitionCoordinator {
-            coordinator.animate(alongsideTransition: nil) { [weak self] _ in
-                self?.presentTellomiAttachmentSheetWhenPossible(attempt: attempt + 1)
-            }
-            return
-        }
-        // 上面还盖着别的页面（不是正在收起）：稍等再看，最多等一秒，不叠着弹
-        guard attempt < 10 else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.presentTellomiAttachmentSheetWhenPossible(attempt: attempt + 1)
-        }
-    }
-
     static let attachmentSheetHalfDetent = UISheetPresentationController.Detent.Identifier("tellomi.attachmentSheet.half")
 
     /// 附件 Sheet 的两档：收起（聊天露在上面、压暗）与全屏；网格滚到顶再往上拖就展开。
@@ -146,7 +127,7 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
     }
 
     /// dock 的「文件」「投票」「联系人」「位置」：同一个 Sheet 里换页（#1121；后三个 2026-10-16，照 Telegram iOS）。
-    /// 「GIF」：先收起 Sheet，再走上游原来的流程（取消了会经 openAttachmentKeyboard 回到 Sheet）。
+    /// 「GIF」：先收起 Sheet，再走上游原来的流程；取消停在聊天页（P-3，同 Telegram 附件菜单先 dismiss 再整屏打开的页面）。
     func photoPicker(_ picker: TellomiPhotoPickerViewController, didSelectDockItem item: TellomiAttachmentDockItem) {
         if let container = picker.parent as? TellomiAttachmentSheetController, tellomiOpenInSheet(item, container: container) {
             return
@@ -166,7 +147,6 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
                 self.contactButtonPressed()
             case .gif:
                 // owner 2026-09-26 临时加回：上游附件面板 GIF 键的同一个处理（didTapGif → gifButtonPressed → showGifPicker）。
-                // 下滑关掉 GIF 选择器经 presentationControllerDidDismiss → openAttachmentKeyboard 回到 Sheet。
                 self.gifButtonPressed()
             }
         }
@@ -174,7 +154,7 @@ extension ConversationViewController: TellomiPhotoPickerDelegate {
 
     /// 没有照片权限时占位里的「照片」：收起 Sheet，再弹上游的系统选择器（不要照片权限就能选、能发）——
     /// 已发布的《系统权限调用清单》TLM-LEGAL-PERMISSIONS-CN 1.0.2 §7.2 承诺的「全部相册」入口。
-    /// 系统选择器取消了经 `sendMediaNavDidCancel → openAttachmentKeyboard` 回到 Sheet；发了照常发（`sendMediaNav(_:didApproveAttachments:)`）。
+    /// 系统选择器取消了停在聊天页（`sendMediaNavDidCancel`，P-3）；发了照常发（`sendMediaNav(_:didApproveAttachments:)`）。
     func photoPickerDidRequestSystemPicker(_ picker: TellomiPhotoPickerViewController) {
         dismiss(animated: true) { [weak self] in
             self?.tellomiChooseFromLibraryWithNativePicker()

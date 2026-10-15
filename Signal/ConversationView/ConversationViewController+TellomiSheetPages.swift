@@ -63,7 +63,7 @@ extension ConversationViewController {
 extension ConversationViewController {
 
     /// 「位置」页：上游的 `LocationPicker`（Apple 地图、搜索、长按选点、当前位置），发出走会话页现有的 `didPickLocation`；
-    /// 发完、✕ 都收起整个 Sheet（上游取消会经 openAttachmentKeyboard 再把 Sheet 弹回来，这里不弹）。同 Telegram iOS `.location`。
+    /// 发完、✕ 都收起整个 Sheet。同 Telegram iOS `.location`。
     /// 地图要拖，Sheet 不许下拉关（✕ 照样能关），进来就展开到全屏。
     func makeTellomiLocationPage() -> UIViewController {
         let adapter = TellomiAttachmentLocationAdapter(conversation: self)
