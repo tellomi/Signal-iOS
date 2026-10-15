@@ -76,31 +76,25 @@ extension ConversationViewController {
         )
         picker.delegate = self
 
-        // #1121：附件 Sheet 是个容器，dock 的「相册」「文件」在同一个 Sheet 里换页
-        let presented: UIViewController
-        if asAttachmentSheet {
-            let container = TellomiAttachmentSheetController(photoPicker: picker) { [weak self] page in
-                guard let self else { return nil }
-                switch page {
-                case .gallery: return nil
-                case .files: return self.makeTellomiFilesPage()
-                case .poll: return self.makeTellomiPollPage()
-                case .contact: return self.makeTellomiContactPage()
-                case .location: return self.makeTellomiLocationPage()
-                }
+        // #1121：附件 Sheet 是个容器，dock 的「相册」「文件」「投票」「联系人」「位置」在同一个 Sheet 里换页
+        let container = TellomiAttachmentSheetController(photoPicker: picker) { [weak self] page in
+            guard let self else { return nil }
+            switch page {
+            case .gallery: return nil
+            case .files: return self.makeTellomiFilesPage()
+            case .poll: return self.makeTellomiPollPage()
+            case .contact: return self.makeTellomiContactPage()
+            case .location: return self.makeTellomiLocationPage()
             }
-            container.modalPresentationStyle = .pageSheet
-            if let sheet = container.sheetPresentationController {
-                Self.configureAttachmentSheet(sheet)
-            }
-            presented = container
-        } else {
-            presented = picker
+        }
+        container.modalPresentationStyle = .pageSheet
+        if let sheet = container.sheetPresentationController {
+            Self.configureAttachmentSheet(sheet)
         }
 
         dismissKeyBoard()
         let presenter = splitViewController ?? self
-        presenter.present(presented, animated: true)
+        presenter.present(container, animated: true)
     }
 }
 

@@ -5,7 +5,6 @@
 
 import CoreServices
 import LibSignalClient
-public import Photos
 public import SignalServiceKit
 public import SignalUI
 import UniformTypeIdentifiers
