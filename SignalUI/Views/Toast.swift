@@ -249,6 +249,8 @@ class ToastView: UIView {
         })
         button.setContentHuggingHorizontalHigh()
         button.setCompressionResistanceHorizontalHigh()
+        // 文字先按一行排开，排不下（到提示条最宽）才折行；不然按钮的抗压更高，文字会被挤成一字一行。
+        label.setContentCompressionResistancePriority(.required - 1, for: .horizontal)
         stackView.addArrangedSubview(button)
         tellomiActionButton = button
     }
