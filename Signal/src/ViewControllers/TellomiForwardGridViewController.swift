@@ -250,6 +250,8 @@ final class TellomiForwardGridViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         presentationTime = Date()
+        // 新功能提示卡「转发给多个聊天」（docs/product/specs/whats-new-cards.md），只在第一次打开时弹。
+        TellomiFeatureIntro.presentFirstDue([.forwardGrid], from: self)
     }
 
     override func viewDidLayoutSubviews() {
