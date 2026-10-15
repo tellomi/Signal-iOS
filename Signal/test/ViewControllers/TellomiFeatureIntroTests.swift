@@ -105,6 +105,15 @@ final class TellomiFeatureIntroTests: SignalBaseTest {
             // 上游的 InteractiveSheet 量完内容再把高度调上去（带动画），等它停下来再拍。
             try await Task.sleep(nanoseconds: 2_000_000_000)
             try save(render(host.window), name: "whats-new-\(intro.rawValue).png", width: host.window.bounds.size.width)
+            // 单测的 TestAppContext 只有 300×400，Sheet 最高约 300 pt，内容在 Sheet 里滚；真机（874 pt 高）放得下。
+            // 再拍一张滚到底的，看下半截（最后几条和「知道了」）。
+            if let sheet = host.root.presentedViewController, let scrollView = Self.firstScrollView(in: sheet.view) {
+                scrollView.layoutIfNeeded()
+                let bottom = max(0, scrollView.contentSize.height - scrollView.bounds.size.height)
+                scrollView.setContentOffset(CGPoint(x: 0, y: bottom), animated: false)
+                try await Task.sleep(nanoseconds: 300_000_000)
+                try save(render(host.window), name: "whats-new-\(intro.rawValue)-bottom.png", width: host.window.bounds.size.width)
+            }
             host.root.dismiss(animated: false)
             host.window.isHidden = true
         }
@@ -136,6 +145,18 @@ final class TellomiFeatureIntroTests: SignalBaseTest {
         while root.presentedViewController != nil, Date() < deadline {
             try? await Task.sleep(nanoseconds: 50_000_000)
         }
+    }
+
+    private static func firstScrollView(in view: UIView) -> UIScrollView? {
+        if let scrollView = view as? UIScrollView {
+            return scrollView
+        }
+        for subview in view.subviews {
+            if let found = firstScrollView(in: subview) {
+                return found
+            }
+        }
+        return nil
     }
 
     private func render(_ window: UIWindow) -> UIImage {
