@@ -297,6 +297,14 @@ public extension CVRootComponentHost {
         return message.tellomiPressTarget(sender: sender, componentView: componentView)
     }
 
+    /// Tellomi（交互审计 A-09）：手指按在正文里的链接 / 提及上（只有消息气泡里才有）。
+    internal func tellomiPressedTextItem(sender: UIGestureRecognizer) -> (label: CVTextLabel, item: CVTextLabel.Item)? {
+        guard let componentView, let message = renderItem?.rootComponent as? CVComponentMessage else {
+            return nil
+        }
+        return message.tellomiPressedTextItem(sender: sender, componentView: componentView)
+    }
+
     /// Tellomi（交互审计 A-15）：拖选改了这条的选中状态，勾跟着变（只有消息气泡参与拖选）。
     internal func tellomiUpdateSelectionViews(selectionState: CVSelectionState, animated: Bool) {
         guard let componentView, let message = renderItem?.rootComponent as? CVComponentMessage else {
