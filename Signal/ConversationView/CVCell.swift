@@ -4,6 +4,7 @@
 //
 
 public import SignalServiceKit
+import SignalUI
 public import UIKit
 
 // TODO: This will be part of our reuse strategy.
