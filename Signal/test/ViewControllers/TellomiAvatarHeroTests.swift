@@ -18,11 +18,19 @@ final class TellomiAvatarHeroTests: SignalBaseTest {
         private let diameter: UInt
         private let origin: CGPoint
 
-        init(diameter: UInt, origin: CGPoint) {
+        let image: UIImage
+
+        init(diameter: UInt, origin: CGPoint, color: UIColor) {
             self.diameter = diameter
             self.origin = origin
             self.avatar = ConversationAvatarView(sizeClass: .customDiameter(diameter), localUserDisplayMode: .asUser)
+            self.image = UIGraphicsImageRenderer(size: CGSize(width: CGFloat(diameter), height: CGFloat(diameter))).image { context in
+                color.setFill()
+                context.fill(CGRect(x: 0, y: 0, width: CGFloat(diameter), height: CGFloat(diameter)))
+            }
             super.init(nibName: nil, bundle: nil)
+            let image = self.image
+            avatar.updateWithSneakyTransactionIfNecessary { $0.dataSource = .asset(avatar: image, badge: nil) }
         }
 
         required init?(coder: NSCoder) { fatalError() }
@@ -47,7 +55,7 @@ final class TellomiAvatarHeroTests: SignalBaseTest {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
         let window = UIWindow(windowScene: scene)
         window.frame = CGRect(x: 0, y: 0, width: 402, height: 874)
-        let chat = Page(diameter: 36, origin: CGPoint(x: 60, y: 70))
+        let chat = Page(diameter: 36, origin: CGPoint(x: 60, y: 70), color: .systemBlue)
         let navigation = UINavigationController(rootViewController: chat)
         window.rootViewController = navigation
         window.isHidden = false
@@ -59,13 +67,14 @@ final class TellomiAvatarHeroTests: SignalBaseTest {
     func testTheSmallAvatarFliesOntoTheBigOneAndHandsOver() throws {
         let host = try makeHost()
         defer { host.window.isHidden = true }
-        let settings = Page(diameter: 112, origin: CGPoint(x: 145, y: 160))
+        let settings = Page(diameter: 112, origin: CGPoint(x: 145, y: 160), color: .systemOrange)
 
         host.navigation.pushViewController(settings, animated: true)
         let coordinator = try XCTUnwrap(host.navigation.transitionCoordinator)
         let flyer = try XCTUnwrap(TellomiAvatarHero.flyAlongPush(from: host.chat.avatar, coordinator: coordinator, reduceMotion: false) { settings.avatar })
 
         XCTAssertTrue(flyer.superview === host.window, "飞的那张在窗口上")
+        XCTAssertTrue((flyer as? UIImageView)?.image === host.chat.avatar.primaryImage, "起飞时是小头像的图")
         XCTAssertEqual(host.chat.avatar.alpha, 0, "顶栏原来的小头像先藏起来")
         XCTAssertEqual(flyer.frame.size.width, 36, accuracy: 0.5, "从小头像的大小起飞")
 
@@ -75,6 +84,7 @@ final class TellomiAvatarHeroTests: SignalBaseTest {
             XCTAssertEqual(flyer.frame.origin.x, target.origin.x, accuracy: 0.5, "落在设置页大头像的位置")
             XCTAssertEqual(flyer.frame.origin.y, target.origin.y, accuracy: 0.5)
             XCTAssertEqual(flyer.frame.size.width, 112, accuracy: 0.5, "放大到大头像的大小")
+            XCTAssertTrue((flyer as? UIImageView)?.image === settings.avatar.primaryImage, "换成大头像自己的图，放大不发虚")
             XCTAssertEqual(settings.avatar.alpha, 1, "推完真头像显出来")
             XCTAssertEqual(host.chat.avatar.alpha, 1, "小头像放回去（返回时照常在）")
             landed.fulfill()
@@ -93,7 +103,7 @@ final class TellomiAvatarHeroTests: SignalBaseTest {
     func testNothingFliesWithReduceMotionOrWithoutAnAnimatedPush() throws {
         let host = try makeHost()
         defer { host.window.isHidden = true }
-        let settings = Page(diameter: 112, origin: CGPoint(x: 145, y: 160))
+        let settings = Page(diameter: 112, origin: CGPoint(x: 145, y: 160), color: .systemOrange)
 
         let windowSubviews = host.window.subviews.count
         XCTAssertNil(TellomiAvatarHero.flyAlongPush(from: host.chat.avatar, coordinator: nil, reduceMotion: false) { settings.avatar }, "没有推入动画")
