@@ -95,7 +95,7 @@ final class TellomiToastTests: SignalBaseTest {
 
         toast.tellomiDragChanged(translation: CGPoint(x: 60, y: 0))
         toast.tellomiDragEnded(translation: CGPoint(x: 60, y: 0), velocity: CGPoint(x: 1500, y: 0), reduceMotion: false)
-        XCTAssertGreaterThan(toast.transform.tx, host.root.view.bounds.width * 0.5, "接着往右飞出去")
+        XCTAssertGreaterThan(toast.transform.tx, host.root.view.bounds.size.width * 0.5, "接着往右飞出去")
         let gone = expectation(description: "飞完拿掉")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             XCTAssertNil(toast.superview)
