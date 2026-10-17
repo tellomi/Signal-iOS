@@ -127,7 +127,7 @@ final class TellomiTransferHandoff {
             ring.removeFromSuperview()
         }
         if !reduceMotion {
-            TellomiMotion.animator(.snap, reduceMotion: false) {
+            TellomiMotion.animator(TellomiMotion.snap, reduceMotion: false) {
                 ring.transform = CGAffineTransform(scaleX: ringExitScale, y: ringExitScale)
             }.startAnimation()
         }
