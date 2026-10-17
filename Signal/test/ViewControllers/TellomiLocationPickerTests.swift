@@ -38,6 +38,20 @@ final class TellomiLocationPickerTests: SignalBaseTest {
         XCTAssertEqual(hosted.finished, 1, "发完收起 Sheet")
     }
 
+    /// 自己的地址不会每次定位更新都反查：离上次反查 > 50 m 才再查。
+    @MainActor
+    func testCurrentAddressIsNotLookedUpOnEveryUpdate() async throws {
+        let search = FakePlaceSearch()
+        let hosted = host(search: search)
+        defer { hosted.tearDown() }
+        for offset in [0.0, 0.00005, 0.0001, 0.00015] {
+            hosted.source.update(CLLocation(latitude: home.latitude + offset, longitude: home.longitude))
+        }
+        try await waitUntil { search.addressCalls.count == 1 }
+        hosted.source.update(CLLocation(latitude: home.latitude + 0.001, longitude: home.longitude))
+        try await waitUntil { search.addressCalls.count == 2 }
+    }
+
     /// 还没有定位：「正在定位…」，点不了。
     @MainActor
     func testWithoutAFixTheRowSaysLocatingAndIsDisabled() {

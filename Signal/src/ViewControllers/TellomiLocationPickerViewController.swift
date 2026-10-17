@@ -68,6 +68,7 @@ final class TellomiLocationPickerViewController: OWSViewController {
     private var isResolvingPickedPlace = false
     /// 自己位置反查出的地址（发「当前位置」时带上；没查到也照样能发）。
     private var currentPlace: TellomiPlace?
+    private var currentPlaceRequestedAt: CLLocation?
     private var lastPlacesCenter: CLLocation?
     private var hasCenteredOnUser = false
     fileprivate var isUserMovingMap = false
@@ -291,7 +292,9 @@ final class TellomiLocationPickerViewController: OWSViewController {
             } else {
                 loadPlaces(around: location.coordinate)
             }
-            if currentPlace == nil || currentPlace.map({ CLLocation(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude).distance(from: location) > 50 }) == true {
+            // 自己的地址：第一次、或者离上次反查的地方 > 50 m 才再查（定位约每秒更新一次，CLGeocoder 查得太勤会被限流）
+            if currentPlaceRequestedAt.map({ location.distance(from: $0) > 50 }) ?? true {
+                currentPlaceRequestedAt = location
                 resolveCurrentPlace(location.coordinate)
             }
         }
