@@ -276,29 +276,29 @@ public final class TellomiLinkClassifier: @unchecked Sendable {
         guard !needle.isEmpty else {
             return body
         }
+        // 每一处都换（后面紧跟的是不是链接的结尾由 rust/links 判，`b23.tv/abcdef` 那一处它不认，后面的 `b23.tv/abc` 还在）
+        var replaced = [Range<String.Index>]()
         var searchFrom = body.startIndex
-        var isClaimed: Bool?
         while let found = body.range(of: needle, range: searchFrom..<body.endIndex) {
             searchFrom = body.index(after: found.lowerBound)
             let before = body[..<found.lowerBound]
-            let replaced: Range<String.Index>
             if let http = before.range(of: "http://", options: [.backwards, .anchored, .caseInsensitive]) {
-                replaced = http.lowerBound..<found.upperBound
+                replaced.append(http.lowerBound..<found.upperBound)
             } else if let last = before.unicodeScalars.last, isPartOfLink(last) {
                 // 前面紧挨着字母数字或 URL 里的标点：是另一条更长的链接（`evil-b23.tv`、`https://x/b23.tv`）或邮箱的一段
                 continue
             } else {
-                replaced = found
+                replaced.append(found)
             }
-            if isClaimed == nil {
-                isClaimed = claims(previewUrl)
-            }
-            guard isClaimed == true else {
-                return body
-            }
-            return body.replacingCharacters(in: replaced, with: "https://" + needle)
         }
-        return body
+        guard !replaced.isEmpty, claims(previewUrl) else {
+            return body
+        }
+        var result = body
+        for range in replaced.reversed() {
+            result.replaceSubrange(range, with: "https://" + needle)
+        }
+        return result
     }
 
     /// 同 rust/links `url_appears_in_body` 的「前面不能是」：ASCII 字母数字和 `-._~:/?#@$&*+=%`。

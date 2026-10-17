@@ -197,6 +197,7 @@ final class TellomiLinkClassifierTest: XCTestCase {
         XCTAssertEqual(upgraded("（b23.tv/abc）"), "（https://b23.tv/abc）")
         XCTAssertEqual(upgraded("b23.tv/abc", "https://b23.tv/abc/"), "https://b23.tv/abc", "同 rust/links：预览末尾的一个「/」正文里可以没有")
         XCTAssertEqual(upgraded("evil-b23.tv/abc 和 b23.tv/abc"), "evil-b23.tv/abc 和 https://b23.tv/abc", "跳过是别的链接一段的那一处")
+        XCTAssertEqual(upgraded("b23.tv/abcdef 和 b23.tv/abc"), "https://b23.tv/abcdef 和 https://b23.tv/abc", "每一处都换，哪一处是链接结尾由 rust/links 判")
     }
 
     /// 不换的：注册表不认领；已经是 https；正文里那一处其实是另一条链接、邮箱的一段；预览本身不是 https。
