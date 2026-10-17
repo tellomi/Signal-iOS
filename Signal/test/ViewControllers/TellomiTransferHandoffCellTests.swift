@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //
 
-import SignalServiceKit
-import SignalUI
 import UIKit
 import XCTest
 
 @testable import Signal
+@testable import SignalServiceKit
+@testable import SignalUI
 
 /// Tellomi（交互审计 A-13 iOS 半边）：走会话页同一条渲染路径（`CVLoader.buildStandaloneRenderItem` + `CVCellView`，
 /// 同 `TellomiLocationBubbleTests`）。本机刚发出的一张图还在上传（有环）→ 传完，格子重建：新格子没有自己的环，
@@ -290,7 +290,7 @@ final class TellomiTransferHandoffCellTests: XCTestCase {
     }
 
     private static func hasImage(in view: UIView) -> Bool {
-        if let imageView = view as? UIImageView, imageView.image != nil, imageView.bounds.width > 100 {
+        if let imageView = view as? UIImageView, imageView.image != nil, imageView.bounds.size.width > 100 {
             return true
         }
         return view.subviews.contains { hasImage(in: $0) }

@@ -170,15 +170,21 @@ final class TellomiTransferHandoffTests: XCTestCase {
 
     // MARK: - 原图什么时候到
 
-    private final class FakeAdapter: MediaViewAdapter {
-        let imageView = UIImageView()
-        var mediaView: UIView { imageView }
-        var isLoaded: Bool { imageView.image != nil }
+    private final class FakeAdapter: MediaViewAdapter, @unchecked Sendable {
+        private let view: UIView
+        private var loaded = false
+        @MainActor
+        init() {
+            view = UIView()
+        }
+
+        var mediaView: UIView { view }
+        var isLoaded: Bool { loaded }
         let cacheKey: CVMediaCache.CacheKey = .blurHash("tellomi-test-\(UUID().uuidString)")
         let shouldBeRenderedByYY = false
-        func applyMedia(_ media: AnyObject) { imageView.image = media as? UIImage }
-        func loadMedia() async throws -> AnyObject { UIImage() }
-        func unloadMedia() { imageView.image = nil }
+        func applyMedia(_ media: AnyObject) { loaded = true }
+        func loadMedia() async throws -> AnyObject { NSObject() }
+        func unloadMedia() { loaded = false }
     }
 
     func testTheOwnerHearsOnceWhenTheImageIsUp() {
