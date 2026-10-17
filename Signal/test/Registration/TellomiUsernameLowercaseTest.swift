@@ -10,7 +10,11 @@ import XCTest
 import SignalUI
 
 /// Tellomi（ADR-0066 §6.1b，owner 2026-09-27）：用户名一律小写——显示、保留 / hash / 链接用小写；别的非法字符照旧报错、不删。
-final class TellomiUsernameLowercaseTest: XCTestCase {
+///
+/// 用 `SignalBaseTest`（2026-10-17）：这里有用例把输入框放进窗口，UIKit 这时会问同一个窗口场景里前面用例留下的视图控制器
+/// （例如选图测试弹过的 `AttachmentApprovalViewController`）要不要藏状态栏，它会读 `DependenciesBridge.shared`；
+/// 没搭依赖时那里 `owsFail`，整个测试进程崩掉，这条用例按顺序时好时坏。
+final class TellomiUsernameLowercaseTest: SignalBaseTest {
 
     // MARK: 显示
 
