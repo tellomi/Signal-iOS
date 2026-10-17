@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7584EEFDAE1CD7B812FD2D4E /* TellomiReactionPillsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A4E1ED6860037E9895BBB6 /* TellomiReactionPillsTest.swift */; };
 		AC119A6289A1333C0B1D18D8 /* TellomiReactionBurst.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03522613C079A545C952E703 /* TellomiReactionBurst.swift */; };
 		D98FD2341C126A5F84A8338B /* TellomiReactionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F309B2B2F331098F485957 /* TellomiReactionPanel.swift */; };
 		E8981A997A8652D2C38AED29 /* TellomiReactionBarTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 509F00653629A8EA63754812 /* TellomiReactionBarTest.swift */; };
@@ -4501,6 +4502,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F1A4E1ED6860037E9895BBB6 /* TellomiReactionPillsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReactionPillsTest.swift; sourceTree = "<group>"; };
 		03522613C079A545C952E703 /* TellomiReactionBurst.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReactionBurst.swift; sourceTree = "<group>"; };
 		84F309B2B2F331098F485957 /* TellomiReactionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReactionPanel.swift; sourceTree = "<group>"; };
 		509F00653629A8EA63754812 /* TellomiReactionBarTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TellomiReactionBarTest.swift; sourceTree = "<group>"; };
@@ -10270,6 +10272,7 @@
 				B6A2F4D1C9E3A0875D2B9F01 /* TellomiOfficialBadgeContrastTests.swift */,
 				5042EAA2287F96FB00C9B19F /* VisibleBadgeResolverTest.swift */,
 				BFE84D06E4F426E60014D1ED /* ReactionFlyInTest.swift */,
+				F1A4E1ED6860037E9895BBB6 /* TellomiReactionPillsTest.swift */,
 				6818A248C64A7149D4D923BE /* TellomiContextMenuActionTimingTest.swift */,
 				509F00653629A8EA63754812 /* TellomiReactionBarTest.swift */,
 				40D6A00E5CE25181E30FF0C0 /* TellomiConversationItemAnimationTest.swift */,
@@ -20253,6 +20256,7 @@
 				5042EAA3287F96FB00C9B19F /* VisibleBadgeResolverTest.swift in Sources */,
 				17E6049028A17BD300127680 /* ZkGroupIntegrationTest.swift in Sources */,
 				54F9459CBCF03774D85E776D /* ReactionFlyInTest.swift in Sources */,
+				7584EEFDAE1CD7B812FD2D4E /* TellomiReactionPillsTest.swift in Sources */,
 				83805FB4360A13FAA64023D2 /* TellomiContextMenuActionTimingTest.swift in Sources */,
 				E8981A997A8652D2C38AED29 /* TellomiReactionBarTest.swift in Sources */,
 				7DE3BB5B930D647AAE1D924A /* TellomiConversationItemAnimationTest.swift in Sources */,
