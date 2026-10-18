@@ -13,6 +13,8 @@ import Testing
 @MainActor
 struct TellomiPinsForMeTest {
     private let db = InMemoryDB()
+    /// The real store reads threads through the model cache, which needs the whole app environment.
+    private let threadStore = MockThreadStore()
     private let pinnedMessageManager: PinnedMessageManager
     private let author = Aci.randomForTesting()
 
@@ -22,7 +24,7 @@ struct TellomiPinsForMeTest {
             interactionStore: InteractionStoreImpl(),
             accountManager: MockTSAccountManager(),
             db: db,
-            threadStore: ThreadStoreImpl(),
+            threadStore: threadStore,
             dateProvider: Date.provider,
             expirationJob: PinnedMessageExpirationJob(dateProvider: { Date() }, db: db),
         )
@@ -178,6 +180,7 @@ struct TellomiPinsForMeTest {
     private func insertThreadAndMessage() -> (thread: TSThread, interactionId: Int64, threadId: Int64) {
         db.write { tx in
             let thread = TSThread(uniqueId: UUID().uuidString)
+            threadStore.insertThread(thread) // gives it the next row id, which the insert below keeps
             try! thread.insert(tx.database)
             let message = TSIncomingMessageBuilder.withDefaultValues(thread: thread, timestamp: 1000, authorAci: author).build()
             try! message.asRecord().insert(tx.database)
