@@ -31,8 +31,11 @@ extension ConversationViewController {
         return tellomiPinnedBarPins
     }
 
-    /// 屏幕上最新那条消息的位置；还没有就当在最底下。
+    /// 屏幕上最新那条消息的位置；还没有（第一批消息还没上屏）就当在最底下。上游也只在上屏以后才读可见的行。
     private var tellomiNewestVisibleSortId: UInt64 {
+        guard hasAppearedAndHasAppliedFirstLoad else {
+            return .max
+        }
         let sortId = lastVisibleSortId
         return sortId == 0 ? .max : sortId
     }
@@ -48,8 +51,11 @@ extension ConversationViewController {
         return TellomiPinnedBar.pinFor(pins.map(\.sortId), newestVisible: tellomiNewestVisibleSortId)
     }
 
-    /// 滚动时调（`scrollViewDidScroll`）：置顶栏换到和屏幕上的消息对应的那条；用户自己拖动时放开点过定住的那条。
+    /// 滚动、消息上屏、会话页出现时调：置顶栏换到和屏幕上的消息对应的那条；用户自己拖动时放开点过定住的那条。
     func tellomiTrackPinnedBar() {
+        guard hasAppearedAndHasAppliedFirstLoad else {
+            return
+        }
         let pins = tellomiPinnedBarPins
         guard pins.count > 1 else {
             return
