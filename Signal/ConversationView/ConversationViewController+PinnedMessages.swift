@@ -302,7 +302,8 @@ extension ConversationViewController: PinnedMessageInteractionManagerDelegate {
             messageToUnpin = pins[pinnedMessageIndex]
         }
 
-        handleActionUnpin(message: messageToUnpin, modalDelegate: modalDelegate ?? self)
+        // Tellomi (pinned-messages.md 3.6): with "Message unpinned · Undo", as from the bar and the message menu.
+        tellomiUnpinWithUndo(messageToUnpin)
     }
 
     func presentSeeAllMessages() {
