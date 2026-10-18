@@ -4,7 +4,7 @@
 //
 
 import Foundation
-public import LibSignalClient
+import LibSignalClient
 
 /// Tellomi（ADR-0081 §4.4，pinned-messages.md 3.2）：置顶系统消息的那一句——「××置顶了«前 15 个字…»」、「你置顶了一张图片」，
 /// 被置顶的那条找不到（删了）就是「××置顶了一条消息」。会话里的系统消息、聊天列表的预览、通知都是这一句（都走
