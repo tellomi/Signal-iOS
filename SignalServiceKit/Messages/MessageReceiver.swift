@@ -1141,7 +1141,7 @@ public final class MessageReceiver {
 
         // Tellomi (ADR-0081 §4.3): a pin / unpin "for me only" only ever goes to its sender's own devices; one that reaches anyone
         // else is dropped whole — no pin, no "pinned a message", no change to the chat's timer.
-        if false && TellomiPinsForMe.isSelfOnly(dataMessage) {
+        if TellomiPinsForMe.isSelfOnly(dataMessage) {
             Logger.warn("Dropping a pin for the sender only that reached someone else. \(messageDescription)")
             return nil
         }
