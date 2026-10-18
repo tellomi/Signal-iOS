@@ -612,7 +612,9 @@ public class CVLoadCoordinator: NSObject {
             guard viewState.selectionAnimationState != .animating else {
                 return false
             }
-            if let interaction = viewState.collectionViewActiveContextMenuInteraction, interaction.contextMenuVisible {
+            // Tellomi（交互审计 A-07 起飞时机）：选了回应以后菜单收起期间也落（这条回应要马上画出来，表情好起飞）；
+            // 真消息由会话页藏到菜单收完（tellomiKeepMessageHiddenWhileMenuCloses）。
+            if let interaction = viewState.collectionViewActiveContextMenuInteraction, interaction.contextMenuVisible, !interaction.tellomiReactionChosen {
                 return false
             }
             guard !delegate.areCellsAnimating else {

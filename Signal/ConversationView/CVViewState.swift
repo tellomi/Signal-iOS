@@ -109,6 +109,8 @@ public class CVViewState: NSObject {
     var pendingReactionFlyIn: ReactionFlyIn?
     /// Tellomi：双击回应以后、回应画出来之前（消息、表情、什么时候双击的）。
     var tellomiPendingQuickReactionBurst: (messageUniqueId: String, emoji: String, time: Date)?
+    /// Tellomi（交互审计 A-07 起飞时机）：菜单收起期间落了 load、换到新格子的那条消息的气泡和回应区，先藏着，菜单收完放出来。
+    var tellomiViewsHiddenWhileMenuCloses: [UIView] = []
     /// Tellomi（M9 发送动画）：还在等、还在飞的那几次发送（连着发时不止一个）。
     var tellomiSendFlights: [TellomiSendFlight] = []
     public var focusedMessageId: String?

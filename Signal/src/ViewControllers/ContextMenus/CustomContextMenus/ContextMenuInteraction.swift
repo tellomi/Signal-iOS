@@ -353,6 +353,15 @@ public class ChatHistoryContextMenuInteraction: ContextMenuInteraction {
         return contextMenuController != nil
     }
 
+    /// Tellomi（交互审计 A-07 起飞时机）：在回应条上选了回应。从这一刻起菜单收起期间聊天列表照常落 load（这条回应马上画出来，
+    /// 表情好起飞），真消息由会话页藏到收完；见 `ConversationViewController.tellomiKeepMessageHiddenWhileMenuCloses`。
+    public var tellomiReactionChosen = false
+
+    /// Tellomi（A-07 起飞时机）：菜单收起时预览和回应区快照改飞向这两个真视图此刻的位置（见 `ContextMenuController`）。
+    public func tellomiRetargetDismissal(previewTo previewTarget: UIView?, auxiliaryTo auxiliaryTarget: UIView?) {
+        contextMenuController?.tellomiRetargetDismissal(previewTo: previewTarget, auxiliaryTo: auxiliaryTarget)
+    }
+
     /// Default initializer
     /// - Parameters:
     ///   - delegate: ContextMenuInteraction delegate

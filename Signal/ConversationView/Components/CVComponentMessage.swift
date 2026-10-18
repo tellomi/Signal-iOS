@@ -2870,6 +2870,12 @@ public class CVComponentMessage: CVComponentBase, CVRootComponent {
             reactionsSwipeToReplyWrapper
         }
 
+        /// Tellomi（交互审计 A-07 起飞时机）：长按菜单盖住的那两个视图——气泡和回应区，和 [contextMenuContentView] /
+        /// [contextMenuAuxiliaryContentView] 是同一对，只是不顺手打开气泡颜色的隐式动画（菜单收起期间新格子要藏它们时用）。
+        public var tellomiContextMenuCoveredViews: (content: UIView, auxiliary: UIView) {
+            (contentViewSwipeToReplyWrapper.subview ?? contentViewSwipeToReplyWrapper, reactionsSwipeToReplyWrapper)
+        }
+
         public func contextMenuPresentationWillBegin() {
             avatarView.isHidden = true
         }

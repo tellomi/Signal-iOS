@@ -411,6 +411,10 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
 
     private var animationState: ContextMenuAnimationState = .none
     private var animateOutPreviewFrame = CGRect.zero
+    /// Tellomi（交互审计 A-07 起飞时机）：收起开始的时刻，和收起时预览、回应区快照该飞向的真视图（见 [tellomiRetargetDismissal]）。
+    private var tellomiAnimateOutStart: CFTimeInterval?
+    private weak var tellomiPreviewTarget: UIView?
+    private weak var tellomiAuxiliaryTarget: UIView?
     private let animationDuration = 0.4
     private let springDamping: CGFloat = 0.8
     // Tellomi（tellomi/tellomi 交互审计 A-06）：收起从 0.4 s 缩到 0.25 s——菜单项要等收起播完才执行，
@@ -657,6 +661,7 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
 
         let dispatchGroup = DispatchGroup()
         animationState = .animateOut
+        tellomiAnimateOutStart = CACurrentMediaTime()
 
         dispatchGroup.enter()
         UIView.animate(withDuration: animateOutDuration) {
@@ -675,7 +680,7 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
             dispatchGroup.leave()
         }
 
-        let finalFrame = previewSourceFrame()
+        let finalFrame = tellomiFrame(of: tellomiPreviewTarget, size: previewView.frame.size) ?? previewSourceFrame()
         let initialFrame = previewView.frame
         animateOutPreviewFrame = initialFrame
         let shiftPreview = finalFrame != initialFrame
@@ -700,7 +705,10 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
                         }
                     }
                     self.previewView?.frame = finalFrame
-                    self.auxiliaryPreviewView?.frame = self.auxPreviewSourceFrame()
+                    self.auxiliaryPreviewView?.frame = self.tellomiFrame(
+                        of: self.tellomiAuxiliaryTarget,
+                        size: self.auxiliaryPreviewView?.frame.size,
+                    ) ?? self.auxPreviewSourceFrame()
                 },
                 completion: { _ in
                     dispatchGroup.leave()
@@ -722,6 +730,41 @@ class ContextMenuController: OWSViewController, ContextMenuViewDelegate, UIGestu
             self.animationState = .none
             completion()
         }
+    }
+
+    /// Tellomi（交互审计 A-07 起飞时机，Telegram 两端一选回应就飞、和菜单收起同时）：选了回应以后，菜单收起期间聊天列表就落了
+    /// 这条回应，真消息可能被新胶囊挤到了别处，或者换了一个格子（`reloadItems` 会给它新的 cell）。预览和回应区的快照改飞向
+    /// [previewTarget] / [auxiliaryTarget] 此刻的位置：正在收的，再叠一段动画到新位置、和收起同时结束（UIKit 的动画是叠加的，
+    /// 原来那段照常跑完、照常收尾）；还没开始收的，开始时直接用它们。大小不变：快照还是长按那一刻的样子。
+    func tellomiRetargetDismissal(previewTo previewTarget: UIView?, auxiliaryTo auxiliaryTarget: UIView?) {
+        tellomiPreviewTarget = previewTarget ?? tellomiPreviewTarget
+        tellomiAuxiliaryTarget = auxiliaryTarget ?? tellomiAuxiliaryTarget
+        guard animationState == .animateOut, let start = tellomiAnimateOutStart else {
+            return
+        }
+        let previewFrame = tellomiFrame(of: previewTarget, size: previewView?.frame.size)
+        let auxiliaryFrame = tellomiFrame(of: auxiliaryTarget, size: auxiliaryPreviewView?.frame.size)
+        let remaining = max(0.05, animateOutDuration - (CACurrentMediaTime() - start))
+        UIView.animate(withDuration: remaining, delay: 0, options: [.curveEaseOut]) {
+            if let previewFrame, self.previewView?.frame != previewFrame {
+                self.previewView?.frame = previewFrame
+            }
+            if let auxiliaryFrame, self.auxiliaryPreviewView?.frame != auxiliaryFrame {
+                self.auxiliaryPreviewView?.frame = auxiliaryFrame
+            }
+        }
+    }
+
+    /// [target] 在菜单坐标里的位置，大小换成 [size]（以它的中心为准）。不在视图树里就没有。
+    private func tellomiFrame(of target: UIView?, size: CGSize?) -> CGRect? {
+        guard let target, let superview = target.superview, target.window != nil else {
+            return nil
+        }
+        let frame = view.convert(target.frame, from: superview)
+        guard let size else {
+            return frame
+        }
+        return CGRect(x: frame.midX - size.width / 2, y: frame.midY - size.height / 2, width: size.width, height: size.height)
     }
 
     // MARK: Gesture Recognizer Support
