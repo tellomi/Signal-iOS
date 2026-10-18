@@ -100,9 +100,9 @@ class TellomiPinForSelfOnlyReceiveTest: SSKBaseTest {
         dataMessage.setTimestamp(timestamp)
         dataMessage.setBody("Pin me")
         let content = SSKProtoContent.builder()
-        content.setDataMessage(dataMessage.buildInfallibly())
+        content.setDataMessage(try! dataMessage.build())
 
-        try await deliver(content.buildInfallibly(), from: bobClient)
+        try await deliver(try! content.build(), from: bobClient)
 
         return try SSKEnvironment.shared.databaseStorageRef.read { tx in
             let message = try XCTUnwrap(try InteractionFinder.fetchInteractions(timestamp: timestamp, transaction: tx).first as? TSIncomingMessage)
@@ -132,13 +132,13 @@ class TellomiPinForSelfOnlyReceiveTest: SSKBaseTest {
             tellomi.setPinForSelfOnly(true)
             dataMessage.setTellomi(tellomi.buildInfallibly())
         }
-        return dataMessage.buildInfallibly()
+        return try! dataMessage.build()
     }
 
     private func content(pinOf target: Target, forSelfOnly: Bool) -> SSKProtoContent {
         let content = SSKProtoContent.builder()
         content.setDataMessage(pinMessage(of: target, forSelfOnly: forSelfOnly))
-        return content.buildInfallibly()
+        return try! content.build()
     }
 
     /// The "sent" transcript my linked device sends for a pin in my chat with Bob.
@@ -149,10 +149,10 @@ class TellomiPinForSelfOnlyReceiveTest: SSKBaseTest {
         sent.setDestinationServiceIDBinary(bobClient.serviceId.serviceIdBinary)
         sent.setMessage(dataMessage)
         let syncMessage = SSKProtoSyncMessage.builder()
-        syncMessage.setSent(sent.buildInfallibly())
+        syncMessage.setSent(try! sent.build())
         let content = SSKProtoContent.builder()
-        content.setSyncMessage(syncMessage.buildInfallibly())
-        return content.buildInfallibly()
+        content.setSyncMessage(try! syncMessage.build())
+        return try! content.build()
     }
 
     private func deliver(_ content: SSKProtoContent, from sender: TestSignalClient) async throws {

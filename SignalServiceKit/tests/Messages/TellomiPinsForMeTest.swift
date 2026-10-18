@@ -231,6 +231,6 @@ struct TellomiPinsForMeTest {
             tellomi.setPinForSelfOnly(true)
             builder.setTellomi(tellomi.buildInfallibly())
         }
-        return builder.buildInfallibly()
+        return try! builder.build()
     }
 }
