@@ -124,6 +124,8 @@ public class ChatListInfo {
 
     public let lastMessageDate: Date?
     public let lastMessageOutgoingStatus: MessageReceiptStatus?
+    /// Tellomi（#1184）：最后一条是发送中的文字消息时，转圈到这个时间（毫秒）才露出来。
+    public let tellomiSendingIndicatorRevealAtMs: UInt64?
     public let snippet: CLVSnippet
 
     public init(
@@ -156,6 +158,13 @@ public class ChatListInfo {
                     transaction: transaction,
                 )
             }
+        }()
+
+        self.tellomiSendingIndicatorRevealAtMs = { () -> UInt64? in
+            guard let outgoingMessage = lastMessageForInbox as? TSOutgoingMessage, outgoingMessage.messageState == .sending else {
+                return nil
+            }
+            return MessageRecipientStatusUtils.tellomiSendingIndicatorRevealTimestamp(outgoingMessage: outgoingMessage, transaction: transaction)
         }()
 
         self.snippet = Self.buildCLVSnippet(
